@@ -2,7 +2,7 @@
 
 Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platformun sunum sürümü. `app/` arayüzü, `app/api/` oturum ve ilan API'lerini, `db/schema.ts` mevcut Sites veritabanı şemasını içerir. `postgres/schema.sql` taşınabilir PostgreSQL hedef şemasıdır.
 
-Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça için yazı yönü sağdan sola çevrilir. Kullanıcıların yazdığı ilan başlığı ve açıklama, ayrıca çevrilmedikçe girildiği dilde görünür.
+Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça için yazı yönü sağdan sola çevrilir. İlan verirken diğer beş dil için başlık ve açıklama isteğe bağlı girilebilir; bu metinler ilan kartında ve detayında seçilen dile göre gösterilir. Çeviri girilmediyse ana ilan metni gösterilir. Otomatik makine çevirisi yapılmaz.
 
 ## Çalıştırma
 
@@ -15,7 +15,7 @@ Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve
 - Yönetici hesabıyla `/api/export` tüm yapılandırılmış verileri JSON olarak indirir. Şifre özetleri ve oturum tokenları bu aktarımda yer almaz. Örnek ilanlar ayrıca `lib/listings.ts` içinde kaynak olarak saklanır.
 - Büyük veri kümeleri için `/api/export?table=listings&offset=0` gibi uç noktalar her çağrıda 500 kayıt döndürür. `nextOffset` boşalana kadar devam edilir. `users`, `oauthAccounts`, `favorites`, `messages`, `packages`, `purchases` ve `countrySettings` tabloları da aynı şekilde alınabilir.
 - Fotoğraf adresleri ilan kayıtlarında sıralı olarak bulunur. R2 dosyalarının ayrıca obje depolama aracıyla indirilmesi gerekir. Başka bir sisteme geçerken fotoğraf URL'leri hedef depolama adreslerine dönüştürülür.
-- `postgres/schema.sql` aynı tablo kimliklerini ve alanları PostgreSQL'e taşımak için başlangıç şemasıdır. JSON içindeki `images` ve `amenities` alanları PostgreSQL `jsonb` olarak tasarlanmıştır.
+- `postgres/schema.sql` aynı tablo kimliklerini ve alanları PostgreSQL'e taşımak için başlangıç şemasıdır. JSON içindeki `images`, `amenities` ve `translations` alanları PostgreSQL `jsonb` olarak tasarlanmıştır.
 - Büyük veri hacminde konum, fiyat, tür ve alan filtreleri için kısmi ve bileşik indeksler hazırdır. Harita araması büyürse PostGIS `geography(Point,4326)` sütunu ve GiST indeksi eklenebilir.
 - Katalog API'si 12 ilanlık sayfalar döndürür. `scripts/benchmark_db.py`, 1.000 hesap ve 10.000 örnek ilanla yerel SQL indeks sorgusunu ölçer; bu sonuç gerçek ağ trafiği altında yük testi yerine geçmez.
 - Giriş denemeleri IP ve e-posta birleşimine göre 15 dakikalık pencerede sınırlandırılır. Oturum belirteçlerinin yalnızca SHA-256 özeti veritabanında tutulur; tarayıcı oturumu HttpOnly, Secure ve SameSite çerezindedir.

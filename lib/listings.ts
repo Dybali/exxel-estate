@@ -7,6 +7,7 @@ export type Listing = {
   rooms?: string; bedrooms?: number; bathrooms?: number; buildingAge?: number;
   floor?: number; totalFloors?: number; heating?: string; furnished?: boolean;
   amenities: string[]; images: string[]; featured?: boolean; status?: string;
+  translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "ru", { title: string; description: string }>>;
   ownerName?: string; ownerId?: string; createdAt?: string; source?: "demo" | "user";
 };
 

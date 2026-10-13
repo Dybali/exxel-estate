@@ -47,9 +47,21 @@ export async function POST(request:Request) {
   const amenities=Array.isArray(data.amenities)?data.amenities.filter((x):x is string=>typeof x==="string"&&AMENITIES.includes(x)).slice(0,20):[];
   const images=Array.isArray(data.images)?data.images.filter((x):x is string=>typeof x==="string"&&x.startsWith("/api/media/")).slice(0,30):[];
   if(images.length===0) return error("En az bir fotoğraf yükleyin.");
+  const translations:Record<string,{title:string;description:string}>={};
+  if(data.translations && typeof data.translations==="object" && !Array.isArray(data.translations)) {
+    for(const locale of ["de","fr","en","ar","ru"]){
+      const entry=(data.translations as Record<string,unknown>)[locale];
+      if(!entry || typeof entry!=="object" || Array.isArray(entry)) continue;
+      const translatedTitle=str((entry as Record<string,unknown>).title,150);
+      const translatedDescription=str((entry as Record<string,unknown>).description,5000);
+      if(!translatedTitle && !translatedDescription) continue;
+      if(translatedTitle.length<12 || translatedDescription.length<30) return error("Çeviri başlığı ve açıklaması eksiksiz olmalıdır.");
+      translations[locale]={title:translatedTitle,description:translatedDescription};
+    }
+  }
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
-  await db().prepare("INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,status,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,str(data.neighborhood,70)||null,optional(data.latitude),optional(data.longitude),grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),"pending",0,createdAt,createdAt).run();
+  await db().prepare("INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,status,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,str(data.neighborhood,70)||null,optional(data.latitude),optional(data.longitude),grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),"pending",0,createdAt,createdAt).run();
   return ok({id,status:"pending"},{status:201});
 }

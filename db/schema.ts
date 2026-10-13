@@ -71,6 +71,7 @@ export const listings = sqliteTable("listings", {
   furnished: integer("furnished", { mode: "boolean" }).notNull().default(false),
   amenities: text("amenities").notNull().default("[]"),
   images: text("images").notNull().default("[]"),
+  translations: text("translations").notNull().default("{}"),
   status: text("status").notNull().default("pending"),
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull(),

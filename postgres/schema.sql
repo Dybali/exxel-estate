@@ -67,6 +67,7 @@ CREATE TABLE listings (
   furnished boolean NOT NULL DEFAULT false,
   amenities jsonb NOT NULL DEFAULT '[]'::jsonb,
   images jsonb NOT NULL DEFAULT '[]'::jsonb,
+  translations jsonb NOT NULL DEFAULT '{}'::jsonb,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','published','rejected')),
   featured boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),

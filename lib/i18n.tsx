@@ -404,6 +404,31 @@ const finishingWords: Record<string, [string, string, string, string, string]> =
 };
 for (const [key, [de, fr, en, ar, ru]] of Object.entries(finishingWords)) words[key] = { de, fr, en, ar, ru };
 
+const errorWords: Record<string, [string, string, string, string, string]> = {
+  "İlan metninin çevirileri (isteğe bağlı)": ["Übersetzungen der Anzeige (optional)","Traductions de l'annonce (facultatif)","Listing translations (optional)","ترجمات الإعلان (اختياري)","Переводы объявления (необязательно)"],
+  "Her dil için başlık ve açıklamayı birlikte doldurun. Boş bırakırsanız Türkçe metin gösterilir.": ["Füllen Sie Titel und Beschreibung je Sprache aus. Leere Felder zeigen den türkischen Text.","Renseignez le titre et la description pour chaque langue. Sinon, le texte turc s'affiche.","Enter both a title and description for each language. Blank fields show the Turkish text.","أدخل العنوان والوصف لكل لغة معاً. ستظهر النسخة التركية عند تركهما فارغين.","Для каждого языка заполните заголовок и описание. Пустые поля покажут турецкий текст."],
+  "Çeviri başlığı ve açıklaması eksiksiz olmalıdır.": ["Übersetzter Titel und Beschreibung müssen vollständig sein.","Le titre et la description traduits doivent être complets.","Both the translated title and description are required.","يجب إكمال العنوان والوصف المترجمين.","Укажите и заголовок, и описание перевода."],
+  "Geçerli e-posta ve en az 10 karakterli şifre girin.": ["Geben Sie eine gültige E-Mail und ein Passwort mit mindestens 10 Zeichen ein.","Saisissez un e-mail valide et un mot de passe d'au moins 10 caractères.","Enter a valid email and a password of at least 10 characters.","أدخل بريداً صحيحاً وكلمة مرور من 10 أحرف على الأقل.","Введите действительный адрес и пароль не короче 10 символов."],
+  "Ad ve hesap türünü kontrol edin.": ["Prüfen Sie Name und Kontotyp.","Vérifiez le nom et le type de compte.","Check your name and account type.","تحقق من الاسم ونوع الحساب.","Проверьте имя и тип аккаунта."],
+  "Bu e-posta ile kayıtlı bir hesap var.": ["Für diese E-Mail besteht bereits ein Konto.","Un compte existe déjà avec cet e-mail.","An account already exists with this email.","يوجد حساب بهذا البريد بالفعل.","Аккаунт с этим адресом уже существует."],
+  "Emlak ofisi veya şirket adını girin.": ["Geben Sie den Namen Ihres Büros oder Unternehmens ein.","Saisissez le nom de votre agence ou société.","Enter your agency or company name.","أدخل اسم المكتب أو الشركة.","Укажите агентство или компанию."],
+  "E-posta veya şifre hatalı.": ["E-Mail oder Passwort ist falsch.","E-mail ou mot de passe incorrect.","Incorrect email or password.","البريد أو كلمة المرور غير صحيحة.","Неверная почта или пароль."],
+  "Çok fazla giriş denemesi. 15 dakika sonra tekrar deneyin.": ["Zu viele Anmeldeversuche. Versuchen Sie es in 15 Minuten erneut.","Trop de tentatives. Réessayez dans 15 minutes.","Too many login attempts. Try again in 15 minutes.","محاولات كثيرة. حاول بعد 15 دقيقة.","Слишком много попыток. Повторите через 15 минут."],
+  "Geçersiz kaynak.": ["Ungültige Anfragequelle.","Origine de la requête invalide.","Invalid request origin.","مصدر الطلب غير صالح.","Недопустимый источник запроса."],
+  "Geçersiz istek.": ["Ungültige Anfrage.","Requête invalide.","Invalid request.","طلب غير صالح.","Неверный запрос."],
+  "Bağlantı kurulamadı. Lütfen yeniden deneyin.": ["Verbindung fehlgeschlagen. Bitte erneut versuchen.","Connexion impossible. Veuillez réessayer.","Connection failed. Please try again.","فشل الاتصال. حاول مرة أخرى.","Не удалось подключиться. Попробуйте снова."],
+  "İşlem tamamlanamadı.": ["Vorgang konnte nicht abgeschlossen werden.","L'opération n'a pas abouti.","Could not complete the action.","تعذر إكمال العملية.","Не удалось завершить действие."],
+  "İlan vermek için giriş yapın.": ["Melden Sie sich an, um zu inserieren.","Connectez-vous pour publier.","Log in to post a listing.","سجّل الدخول لإضافة عقار.","Войдите, чтобы разместить объявление."],
+  "İlan vermek için hesap türünüzü güncelleyin.": ["Ändern Sie Ihren Kontotyp, um zu inserieren.","Changez votre type de compte pour publier.","Update your account type to post listings.","حدّث نوع حسابك لإضافة عقار.","Измените тип аккаунта для размещения."],
+  "Emlakçı hesabınız henüz onaylanmadı.": ["Ihr Maklerkonto ist noch nicht freigegeben.","Votre compte d'agent n'est pas encore validé.","Your agent account has not been approved yet.","لم تتم الموافقة على حساب الوكيل بعد.","Ваш аккаунт агента ещё не одобрен."],
+  "Zorunlu ilan alanlarını doldurun.": ["Füllen Sie alle Pflichtfelder aus.","Renseignez les champs obligatoires.","Complete the required listing fields.","أكمل الحقول المطلوبة للإعلان.","Заполните обязательные поля объявления."],
+  "JPG, PNG veya WEBP; en fazla 8 MB fotoğraf yükleyin.": ["Laden Sie JPG, PNG oder WEBP bis 8 MB hoch.","Ajoutez une image JPG, PNG ou WEBP de 8 Mo maximum.","Upload JPG, PNG or WEBP images up to 8 MB.","ارفع صور JPG أو PNG أو WEBP حتى 8 ميغابايت.","Загрузите JPG, PNG или WEBP до 8 МБ."],
+  "Fotoğraf biçimi doğrulanamadı.": ["Bildformat konnte nicht geprüft werden.","Format de l'image non reconnu.","Could not verify the image format.","تعذر التحقق من صيغة الصورة.","Не удалось проверить формат изображения."],
+  "Başvuru gönderilemedi.": ["Antrag konnte nicht gesendet werden.","Impossible d'envoyer la demande.","Could not submit the application.","تعذر إرسال الطلب.","Не удалось отправить заявку."],
+  "Bağlantı kurulamadı. Yeniden deneyin.": ["Verbindung fehlgeschlagen. Bitte erneut versuchen.","Connexion impossible. Réessayez.","Connection failed. Try again.","فشل الاتصال. حاول مرة أخرى.","Не удалось подключиться. Попробуйте снова."],
+};
+for (const [key, [de, fr, en, ar, ru]] of Object.entries(errorWords)) words[key] = { de, fr, en, ar, ru };
+
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
 });
