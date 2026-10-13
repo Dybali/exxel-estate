@@ -28,16 +28,19 @@ export const num = (value:unknown) => {
 };
 const hex = (buffer:ArrayBuffer) => Array.from(new Uint8Array(buffer)).map((b)=>b.toString(16).padStart(2,"0")).join("");
 export async function sha256(value:string) { return hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value))); }
-export async function passwordHash(password:string, salt?:string) {
-  const actualSalt = salt || hex(crypto.getRandomValues(new Uint8Array(16)).buffer);
+const PBKDF2_ITERATIONS = 100_000; // Cloudflare Workers WebCrypto rejects higher iteration counts.
+export async function passwordHash(password:string, salt?:string, iterations=PBKDF2_ITERATIONS) {
+  const actualSalt = salt || hex(crypto.getRandomValues(new Uint8Array(32)).buffer);
   const key = await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);
-  const derived = await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:new TextEncoder().encode(actualSalt),iterations:310000},key,256);
-  return `pbkdf2$310000$${actualSalt}$${hex(derived)}`;
+  const derived = await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:new TextEncoder().encode(actualSalt),iterations},key,256);
+  return `pbkdf2$${iterations}$${actualSalt}$${hex(derived)}`;
 }
 export async function verifyPassword(password:string, stored:string) {
   const segments = stored.split("$");
   if (segments.length !== 4 || segments[0] !== "pbkdf2") return false;
-  const candidate = await passwordHash(password,segments[2]);
+  const iterations = Number(segments[1]);
+  if (!Number.isInteger(iterations) || iterations < 100_000 || iterations > PBKDF2_ITERATIONS || !/^[0-9a-f]{32,64}$/.test(segments[2])) return false;
+  const candidate = await passwordHash(password,segments[2],iterations);
   const a = new TextEncoder().encode(candidate), b = new TextEncoder().encode(stored);
   if (a.length !== b.length) return false;
   let diff=0; for (let i=0;i<a.length;i++) diff |= a[i]^b[i];
