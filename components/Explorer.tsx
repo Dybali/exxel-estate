@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/SafeLink";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Bookmark, Grid2X2, Map, MapPin, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
 import { AMENITIES, CITIES, PROPERTY_TYPES, type Listing } from "@/lib/listings";

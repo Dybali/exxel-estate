@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/SafeLink";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Bath, BedDouble, Building2, CalendarDays, Check, ChevronRight, Expand, Heart, MapPin, MoveUpRight, Share2 } from "lucide-react";
 import { formatPrice, typeLabel } from "@/lib/listings";

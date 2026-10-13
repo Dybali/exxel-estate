@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/SafeLink";
 import { Heart, MapPin, ArrowUpRight, Images } from "lucide-react";
 import { formatPrice, type Listing, typeLabel } from "@/lib/listings";
 import { useEffect, useState } from "react";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import Link from "@/components/SafeLink";
 import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 
@@ -55,7 +55,6 @@ function GoogleBlock({
 }
 
 export function AuthForm() {
-  const router = useRouter();
   const { t } = useLocale();
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(params.get("role") ? "register" : "login");
@@ -73,7 +72,7 @@ export function AuthForm() {
   }, []);
 
   const next = params.get("next");
-  const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/hesabim";
+  const safeNext = next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/hesabim";
   const googleRole = mode === "register" ? role : "buyer";
   const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(safeNext)}`;
   const showBuyerGoogle = mode === "login" || role === "buyer";
@@ -102,8 +101,7 @@ export function AuthForm() {
         setError(data.error || "İşlem tamamlanamadı.");
         return;
       }
-      router.push(safeNext);
-      router.refresh();
+      window.location.assign(safeNext);
     } catch {
       setError("Bağlantı kurulamadı. Lütfen yeniden deneyin.");
     } finally {

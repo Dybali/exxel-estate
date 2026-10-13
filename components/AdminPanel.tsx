@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/SafeLink";
 import { ArrowDownToLine, Check, ShieldCheck, X } from "lucide-react";
 import { CountrySettings } from "./CountrySettings";
 type UserRow={id:string;name:string;email:string;role:string;agent_status:string;company?:string};type ListingRow={id:string;title:string;city:string;price:number;status:string;created_at:string};type MessageRow={id:string;body:string;listing_id:string;created_at:string};

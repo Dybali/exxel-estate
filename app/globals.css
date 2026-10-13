@@ -60,3 +60,4 @@
 [dir="rtl"] .map-property{left:auto;right:16px;text-align:right}[dir="rtl"] .listing-unit-price{text-align:right}
 @media(max-width:1100px){.results-tools{flex-wrap:wrap;justify-content:flex-end}.save-search-button span{display:none}}
 @media(max-width:600px){.save-search-button{padding:0 10px}.active-filters{flex-direction:column}.map-property{padding:12px;width:min(240px,calc(100% - 24px))}.map-property strong{font-size:17px}.map-attribution{font-size:9px}}
+@media(max-width:700px){.account-link{border:1px solid #d8dfd5;padding:8px 9px;gap:5px}.account-link span{display:inline;font-size:11px;font-weight:700}.header-actions{gap:8px}}

@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/SafeLink";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, Heart, Menu, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";

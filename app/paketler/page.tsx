@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
 
 import { ArrowRight, Check } from "lucide-react";
