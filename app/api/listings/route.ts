@@ -37,6 +37,8 @@ export async function POST(request:Request) {
   if(!user) return error("İlan vermek için giriş yapın.",401);
   if(!["agent","individual","admin"].includes(user.role)) return error("İlan vermek için hesap türünüzü güncelleyin.",403);
   if(user.role==="agent" && user.agent_status!=="approved" && !isAdmin(user)) return error("Emlakçı hesabınız henüz onaylanmadı.",403);
+  const quota=await db().prepare("SELECT count(*) AS n FROM listings WHERE owner_id=? AND status!='rejected'").bind(user.id).first<{n:number}>();
+  if(!isAdmin(user)&&Number(quota?.n||0)>=3)return error("Sunum sürümünde hesap başına en fazla 3 ilan eklenebilir. Paketler açıldığında limitler güncellenecek.",429);
   let data:Record<string,unknown>;
   try {data=await body(request);} catch{return error("İlan bilgilerini kontrol edin.");}
   const title=str(data.title,150),description=str(data.description,5000),purpose=str(data.purpose,20),propertyType=str(data.propertyType,20),city=str(data.city,70),district=str(data.district,70);

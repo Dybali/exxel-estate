@@ -3,9 +3,15 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Bath, BedDouble, Building2, CalendarDays, Check, ChevronRight, Expand, Heart, MapPin, MoveUpRight, Share2 } from "lucide-react";
 import { formatPrice, typeLabel } from "@/lib/listings";
 import { listingById } from "@/lib/server";
+import type { Metadata } from "next";
 import { ContactCard } from "@/components/ContactCard";
 import { ListingGallery } from "@/components/ListingGallery";
 export const dynamic="force-dynamic";
+export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
+  const {id}=await params,listing=await listingById(id);
+  if(!listing)return {title:"İlan bulunamadı | Excell Estate"};
+  return {title:`${listing.title} | Excell Estate`,description:listing.description.slice(0,155),openGraph:{title:listing.title,description:listing.description.slice(0,155),images:listing.images[0]?[listing.images[0]]:[]}};
+}
 export default async function Detail({params}:{params:Promise<{id:string}>}){
   const {id}=await params,listing=await listingById(id);if(!listing||listing.status&&listing.status!=="published"&&listing.source!=="demo")notFound();
   const map=listing.latitude&&listing.longitude?`https://www.openstreetmap.org/export/embed.html?bbox=${listing.longitude-.012}%2C${listing.latitude-.009}%2C${listing.longitude+.012}%2C${listing.latitude+.009}&layer=mapnik&marker=${listing.latitude}%2C${listing.longitude}`:null;
