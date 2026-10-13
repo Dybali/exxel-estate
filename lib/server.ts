@@ -1,0 +1,83 @@
+import { env } from "cloudflare:workers";
+import { DEMO_LISTINGS, type Listing } from "./listings";
+
+type SiteEnv = Cloudflare.Env & { EXCELL_ADMIN_EMAIL?: string };
+export const db = () => {
+  const database = (env as SiteEnv).DB;
+  if (!database) throw new Error("Database binding unavailable");
+  return database;
+};
+export const bucket = () => (env as SiteEnv).BUCKET;
+export const now = () => new Date().toISOString();
+export const error = (message:string, status=400) => Response.json({error:message},{status});
+export const ok = (data:unknown, init?:ResponseInit) => Response.json(data, init);
+export function sameOrigin(request:Request) {
+  const origin = request.headers.get("origin");
+  return !origin || origin === new URL(request.url).origin;
+}
+export async function body(request:Request):Promise<Record<string,unknown>> {
+  if (Number(request.headers.get("content-length") || 0) > 100_000) throw new Error("İstek çok büyük.");
+  const input = await request.json();
+  if (!input || Array.isArray(input) || typeof input !== "object") throw new Error("Geçersiz istek.");
+  return input as Record<string,unknown>;
+}
+export const str = (value:unknown, max=500) => typeof value === "string" ? value.trim().slice(0,max) : "";
+export const num = (value:unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
+};
+const hex = (buffer:ArrayBuffer) => Array.from(new Uint8Array(buffer)).map((b)=>b.toString(16).padStart(2,"0")).join("");
+export async function sha256(value:string) { return hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value))); }
+export async function passwordHash(password:string, salt?:string) {
+  const actualSalt = salt || hex(crypto.getRandomValues(new Uint8Array(16)).buffer);
+  const key = await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);
+  const derived = await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:new TextEncoder().encode(actualSalt),iterations:310000},key,256);
+  return `pbkdf2$310000$${actualSalt}$${hex(derived)}`;
+}
+export async function verifyPassword(password:string, stored:string) {
+  const segments = stored.split("$");
+  if (segments.length !== 4 || segments[0] !== "pbkdf2") return false;
+  const candidate = await passwordHash(password,segments[2]);
+  const a = new TextEncoder().encode(candidate), b = new TextEncoder().encode(stored);
+  if (a.length !== b.length) return false;
+  let diff=0; for (let i=0;i<a.length;i++) diff |= a[i]^b[i];
+  return diff===0;
+}
+export type User = {id:string; email:string; name:string; role:string; agent_status:string; phone?:string|null; company?:string|null};
+export async function currentUser(request:Request):Promise<User|null> {
+  const cookie = request.headers.get("cookie") || "";
+  const token = cookie.match(/(?:^|;\s*)excell_session=([^;]+)/)?.[1];
+  if (!token) return null;
+  const tokenHash = await sha256(token);
+  const row = await db().prepare("SELECT u.id,u.email,u.name,u.role,u.agent_status,u.phone,u.company FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
+  return row || null;
+}
+export function sessionCookie(token:string, clear=false) {
+  return `excell_session=${clear?"":token}; HttpOnly; Secure; SameSite=Lax; Path=/; ${clear?"Max-Age=0":"Max-Age=2592000"}`;
+}
+export async function createSession(userId:string) {
+  const token = hex(crypto.getRandomValues(new Uint8Array(32)).buffer);
+  await db().prepare("INSERT INTO sessions(token_hash,user_id,expires_at) VALUES(?,?,?)").bind(await sha256(token),userId,new Date(Date.now()+30*864e5).toISOString()).run();
+  return token;
+}
+export function isAdmin(user:User|null) {
+  const configured = (env as SiteEnv).EXCELL_ADMIN_EMAIL?.toLowerCase();
+  return Boolean(user && (user.role==="admin" || (configured && user.email===configured)));
+}
+export function parseListing(row:Record<string,unknown>):Listing {
+  return {
+    id:String(row.id), title:String(row.title),description:String(row.description), purpose:row.purpose as Listing["purpose"],propertyType:row.property_type as Listing["propertyType"],
+    price:Number(row.price),currency:String(row.currency),city:String(row.city),district:String(row.district),neighborhood:row.neighborhood?String(row.neighborhood):undefined,
+    latitude:row.latitude==null?undefined:Number(row.latitude),longitude:row.longitude==null?undefined:Number(row.longitude),grossArea:Number(row.gross_area),netArea:row.net_area==null?undefined:Number(row.net_area),
+    rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
+    buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
+    heating:row.heating?String(row.heating):undefined,furnished:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
+    featured:Boolean(row.featured),status:String(row.status),ownerName:row.owner_name?String(row.owner_name):"Excell Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),source:"user"
+  };
+}
+export async function listingById(id:string):Promise<Listing|null> {
+  const demo = DEMO_LISTINGS.find((item)=>item.id===id);
+  if (demo) return demo;
+  const row = await db().prepare("SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.id=?").bind(id).first<Record<string,unknown>>();
+  return row?parseListing(row):null;
+}

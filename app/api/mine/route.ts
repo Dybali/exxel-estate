@@ -1,0 +1,2 @@
+import { currentUser, db, error, ok, parseListing } from "@/lib/server";
+export async function GET(request:Request){const user=await currentUser(request);if(!user)return error("Giriş gerekli.",401);const rows=await db().prepare("SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.owner_id=? ORDER BY l.created_at DESC").bind(user.id).all<Record<string,unknown>>();return ok({listings:(rows.results||[]).map(parseListing)})}
