@@ -22,13 +22,16 @@ export async function GET(request:Request) {
     return true;
   }).sort((a,b)=>sort==="priceAsc"?a.price-b.price:sort==="priceDesc"?b.price-a.price:sort==="area"?b.grossArea-a.grossArea:Number(Boolean(b.featured))-Number(Boolean(a.featured)));
   const count=await db().prepare(`SELECT count(*) AS n FROM listings l WHERE ${query}`).bind(...values).first<{n:number}>();
-  const demoOnPage=Math.max(0,Math.min(pageSize, demo.length-(page-1)*pageSize));
-  const realOffset=Math.max(0,(page-1)*pageSize-demo.length);
-  const realLimit=pageSize-demoOnPage;
+  const realCount=Number(count?.n||0);
+  const pageStart=(page-1)*pageSize;
+  // Published customer listings appear first; demo content only fills remaining slots.
+  const realOffset=Math.min(pageStart,realCount);
+  const realLimit=Math.max(0,Math.min(pageSize,realCount-pageStart));
   let real:Listing[]=[];
   if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(parseListing)}
-  const listings=[...demo.slice((page-1)*pageSize,page*pageSize),...real];
-  return ok({listings,total:demo.length+Number(count?.n||0),page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+  const demoOffset=Math.max(0,pageStart-realCount);
+  const listings=[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
+  return ok({listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
 }
 
 export async function POST(request:Request) {

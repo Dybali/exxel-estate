@@ -4,6 +4,8 @@ Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platf
 
 Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça için yazı yönü sağdan sola çevrilir. İlan verirken diğer beş dil için başlık ve açıklama isteğe bağlı girilebilir; bu metinler ilan kartında ve detayında seçilen dile göre gösterilir. Çeviri girilmediyse ana ilan metni gösterilir. Otomatik makine çevirisi yapılmaz.
 
+Arama sayfasında filtreler URL'ye yazılır; bağlantı paylaşılınca aynı arama açılır. Etkin filtreler tek tek kaldırılabilir. Kullanıcı aramalarını aynı tarayıcıda kaydedebilir. Liste/harita görünümünde seçilen ilanın yaklaşık konumu gösterilir; demo ilanlar kartta açıkça etiketlenir. Harita verisi OpenStreetMap gömülü görünümüdür; üretim ölçeğinde özel harita sağlayıcısı değerlendirilebilir.
+
 ## Çalıştırma
 
 Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve yerel D1 migrasyon uygulaması gerekir. `npm run dev` geliştirme sunucusunu açar. Sites üzerinde `.openai/hosting.json` içindeki `DB` ve `BUCKET` kaynakları sağlanır; yayın sırasında `drizzle/` migrasyonları uygulanır.

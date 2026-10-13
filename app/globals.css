@@ -39,3 +39,24 @@
 .translation-language label{display:flex;flex-direction:column;gap:7px}
 .translation-language input,.translation-language textarea{width:100%}
 @media(max-width:700px){.translation-language{grid-template-columns:1fr}}
+
+/* Search workspace: editable filter chips, saved searches and a selected-property map. */
+.listing-photo-meta{position:absolute;left:14px;right:14px;bottom:13px;display:flex;align-items:center;justify-content:space-between;gap:6px;pointer-events:none}
+.listing-photo-meta span{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;background:#102f29d9;color:#fff;font-size:10px;font-weight:700;letter-spacing:.02em;backdrop-filter:blur(6px)}
+.listing-photo-meta span:last-child{margin-left:auto}
+.listing-unit-price{font-size:11px;color:#879187;margin-top:6px}
+.save-search-button{height:37px;display:inline-flex;align-items:center;gap:7px;padding:0 11px;border:1px solid #d7dfd4;background:#fff;color:var(--deep);font-size:11px;font-weight:700;white-space:nowrap}
+.save-search-button:hover,.map-show-button:hover{border-color:var(--deep);background:#f5f8f3}
+.saved-search-panel{margin:-4px 0 21px;padding:18px 20px;background:#fff;border:1px solid #dfe5da;box-shadow:0 10px 25px #1e3f2e10}
+.saved-search-panel>div:first-child{display:flex;justify-content:space-between;gap:12px}.saved-search-panel strong{font-family:var(--serif);font-size:22px;font-weight:400}.saved-search-panel p{font-size:11px;color:#788779;margin:7px 0 15px}.saved-search-close{border:0;background:none;color:#718073;align-self:start}
+.saved-search-panel form{display:flex;gap:8px}.saved-search-panel input{flex:1;min-width:0;height:42px;padding:0 12px;border:1px solid #dce4d8;background:#fff;color:var(--ink);font-size:13px}.saved-search-panel form button{border:0;background:var(--deep);color:#fff;padding:0 18px;font-size:12px;font-weight:700}
+.saved-search-list{border-top:1px solid #e8ede6;margin-top:16px;padding-top:14px}.saved-search-list small{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;color:#a18a64;margin-bottom:8px}.saved-search-list>div{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eef1ec}.saved-search-list>div button{border:0;background:none;color:var(--deep);padding:9px 4px;font-size:12px;text-align:left}.saved-search-list>div button:last-child{color:#849188}
+.active-filters{align-items:flex-start;gap:10px;background:#eef2eb}.filter-chips{display:flex;flex-wrap:wrap;gap:6px}.filter-chips button{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid #d7e2d5;background:#fff;color:#355443;font-size:11px}.filter-chips button:hover{border-color:#78927d}.active-filters .clear-all{white-space:nowrap;padding:7px 0;font-size:11px}
+.results[aria-busy="true"] .results-grid,.results[aria-busy="true"] .map-layout{opacity:.55;transition:opacity .15s}
+.map-list-item{background:#fff;border:1px solid transparent}.map-list-item.selected{border-color:#bca577;box-shadow:0 4px 16px #30462e12}.map-list-item .listing-card{box-shadow:none}
+.map-show-button{display:flex;align-items:center;gap:6px;width:100%;padding:10px 13px;border:0;border-top:1px solid #eef0e8;background:#fff;color:var(--deep);font-size:11px;font-weight:700}
+.map-panel iframe{display:block}.map-property{position:absolute;top:16px;left:16px;width:min(295px,calc(100% - 32px));background:#fff;padding:17px 18px;box-shadow:0 12px 30px #1c36252b;display:grid;gap:6px}.map-property>span{font-size:9px;letter-spacing:.13em;color:#aa9168;font-weight:800}.map-property strong{font-family:var(--serif);font-size:20px;line-height:1.25;font-weight:400}.map-property small{font-size:11px;color:#79887b}.map-property a{display:inline-flex;align-items:center;gap:6px;margin-top:5px;font-size:11px;font-weight:700;color:var(--deep)}
+.map-attribution{position:absolute;bottom:9px;left:9px;right:9px;width:max-content;max-width:calc(100% - 18px);background:#ffffffed;padding:6px 8px;color:#56655a;font-size:10px}
+[dir="rtl"] .map-property{left:auto;right:16px;text-align:right}[dir="rtl"] .listing-unit-price{text-align:right}
+@media(max-width:1100px){.results-tools{flex-wrap:wrap;justify-content:flex-end}.save-search-button span{display:none}}
+@media(max-width:600px){.save-search-button{padding:0 10px}.active-filters{flex-direction:column}.map-property{padding:12px;width:min(240px,calc(100% - 24px))}.map-property strong{font-size:17px}.map-attribution{font-size:9px}}

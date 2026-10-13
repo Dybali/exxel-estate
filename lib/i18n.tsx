@@ -429,6 +429,26 @@ const errorWords: Record<string, [string, string, string, string, string]> = {
 };
 for (const [key, [de, fr, en, ar, ru]] of Object.entries(errorWords)) words[key] = { de, fr, en, ar, ru };
 
+const searchWords: Record<string, [string, string, string, string, string]> = {
+  "Örnek ilan": ["Musteranzeige","Annonce exemple","Sample listing","إعلان تجريبي","Пример объявления"],
+  "İlçe yazın": ["Bezirk eingeben","Saisir un quartier","Enter a district","أدخل المنطقة","Введите район"],
+  "Aramayı kaydet": ["Suche speichern","Enregistrer la recherche","Save search","احفظ البحث","Сохранить поиск"],
+  "Kayıtlı aramalar bu tarayıcıda saklanır.": ["Gespeicherte Suchen bleiben in diesem Browser.","Les recherches sont conservées dans ce navigateur.","Saved searches stay in this browser.","تُحفظ عمليات البحث في هذا المتصفح.","Поиски сохраняются в этом браузере."],
+  "Arama adı": ["Name der Suche","Nom de la recherche","Search name","اسم البحث","Название поиска"],
+  "Kaydet": ["Speichern","Enregistrer","Save","حفظ","Сохранить"],
+  "KAYITLI ARAMALAR": ["GESPEICHERTE SUCHEN","RECHERCHES ENREGISTRÉES","SAVED SEARCHES","عمليات البحث المحفوظة","СОХРАНЁННЫЕ ПОИСКИ"],
+  "Kaydı sil": ["Eintrag löschen","Supprimer l'enregistrement","Delete saved search","احذف البحث المحفوظ","Удалить сохранённый поиск"],
+  "Kaldır": ["Entfernen","Retirer","Remove","إزالة","Убрать"],
+  "Kapat": ["Schließen","Fermer","Close","إغلاق","Закрыть"],
+  "Filtreleri kapat": ["Filter schließen","Fermer les filtres","Close filters","إغلاق الفلاتر","Закрыть фильтры"],
+  "İlanlar yükleniyor...": ["Anzeigen werden geladen...","Chargement des annonces...","Loading listings...","جارٍ تحميل العقارات...","Загрузка объявлений..."],
+  "Haritada göster": ["Auf Karte zeigen","Voir sur la carte","Show on map","أظهر على الخريطة","Показать на карте"],
+  "HARİTADA SEÇİLİ İLAN": ["AUSGEWÄHLTE IMMOBILIE","BIEN SÉLECTIONNÉ","SELECTED PROPERTY","العقار المحدد","ВЫБРАННЫЙ ОБЪЕКТ"],
+  "İlanı incele": ["Immobilie ansehen","Voir l'annonce","View listing","عرض العقار","Посмотреть объявление"],
+  "Türkiye gayrimenkul haritası": ["Immobilienkarte der Türkei","Carte immobilière de Turquie","Türkiye property map","خريطة عقارات تركيا","Карта недвижимости Турции"],
+};
+for (const [key, [de, fr, en, ar, ru]] of Object.entries(searchWords)) words[key] = { de, fr, en, ar, ru };
+
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
 });
