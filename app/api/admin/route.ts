@@ -18,6 +18,10 @@ export async function POST(request:Request) {
     await db().prepare("UPDATE listings SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();return ok({success:true});
   }
   if(kind==="agent"&&["approved","rejected","pending"].includes(status)) {
+    if(status==="approved") {
+      const applicant=await db().prepare("SELECT company FROM users WHERE id=? AND role='agent'").bind(id).first<{company:string|null}>();
+      if(!applicant?.company?.trim()) return error("Emlakçı onayı için ofis veya şirket adı gerekli.");
+    }
     await db().prepare("UPDATE users SET agent_status=? WHERE id=? AND role='agent'").bind(status,id).run();return ok({success:true});
   }
   if(kind==="country") {

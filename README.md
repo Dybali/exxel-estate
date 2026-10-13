@@ -1,4 +1,4 @@
-# Excell Estate
+# Exxel Estate
 
 Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platformun sunum sürümü. `app/` arayüzü, `app/api/` oturum ve ilan API'lerini, `db/schema.ts` mevcut Sites veritabanı şemasını içerir. `postgres/schema.sql` taşınabilir PostgreSQL hedef şemasıdır.
 
@@ -10,7 +10,7 @@ Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve
 
 - Gerçek kullanıcı ve ilan verileri Sites D1'de; yüklenen orijinal fotoğraflar R2'de saklanır. Bunlar hesap sahibinin Sites kaynaklarıdır.
 - Yönetici hesabıyla `/api/export` tüm yapılandırılmış verileri JSON olarak indirir. Şifre özetleri ve oturum tokenları bu aktarımda yer almaz. Örnek ilanlar ayrıca `lib/listings.ts` içinde kaynak olarak saklanır.
-- Büyük veri kümeleri için `/api/export?table=listings&offset=0` gibi uç noktalar her çağrıda 500 kayıt döndürür. `nextOffset` boşalana kadar devam edilir. `users`, `favorites`, `messages`, `packages`, `purchases` ve `countrySettings` tabloları da aynı şekilde alınabilir.
+- Büyük veri kümeleri için `/api/export?table=listings&offset=0` gibi uç noktalar her çağrıda 500 kayıt döndürür. `nextOffset` boşalana kadar devam edilir. `users`, `oauthAccounts`, `favorites`, `messages`, `packages`, `purchases` ve `countrySettings` tabloları da aynı şekilde alınabilir.
 - Fotoğraf adresleri ilan kayıtlarında sıralı olarak bulunur. R2 dosyalarının ayrıca obje depolama aracıyla indirilmesi gerekir. Başka bir sisteme geçerken fotoğraf URL'leri hedef depolama adreslerine dönüştürülür.
 - `postgres/schema.sql` aynı tablo kimliklerini ve alanları PostgreSQL'e taşımak için başlangıç şemasıdır. JSON içindeki `images` ve `amenities` alanları PostgreSQL `jsonb` olarak tasarlanmıştır.
 - Büyük veri hacminde konum, fiyat, tür ve alan filtreleri için kısmi ve bileşik indeksler hazırdır. Harita araması büyürse PostGIS `geography(Point,4326)` sütunu ve GiST indeksi eklenebilir.
@@ -19,4 +19,16 @@ Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve
 
 ## Yönetim ve yayın hazırlığı
 
-Yönetici erişimi için Sites ortamında `EXCELL_ADMIN_EMAIL` değişkeni, kaydedilmiş yönetici e-posta adresine eşitlenmelidir. Emlakçı hesapları yönetici onayını bekler; gerçek ilanlar incelemeden sonra yayımlanır. Sunum paketlerindeki fiyatlar örnektir; sanal POS entegrasyonu etkin olmadığı için ücret tahsil edilmez. Kapora kapsamı ikinci teklife bırakılmıştır. Yasal metinler, ülke ayarları, çeviriler, e-posta doğrulama ve ödeme sağlayıcısı yayına açık kullanım öncesinde yapılandırılmalıdır. Demo ilanlarının gerçek satış teklifi olmadığı ilan detayında gösterilir.
+Yönetici erişimi için Sites ortamında `EXXEL_ADMIN_EMAIL` değişkeni, Google ile doğrulanmış bir yönetici e-posta adresine eşitlenmelidir. Şifreyle açılan, e-postası doğrulanmamış bir hesap bu değişken üzerinden yönetici olamaz. Emlakçı hesapları yönetici onayını bekler; gerçek ilanlar incelemeden sonra yayımlanır. Sunum paketlerindeki fiyatlar örnektir; sanal POS entegrasyonu etkin olmadığı için ücret tahsil edilmez. Kapora kapsamı ikinci teklife bırakılmıştır. Yasal metinler, ülke ayarları, çeviriler ve ödeme sağlayıcısı yayına açık kullanım öncesinde yapılandırılmalıdır. Demo ilanlarının gerçek satış teklifi olmadığı ilan detayında gösterilir.
+
+## Google ile giriş kurulumu
+
+Google OAuth kod akışı, PKCE ve tek kullanımlık durum kaydı hazırdır. Google giriş düğmesi yalnızca aşağıdaki üç Sites ortam değişkeni tanımlandığında görünür. Google Client Secret kaynak koduna veya `.openai/hosting.json` dosyasına yazılmaz; Sites ortamında gizli değer olarak saklanır. Google erişim ve yenileme tokenları veritabanında tutulmaz.
+
+- `GOOGLE_CLIENT_ID`: Google Cloud Console'da oluşturulan Web application OAuth istemci kimliği.
+- `GOOGLE_CLIENT_SECRET`: Aynı istemcinin gizli anahtarı; Sites secret olarak kaydedilir.
+- `GOOGLE_REDIRECT_URI`: Sahibi doğrulanmış HTTPS alan adındaki tam adres, örneğin `https://exxelestate.com/api/auth/google/callback`.
+
+Önce alan adını satın alıp Sites'e bağlayın ve DNS doğrulamasının tamamlanmasını bekleyin. Google Cloud'da aynı alan adını OAuth yetkili alanlarına ve tam callback adresini yetkili yönlendirme URI'lerine ekleyin. Ardından üç değeri Sites ortamına kaydedip yeni sürümü yayımlayın. Google'ın alan adı sahipliği ve marka doğrulama koşulları nedeniyle `chatgpt.site` alt alan adı kendi OAuth uygulamanızın üretim alan adı olarak kullanılmamalıdır.
+
+Google ile ilk kez gelen kullanıcı seçtiği hesap türünde açılır. Emlakçı hesabı önce `pending` olur ve ofis adı profilinden tamamlanır. Şifreli bir hesapla aynı e-posta varsa hesaplar otomatik birleştirilmez; kullanıcı önce şifreyle girer, ardından profilinden Google hesabını bağlar.

@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { DEMO_LISTINGS, type Listing } from "./listings";
 
-type SiteEnv = Cloudflare.Env & { EXCELL_ADMIN_EMAIL?: string };
+type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string };
 export const db = () => {
   const database = (env as SiteEnv).DB;
   if (!database) throw new Error("Database binding unavailable");
@@ -43,13 +43,13 @@ export async function verifyPassword(password:string, stored:string) {
   let diff=0; for (let i=0;i<a.length;i++) diff |= a[i]^b[i];
   return diff===0;
 }
-export type User = {id:string; email:string; name:string; role:string; agent_status:string; phone?:string|null; company?:string|null};
+export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; company?:string|null};
 export async function currentUser(request:Request):Promise<User|null> {
   const cookie = request.headers.get("cookie") || "";
   const token = cookie.match(/(?:^|;\s*)excell_session=([^;]+)/)?.[1];
   if (!token) return null;
   const tokenHash = await sha256(token);
-  const row = await db().prepare("SELECT u.id,u.email,u.name,u.role,u.agent_status,u.phone,u.company FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
+  const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.company FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
   return row || null;
 }
 export function sessionCookie(token:string, clear=false) {
@@ -61,8 +61,8 @@ export async function createSession(userId:string) {
   return token;
 }
 export function isAdmin(user:User|null) {
-  const configured = (env as SiteEnv).EXCELL_ADMIN_EMAIL?.toLowerCase();
-  return Boolean(user && (user.role==="admin" || (configured && user.email===configured)));
+  const configured = (env as SiteEnv).EXXEL_ADMIN_EMAIL?.toLowerCase();
+  return Boolean(user && (user.role==="admin" || (configured && user.email_verified && user.email.toLowerCase()===configured)));
 }
 export function parseListing(row:Record<string,unknown>):Listing {
   return {
@@ -72,7 +72,7 @@ export function parseListing(row:Record<string,unknown>):Listing {
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
     buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
     heating:row.heating?String(row.heating):undefined,furnished:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
-    featured:Boolean(row.featured),status:String(row.status),ownerName:row.owner_name?String(row.owner_name):"Excell Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),source:"user"
+    featured:Boolean(row.featured),status:String(row.status),ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),source:"user"
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {

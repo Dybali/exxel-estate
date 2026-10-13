@@ -1,9 +1,10 @@
--- Excell Estate portable PostgreSQL schema. PostgreSQL 16+ recommended.
+-- Exxel Estate portable PostgreSQL schema. PostgreSQL 16+ recommended.
 -- Photos live in object storage; images JSONB stores ordered object URLs.
 CREATE TABLE users (
   id uuid PRIMARY KEY,
   email text NOT NULL UNIQUE,
   password_hash text NOT NULL,
+  email_verified boolean NOT NULL DEFAULT false,
   name text NOT NULL,
   phone text,
   role text NOT NULL CHECK (role IN ('buyer','individual','agent','admin')),
@@ -17,6 +18,23 @@ CREATE TABLE sessions (
   expires_at timestamptz NOT NULL
 );
 CREATE INDEX sessions_user_idx ON sessions(user_id);
+CREATE TABLE oauth_accounts (
+  provider text NOT NULL,
+  provider_user_id text NOT NULL,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY(provider, provider_user_id),
+  UNIQUE(user_id, provider)
+);
+CREATE TABLE oauth_flows (
+  state_hash text PRIMARY KEY,
+  code_verifier text NOT NULL,
+  role text NOT NULL,
+  next_path text NOT NULL,
+  link_user_id uuid,
+  expires_at timestamptz NOT NULL
+);
+CREATE INDEX oauth_flows_expiry_idx ON oauth_flows(expires_at);
 CREATE TABLE auth_limits (
   key text PRIMARY KEY,
   failures integer NOT NULL DEFAULT 0,

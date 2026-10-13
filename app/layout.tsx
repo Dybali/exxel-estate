@@ -4,9 +4,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://excell-estate.blue-grape-8839.chatgpt.site"),
-  title: "Excell Estate | Türkiye'de Seçkin Gayrimenkuller",
-  description: "Türkiye'deki seçkin satılık ve kiralık daire, villa ve yaşam alanlarını Excell Estate ile keşfedin.",
+  metadataBase: new URL("https://exxel-estate.blue-grape-8839.chatgpt.site"),
+  title: "Exxel Estate | Türkiye'de Seçkin Gayrimenkuller",
+  description: "Türkiye'deki seçkin satılık ve kiralık daire, villa ve yaşam alanlarını Exxel Estate ile keşfedin.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

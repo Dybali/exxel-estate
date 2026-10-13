@@ -4,6 +4,7 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull(),
   passwordHash: text("password_hash").notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   name: text("name").notNull(),
   phone: text("phone"),
   role: text("role").notNull().default("buyer"),
@@ -17,6 +18,25 @@ export const sessions = sqliteTable("sessions", {
   userId: text("user_id").notNull().references(() => users.id),
   expiresAt: text("expires_at").notNull(),
 }, (t) => [index("sessions_user_idx").on(t.userId)]);
+
+export const oauthAccounts = sqliteTable("oauth_accounts", {
+  provider: text("provider").notNull(),
+  providerUserId: text("provider_user_id").notNull(),
+  userId: text("user_id").notNull().references(() => users.id),
+  createdAt: text("created_at").notNull(),
+}, (t) => [
+  uniqueIndex("oauth_accounts_provider_user_unique").on(t.provider, t.providerUserId),
+  uniqueIndex("oauth_accounts_user_provider_unique").on(t.userId, t.provider),
+]);
+
+export const oauthFlows = sqliteTable("oauth_flows", {
+  stateHash: text("state_hash").primaryKey(),
+  codeVerifier: text("code_verifier").notNull(),
+  role: text("role").notNull(),
+  nextPath: text("next_path").notNull(),
+  linkUserId: text("link_user_id"),
+  expiresAt: text("expires_at").notNull(),
+}, (t) => [index("oauth_flows_expiry_idx").on(t.expiresAt)]);
 
 export const authLimits = sqliteTable("auth_limits", {
   key: text("key").primaryKey(),
