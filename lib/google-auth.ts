@@ -6,7 +6,7 @@ type GoogleEnv = Cloudflare.Env & {
   GOOGLE_REDIRECT_URI?: string;
 };
 
-export const GOOGLE_CALLBACK_PATH = "/api/auth/google/callback";
+export const GOOGLE_CALLBACK_PATH = "/api/auth/callback/google";
 export const GOOGLE_FLOW_COOKIE = "exxel_google_flow";
 
 export function googleConfig() {
@@ -53,7 +53,7 @@ function base64Url(bytes: Uint8Array) {
 }
 
 export function flowCookie(state: string, clear = false) {
-  return `${GOOGLE_FLOW_COOKIE}=${clear ? "" : state}; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/google; Max-Age=${clear ? 0 : 600}`;
+  return `${GOOGLE_FLOW_COOKIE}=${clear ? "" : state}; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=${clear ? 0 : 600}`;
 }
 
 export function redirectNoStore(url: string, cookies: string[] = []) {

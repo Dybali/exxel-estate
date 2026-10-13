@@ -23,12 +23,12 @@ Yönetici erişimi için Sites ortamında `EXXEL_ADMIN_EMAIL` değişkeni, Googl
 
 ## Google ile giriş kurulumu
 
-Google OAuth kod akışı, PKCE ve tek kullanımlık durum kaydı hazırdır. Google giriş düğmesi yalnızca aşağıdaki üç Sites ortam değişkeni tanımlandığında görünür. Google Client Secret kaynak koduna veya `.openai/hosting.json` dosyasına yazılmaz; Sites ortamında gizli değer olarak saklanır. Google erişim ve yenileme tokenları veritabanında tutulmaz.
+Google OAuth kod akışı, PKCE ve tek kullanımlık durum kaydı hazırdır. Google giriş düğmesi yalnızca aşağıdaki üç Sites ortam değişkeni tanımlandığında ve ziyaretçi callback alan adını kullandığında görünür. Google Client Secret kaynak koduna veya `.openai/hosting.json` dosyasına yazılmaz; Sites ortamında gizli değer olarak saklanır. Google erişim ve yenileme tokenları veritabanında tutulmaz.
 
 - `GOOGLE_CLIENT_ID`: Google Cloud Console'da oluşturulan Web application OAuth istemci kimliği.
 - `GOOGLE_CLIENT_SECRET`: Aynı istemcinin gizli anahtarı; Sites secret olarak kaydedilir.
-- `GOOGLE_REDIRECT_URI`: Sahibi doğrulanmış HTTPS alan adındaki tam adres, örneğin `https://exxelestate.com/api/auth/google/callback`.
+- `GOOGLE_REDIRECT_URI`: Google Cloud'daki yetkili yönlendirme URI'siyle birebir aynı tam HTTPS adresi. Bu istemci için `https://www.exxelestate.com/api/auth/callback/google`.
 
-Önce alan adını satın alıp Sites'e bağlayın ve DNS doğrulamasının tamamlanmasını bekleyin. Google Cloud'da aynı alan adını OAuth yetkili alanlarına ve tam callback adresini yetkili yönlendirme URI'lerine ekleyin. Ardından üç değeri Sites ortamına kaydedip yeni sürümü yayımlayın. Google'ın alan adı sahipliği ve marka doğrulama koşulları nedeniyle `chatgpt.site` alt alan adı kendi OAuth uygulamanızın üretim alan adı olarak kullanılmamalıdır.
+Alan adını satın alıp `www.exxelestate.com` adresini Sites'e bağlayın ve DNS doğrulamasının tamamlanmasını bekleyin. Google Cloud'da aynı alan adını OAuth yetkili alanlarına ekleyin; kayıtlı callback adresini koruyun. Ortam değerleri önceden kaydedilebilir: Google düğmesi yalnızca callback alan adında görünür. Google'ın alan adı sahipliği ve marka doğrulama koşulları nedeniyle `chatgpt.site` alt alan adı kendi OAuth uygulamanızın üretim alan adı olarak kullanılmamalıdır.
 
 Google ile ilk kez gelen kullanıcı seçtiği hesap türünde açılır. Emlakçı hesabı önce `pending` olur ve ofis adı profilinden tamamlanır. Şifreli bir hesapla aynı e-posta varsa hesaplar otomatik birleştirilmez; kullanıcı önce şifreyle girer, ardından profilinden Google hesabını bağlar.

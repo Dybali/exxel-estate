@@ -5,13 +5,13 @@ export async function GET(request: Request) {
   const config = googleConfig();
   const url = new URL(request.url);
   if (url.searchParams.get("status") === "1") {
-    return ok({ enabled: Boolean(config) }, { headers: { "Cache-Control": "no-store" } });
+    return ok({ enabled: Boolean(config && url.origin === config.origin) }, { headers: { "Cache-Control": "no-store" } });
   }
   if (!config) return redirectNoStore(`${url.origin}/giris?google=unavailable`);
 
   // OAuth cookies must be set on the same host that receives Google's callback.
   if (url.origin !== config.origin) {
-    return redirectNoStore(`${config.origin}${url.pathname}${url.search}`);
+    return redirectNoStore(`${url.origin}/giris?google=unavailable`);
   }
 
   const link = url.searchParams.get("link") === "1";

@@ -1,5 +1,5 @@
 import { createSession, currentUser, db, now, sessionCookie, sha256 } from "@/lib/server";
-import { flowCookie, GOOGLE_FLOW_COOKIE, googleConfig, loginError, redirectNoStore, safeNextPath } from "@/lib/google-auth";
+import { flowCookie, GOOGLE_CALLBACK_PATH, GOOGLE_FLOW_COOKIE, googleConfig, loginError, redirectNoStore, safeNextPath } from "@/lib/google-auth";
 
 type Flow = { code_verifier: string; role: string; next_path: string; link_user_id: string | null; expires_at: string };
 type GoogleProfile = { sub?: string; email?: string; email_verified?: boolean; name?: string };
@@ -7,7 +7,7 @@ type GoogleProfile = { sub?: string; email?: string; email_verified?: boolean; n
 export async function GET(request: Request) {
   const config = googleConfig();
   const url = new URL(request.url);
-  if (!config || url.origin !== config.origin || url.pathname !== "/api/auth/google/callback") {
+  if (!config || url.origin !== config.origin || url.pathname !== GOOGLE_CALLBACK_PATH) {
     return loginError("unavailable", url.origin);
   }
   if (url.searchParams.has("error")) return loginError("cancelled", url.origin);
