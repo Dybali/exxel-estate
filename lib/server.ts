@@ -46,13 +46,13 @@ export async function verifyPassword(password:string, stored:string) {
   let diff=0; for (let i=0;i<a.length;i++) diff |= a[i]^b[i];
   return diff===0;
 }
-export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; company?:string|null};
+export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; company?:string|null; avatar_url?:string|null};
 export async function currentUser(request:Request):Promise<User|null> {
   const cookie = request.headers.get("cookie") || "";
   const token = cookie.match(/(?:^|;\s*)excell_session=([^;]+)/)?.[1];
   if (!token) return null;
   const tokenHash = await sha256(token);
-  const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.company FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
+  const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.company,u.avatar_url FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
   return row || null;
 }
 export function sessionCookie(token:string, clear=false) {

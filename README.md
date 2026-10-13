@@ -2,6 +2,8 @@
 
 Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platformun sunum sürümü. `app/` arayüzü, `app/api/` oturum ve ilan API'lerini, `db/schema.ts` mevcut Sites veritabanı şemasını içerir. `postgres/schema.sql` taşınabilir PostgreSQL hedef şemasıdır.
 
+Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça için yazı yönü sağdan sola çevrilir. Kullanıcıların yazdığı ilan başlığı ve açıklama, ayrıca çevrilmedikçe girildiği dilde görünür.
+
 ## Çalıştırma
 
 Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve yerel D1 migrasyon uygulaması gerekir. `npm run dev` geliştirme sunucusunu açar. Sites üzerinde `.openai/hosting.json` içindeki `DB` ve `BUCKET` kaynakları sağlanır; yayın sırasında `drizzle/` migrasyonları uygulanır.
@@ -9,6 +11,7 @@ Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve
 ## Veri mülkiyeti ve aktarım
 
 - Gerçek kullanıcı ve ilan verileri Sites D1'de; yüklenen orijinal fotoğraflar R2'de saklanır. Bunlar hesap sahibinin Sites kaynaklarıdır.
+- PostgreSQL bağlantısı şu anda etkin değildir; PostgreSQL sunucusu veya yönetilen sağlayıcı hesabı kurulunca hedef şema ve veri aktarımı kullanılabilir. Cloudflare Workers için HTTP tabanlı PostgreSQL sürücüsü/bağlantısı gerekir.
 - Yönetici hesabıyla `/api/export` tüm yapılandırılmış verileri JSON olarak indirir. Şifre özetleri ve oturum tokenları bu aktarımda yer almaz. Örnek ilanlar ayrıca `lib/listings.ts` içinde kaynak olarak saklanır.
 - Büyük veri kümeleri için `/api/export?table=listings&offset=0` gibi uç noktalar her çağrıda 500 kayıt döndürür. `nextOffset` boşalana kadar devam edilir. `users`, `oauthAccounts`, `favorites`, `messages`, `packages`, `purchases` ve `countrySettings` tabloları da aynı şekilde alınabilir.
 - Fotoğraf adresleri ilan kayıtlarında sıralı olarak bulunur. R2 dosyalarının ayrıca obje depolama aracıyla indirilmesi gerekir. Başka bir sisteme geçerken fotoğraf URL'leri hedef depolama adreslerine dönüştürülür.

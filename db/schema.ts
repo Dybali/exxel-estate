@@ -10,6 +10,7 @@ export const users = sqliteTable("users", {
   role: text("role").notNull().default("buyer"),
   agentStatus: text("agent_status").notNull().default("none"),
   company: text("company"),
+  avatarUrl: text("avatar_url"),
   createdAt: text("created_at").notNull(),
 }, (t) => [uniqueIndex("users_email_unique").on(t.email)]);
 

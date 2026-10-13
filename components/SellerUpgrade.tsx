@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "@/lib/i18n";
+
 import { ArrowRight } from "lucide-react";
 
 type Account = {
@@ -11,6 +13,7 @@ type Account = {
 };
 
 export function SellerUpgrade({ user }: { user: Account }) {
+  const {t}=useLocale();
   const [role, setRole] = useState<"individual" | "agent">(user.role === "buyer" ? "individual" : "agent");
   const [company, setCompany] = useState(user.company || "");
   const [googleEnabled, setGoogleEnabled] = useState(false);
@@ -52,16 +55,16 @@ export function SellerUpgrade({ user }: { user: Account }) {
 
   return <div className="seller-upgrade">
     {canApply && <>
-      <h3>İlan vermeye başlayın</h3>
-      <p>Bireysel mal sahibi olarak ilanınızı incelemeye gönderebilirsiniz. Emlakçı başvuruları yönetici onayı gerektirir.</p>
+      <h3>{t("İlan vermeye başlayın")}</h3>
+      <p>{t("Bireysel mal sahibi olarak ilanınızı incelemeye gönderebilirsiniz. Emlakçı başvuruları yönetici onayı gerektirir.")}</p>
       <form onSubmit={submit}>
-        <label>Hesap türü<select value={role} onChange={(event) => setRole(event.target.value as "individual" | "agent")}>
-          {user.role === "buyer" && <option value="individual">Bireysel mal sahibiyim</option>}
-          <option value="agent">Emlakçıyım</option>
+        <label>{t("Hesap türü")}<select value={role} onChange={(event) => setRole(event.target.value as "individual" | "agent")}>
+          {user.role === "buyer" && <option value="individual">{t("Bireysel mal sahibiyim")}</option>}
+          <option value="agent">{t("Emlakçıyım")}</option>
         </select></label>
-        {role === "agent" && <label>Ofis / şirket adı<input value={company} onChange={(event) => setCompany(event.target.value)} required minLength={2} maxLength={120} placeholder="Emlak ofisi adı" /></label>}
-        <button className="primary-button" disabled={loading}>{loading ? "Gönderiliyor..." : "Başvuruyu gönder"}<ArrowRight size={16} /></button>
-        {error && <div className="form-error" role="alert">{error}</div>}
+        {role === "agent" && <label>{t("Ofis / şirket adı")}<input value={company} onChange={(event) => setCompany(event.target.value)} required minLength={2} maxLength={120} placeholder={t("Emlak ofisi adı")} /></label>}
+        <button className="primary-button" disabled={loading}>{t(loading ? "Gönderiliyor..." : "Başvuruyu gönder")}<ArrowRight size={16} /></button>
+        {error && <div className="form-error" role="alert">{t(error)}</div>}
       </form>
     </>}
     {googleEnabled && !user.email_verified && <a className="google-link-profile" href="/api/auth/google?link=1&next=%2Fhesabim%3Ftab%3Dprofil"><span className="google-symbol" aria-hidden="true">G</span> Google hesabını bağla <ArrowRight size={16} /></a>}

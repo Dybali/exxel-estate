@@ -10,6 +10,7 @@ CREATE TABLE users (
   role text NOT NULL CHECK (role IN ('buyer','individual','agent','admin')),
   agent_status text NOT NULL DEFAULT 'none' CHECK (agent_status IN ('none','pending','approved','rejected')),
   company text,
+  avatar_url text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE sessions (

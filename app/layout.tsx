@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { LocaleProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://exxel-estate.blue-grape-8839.chatgpt.site"),
@@ -20,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><Header/>{children}<Footer/></body>
+      <body><LocaleProvider><Header/>{children}<Footer/></LocaleProvider></body>
     </html>
   );
 }

@@ -2,7 +2,13 @@ import { createSession, currentUser, db, now, sessionCookie, sha256 } from "@/li
 import { flowCookie, GOOGLE_CALLBACK_PATH, GOOGLE_FLOW_COOKIE, googleConfig, loginError, redirectNoStore, safeNextPath } from "@/lib/google-auth";
 
 type Flow = { code_verifier: string; role: string; next_path: string; link_user_id: string | null; expires_at: string };
-type GoogleProfile = { sub?: string; email?: string; email_verified?: boolean; name?: string };
+type GoogleProfile = { sub?: string; email?: string; email_verified?: boolean; name?: string; picture?: string };
+
+function avatarFromGoogle(value: unknown) {
+  if (typeof value !== "string") return null;
+  const url = value.trim().slice(0, 500);
+  return url.startsWith("https://") ? url : null;
+}
 
 export async function GET(request: Request) {
   const config = googleConfig();
@@ -51,6 +57,7 @@ export async function GET(request: Request) {
     if (!profile.sub || !email || profile.email_verified !== true || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return loginError("identity", url.origin);
     }
+    const avatarUrl = avatarFromGoogle(profile.picture);
 
     const mapped = await db().prepare("SELECT user_id FROM oauth_accounts WHERE provider='google' AND provider_user_id=?")
       .bind(profile.sub).first<{ user_id: string }>();
@@ -66,7 +73,7 @@ export async function GET(request: Request) {
           .bind(profile.sub, signedIn.id, now()).run();
         userId = signedIn.id;
       }
-      await db().prepare("UPDATE users SET email_verified=1 WHERE id=?").bind(userId).run();
+      await db().prepare("UPDATE users SET email_verified=1, avatar_url=COALESCE(?, avatar_url) WHERE id=?").bind(avatarUrl, userId).run();
     } else if (!userId) {
       const existing = await db().prepare("SELECT id FROM users WHERE email=?").bind(email).first();
       if (existing) return loginError("existing", url.origin);
@@ -74,11 +81,13 @@ export async function GET(request: Request) {
       const name = profile.name?.trim().slice(0, 100) || email.split("@")[0];
       const role = ["buyer", "individual", "agent"].includes(flow.role) ? flow.role : "buyer";
       await db().batch([
-        db().prepare("INSERT INTO users(id,email,password_hash,email_verified,name,role,agent_status,company,created_at) VALUES(?,?,?,?,?,?,?,?,?)")
-          .bind(userId, email, "google-only", 1, name, role, role === "agent" ? "pending" : "none", null, now()),
+        db().prepare("INSERT INTO users(id,email,password_hash,email_verified,name,role,agent_status,company,avatar_url,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+          .bind(userId, email, "google-only", 1, name, role, role === "agent" ? "pending" : "none", null, avatarUrl, now()),
         db().prepare("INSERT INTO oauth_accounts(provider,provider_user_id,user_id,created_at) VALUES('google',?,?,?)")
           .bind(profile.sub, userId, now()),
       ]);
+    } else if (avatarUrl) {
+      await db().prepare("UPDATE users SET avatar_url=? WHERE id=?").bind(avatarUrl, userId).run();
     }
 
     const session = await createSession(userId);
