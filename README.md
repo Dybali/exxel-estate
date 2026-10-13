@@ -15,6 +15,7 @@ Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve
 - `postgres/schema.sql` aynı tablo kimliklerini ve alanları PostgreSQL'e taşımak için başlangıç şemasıdır. JSON içindeki `images` ve `amenities` alanları PostgreSQL `jsonb` olarak tasarlanmıştır.
 - Büyük veri hacminde konum, fiyat, tür ve alan filtreleri için kısmi ve bileşik indeksler hazırdır. Harita araması büyürse PostGIS `geography(Point,4326)` sütunu ve GiST indeksi eklenebilir.
 - Katalog API'si 12 ilanlık sayfalar döndürür. `scripts/benchmark_db.py`, 1.000 hesap ve 10.000 örnek ilanla yerel SQL indeks sorgusunu ölçer; bu sonuç gerçek ağ trafiği altında yük testi yerine geçmez.
+- Giriş denemeleri IP ve e-posta birleşimine göre 15 dakikalık pencerede sınırlandırılır. Oturum belirteçlerinin yalnızca SHA-256 özeti veritabanında tutulur; tarayıcı oturumu HttpOnly, Secure ve SameSite çerezindedir.
 
 ## Yönetim ve yayın hazırlığı
 

@@ -17,6 +17,11 @@ CREATE TABLE sessions (
   expires_at timestamptz NOT NULL
 );
 CREATE INDEX sessions_user_idx ON sessions(user_id);
+CREATE TABLE auth_limits (
+  key text PRIMARY KEY,
+  failures integer NOT NULL DEFAULT 0,
+  window_started_at timestamptz NOT NULL
+);
 CREATE TABLE listings (
   id uuid PRIMARY KEY,
   owner_id uuid NOT NULL REFERENCES users(id),

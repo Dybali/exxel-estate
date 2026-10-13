@@ -29,8 +29,18 @@ export async function POST(request:Request) {
     return ok({user:{id,email,name,role,agent_status:role==="agent"?"pending":"none",isAdmin:false}},{status:201,headers:{"Set-Cookie":sessionCookie(token)}});
   }
   if(action==="login") {
+    const ip=request.headers.get("CF-Connecting-IP")||"local";
+    const limitKey=await sha256(`login:${email}:${ip}`),windowStart=new Date(Date.now()-15*60*1000).toISOString();
+    const attempts=await db().prepare("SELECT failures,window_started_at FROM auth_limits WHERE key=?").bind(limitKey).first<{failures:number;window_started_at:string}>();
+    if(attempts&&attempts.window_started_at>windowStart&&attempts.failures>=10)return error("Çok fazla giriş denemesi. 15 dakika sonra tekrar deneyin.",429);
     const row=await db().prepare("SELECT id,email,password_hash,name,role,agent_status,phone,company FROM users WHERE email=?").bind(email).first<Record<string,unknown>>();
-    if(!row || !(await verifyPassword(password,String(row.password_hash)))) return error("E-posta veya şifre hatalı.",401);
+    if(!row || !(await verifyPassword(password,String(row.password_hash)))) {
+      const started=attempts&&attempts.window_started_at>windowStart?attempts.window_started_at:now();
+      const count=attempts&&attempts.window_started_at>windowStart?attempts.failures+1:1;
+      await db().prepare("INSERT INTO auth_limits(key,failures,window_started_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET failures=excluded.failures,window_started_at=excluded.window_started_at").bind(limitKey,count,started).run();
+      return error("E-posta veya şifre hatalı.",401);
+    }
+    await db().prepare("DELETE FROM auth_limits WHERE key=?").bind(limitKey).run();
     const token=await createSession(String(row.id));
     const user={id:row.id,email:row.email,name:row.name,role:row.role,agent_status:row.agent_status,phone:row.phone,company:row.company};
     return ok({user:{...user,isAdmin:isAdmin(user as Parameters<typeof isAdmin>[0])}},{headers:{"Set-Cookie":sessionCookie(token)}});

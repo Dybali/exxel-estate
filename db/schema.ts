@@ -18,6 +18,12 @@ export const sessions = sqliteTable("sessions", {
   expiresAt: text("expires_at").notNull(),
 }, (t) => [index("sessions_user_idx").on(t.userId)]);
 
+export const authLimits = sqliteTable("auth_limits", {
+  key: text("key").primaryKey(),
+  failures: integer("failures").notNull().default(0),
+  windowStartedAt: text("window_started_at").notNull(),
+});
+
 export const listings = sqliteTable("listings", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id),
