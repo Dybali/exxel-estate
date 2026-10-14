@@ -2,6 +2,7 @@ import { AMENITIES, DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/li
 import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
 import { validDistrict } from "@/lib/turkey-locations";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
+import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
@@ -54,6 +55,13 @@ export async function POST(request:Request) {
   const amenities=Array.isArray(data.amenities)?data.amenities.filter((x):x is string=>typeof x==="string"&&AMENITIES.includes(x)).slice(0,20):[];
   const images=Array.isArray(data.images)?data.images.filter((x):x is string=>typeof x==="string"&&x.startsWith("/api/media/")).slice(0,30):[];
   if(images.length===0) return error("En az bir fotoğraf yükleyin.");
+  if(new Set(images).size!==images.length) return error("Aynı fotoğraf birden fazla eklenemez.");
+  const imageKeys=images.map((url)=>url.slice("/api/media/".length));
+  if(imageKeys.some((key)=>!new RegExp(`^listings/${user.id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key))) return error("Yalnızca kendi yüklediğiniz fotoğrafları ekleyebilirsiniz.",403);
+  const imageInfo=await Promise.all(imageKeys.map(headExternalImage));
+  if(imageInfo.some((item)=>!item)) return error("Fotoğraflardan biri depoda bulunamadı.");
+  const storageBucket=externalR2BucketName();
+  if(!storageBucket) return error("Fotoğraf deposu yapılandırılmamış.",503);
   const translations:Record<string,{title:string;description:string}>={};
   if(data.translations && typeof data.translations==="object" && !Array.isArray(data.translations)) {
     for(const locale of ["de","fr","en","ar","ru"]){
@@ -68,7 +76,10 @@ export async function POST(request:Request) {
   }
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
-  await db().prepare("INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,status,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),"pending",0,createdAt,createdAt).run();
+  const statements=[db().prepare("INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,status,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),"pending",0,createdAt,createdAt)];
+  imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+    .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
+  await db().batch(statements);
   return ok({id,status:"pending"},{status:201});
 }

@@ -1,9 +1,12 @@
 import { env } from "cloudflare:workers";
 import { DEMO_LISTINGS, type Listing } from "./listings";
+import { neonD1 } from "./neon-d1";
 
-type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string };
+type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string };
 export const db = () => {
-  const database = (env as SiteEnv).DB;
+  const settings = env as SiteEnv;
+  if (settings.DATABASE_URL) return neonD1(settings.DATABASE_URL) as unknown as D1Database;
+  const database = settings.DB;
   if (!database) throw new Error("Database binding unavailable");
   return database;
 };

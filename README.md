@@ -1,6 +1,6 @@
 # Exxel Estate
 
-Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platformun sunum sürümü. `app/` arayüzü, `app/api/` oturum ve ilan API'lerini, `db/schema.ts` mevcut Sites veritabanı şemasını içerir. `postgres/schema.sql` taşınabilir PostgreSQL hedef şemasıdır.
+Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platform. `app/` arayüzü, `app/api/` oturum ve ilan API'lerini içerir. Canlı yapılandırmada ana veri deposu Neon PostgreSQL, fotoğraf deposu Cloudflare R2 EU bucket'ıdır. Eski D1/R2 bağları geçiş süresince yalnızca geri dönüş ve eski dosyaları okuyabilmek için korunur.
 
 Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça için yazı yönü sağdan sola çevrilir. İlan verirken diğer beş dil için başlık ve açıklama isteğe bağlı girilebilir; bu metinler ilan kartında ve detayında seçilen dile göre gösterilir. Çeviri girilmediyse ana ilan metni gösterilir. Otomatik makine çevirisi yapılmaz.
 
@@ -8,19 +8,25 @@ Arama sayfasında filtreler URL'ye yazılır; bağlantı paylaşılınca aynı a
 
 ## Çalıştırma
 
-Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve yerel D1 migrasyon uygulaması gerekir. `npm run dev` geliştirme sunucusunu açar. Sites üzerinde `.openai/hosting.json` içindeki `DB` ve `BUCKET` kaynakları sağlanır; yayın sırasında `drizzle/` migrasyonları uygulanır.
+Node.js 22.13+ ile `npm ci` ve `npm run build` çalıştırın. Sites üzerinde `DATABASE_URL`, `R2_ENDPOINT`, `R2_BUCKET_NAME`, `R2_ACCESS_KEY_ID` ve `R2_SECRET_ACCESS_KEY` sunucu gizlisi olarak tanımlanır. `DATABASE_URL` Neon'un havuzlanmış HTTPS uyumlu PostgreSQL adresidir; S3 endpoint EU jurisdiction'a ait olmalıdır. `postgres/migrations/` sıralı SQL migrasyonlarını içerir. Geliştirme ortamında `scripts/neon-migrate.mjs` yerel, Git dışında tutulan `work/integration-secrets.env` dosyasını okur. Bu dosya, `.env` ve tüm anahtarlar hiçbir zaman kaynak deposuna veya build çıktısına alınmaz.
 
 ## Veri mülkiyeti ve aktarım
 
-- Gerçek kullanıcı ve ilan verileri Sites D1'de; yüklenen orijinal fotoğraflar R2'de saklanır. Bunlar hesap sahibinin Sites kaynaklarıdır.
-- PostgreSQL bağlantısı şu anda etkin değildir; PostgreSQL sunucusu veya yönetilen sağlayıcı hesabı kurulunca hedef şema ve veri aktarımı kullanılabilir. Cloudflare Workers için HTTP tabanlı PostgreSQL sürücüsü/bağlantısı gerekir.
+- Üye, oturum, emlakçı, ilan, favori, mesaj, ayar ve fotoğraf referansları Neon'dadır. Orijinal fotoğraflar Cloudflare R2 `exxel-estate-images` bucket'ındadır. `property_images.object_key` site adresinden bağımsızdır.
+- Canlı D1 kayıtları aynı UUID kimlikleriyle Neon'a taşınmıştır. Göç betikleri `scripts/neon-import.mjs` ve `scripts/neon-migrate-images.mjs` yeniden çalıştırılabilir; veri doğrulaması yapar.
 - Yönetici hesabıyla `/api/export` tüm yapılandırılmış verileri JSON olarak indirir. Şifre özetleri ve oturum tokenları bu aktarımda yer almaz. Örnek ilanlar ayrıca `lib/listings.ts` içinde kaynak olarak saklanır.
 - Büyük veri kümeleri için `/api/export?table=listings&offset=0` gibi uç noktalar her çağrıda 500 kayıt döndürür. `nextOffset` boşalana kadar devam edilir. `users`, `oauthAccounts`, `favorites`, `messages`, `packages`, `purchases` ve `countrySettings` tabloları da aynı şekilde alınabilir.
-- Fotoğraf adresleri ilan kayıtlarında sıralı olarak bulunur. R2 dosyalarının ayrıca obje depolama aracıyla indirilmesi gerekir. Başka bir sisteme geçerken fotoğraf URL'leri hedef depolama adreslerine dönüştürülür.
-- `postgres/schema.sql` aynı tablo kimliklerini ve alanları PostgreSQL'e taşımak için başlangıç şemasıdır. JSON içindeki `images`, `amenities` ve `translations` alanları PostgreSQL `jsonb` olarak tasarlanmıştır.
+- Fotoğraf dosyaları için `property_images` tablosunda değişmeyen nesne anahtarı, sıra, MIME türü ve boyut tutulur. Mevcut ilan API'si uyumu için `listings.images` alanında aynı anahtarlardan üretilen göreli `/api/media/...` adresleri de saklanır. Yeni sürüm aynı API'yi veya aynı Neon/R2 kaynaklarını kullanabilir.
+- `postgres/schema.sql` ile `postgres/migrations/001_core.sql` aynı PostgreSQL şemasını tanımlar. Tarih ve JSON alanları mevcut API ile uyumlu metin değerleridir; daha sonra sürümlü migrasyonla `jsonb` ve `timestamptz` tiplerine taşınabilir.
 - Büyük veri hacminde konum, fiyat, tür ve alan filtreleri için kısmi ve bileşik indeksler hazırdır. Harita araması büyürse PostGIS `geography(Point,4326)` sütunu ve GiST indeksi eklenebilir.
 - Katalog API'si 12 ilanlık sayfalar döndürür. `scripts/benchmark_db.py`, 1.000 hesap ve 10.000 örnek ilanla yerel SQL indeks sorgusunu ölçer; bu sonuç gerçek ağ trafiği altında yük testi yerine geçmez.
 - Giriş denemeleri IP ve e-posta birleşimine göre 15 dakikalık pencerede sınırlandırılır. Oturum belirteçlerinin yalnızca SHA-256 özeti veritabanında tutulur; tarayıcı oturumu HttpOnly, Secure ve SameSite çerezindedir.
+
+## API ve işletim
+
+Herkese açık `GET /api/listings`, `GET /api/listings/:id` ve `GET /api/locations` arama ve detay verisi sağlar. `POST /api/media` yalnızca oturum açmış ilan verenin JPG/PNG/WEBP dosyasını (en çok 8 MB) kabul eder, imzasını doğrular ve R2'ye yükler. `POST /api/listings` yalnızca sahibinin yüklediği R2 nesnelerini kabul eder; `property_images` kayıtlarını ilanla aynı veritabanı işleminde oluşturur ve ilanı `pending` kaydeder. `GET /api/media/:key` görüntüleri depodan sunar. Oturum, hesap, favori, mesaj ve yönetim uçları `app/api/` altında belgelenebilir kaynak koduyla bulunur; yönetim işlemleri sunucuda rol kontrolünden geçer.
+
+Günlük otomatik yedekleme ve ikinci konumda fotoğraf kopyası henüz yapılandırılmamıştır. Neon'dan tutarlı `pg_dump` yedeği ve geri yükleme denemesi için Neon panelinden **doğrudan** bağlantı adresi, bağımsız yedek hedefi ve görev zamanlayıcısı gerekir. Havuzlanmış uygulama URL'sini `pg_dump` adresi olarak kullanmayın. Yedekler kişisel veri ve parola özetleri içerir; şifreleme ve erişim sınırlandırması gerektirir.
 
 ## Yönetim ve yayın hazırlığı
 

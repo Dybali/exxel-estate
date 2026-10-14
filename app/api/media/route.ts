@@ -1,10 +1,11 @@
 import { bucket, currentUser, error, ok, sameOrigin } from "@/lib/server";
+import { externalR2Ready, putExternalImage } from "@/lib/external-r2";
 
 export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request);
   if(!user || !["agent","individual","admin"].includes(user.role)) return error("Fotoğraf yüklemek için ilan veren hesabı gerekir.",403);
-  const storage=bucket(); if(!storage) return error("Dosya depolama kullanılamıyor.",503);
+  if(!externalR2Ready()) return error("Fotoğraf deposu yapılandırılmamış.",503);
   let form:FormData;try{form=await request.formData();}catch{return error("Geçersiz dosya.");}
   const part=form.get("file");
   // The multipart File can come from a different runtime realm, so instanceof File is unreliable.
@@ -18,6 +19,8 @@ export async function POST(request:Request) {
   if(!isPng && !isJpeg && !isWebp) return error("Fotoğraf biçimi doğrulanamadı.");
   const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
   const key=`listings/${user.id}/${crypto.randomUUID()}.${ext}`;
-  await storage.put(key,file.stream(),{httpMetadata:{contentType:file.type}});
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map((item)=>item.toString(16).padStart(2,"0")).join("");
+  await putExternalImage(key,bytes,file.type,digest);
   return ok({url:`/api/media/${key}`},{status:201});
 }
