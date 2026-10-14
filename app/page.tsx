@@ -1,28 +1,44 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
+import { ArrowRight, Building2, CheckCircle2, House, KeyRound, MapPin, ShieldCheck } from "lucide-react";
+import { HomeSearch } from "@/components/HomeSearch";
+import { ListingCard } from "@/components/ListingCard";
+import { DEMO_LISTINGS, type Listing } from "@/lib/listings";
 import { useLocale } from "@/lib/i18n";
 
-import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
-import { DEMO_LISTINGS } from "@/lib/listings";
-import { ListingCard } from "@/components/ListingCard";
-import { HomeSearch } from "@/components/HomeSearch";
-
-const regions = [
-  {name:"İstanbul",city:"İstanbul",subtitle:"Şehrin kalbinde yeni bir hayat",image:"https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=900&q=82"},
-  {name:"Bodrum",city:"Muğla",subtitle:"Ege'nin kendine özgü ritmi",image:"https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=900&q=82"},
-  {name:"Antalya",city:"Antalya",subtitle:"Akdeniz ışığında yaşam",image:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=82"},
+const places = [
+  { name: "İstanbul", image: "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=900&q=82" },
+  { name: "Antalya", image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=82" },
+  { name: "Muğla", image: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=900&q=82" },
+  { name: "İzmir", image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=900&q=82" },
 ];
 
 export default function Home() {
-  const {t}=useLocale();
-  return <main>
-    <section className="hero"><div className="hero-image"/><div className="hero-shade"/><div className="container hero-content"><div className="eyebrow hero-eyebrow"><span className="eyebrow-line"/> EXXEL ESTATE · {t("Türkiye")}</div><h1>{t("Bir evden")}<br/>{t("daha fazlasını")} <em>{t("keşfedin.")}</em></h1><p>{t("Türkiye’nin en özel adreslerinde, hayalinizdeki yaşama açılan kapı.")}</p><Link href="/ilanlar" className="hero-link">{t("Koleksiyonu keşfet")}<ArrowUpRight size={18}/></Link></div><div className="hero-counter"><span>01</span><span className="hero-counter-rule"/><span>04</span></div><div className="hero-side-label">{t("YAŞAMIN YENİ ADRESİ · 2026")}</div></section>
-    <div className="container search-position"><HomeSearch/></div>
-    <section className="section intro-section container"><div className="intro-left"><span className="eyebrow dark-eyebrow">{t("01 / YAŞAM ALANLARI")}</span><h2>{t("Doğru yer,")}<br/><em>{t("yeni bir hikâye.")}</em></h2></div><div className="intro-right"><p>{t("Her mülk yeni bir başlangıçtır. Türkiye’de size uygun yaşam alanını bulun.")}</p><Link className="text-link" href="/ilanlar">{t("Tüm ilanları incele")}<ArrowUpRight size={17}/></Link></div></section>
-    <section className="featured-section"><div className="container"><div className="section-heading"><div><span className="eyebrow dark-eyebrow">{t("ÖNE ÇIKAN KOLEKSİYON")}</span><h2>{t("Keşfetmeye")} <em>{t("değer.")}</em></h2></div><Link className="text-link desktop-only" href="/ilanlar">{t("Tüm ilanlar")}<ArrowUpRight size={17}/></Link></div><div className="feature-grid">{DEMO_LISTINGS.slice(0,4).map((listing)=><ListingCard key={listing.id} listing={listing}/>)}</div><div className="center-action"><Link href="/ilanlar" className="outline-button">{t("Tüm gayrimenkulleri gör")}<ArrowRight size={18}/></Link></div></div></section>
-    <section className="section regions-section container"><div className="section-heading"><div><span className="eyebrow dark-eyebrow">{t("02 / BÖLGELER")}</span><h2>{t("Her şehir,")} <em>{t("başka bir hayat.")}</em></h2></div><p>{t("Şehrin temposundan kıyının dinginliğine, aradığınız yaşamı konumuyla keşfedin.")}</p></div><div className="region-grid">{regions.map((region,index)=><Link key={region.name} href={`/ilanlar?city=${encodeURIComponent(region.city)}`} className={`region-card region-card-${index}`}><img src={region.image} alt={`${region.name} bölgesinden görünüm`}/><div className="region-overlay"/><div className="region-top"><span>{t("KEŞFET")}</span><ArrowUpRight size={22}/></div><div className="region-bottom"><span>{t(region.subtitle)}</span><h3>{region.name}</h3></div></Link>)}</div></section>
-    <section className="vision-section"><div className="vision-image"><img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=1200&q=85" alt="Özenli tasarıma sahip ev iç mekanı"/></div><div className="vision-content"><span className="eyebrow light-eyebrow">{t("EXXEL ESTATE AYRICALIĞI")}</span><h2>{t("Hayatınıza yakışan")} <em>{t("bir adres.")}</em></h2><p>{t("İster İstanbul’da bir şehir evi, ister Ege’de bir villa arayın; size doğru seçenekleri sunuyoruz.")}</p><div className="vision-points"><span><Check size={18}/> {t("Özenle hazırlanmış ilanlar")}</span><span><Check size={18}/> {t("Ayrıntılı arama ve filtreleme")}</span><span><Check size={18}/> {t("Avrupa'dan kolay erişim")}</span></div><Link href="/hakkimizda" className="vision-link">{t("Bizi tanıyın")}<ArrowUpRight size={18}/></Link></div></section>
-    <section className="section container metrics-section"><div className="metrics-lead"><span className="eyebrow dark-eyebrow">{t("GÜVENLE KEŞFEDİN")}</span><h2>{t("Aradığınız yer,")}<br/><em>{t("bir adım uzağınızda.")}</em></h2></div><div className="metric"><strong>12<span>+</span></strong><p>{t("Sunum için hazırlanmış")}<br/>{t("örnek ilan")}</p></div><div className="metric"><strong>6</strong><p>{t("Farklı gayrimenkul")}<br/>{t("kategorisi")}</p></div><div className="metric"><strong>4</strong><p>{t("Keşfedilecek")}<br/>{t("önemli şehir")}</p></div></section>
-    <section className="cta-section"><div className="container cta-inner"><div><span className="eyebrow light-eyebrow">{t("YENİ BİR BAŞLANGIÇ")}</span><h2>{t("Bir sonraki adresiniz")}<br/><em>{t("burada olabilir.")}</em></h2></div><Link href="/ilanlar" className="cta-button">{t("İlanları keşfet")}<ArrowUpRight size={19}/></Link></div></section>
+  const { t } = useLocale();
+  const [listings, setListings] = useState<Listing[]>(DEMO_LISTINGS.slice(0, 4));
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/listings?page=1", { signal: controller.signal })
+      .then((response): Promise<{listings?: Listing[]} | null> => response.ok ? response.json() : Promise.resolve(null))
+      .then((data) => { if (Array.isArray(data?.listings)) setListings(data.listings.slice(0, 4)); })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+  return <main className="market-home">
+    <section className="market-hero"><div className="container market-hero-inner">
+      <div className="market-hero-copy"><span className="market-kicker">EXXEL ESTATE / {t("Türkiye")}</span><h1>{t("Türkiye'de evinizi bulun.")}</h1><p>{t("Satılık ve kiralık daire, ev, villa ve arsaları tek yerde karşılaştırın.")}</p></div>
+      <HomeSearch />
+      <div className="market-hero-links"><span>{t("Popüler aramalar")}</span><Link href="/ilanlar?purpose=satilik&type=daire">{t("Satılık daire")}</Link><Link href="/ilanlar?purpose=kiralik&type=daire">{t("Kiralık daire")}</Link><Link href="/ilanlar?type=villa">{t("Villa")}</Link><Link href="/ilanlar?city=İstanbul">İstanbul</Link></div>
+    </div></section>
+    <section className="market-shortcuts container" aria-label={t("Hızlı bağlantılar")}>
+      <Link href="/ilanlar?purpose=satilik"><span className="shortcut-icon"><House size={23}/></span><span><strong>{t("Satın al")}</strong><small>{t("Satılık gayrimenkulleri keşfedin")}</small></span><ArrowRight size={19}/></Link>
+      <Link href="/ilanlar?purpose=kiralik"><span className="shortcut-icon"><KeyRound size={23}/></span><span><strong>{t("Kirala")}</strong><small>{t("Kiralık ev ve daireleri görün")}</small></span><ArrowRight size={19}/></Link>
+      <Link href="/ilan-ver"><span className="shortcut-icon"><Building2 size={23}/></span><span><strong>{t("İlan ver")}</strong><small>{t("Gayrimenkulünüzü alıcılarla buluşturun")}</small></span><ArrowRight size={19}/></Link>
+    </section>
+    <section className="market-section container"><div className="market-section-head"><div><span className="market-overline">EXXEL ESTATE</span><h2>{t("Öne çıkan ilanlar")}</h2><p>{t("Türkiye'nin farklı bölgelerinden güncel fırsatları inceleyin.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm ilanlar")}<ArrowRight size={18}/></Link></div><div className="market-feature-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing}/>)}</div></section>
+    <section className="market-section market-location-section"><div className="container"><div className="market-section-head"><div><span className="market-overline">81 İL</span><h2>{t("Şehre göre keşfedin")}</h2><p>{t("Aradığınız konuma hızlıca ulaşın.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm şehirler")}<ArrowRight size={18}/></Link></div><div className="market-places">{places.map((place) => <Link href={`/ilanlar?city=${encodeURIComponent(place.name)}`} key={place.name} className="market-place"><img src={place.image} alt={place.name}/><span><MapPin size={16}/>{place.name}<ArrowRight size={18}/></span></Link>)}</div></div></section>
+    <section className="container market-trust"><div><ShieldCheck size={29}/><h3>{t("Kontrollü ilan yayını")}</h3><p>{t("İlanlar yönetici incelemesinden sonra yayına alınır.")}</p></div><div><CheckCircle2 size={29}/><h3>{t("Ayrıntılı arama")}</h3><p>{t("Konum, fiyat, oda ve özelliklere göre arayın.")}</p></div><div><Building2 size={29}/><h3>{t("Doğrudan iletişim")}</h3><p>{t("Üye olarak ilan sahibiyle güvenli biçimde mesajlaşın.")}</p></div></section>
   </main>;
 }

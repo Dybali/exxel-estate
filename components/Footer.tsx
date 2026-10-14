@@ -1,6 +1,13 @@
 "use client";
 import Link from "@/components/SafeLink";
-import { MapPin, Mail, Phone } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
-export function Footer(){const {t}=useLocale();return <footer className="site-footer"><div className="container footer-main"><div className="footer-about"><Link href="/" className="brand footer-brand"><span className="brand-symbol"><span>E</span></span><span className="brand-name">EXXEL<small>ESTATE</small></span></Link><p>{t("Türkiye'nin seçkin gayrimenkullerini, dünyanın her yerinden keşfetmeniz için bir araya getiriyoruz.")}</p><div className="footer-social"><span>IG</span><span>in</span></div></div><div><h4>{t("Keşfet")}</h4><Link href="/ilanlar?purpose=satilik">{t("Satılık İlanlar")}</Link><Link href="/ilanlar?purpose=kiralik">{t("Kiralık İlanlar")}</Link><Link href="/ilanlar?type=villa">{t("Villalar")}</Link><Link href="/ilanlar?type=daire">{t("Daireler")}</Link></div><div><h4>Exxel Estate</h4><Link href="/hakkimizda">{t("Hakkımızda")}</Link><Link href="/paketler">{t("İlan Paketleri")}</Link><Link href="/ilan-ver">{t("İlan Ver")}</Link><Link href="/hesabim">{t("Hesabım")}</Link></div><div><h4>{t("İletişim")}</h4><p><MapPin size={16}/> İstanbul, Türkiye</p><p><Mail size={16}/> hello@excellestate.com</p><p><Phone size={16}/> +90 212 000 00 00</p><small>{t("İletişim bilgileri sunum amaçlıdır.")}</small></div></div><div className="container footer-bottom"><span>© 2026 Exxel Estate. {t("Tüm hakları saklıdır.")}</span><span>{t("Türkiye'den dünyaya yaşam alanları.")}</span></div></footer>}
 
+export function Footer() {
+  const { t } = useLocale();
+  return <footer className="site-footer"><div className="container footer-main">
+    <div className="footer-about"><Link href="/" className="brand footer-brand"><span className="brand-symbol"><span>E</span></span><span className="brand-name">EXXEL<small>ESTATE</small></span></Link><p>{t("Türkiye'nin seçkin gayrimenkullerini, dünyanın her yerinden keşfetmeniz için bir araya getiriyoruz.")}</p></div>
+    <div><h4>{t("Keşfet")}</h4><Link href="/ilanlar?purpose=satilik">{t("Satılık İlanlar")}</Link><Link href="/ilanlar?purpose=kiralik">{t("Kiralık İlanlar")}</Link><Link href="/ilanlar?type=villa">{t("Villalar")}</Link><Link href="/ilanlar?type=daire">{t("Daireler")}</Link></div>
+    <div><h4>Exxel Estate</h4><Link href="/hakkimizda">{t("Hakkımızda")}</Link><Link href="/paketler">{t("İlan Paketleri")}</Link><Link href="/ilan-ver">{t("İlan Ver")}</Link><Link href="/hesabim">{t("Hesabım")}</Link></div>
+    <div><h4>{t("Hesabınız")}</h4><Link href="/giris">{t("Giriş Yap / Üye Ol")}</Link><Link href="/hesabim?tab=favoriler">{t("Favoriler")}</Link><Link href="/hesabim?tab=mesajlar">{t("Mesajlar")}</Link><p className="footer-note">{t("İlan sahipleriyle iletişim için üye girişi gerekir.")}</p></div>
+  </div><div className="container footer-bottom"><span>© 2026 Exxel Estate. {t("Tüm hakları saklıdır.")}</span><span>{t("Türkiye'den dünyaya yaşam alanları.")}</span></div></footer>;
+}

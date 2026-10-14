@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admin_setup {
+  id           String @id
+  user_id      String @db.Uuid
+  completed_at String
+  users        users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model agencies {
+  id         String     @id @db.Uuid
+  owner_id   String     @unique(map: "agencies_owner_unique") @db.Uuid
+  name       String
+  phone      String?
+  email      String?
+  status     String     @default("pending")
+  created_at String
+  users      users      @relation(fields: [owner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  listings   listings[]
+
+  @@index([owner_id], map: "agencies_owner_idx")
+}
+
+model auth_limits {
+  key               String @id
+  failures          Int    @default(0)
+  window_started_at String
+}
+
+model country_settings {
+  country_code     String  @id
+  locale           String
+  legal_text       String  @default("")
+  payment_provider String?
+  enabled          Int     @default(0)
+}
+
+model favorites {
+  user_id    String @db.Uuid
+  listing_id String
+  created_at String
+  users      users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, listing_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model listings {
+  id                                String            @id @db.Uuid
+  owner_id                          String            @db.Uuid
+  agency_id                         String?           @db.Uuid
+  title                             String
+  description                       String
+  purpose                           String
+  property_type                     String
+  price                             BigInt
+  currency                          String            @default("TRY")
+  city                              String
+  district                          String
+  neighborhood                      String?
+  neighborhood_id                   Int?
+  postal_code                       String?
+  latitude                          Float?
+  longitude                         Float?
+  gross_area                        Int
+  net_area                          Int?
+  rooms                             String?
+  bedrooms                          Int?
+  bathrooms                         Int?
+  building_age                      Int?
+  floor                             Int?
+  total_floors                      Int?
+  heating                           String?
+  furnished                         Int               @default(0)
+  amenities                         String            @default("[]")
+  images                            String            @default("[]")
+  translations                      String            @default("{}")
+  status                            String            @default("pending")
+  review_note                       String?
+  reviewed_by                       String?           @db.Uuid
+  reviewed_at                       String?
+  featured                          Int               @default(0)
+  created_at                        String
+  updated_at                        String
+  agencies                          agencies?         @relation(fields: [agency_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_listings_owner_idTousers    users             @relation("listings_owner_idTousers", fields: [owner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_listings_reviewed_byTousers users?            @relation("listings_reviewed_byTousers", fields: [reviewed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  property_images                   property_images[]
+
+  @@index([status, city, district], map: "listings_location_idx")
+  @@index([owner_id], map: "listings_owner_idx")
+  @@index([status, created_at(sort: Desc)], map: "listings_recent_idx")
+  @@index([status, purpose, property_type, city, price], map: "listings_search_idx")
+}
+
+model messages {
+  id                                 String  @id @db.Uuid
+  listing_id                         String
+  sender_id                          String  @db.Uuid
+  recipient_id                       String? @db.Uuid
+  body                               String
+  created_at                         String
+  users_messages_recipient_idTousers users?  @relation("messages_recipient_idTousers", fields: [recipient_id], references: [id], onUpdate: NoAction)
+  users_messages_sender_idTousers    users   @relation("messages_sender_idTousers", fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([recipient_id, created_at(sort: Desc)], map: "messages_recipient_idx")
+  @@index([sender_id, created_at(sort: Desc)], map: "messages_sender_idx")
+  @@index([listing_id, sender_id, recipient_id, created_at(sort: Desc)], map: "messages_thread_idx")
+}
+
+model oauth_accounts {
+  provider         String
+  provider_user_id String
+  user_id          String @db.Uuid
+  created_at       String
+  users            users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([provider, provider_user_id])
+  @@unique([user_id, provider])
+}
+
+model oauth_flows {
+  state_hash    String  @id
+  code_verifier String
+  role          String
+  next_path     String
+  link_user_id  String? @db.Uuid
+  expires_at    String
+
+  @@index([expires_at], map: "oauth_flows_expiry_idx")
+}
+
+model packages {
+  id            String      @id
+  name          String
+  listing_limit Int
+  duration_days Int
+  featured_days Int         @default(0)
+  price         BigInt
+  currency      String      @default("TRY")
+  active        Int         @default(1)
+  purchases     purchases[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model property_images {
+  id               String   @id @db.Uuid
+  property_id      String   @db.Uuid
+  storage_provider String   @default("r2")
+  bucket           String
+  object_key       String   @unique
+  content_type     String
+  byte_size        BigInt
+  checksum_sha256  String?
+  sort_order       Int
+  created_at       String
+  listings         listings @relation(fields: [property_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([property_id, sort_order], map: "property_images_property_idx")
+}
+
+model purchases {
+  id           String   @id @db.Uuid
+  user_id      String   @db.Uuid
+  package_id   String
+  status       String   @default("pending")
+  provider_ref String?
+  created_at   String
+  packages     packages @relation(fields: [package_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model schema_migrations {
+  version    String   @id
+  applied_at DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model sessions {
+  token_hash String @id
+  user_id    String @db.Uuid
+  expires_at String
+  users      users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "sessions_user_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id                                    String           @id @db.Uuid
+  email                                 String           @unique
+  password_hash                         String
+  email_verified                        Int              @default(0)
+  name                                  String
+  phone                                 String?
+  role                                  String           @default("buyer")
+  agent_status                          String           @default("none")
+  company                               String?
+  avatar_url                            String?
+  created_at                            String
+  admin_setup                           admin_setup[]
+  agencies                              agencies?
+  favorites                             favorites[]
+  listings_listings_owner_idTousers     listings[]       @relation("listings_owner_idTousers")
+  listings_listings_reviewed_byTousers  listings[]       @relation("listings_reviewed_byTousers")
+  messages_messages_recipient_idTousers messages[]       @relation("messages_recipient_idTousers")
+  messages_messages_sender_idTousers    messages[]       @relation("messages_sender_idTousers")
+  oauth_accounts                        oauth_accounts[]
+  purchases                             purchases[]
+  sessions                              sessions[]
+}
