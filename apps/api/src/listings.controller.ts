@@ -7,6 +7,7 @@ import { PrismaService } from "./prisma.service";
 import { MediaService } from "./media.controller";
 import districtsData from "./data/districts.json";
 import neighborhoodsData from "./data/neighborhoods.json";
+import demoRows from "./data/demo-listings.json";
 
 const types = new Set(["daire", "villa", "mustakil", "rezidans", "arsa", "ticari"]);
 const imagePrefix = "/api/media/";
@@ -14,6 +15,8 @@ const fields = { users_listings_owner_idTousers: { select: { name: true } } } as
 type Row = listings & { users_listings_owner_idTousers?: { name: string } };
 const districts = districtsData as Record<string, string[]>;
 const neighborhoods = neighborhoodsData as Record<string, Record<string, {id:number;name:string;postalCode:string;label:string}[]>>;
+type DemoListing = { id: string; purpose: string; city: string; district: string; propertyType: string; rooms?: string; price: number; grossArea: number; bedrooms?: number; bathrooms?: number; furnished?: boolean; amenities: string[]; featured?: boolean; source: string };
+const demoListings = demoRows as unknown as DemoListing[];
 
 export function listingView(row: Row) {
   return {
@@ -60,13 +63,30 @@ export class ListingsController {
     const amenities = (query.amenities || "").split(",").filter((item) => item && item.length < 50).slice(0, 12);
     if (amenities.length) where.AND = amenities.map((item) => ({ amenities: { contains: JSON.stringify(item) } }));
     const orderBy: Prisma.listingsOrderByWithRelationInput[] = query.sort === "priceAsc" ? [{price:"asc"}] : query.sort === "priceDesc" ? [{price:"desc"}] : query.sort === "area" ? [{gross_area:"desc"}] : [{featured:"desc"},{created_at:"desc"}];
-    const [total, rows] = await this.prisma.$transaction([
-      this.prisma.listings.count({ where }),
-      this.prisma.listings.findMany({ where, orderBy, include: fields, take: pageSize, skip: (page - 1) * pageSize }),
-    ]);
-    return { listings: rows.map(listingView), total, page, pageSize };
+    const demo = demoListings.filter((item) => {
+      for (const [param, field] of [["purpose", "purpose"], ["city", "city"], ["district", "district"], ["type", "propertyType"], ["rooms", "rooms"]] as const) {
+        if (query[param] && item[field] !== query[param]) return false;
+      }
+      for (const [param, field, mode] of [["minPrice", "price", "min"], ["maxPrice", "price", "max"], ["minArea", "grossArea", "min"], ["maxArea", "grossArea", "max"], ["bedrooms", "bedrooms", "min"], ["bathrooms", "bathrooms", "min"]] as const) {
+        const value = query[param];
+        if (value && /^\d{1,12}$/.test(value)) {
+          const actual = Number(item[field] || 0), limit = Number(value);
+          if (mode === "min" && actual < limit || mode === "max" && actual > limit) return false;
+        }
+      }
+      if (query.furnished === "1" && !item.furnished) return false;
+      return amenities.every((feature) => item.amenities.includes(feature));
+    }).sort((a, b) => query.sort === "priceAsc" ? a.price - b.price : query.sort === "priceDesc" ? b.price - a.price : query.sort === "area" ? b.grossArea - a.grossArea : Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+    const realCount = await this.prisma.listings.count({ where });
+    const pageStart = (page - 1) * pageSize;
+    const realLimit = Math.max(0, Math.min(pageSize, realCount - pageStart));
+    const rows = realLimit ? await this.prisma.listings.findMany({ where, orderBy, include: fields, take: realLimit, skip: pageStart }) : [];
+    const demoOffset = Math.max(0, pageStart - realCount);
+    return { listings: [...rows.map(listingView), ...demo.slice(demoOffset, demoOffset + pageSize - rows.length)], total: realCount + demo.length, page, pageSize };
   }
   @Get(":id") async detail(@Param("id") id: string) {
+    const demo = demoListings.find((item) => item.id === id);
+    if (demo) return { listing: demo };
     if (!/^[a-f0-9-]{36}$/i.test(id)) throw new NotFoundException("İlan bulunamadı.");
     const row = await this.prisma.listings.findFirst({ where: { id, status: "published" }, include: fields });
     if (!row) throw new NotFoundException("İlan bulunamadı.");

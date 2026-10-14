@@ -3,10 +3,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "ru";
-export const locales: { code: Locale; label: string }[] = [
-  { code: "tr", label: "Türkçe" }, { code: "de", label: "Deutsch" },
-  { code: "fr", label: "Français" }, { code: "en", label: "English" },
-  { code: "ar", label: "العربية" }, { code: "ru", label: "Русский" },
+export const locales: { code: Locale; label: string; flag: string }[] = [
+  { code: "tr", label: "Türkçe", flag: "tr" }, { code: "de", label: "Deutsch", flag: "de" },
+  { code: "fr", label: "Français", flag: "fr" }, { code: "en", label: "English", flag: "gb" },
+  { code: "ar", label: "العربية", flag: "sa" }, { code: "ru", label: "Русский", flag: "ru" },
 ];
 
 type Translations = Partial<Record<Locale, string>>;
@@ -533,6 +533,16 @@ const marketplaceWords: Record<string, [string, string, string, string, string]>
   "Harita şu anda yüklenemedi.": ["Die Karte konnte nicht geladen werden.", "La carte n'a pas pu être chargée.", "The map could not be loaded.", "تعذر تحميل الخريطة.", "Не удалось загрузить карту."],
   "İş ortakları": ["Partner", "Partenaires", "Partners", "الشركاء", "Партнёры"],
   "Emlak ofisleri ve inşaat firmaları": ["Immobilienbüros und Bauträger", "Agences immobilières et promoteurs", "Agencies and property developers", "الوكالات العقارية وشركات التطوير", "Агентства недвижимости и застройщики"],
+  "Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.": ["Entdecken Sie geprüfte Unternehmen und Musterportfolios für die Präsentation.", "Découvrez les entreprises approuvées et les portefeuilles de démonstration.", "Explore approved companies and sample portfolios for presentation.", "استكشف الشركات المعتمدة والمحافظ النموذجية للعرض.", "Изучайте проверенные компании и демонстрационные портфели."],
+  "Örnek profil": ["Musterprofil", "Profil de démonstration", "Sample profile", "ملف تجريبي", "Пример профиля"],
+  "Örnek ilanlar": ["Musteranzeigen", "Annonces de démonstration", "Sample listings", "إعلانات تجريبية", "Примеры объявлений"],
+  "şirket ve örnek profil": ["Unternehmen und Musterprofile", "entreprises et profils de démonstration", "companies and sample profiles", "شركات وملفات تجريبية", "компаний и примеров профилей"],
+  "Bu şirket ve portföyü sunum amaçlı örnektir; gerçek bir satıcıyı temsil etmez.": ["Dieses Unternehmen und sein Portfolio sind nur für die Präsentation bestimmt und vertreten keinen echten Anbieter.", "Cette entreprise et son portefeuille sont des exemples de présentation et ne représentent aucun vendeur réel.", "This company and portfolio are presentation examples and do not represent a real seller.", "هذه الشركة ومحفظتها مثالان للعرض ولا يمثلان بائعاً حقيقياً.", "Эта компания и её портфель созданы для демонстрации и не представляют реального продавца."],
+  "Antalya kıyılarında konut ve villa portföyüne odaklanan örnek emlak ofisi.": ["Musteragentur für Wohnungen und Villen an der Küste von Antalya.", "Agence de démonstration spécialisée dans les logements et villas du littoral d'Antalya.", "Sample agency focused on homes and villas along the Antalya coast.", "وكالة تجريبية متخصصة في المنازل والفلل على ساحل أنطاليا.", "Пример агентства по продаже домов и вилл на побережье Антальи."],
+  "İzmir ve çevresindeki yaşam alanlarını sunan örnek emlak ofisi.": ["Musteragentur für Wohnimmobilien in und um Izmir.", "Agence de démonstration présentant des logements à Izmir et alentour.", "Sample agency presenting homes in and around İzmir.", "وكالة تجريبية تعرض عقارات سكنية في إزمير وضواحيها.", "Пример агентства с жильём в Измире и окрестностях."],
+  "İstanbul'da şehir yaşamına odaklanan örnek emlak danışmanlığı profili.": ["Musterprofil einer Immobilienberatung für städtisches Wohnen in Istanbul.", "Profil de démonstration d'un conseil immobilier axé sur la vie urbaine à Istanbul.", "Sample property advisory profile focused on city living in İstanbul.", "ملف استشاري عقاري تجريبي يركز على الحياة الحضرية في إسطنبول.", "Пример агентства городской недвижимости в Стамбуле."],
+  "Ege kıyılarında konut projeleri sunan örnek inşaat firması.": ["Muster-Bauträger mit Wohnprojekten an der Ägäis.", "Promoteur de démonstration présentant des projets résidentiels sur la côte égéenne.", "Sample developer presenting residential projects on the Aegean coast.", "شركة تطوير تجريبية تعرض مشاريع سكنية على ساحل إيجة.", "Пример застройщика с жилыми проектами на Эгейском побережье."],
+  "Kentsel yaşam alanları geliştiren örnek proje firması.": ["Muster-Projektentwickler für urbanes Wohnen.", "Société de projets de démonstration dédiée à l'habitat urbain.", "Sample project developer focused on urban living.", "شركة مشاريع تجريبية تركز على السكن الحضري.", "Пример девелопера городского жилья."],
   "Onaylı şirketlerin ilanlarını ve portföylerini görün.": ["Entdecken Sie Angebote und Portfolios geprüfter Unternehmen.", "Découvrez les annonces et portefeuilles des entreprises approuvées.", "Explore listings and portfolios from approved companies.", "استكشف إعلانات ومحافظ الشركات المعتمدة.", "Смотрите объявления и портфели одобренных компаний."],
   "Onaylı şirketlerin portföylerini ve yayındaki ilan sayılarını inceleyin.": ["Prüfen Sie Portfolios und aktive Anzeigen geprüfter Unternehmen.", "Consultez les portefeuilles et annonces actives des entreprises approuvées.", "Browse approved companies, their portfolios and live listing counts.", "تصفح محافظ الشركات المعتمدة وعدد إعلاناتها المنشورة.", "Изучите портфели одобренных компаний и число активных объявлений."],
   "Tüm şirketler": ["Alle Unternehmen", "Toutes les entreprises", "All companies", "كل الشركات", "Все компании"],

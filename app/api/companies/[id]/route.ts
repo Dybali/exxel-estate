@@ -1,10 +1,14 @@
 import { db, error, ok, parseListing } from "@/lib/server";
+import { DEMO_COMPANIES } from "@/lib/demo-companies";
+import { DEMO_LISTINGS } from "@/lib/listings";
 
 type CompanyRow = { id: string; owner_id: string; name: string; category: string; created_at: string };
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[a-f0-9-]{36}$/i.test(id)) return error("Şirket bulunamadı.", 404);
+  const sample = DEMO_COMPANIES.find((company) => company.id === id);
+  if (sample) return ok({ company: sample, listings: DEMO_LISTINGS.filter((listing) => sample.listingIds?.includes(listing.id)), page: 1, pageSize: 24 }, { headers: { "Cache-Control": "public, max-age=300, s-maxage=600" } });
   const page = Math.min(1000, Math.max(1, Number(new URL(request.url).searchParams.get("page")) || 1));
   const pageSize = 24;
   const company = await db().prepare("SELECT a.id,a.owner_id,a.name,a.category,a.created_at FROM agencies a JOIN users u ON u.id=a.owner_id WHERE a.id=? AND a.status='approved' AND u.role='agent' AND u.agent_status='approved'").bind(id).first<CompanyRow>();

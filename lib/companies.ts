@@ -5,4 +5,8 @@ export type Company = {
   listingCount: number;
   saleCount: number;
   rentCount: number;
+  sample?: boolean;
+  city?: string;
+  description?: string;
+  listingIds?: string[];
 };

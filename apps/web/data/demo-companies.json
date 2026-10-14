@@ -1,0 +1,7 @@
+[
+  {"id":"a1000000-0000-4000-8000-000000000001","name":"Lara Kıyı Gayrimenkul","category":"agency","city":"Antalya","description":"Antalya kıyılarında konut ve villa portföyüne odaklanan örnek emlak ofisi.","listingIds":["ex-1005","ex-1007"],"saleCount":1,"rentCount":1},
+  {"id":"a1000000-0000-4000-8000-000000000002","name":"Ege Atlas Emlak","category":"agency","city":"İzmir","description":"İzmir ve çevresindeki yaşam alanlarını sunan örnek emlak ofisi.","listingIds":["ex-1004","ex-1008"],"saleCount":2,"rentCount":0},
+  {"id":"a1000000-0000-4000-8000-000000000003","name":"Bosphorus Kent Portföy","category":"agency","city":"İstanbul","description":"İstanbul'da şehir yaşamına odaklanan örnek emlak danışmanlığı profili.","listingIds":["ex-1001","ex-1003","ex-1006"],"saleCount":2,"rentCount":1},
+  {"id":"a1000000-0000-4000-8000-000000000004","name":"Mavi Kıyı Yapı","category":"developer","city":"Muğla","description":"Ege kıyılarında konut projeleri sunan örnek inşaat firması.","listingIds":["ex-1002","ex-1009","ex-1011"],"saleCount":2,"rentCount":1},
+  {"id":"a1000000-0000-4000-8000-000000000005","name":"Marmara Yaşam Projeleri","category":"developer","city":"İstanbul","description":"Kentsel yaşam alanları geliştiren örnek proje firması.","listingIds":["ex-1010","ex-1012"],"saleCount":1,"rentCount":1}
+]
