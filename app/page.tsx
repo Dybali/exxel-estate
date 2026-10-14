@@ -17,7 +17,11 @@ export default function Home() {
     const controller = new AbortController();
     fetch("/api/listings?page=1", { signal: controller.signal })
       .then((response): Promise<{ listings?: Listing[] } | null> => response.ok ? response.json() : Promise.resolve(null))
-      .then((data) => { if (Array.isArray(data?.listings)) setListings(data.listings.slice(0, 4)); })
+      .then((data) => {
+        if (!Array.isArray(data?.listings)) return;
+        const featured = data.listings.filter((listing) => listing.featured && listing.images.length > 0);
+        setListings([...featured, ...DEMO_LISTINGS.filter((listing) => !featured.some((item) => item.id === listing.id))].slice(0, 4));
+      })
       .catch(() => {});
     return () => controller.abort();
   }, []);
