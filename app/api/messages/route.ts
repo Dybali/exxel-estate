@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       l.status AS listing_status
     FROM ranked
     LEFT JOIN users u ON u.id=ranked.peer_id
-    LEFT JOIN listings l ON l.id=ranked.listing_id
+    LEFT JOIN listings l ON CAST(l.id AS TEXT)=ranked.listing_id
     WHERE ranked.position=1
     ORDER BY ranked.created_at DESC,ranked.id DESC
     LIMIT 100
