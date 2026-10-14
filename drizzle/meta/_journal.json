@@ -43,6 +43,13 @@
       "when": 1791917610002,
       "tag": "0005_acoustic_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791962245045,
+      "tag": "0006_spicy_king_cobra",
+      "breakpoints": true
     }
   ]
 }

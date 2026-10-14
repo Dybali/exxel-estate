@@ -449,6 +449,32 @@ const searchWords: Record<string, [string, string, string, string, string]> = {
 };
 for (const [key, [de, fr, en, ar, ru]] of Object.entries(searchWords)) words[key] = { de, fr, en, ar, ru };
 
+const messageWords: Record<string, [string, string, string, string, string]> = {
+  "İLAN SAHİBİ": ["EIGENTÜMER","PROPRIÉTAIRE","LISTING OWNER","مالك العقار","ВЛАДЕЛЕЦ ОБЪЯВЛЕНИЯ"],
+  "Bu gayrimenkul hakkında ayrıntılı bilgi almak için ilan sahibine yazın.": ["Schreiben Sie dem Eigentümer für weitere Informationen.","Écrivez au propriétaire pour en savoir plus sur ce bien.","Message the owner for more information about this property.","راسل مالك العقار للحصول على مزيد من التفاصيل.","Напишите владельцу, чтобы узнать больше об объекте."],
+  "Bu örnek ilanın gerçek bir sahibi yok; mesajlaşma gerçek ilanlarda kullanılabilir.": ["Diese Beispielanzeige hat keinen echten Eigentümer. Nachrichten sind bei echten Anzeigen verfügbar.","Cette annonce de démonstration n'a pas de propriétaire réel. La messagerie est disponible sur les annonces réelles.","This sample listing has no real owner. Messaging is available on real listings.","هذا الإعلان التجريبي ليس له مالك حقيقي. المراسلة متاحة للعقارات الحقيقية.","У этого примера нет настоящего владельца. Переписка доступна в реальных объявлениях."],
+  "Görüşmelerime git": ["Zu meinen Gesprächen","Voir mes conversations","Go to my conversations","الانتقال إلى محادثاتي","К моим беседам"],
+  "İletişim için üyelik gereklidir": ["Für Kontakt ist ein Konto erforderlich","Un compte est nécessaire pour contacter le propriétaire","An account is required to get in touch","يتطلب التواصل إنشاء حساب","Для связи нужен аккаунт"],
+  "Görüşme": ["Gespräch","Conversation","Conversation","محادثة","Беседа"],
+  "Görüşmeler": ["Gespräche","Conversations","Conversations","المحادثات","Беседы"],
+  "Görüşmeleri yenile": ["Gespräche aktualisieren","Actualiser les conversations","Refresh conversations","تحديث المحادثات","Обновить беседы"],
+  "İLAN GÖRÜŞMESİ": ["IMMOBILIENGESPRÄCH","CONVERSATION IMMOBILIÈRE","LISTING CONVERSATION","محادثة العقار","ОБСУЖДЕНИЕ ОБЪЯВЛЕНИЯ"],
+  "Gerçek ilanlarda ilan sahibine mesaj gönderdiğinizde görüşmeniz burada görünür.": ["Wenn Sie einem Eigentümer schreiben, erscheint das Gespräch hier.","Vos échanges avec les propriétaires apparaîtront ici.","Your conversations with listing owners will appear here.","ستظهر محادثاتك مع مالكي العقارات هنا.","Ваши беседы с владельцами появятся здесь."],
+  "Mesajlar yükleniyor...": ["Nachrichten werden geladen...","Chargement des messages...","Loading messages...","جارٍ تحميل الرسائل...","Загрузка сообщений..."],
+  "Bu görüşmede henüz mesaj yok.": ["Noch keine Nachrichten in diesem Gespräch.","Aucun message dans cette conversation.","No messages in this conversation yet.","لا توجد رسائل في هذه المحادثة بعد.","В этой беседе пока нет сообщений."],
+  "Yanıtınız": ["Ihre Antwort","Votre réponse","Your reply","ردك","Ваш ответ"],
+  "Mesajınızı yazın...": ["Nachricht schreiben...","Écrivez votre message...","Write your message...","اكتب رسالتك...","Напишите сообщение..."],
+  "Gönder": ["Senden","Envoyer","Send","إرسال","Отправить"],
+  "Gönderiliyor...": ["Wird gesendet...","Envoi...","Sending...","جارٍ الإرسال...","Отправка..."],
+  "Bu ilan artık yayında değil.": ["Diese Anzeige ist nicht mehr verfügbar.","Cette annonce n'est plus disponible.","This listing is no longer available.","هذا الإعلان لم يعد متاحًا.","Это объявление больше не доступно."],
+  "Görüşmeler yüklenemedi.": ["Gespräche konnten nicht geladen werden.","Impossible de charger les conversations.","Could not load conversations.","تعذر تحميل المحادثات.","Не удалось загрузить беседы."],
+  "Mesajlar yüklenemedi.": ["Nachrichten konnten nicht geladen werden.","Impossible de charger les messages.","Could not load messages.","تعذر تحميل الرسائل.","Не удалось загрузить сообщения."],
+  "Mesaj gönderilemedi.": ["Nachricht konnte nicht gesendet werden.","Impossible d'envoyer le message.","Could not send message.","تعذر إرسال الرسالة.","Не удалось отправить сообщение."],
+  "Mesaj en az 2 karakter olmalı.": ["Die Nachricht muss mindestens 2 Zeichen lang sein.","Le message doit contenir au moins 2 caractères.","The message must be at least 2 characters.","يجب أن تتكون الرسالة من حرفين على الأقل.","Сообщение должно содержать не менее 2 символов."],
+  "Çok sık mesaj gönderiyorsunuz. Bir dakika sonra tekrar deneyin.": ["Sie senden zu schnell. Bitte versuchen Sie es in einer Minute erneut.","Vous envoyez trop de messages. Réessayez dans une minute.","You're sending messages too quickly. Try again in a minute.","ترسل الرسائل بسرعة كبيرة. حاول مرة أخرى بعد دقيقة.","Вы отправляете сообщения слишком часто. Повторите через минуту."],
+};
+for (const [key, [de, fr, en, ar, ru]] of Object.entries(messageWords)) words[key] = { de, fr, en, ar, ru };
+
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
 });

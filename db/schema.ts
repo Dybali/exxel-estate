@@ -98,7 +98,11 @@ export const messages = sqliteTable("messages", {
   recipientId: text("recipient_id"),
   body: text("body").notNull(),
   createdAt: text("created_at").notNull(),
-}, (t) => [index("messages_recipient_idx").on(t.recipientId, t.createdAt)]);
+}, (t) => [
+  index("messages_recipient_idx").on(t.recipientId, t.createdAt),
+  index("messages_sender_idx").on(t.senderId, t.createdAt),
+  index("messages_thread_idx").on(t.listingId, t.senderId, t.recipientId, t.createdAt),
+]);
 
 export const packages = sqliteTable("packages", {
   id: text("id").primaryKey(),

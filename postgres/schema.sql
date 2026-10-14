@@ -93,6 +93,8 @@ CREATE TABLE messages (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX messages_recipient_idx ON messages(recipient_id,created_at DESC);
+CREATE INDEX messages_sender_idx ON messages(sender_id,created_at DESC);
+CREATE INDEX messages_thread_idx ON messages(listing_id,sender_id,recipient_id,created_at DESC);
 CREATE TABLE packages (
   id text PRIMARY KEY,
   name text NOT NULL,
