@@ -2,7 +2,7 @@ export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" 
 export type Purpose = "satilik" | "kiralik";
 export type Listing = {
   id: string; title: string; description: string; purpose: Purpose; propertyType: PropertyType;
-  price: number; currency: string; city: string; district: string; neighborhood?: string;
+  price: number; currency: string; city: string; district: string; neighborhood?: string; neighborhoodId?: number; postalCode?: string;
   latitude?: number; longitude?: number; grossArea: number; netArea?: number;
   rooms?: string; bedrooms?: number; bathrooms?: number; buildingAge?: number;
   floor?: number; totalFloors?: number; heating?: string; furnished?: boolean;

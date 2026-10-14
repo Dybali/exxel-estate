@@ -63,6 +63,8 @@ export const listings = sqliteTable("listings", {
   city: text("city").notNull(),
   district: text("district").notNull(),
   neighborhood: text("neighborhood"),
+  neighborhoodId: integer("neighborhood_id"),
+  postalCode: text("postal_code"),
   latitude: real("latitude"),
   longitude: real("longitude"),
   grossArea: integer("gross_area").notNull(),

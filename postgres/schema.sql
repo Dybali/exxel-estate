@@ -58,6 +58,8 @@ CREATE TABLE listings (
   city text NOT NULL,
   district text NOT NULL,
   neighborhood text,
+  neighborhood_id integer,
+  postal_code text,
   latitude double precision,
   longitude double precision,
   gross_area integer NOT NULL CHECK (gross_area>0),

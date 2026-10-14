@@ -31,18 +31,26 @@ for (const { name, province_id } of districts) {
   districtTree[city].push(name);
   neighborhoodTree[city][name] = [];
 }
-for (const { name, district_id } of neighborhoods) {
+for (const { id, name, postal_code, district_id } of neighborhoods) {
   const district = byDistrict.get(district_id);
   if (!district) throw new Error(`Unknown district ${district_id}`);
   const city = byProvince.get(district.provinceId);
-  neighborhoodTree[city][district.name].push(name);
+  neighborhoodTree[city][district.name].push({ id, name, postalCode: postal_code || '' });
 }
 const sortUnique = (items) => [...new Set(items)].sort(collator.compare);
 for (const city of Object.keys(districtTree)) {
   districtTree[city] = sortUnique(districtTree[city]);
   for (const district of districtTree[city]) {
-    neighborhoodTree[city][district] = sortUnique(neighborhoodTree[city][district]);
-    if (!neighborhoodTree[city][district].length) throw new Error(`${city}/${district} has no neighborhoods`);
+    const records = neighborhoodTree[city][district];
+    if (!records.length) throw new Error(`${city}/${district} has no neighborhoods`);
+    const exactLabels = new Map();
+    for (const record of records) {
+      const key = `${record.name}|${record.postalCode}`;
+      exactLabels.set(key, (exactLabels.get(key) || 0) + 1);
+    }
+    neighborhoodTree[city][district] = records
+      .map((record) => ({ ...record, label: `${record.name}${record.postalCode ? ` (${record.postalCode})` : ''}${exactLabels.get(`${record.name}|${record.postalCode}`) > 1 ? ` · ${record.id}` : ''}` }))
+      .sort((a, b) => collator.compare(a.name, b.name) || collator.compare(a.postalCode, b.postalCode) || a.id - b.id);
   }
 }
 const sortedCities = Object.keys(districtTree).sort(collator.compare);

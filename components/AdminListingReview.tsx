@@ -67,7 +67,7 @@ export function AdminListingReview({ listingId }: { listingId: string }) {
           <div><span>İlan türü</span><strong>{listing.purpose === "satilik" ? "Satılık" : "Kiralık"}</strong></div>
           <div><span>Gayrimenkul tipi</span><strong>{typeLabel(listing.propertyType)}</strong></div>
           <div><span>Fiyat</span><strong>{formatPrice(listing.price, listing.currency)}</strong></div>
-          <div><span>Konum</span><strong>{listing.neighborhood}, {listing.district}, {listing.city}</strong></div>
+          <div><span>Konum</span><strong>{listing.neighborhood}{listing.postalCode ? ` (${listing.postalCode})` : ""}, {listing.district}, {listing.city}</strong></div>
           <div><span>Brüt / net alan</span><strong>{listing.grossArea} m²{listing.netArea ? ` / ${listing.netArea} m²` : ""}</strong></div>
           {listing.rooms && <div><span>Oda düzeni</span><strong>{listing.rooms}</strong></div>}
           {listing.bedrooms != null && <div><span>Yatak odası</span><strong>{listing.bedrooms}</strong></div>}
