@@ -24,11 +24,12 @@ export async function POST(request:Request) {
     if(user.role==="agent" && user.agent_status==="approved") return error("Emlakçı hesabınız zaten onaylı.");
     if(user.role==="individual" && role==="individual") return error("Hesabınız zaten bireysel ilan veren türünde.");
     const company=str(data.company,120);
+    const category=data.companyCategory==="developer"?"developer":"agency";
     if(role==="agent" && company.length<2) return error("Emlak ofisi veya şirket adını girin.");
     const statements=[db().prepare("UPDATE users SET role=?,agent_status=?,company=? WHERE id=?")
       .bind(role,role==="agent"?"pending":"none",role==="agent"?company:null,user.id)];
-    if(role==="agent") statements.push(db().prepare("INSERT INTO agencies(id,owner_id,name,status,created_at) VALUES(?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET name=excluded.name,status=excluded.status")
-      .bind(crypto.randomUUID(),user.id,company,"pending",now()));
+    if(role==="agent") statements.push(db().prepare("INSERT INTO agencies(id,owner_id,name,category,status,created_at) VALUES(?,?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET name=excluded.name,category=excluded.category,status=excluded.status")
+      .bind(crypto.randomUUID(),user.id,company,category,"pending",now()));
     else statements.push(db().prepare("UPDATE agencies SET status='inactive' WHERE owner_id=?").bind(user.id));
     await db().batch(statements);
     return ok({success:true,role,agent_status:role==="agent"?"pending":"none"});
@@ -43,11 +44,11 @@ export async function POST(request:Request) {
     if(existing) return error("Bu e-posta ile kayıtlı bir hesap var.",409);
     const id=crypto.randomUUID();
     if(role==="agent" && str(data.company,120).length<2) return error("Emlak ofisi veya şirket adını girin.");
-    const company=str(data.company,120)||null,createdAt=now();
+    const company=str(data.company,120)||null,category=data.companyCategory==="developer"?"developer":"agency",createdAt=now();
     const statements=[db().prepare("INSERT INTO users(id,email,password_hash,email_verified,name,role,agent_status,company,created_at) VALUES(?,?,?,?,?,?,?,?,?)")
       .bind(id,email,await passwordHash(password),0,name,role,role==="agent"?"pending":"none",company,createdAt)];
-    if(role==="agent") statements.push(db().prepare("INSERT INTO agencies(id,owner_id,name,status,created_at) VALUES(?,?,?,?,?)")
-      .bind(crypto.randomUUID(),id,company!,"pending",createdAt));
+    if(role==="agent") statements.push(db().prepare("INSERT INTO agencies(id,owner_id,name,category,status,created_at) VALUES(?,?,?,?,?,?)")
+      .bind(crypto.randomUUID(),id,company!,category,"pending",createdAt));
     await db().batch(statements);
     const token=await createSession(id);
     return ok({user:{id,email,name,role,agent_status:role==="agent"?"pending":"none",isAdmin:false}},{status:201,headers:{"Set-Cookie":sessionCookie(token)}});

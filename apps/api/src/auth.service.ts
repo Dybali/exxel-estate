@@ -68,13 +68,14 @@ export class AuthService {
     const email = str(data.email, 254).toLowerCase(), name = str(data.name, 100), role = str(data.role, 20);
     const password = typeof data.password === "string" ? data.password : "";
     const company = str(data.company, 120);
+    const category = data.companyCategory === "developer" ? "developer" : "agency";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || name.length < 2 || password.length < 10 || password.length > 128 || !["buyer", "individual", "agent"].includes(role)) throw new BadRequestException("Kayıt bilgilerini kontrol edin.");
     if (role === "agent" && company.length < 2) throw new BadRequestException("Emlak ofisi adını girin.");
     if (await this.prisma.users.findUnique({ where: { email } })) throw new ConflictException("Bu e-posta ile kayıtlı bir hesap var.");
     const id = randomUUID(), createdAt = now();
     const user = await this.prisma.$transaction(async (db) => {
       const created = await db.users.create({ data: { id, email, password_hash: await this.hashPassword(password), name, role, email_verified: 0, agent_status: role === "agent" ? "pending" : "none", company: company || null, created_at: createdAt } });
-      if (role === "agent") await db.agencies.create({ data: { id: randomUUID(), owner_id: id, name: company, status: "pending", created_at: createdAt } });
+      if (role === "agent") await db.agencies.create({ data: { id: randomUUID(), owner_id: id, name: company, category, status: "pending", created_at: createdAt } });
       return created;
     });
     return this.session(user, response);
@@ -98,11 +99,11 @@ export class AuthService {
   }
   async requestSellerRole(user: users, data: Record<string, unknown>) {
     if (this.isAdmin(user)) throw new ForbiddenException("Yönetici hesabı değiştirilemez.");
-    const role = str(data.role, 20), company = str(data.company, 120);
+    const role = str(data.role, 20), company = str(data.company, 120), category = data.companyCategory === "developer" ? "developer" : "agency";
     if (!["individual", "agent"].includes(role) || role === "agent" && company.length < 2) throw new BadRequestException("İlan veren türünü ve ofis adını kontrol edin.");
     await this.prisma.$transaction(async (db) => {
       await db.users.update({ where: { id: user.id }, data: { role, company: role === "agent" ? company : null, agent_status: role === "agent" ? "pending" : "none" } });
-      if (role === "agent") await db.agencies.upsert({ where: { owner_id: user.id }, create: { id: randomUUID(), owner_id: user.id, name: company, status: "pending", created_at: now() }, update: { name: company, status: "pending" } });
+      if (role === "agent") await db.agencies.upsert({ where: { owner_id: user.id }, create: { id: randomUUID(), owner_id: user.id, name: company, category, status: "pending", created_at: now() }, update: { name: company, category, status: "pending" } });
       else await db.agencies.updateMany({ where: { owner_id: user.id }, data: { status: "inactive" } });
     });
     return { success: true, role, agent_status: role === "agent" ? "pending" : "none" };

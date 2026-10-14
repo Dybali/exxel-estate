@@ -16,6 +16,7 @@ export function SellerUpgrade({ user }: { user: Account }) {
   const {t}=useLocale();
   const [role, setRole] = useState<"individual" | "agent">(user.role === "buyer" ? "individual" : "agent");
   const [company, setCompany] = useState(user.company || "");
+  const [companyCategory, setCompanyCategory] = useState<"agency" | "developer">("agency");
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +39,7 @@ export function SellerUpgrade({ user }: { user: Account }) {
       const response = await fetch("/api/account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "request_seller_role", role, company }),
+        body: JSON.stringify({ action: "request_seller_role", role, company, companyCategory }),
       });
       const result = await response.json() as { error?: string };
       if (!response.ok) {
@@ -62,7 +63,7 @@ export function SellerUpgrade({ user }: { user: Account }) {
           {user.role === "buyer" && <option value="individual">{t("Bireysel mal sahibiyim")}</option>}
           <option value="agent">{t("Emlakçıyım")}</option>
         </select></label>
-        {role === "agent" && <label>{t("Ofis / şirket adı")}<input value={company} onChange={(event) => setCompany(event.target.value)} required minLength={2} maxLength={120} placeholder={t("Emlak ofisi adı")} /></label>}
+        {role === "agent" && <><label>{t("Şirket türü")}<select value={companyCategory} onChange={(event) => setCompanyCategory(event.target.value as "agency" | "developer")}><option value="agency">{t("Emlak ofisi")}</option><option value="developer">{t("İnşaat firması")}</option></select></label><label>{t("Ofis / şirket adı")}<input value={company} onChange={(event) => setCompany(event.target.value)} required minLength={2} maxLength={120} placeholder={t("Emlak ofisi adı")} /></label></>}
         <button className="primary-button" disabled={loading}>{t(loading ? "Gönderiliyor..." : "Başvuruyu gönder")}<ArrowRight size={16} /></button>
         {error && <div className="form-error" role="alert">{t(error)}</div>}
       </form>

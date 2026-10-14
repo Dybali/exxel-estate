@@ -12,10 +12,12 @@ import { FavoritesController } from "./favorites.controller";
 import { MineController } from "./mine.controller";
 import { GoogleController } from "./google.controller";
 import { HealthController } from "./health.controller";
+import { CityCountsController } from "./city-counts.controller";
+import { CompaniesController } from "./companies.controller";
 
 @Module({
   imports: [JwtModule.register({ secret: process.env.JWT_SECRET, signOptions: { issuer: "exxel-estate", audience: "exxel-estate-web" } })],
-  controllers: [AccountController, ListingsController, MessagesController, MediaController, AdminController, LocationsController, FavoritesController, MineController, GoogleController, HealthController],
+  controllers: [AccountController, ListingsController, MessagesController, MediaController, AdminController, LocationsController, FavoritesController, MineController, GoogleController, HealthController, CityCountsController, CompaniesController],
   providers: [PrismaService, AuthService, MediaService],
 })
 export class AppModule {}

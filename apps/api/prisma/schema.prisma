@@ -18,6 +18,7 @@ model agencies {
   id         String     @id @db.Uuid
   owner_id   String     @unique(map: "agencies_owner_unique") @db.Uuid
   name       String
+  category   String     @default("agency")
   phone      String?
   email      String?
   status     String     @default("pending")

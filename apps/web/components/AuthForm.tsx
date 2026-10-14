@@ -88,6 +88,7 @@ export function AuthForm() {
       password: form.get("password"),
       name: form.get("name"),
       company: form.get("company"),
+      companyCategory: form.get("companyCategory"),
       role,
     };
     try {
@@ -170,10 +171,13 @@ export function AuthForm() {
                   </select>
                 </label>
                 {role === "agent" && (
-                  <label>
-                    {t("Ofis / şirket adı")}
-                    <input name="company" required minLength={2} placeholder={t("Emlak ofisi adı")} autoComplete="organization" />
-                  </label>
+                  <>
+                    <label>{t("Şirket türü")}<select name="companyCategory"><option value="agency">{t("Emlak ofisi")}</option><option value="developer">{t("İnşaat firması")}</option></select></label>
+                    <label>
+                      {t("Ofis / şirket adı")}
+                      <input name="company" required minLength={2} placeholder={t("Emlak ofisi adı")} autoComplete="organization" />
+                    </label>
+                  </>
                 )}
               </>
             )}

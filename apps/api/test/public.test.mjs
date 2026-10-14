@@ -41,4 +41,30 @@ test("location catalogue includes Beşiktaş neighborhoods", async () => {
   assert.ok(data.neighborhoods.length > 10);
 });
 
+test("city counts include published listings only", async () => {
+  const response = await fetch(`${base}/api/city-counts`);
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  const grouped = await database.listings.groupBy({ by: ["city"], where: { status: "published" }, _count: { id: true } });
+  assert.deepEqual(Object.fromEntries(data.cities.map((item) => [item.city, item.count])), Object.fromEntries(grouped.map((item) => [item.city, item._count.id])));
+});
+
+test("company directory exposes approved firms and accurate portfolio counts", async () => {
+  const response = await fetch(`${base}/api/companies?page=1`);
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.ok(Number.isInteger(data.total));
+  assert.ok(Array.isArray(data.companies));
+  for (const company of data.companies) {
+    assert.equal(company.listingCount, company.saleCount + company.rentCount);
+    const detail = await fetch(`${base}/api/companies/${company.id}`);
+    assert.equal(detail.status, 200);
+    const profile = await detail.json();
+    assert.equal(profile.company.listingCount, company.listingCount);
+    assert.ok(profile.listings.every((listing) => listing.status === "published"));
+  }
+  const pending = await database.agencies.findFirst({ where: { status: { not: "approved" } }, select: { id: true } });
+  if (pending) assert.equal((await fetch(`${base}/api/companies/${pending.id}`)).status, 404);
+});
+
 test.after(async () => database.$disconnect());

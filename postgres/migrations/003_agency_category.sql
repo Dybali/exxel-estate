@@ -1,0 +1,1 @@
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT 'agency';

@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS admin_setup (
 );
 CREATE TABLE IF NOT EXISTS agencies (
   id uuid PRIMARY KEY, owner_id uuid NOT NULL REFERENCES users(id), name text NOT NULL,
-  phone text, email text, status text NOT NULL DEFAULT 'pending', created_at text NOT NULL
+  phone text, email text, category text NOT NULL DEFAULT 'agency', status text NOT NULL DEFAULT 'pending', created_at text NOT NULL
 );
 CREATE INDEX IF NOT EXISTS agencies_owner_idx ON agencies(owner_id);
 CREATE UNIQUE INDEX IF NOT EXISTS agencies_owner_unique ON agencies(owner_id);

@@ -1,9 +1,33 @@
 "use client";
+
 import Link from "@/components/SafeLink";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Heart, Menu, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { locales, useLocale } from "@/lib/i18n";
-export function Header(){const path=usePathname(),[menu,setMenu]=useState(false),[user,setUser]=useState<{name:string}|null>(null),{locale,setLocale,t}=useLocale();useEffect(()=>{fetch("/api/account").then((r)=>r.json()).then((data:any)=>setUser(data.user||null)).catch(()=>{});},[path]);const loginNext=path&&path!=="/giris"?path:"/hesabim";const loginHref=user?"/hesabim":`/giris?next=${encodeURIComponent(loginNext)}`;return <><div className="topline"><div className="container top-inner"><span>{t("Türkiye'de gayrimenkul aramanın yeni adresi")}</span><div><label className="locale-switch"><span className="sr-only">Language</span><select aria-label="Language / Dil" value={locale} onChange={(event)=>setLocale(event.target.value as typeof locale)}>{locales.map((item)=><option key={item.code} value={item.code}>{item.label}</option>)}</select></label></div></div></div><header className="site-header"><div className="container header-inner"><Link href="/" className="brand" aria-label="Exxel Estate ana sayfa"><span className="brand-symbol"><span>E</span></span><span className="brand-name">EXXEL<small>ESTATE</small></span></Link><nav className={menu?"main-nav open":"main-nav"}><Link className={path==="/"?"active":""} href="/" onClick={()=>setMenu(false)}>{t("Ana Sayfa")}</Link><Link className={path.startsWith("/ilan")?"active":""} href="/ilanlar" onClick={()=>setMenu(false)}>{t("İlanlar")}</Link><Link href="/ilanlar?purpose=satilik" onClick={()=>setMenu(false)}>{t("Satılık")}</Link><Link href="/ilanlar?purpose=kiralik" onClick={()=>setMenu(false)}>{t("Kiralık")}</Link><Link className={path==="/paketler"?"active":""} href="/paketler" onClick={()=>setMenu(false)}>{t("İlan Paketleri")}</Link></nav><div className="header-actions"><Link className="icon-link desktop-only" href="/hesabim?tab=favoriler" aria-label={t("Favoriler")}><Heart size={20}/></Link><Link className="account-link" href={loginHref}><UserRound size={18}/><span>{user?user.name.split(" ")[0]:t("Giriş Yap")}</span></Link><Link className="header-post" href="/ilan-ver">{t("İlan Ver")} <ArrowRight size={17}/></Link><button className="mobile-menu" onClick={()=>setMenu(!menu)} aria-label="Menü">{menu?<X size={25}/>:<Menu size={25}/>}</button></div></div></header></>}
 
-
+export function Header() {
+  const path = usePathname();
+  const [menu, setMenu] = useState(false);
+  const [user, setUser] = useState<{ name: string } | null>(null);
+  const { locale, setLocale, t } = useLocale();
+  useEffect(() => {
+    fetch("/api/account").then((response) => response.json()).then((data) => setUser(data.user || null)).catch(() => {});
+  }, [path]);
+  const loginNext = path && path !== "/giris" ? path : "/hesabim";
+  const loginHref = user ? "/hesabim" : `/giris?next=${encodeURIComponent(loginNext)}`;
+  const links = [
+    { href: "/", label: "Ana Sayfa", active: path === "/" },
+    { href: "/ilanlar?purpose=satilik", label: "Satılık", active: false },
+    { href: "/ilanlar?purpose=kiralik", label: "Kiralık", active: false },
+    { href: "/ilanlar", label: "İlanlar", active: path === "/ilanlar" },
+    { href: "/sirketler", label: "Şirketler", active: path.startsWith("/sirketler") },
+  ];
+  return <>
+    <div className="topline"><div className="container top-inner"><span>{t("Türkiye'de gayrimenkul aramanın yeni adresi")}</span><div><label className="locale-switch"><span className="sr-only">Language</span><select aria-label="Language / Dil" value={locale} onChange={(event) => setLocale(event.target.value as typeof locale)}>{locales.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label></div></div></div>
+    <header className="site-header"><div className="container header-inner"><Link href="/" className="brand" aria-label="Exxel Estate ana sayfa"><span className="brand-symbol"><span>E</span></span><span className="brand-name">EXXEL<small>ESTATE</small></span></Link>
+      <nav className={menu ? "main-nav open" : "main-nav"}>{links.map((link) => <Link key={link.href} className={link.active ? "active" : ""} href={link.href} onClick={() => setMenu(false)}>{t(link.label)}</Link>)}</nav>
+      <div className="header-actions"><Link className="icon-link desktop-only" href="/hesabim?tab=favoriler" aria-label={t("Favoriler")}><Heart size={20}/></Link><Link className="account-link" href={loginHref}><UserRound size={18}/><span>{user ? user.name.split(" ")[0] : t("Giriş Yap")}</span></Link><Link className="header-post" href="/ilan-ver">{t("İlan Ver")} <ArrowRight size={17}/></Link><button className="mobile-menu" onClick={() => setMenu(!menu)} aria-label="Menü">{menu ? <X size={25}/> : <Menu size={25}/>}</button></div>
+    </div></header>
+  </>;
+}

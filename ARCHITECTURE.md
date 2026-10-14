@@ -22,7 +22,7 @@ The Google OAuth file currently authorizes `https://www.exxelestate.com/api/auth
 
 ## API contract
 
-Public: `GET /api/health`, `GET /api/listings`, `GET /api/listings/:id`, `GET /api/locations?city=&district=`, `GET /api/media/listings/:owner/:file`.
+Public: `GET /api/health`, `GET /api/listings`, `GET /api/listings/:id`, `GET /api/locations?city=&district=`, `GET /api/city-counts`, `GET /api/companies?category=&page=`, `GET /api/companies/:id?page=`, `GET /api/media/listings/:owner/:file`. City counts exclude sample and pending listings. Company endpoints expose approved agencies/developers only; counts and portfolios include published listings only. Directory pages contain 24 companies; profile pages contain 24 listings. Company category is stored in `agencies.category` by migration `20261014010000_agency_category`.
 
 Account: `GET /api/account`, `POST /api/account` with `action` (`register`, `login`, `logout`, `request_seller_role`), `GET /api/auth/google`, `GET /api/auth/callback/google`.
 
@@ -33,3 +33,5 @@ Admin: `GET/POST /api/admin` for pending listings, agent approvals, and country 
 ## Verification and scale
 
 Run `npm ci && npm run build && npm test` in `apps/api` while a local API is running with an isolated or approved Neon connection. Run `npm ci && npm run build` in `apps/web` with `API_BASE_URL` set. Database indexes cover publication status, city, property type, price, owner and messages. Catalogue responses are paginated at 12 items; administrative listing responses at 50. Load-test the deployed infrastructure before planning for 1,000 simultaneous users; account count alone does not establish concurrent capacity.
+
+The homepage uses a real Antalya villa photograph by [Ahmet ÇÖTÜR on Pexels](https://www.pexels.com/photo/modern-luxury-villa-with-infinity-pool-and-scenic-views-32226001/). The province map uses [OpenStreetMap](https://www.openstreetmap.org/copyright) geometry under ODbL, packaged in `public/turkiye-iller.geojson` so it remains available without a third-party map API at runtime.
