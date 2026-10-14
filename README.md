@@ -24,7 +24,11 @@ Node.js 22.13+ ile `npm ci`, ardından `npm run db:generate`, `npm run build` ve
 
 ## Yönetim ve yayın hazırlığı
 
-Yönetici erişimi için Sites ortamında `EXXEL_ADMIN_EMAIL` değişkeni, Google ile doğrulanmış bir yönetici e-posta adresine eşitlenmelidir. Şifreyle açılan, e-postası doğrulanmamış bir hesap bu değişken üzerinden yönetici olamaz. Emlakçı hesapları yönetici onayını bekler; gerçek ilanlar incelemeden sonra yayımlanır. Sunum paketlerindeki fiyatlar örnektir; sanal POS entegrasyonu etkin olmadığı için ücret tahsil edilmez. Kapora kapsamı ikinci teklife bırakılmıştır. Yasal metinler, ülke ayarları, çeviriler ve ödeme sağlayıcısı yayına açık kullanım öncesinde yapılandırılmalıdır. Demo ilanlarının gerçek satış teklifi olmadığı ilan detayında gösterilir.
+Yönetici erişimi için Sites ortamında `EXXEL_ADMIN_EMAIL` değişkeni tanımlanır. Google ile doğrulanmış bu e-posta doğrudan yönetici olabilir. Alan adı ve Google yönlendirmesi hazır değilse, yalnızca site sahibine verilen `EXXEL_ADMIN_SETUP_CODE` gizli değeri `/yonetim/kurulum` ekranında bir kez kullanılarak aynı e-posta için yönetici hesabı açılır; mevcut oturumları kapatır ve tekrar kullanılamaz. Şifreyle açılan sıradan, e-postası doğrulanmamış bir hesap yalnızca `EXXEL_ADMIN_EMAIL` eşleşmesiyle yönetici olamaz. Emlakçı hesapları yönetici onayını bekler; kullanıcı ilanları yönetici incelemesi ve onayı olmadan yayımlanmaz. Ret gerekçesi ilan sahibinin hesabında görünür. Örnek ilanlar platformun önceden hazırlanmış sunum içeriğidir ve açıkça örnek olarak işaretlenir.
+
+Türkiye il, ilçe ve mahalle verisi `data/locations` içinde tutulur. Kaynak, sürüm ve lisans bilgisi aynı klasörün README dosyasındadır. İlan verenler koordinat girmez; yeni ilanlar il/ilçe/mahalle eşleşmesi doğrulanarak kaydedilir.
+
+Sunum paketlerindeki fiyatlar örnektir; sanal POS entegrasyonu etkin olmadığı için ücret tahsil edilmez. Kapora kapsamı ikinci teklife bırakılmıştır. Yasal metinler, ülke ayarları, çeviriler ve ödeme sağlayıcısı yayına açık kullanım öncesinde yapılandırılmalıdır.
 
 ## Google ile giriş kurulumu
 

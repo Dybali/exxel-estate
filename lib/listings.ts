@@ -7,6 +7,7 @@ export type Listing = {
   rooms?: string; bedrooms?: number; bathrooms?: number; buildingAge?: number;
   floor?: number; totalFloors?: number; heating?: string; furnished?: boolean;
   amenities: string[]; images: string[]; featured?: boolean; status?: string;
+  reviewNote?: string; reviewedAt?: string;
   translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "ru", { title: string; description: string }>>;
   ownerName?: string; ownerId?: string; createdAt?: string; source?: "demo" | "user";
 };
@@ -51,7 +52,7 @@ export const DEMO_LISTINGS: Listing[] = [
   },
 ];
 
-export const CITIES = ["İstanbul", "İzmir", "Muğla", "Antalya", "Ankara", "Bursa", "Aydın"];
+export { CITIES } from "./turkey-locations";
 export const PROPERTY_TYPES: {value: PropertyType; label: string}[] = [
   {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"Ticari"}
 ];

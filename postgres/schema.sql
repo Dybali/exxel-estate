@@ -41,6 +41,11 @@ CREATE TABLE auth_limits (
   failures integer NOT NULL DEFAULT 0,
   window_started_at timestamptz NOT NULL
 );
+CREATE TABLE admin_setup (
+  id text PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES users(id),
+  completed_at timestamptz NOT NULL
+);
 CREATE TABLE listings (
   id uuid PRIMARY KEY,
   owner_id uuid NOT NULL REFERENCES users(id),
@@ -69,6 +74,9 @@ CREATE TABLE listings (
   images jsonb NOT NULL DEFAULT '[]'::jsonb,
   translations jsonb NOT NULL DEFAULT '{}'::jsonb,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','published','rejected')),
+  review_note text,
+  reviewed_by uuid REFERENCES users(id),
+  reviewed_at timestamptz,
   featured boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()

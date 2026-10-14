@@ -1,5 +1,7 @@
 import { AMENITIES, DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
+import { validDistrict } from "@/lib/turkey-locations";
+import { validNeighborhood } from "@/lib/turkey-neighborhoods";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
@@ -44,9 +46,10 @@ export async function POST(request:Request) {
   if(!isAdmin(user)&&Number(quota?.n||0)>=3)return error("Sunum sürümünde hesap başına en fazla 3 ilan eklenebilir. Paketler açıldığında limitler güncellenecek.",429);
   let data:Record<string,unknown>;
   try {data=await body(request);} catch{return error("İlan bilgilerini kontrol edin.");}
-  const title=str(data.title,150),description=str(data.description,5000),purpose=str(data.purpose,20),propertyType=str(data.propertyType,20),city=str(data.city,70),district=str(data.district,70);
+  const title=str(data.title,150),description=str(data.description,5000),purpose=str(data.purpose,20),propertyType=str(data.propertyType,20),city=str(data.city,70),district=str(data.district,70),neighborhood=str(data.neighborhood,70);
   const price=num(data.price),grossArea=num(data.grossArea);
   if(title.length<12 || description.length<30 || !["satilik","kiralik"].includes(purpose) || !PROPERTY_TYPES.some((p)=>p.value===propertyType) || !city || !district || !Number.isInteger(price) || price<=0 || !Number.isInteger(grossArea) || grossArea<=0) return error("Zorunlu ilan alanlarını doldurun.");
+  if(!validDistrict(city,district) || !validNeighborhood(city,district,neighborhood)) return error("Geçerli bir il, ilçe ve mahalle seçin.");
   const amenities=Array.isArray(data.amenities)?data.amenities.filter((x):x is string=>typeof x==="string"&&AMENITIES.includes(x)).slice(0,20):[];
   const images=Array.isArray(data.images)?data.images.filter((x):x is string=>typeof x==="string"&&x.startsWith("/api/media/")).slice(0,30):[];
   if(images.length===0) return error("En az bir fotoğraf yükleyin.");
@@ -65,6 +68,6 @@ export async function POST(request:Request) {
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
   await db().prepare("INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,status,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,str(data.neighborhood,70)||null,optional(data.latitude),optional(data.longitude),grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),"pending",0,createdAt,createdAt).run();
+    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),"pending",0,createdAt,createdAt).run();
   return ok({id,status:"pending"},{status:201});
 }

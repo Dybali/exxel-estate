@@ -75,7 +75,7 @@ export function parseListing(row:Record<string,unknown>):Listing {
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
     buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
     heating:row.heating?String(row.heating):undefined,furnished:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
-    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:String(row.status),ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),source:"user"
+    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:String(row.status),reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),source:"user"
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {

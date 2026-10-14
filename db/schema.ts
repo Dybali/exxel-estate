@@ -45,6 +45,12 @@ export const authLimits = sqliteTable("auth_limits", {
   windowStartedAt: text("window_started_at").notNull(),
 });
 
+export const adminSetup = sqliteTable("admin_setup", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  completedAt: text("completed_at").notNull(),
+});
+
 export const listings = sqliteTable("listings", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id),
@@ -73,6 +79,9 @@ export const listings = sqliteTable("listings", {
   images: text("images").notNull().default("[]"),
   translations: text("translations").notNull().default("{}"),
   status: text("status").notNull().default("pending"),
+  reviewNote: text("review_note"),
+  reviewedBy: text("reviewed_by"),
+  reviewedAt: text("reviewed_at"),
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
