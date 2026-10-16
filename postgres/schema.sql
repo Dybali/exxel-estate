@@ -91,3 +91,10 @@ CREATE TABLE IF NOT EXISTS country_settings (
   country_code text PRIMARY KEY, locale text NOT NULL, legal_text text NOT NULL DEFAULT '',
   payment_provider text, enabled integer NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS message_receipts (
+  message_id uuid NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  read_at text NOT NULL,
+  PRIMARY KEY(message_id,user_id)
+);
+

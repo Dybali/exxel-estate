@@ -1,4 +1,4 @@
-import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -142,3 +142,9 @@ export const countrySettings = sqliteTable("country_settings", {
   paymentProvider: text("payment_provider"),
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
 });
+
+export const messageReceipts = sqliteTable("message_receipts", {
+  messageId: text("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  readAt: text("read_at").notNull(),
+}, (t) => [primaryKey({ columns: [t.messageId, t.userId] })]);

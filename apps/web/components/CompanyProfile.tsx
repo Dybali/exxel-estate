@@ -17,7 +17,7 @@ export function CompanyProfile({ id }: { id: string }) {
     const controller = new AbortController();
     setState("loading");
     fetch(`/api/companies/${encodeURIComponent(id)}?page=${page}`, { signal: controller.signal })
-      .then(async (response) => { if (!response.ok) throw new Error("missing"); return response.json(); })
+      .then(async (response) => { if (!response.ok) throw new Error("missing"); return response.json() as Promise<{ company: Company; listings: Listing[]; page: number; pageSize: number }>; })
       .then((value) => { setData(value); setState("ready"); })
       .catch(() => { if (!controller.signal.aborted) setState("missing"); });
     return () => controller.abort();
@@ -32,3 +32,4 @@ export function CompanyProfile({ id }: { id: string }) {
     </>}
   </main>;
 }
+

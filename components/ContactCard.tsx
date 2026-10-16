@@ -1,45 +1,24 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
-import { ArrowUpRight, LockKeyhole } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, LockKeyhole, Mail, Phone, Send, Tag, UserRound } from "lucide-react";
 import type { Listing } from "@/lib/listings";
-
+type Seller = {id:string;name:string;phone?:string|null;company?:string|null;role?:string;agentApproved?:boolean;avatarUrl?:string|null};
 export function ContactCard({ listing }: { listing: Listing }) {
-  const { t } = useLocale();
-  const [user, setUser] = useState<{ id: string; name: string } | null>(null);
-  const [ready, setReady] = useState(false);
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch("/api/account").then((response) => response.json()).then((data) => setUser((data as { user?: { id: string; name: string } }).user || null)).catch(() => setUser(null)).finally(() => setReady(true));
-  }, []);
-
-  async function send(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (sending || message.trim().length < 2) return;
-    setSending(true);
-    setError("");
-    try {
-      const response = await fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ listingId: listing.id, message: message.trim() }) });
-      const data = await response.json() as { error?: string; peerId?: string };
-      if (!response.ok) throw new Error(data.error || "Mesaj gönderilemedi.");
-      const destination = new URLSearchParams({ tab: "mesajlar", listingId: listing.id, peerId: data.peerId || listing.ownerId || "" });
-      window.location.assign(`/hesabim?${destination.toString()}`);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Mesaj gönderilemedi.");
-      setSending(false);
-    }
-  }
-
-  return <div className="contact-card">
-    <div className="contact-avatar"><span>E</span></div>
-    <span className="eyebrow dark-eyebrow">{t("İLAN SAHİBİ")}</span>
-    <h3>{listing.ownerName || "salesorrent"}</h3>
-    <p>{t("Bu gayrimenkul hakkında ayrıntılı bilgi almak için ilan sahibine yazın.")}</p>
-    {listing.source === "demo" ? <><div className="contact-demo-note">{t("Bu örnek ilanın gerçek bir sahibi yok; mesajlaşma gerçek ilanlarda kullanılabilir.")}</div><Link href="/ilanlar" className="contact-send">{t("İlanları keşfet")}<ArrowUpRight size={17}/></Link></> : !ready ? <span className="contact-lock">{t("Hesabınız kontrol ediliyor...")}</span> : user?.id === listing.ownerId ? <Link href="/hesabim?tab=mesajlar" className="contact-send">{t("Görüşmelerime git")}<ArrowUpRight size={17}/></Link> : user ? <form onSubmit={send}><label htmlFor="listing-message">{t("Mesajınız")}</label><textarea id="listing-message" value={message} onChange={(event) => setMessage(event.target.value)} minLength={2} maxLength={2000} required placeholder={t("Merhaba, bu gayrimenkul hakkında bilgi almak istiyorum...")} rows={4}/><button type="submit" className="contact-send" disabled={sending || message.trim().length < 2}>{t(sending ? "Gönderiliyor..." : "Mesaj gönder")}<ArrowUpRight size={17}/></button>{error && <span className="form-error" role="alert">{t(error)}</span>}</form> : <><Link href={`/giris?next=${encodeURIComponent(`/ilan/${listing.id}`)}`} className="contact-send">{t("Giriş yap ve iletişime geç")}<ArrowUpRight size={17}/></Link><span className="contact-lock"><LockKeyhole size={14}/>{t("İletişim için üyelik gereklidir")}</span></>}
+  const {t}=useLocale();const [user,setUser]=useState<{id:string;name:string}|null>(null),[seller,setSeller]=useState<Seller|null>(null),[ready,setReady]=useState(false),[writing,setWriting]=useState(false),[phoneVisible,setPhoneVisible]=useState(false),[message,setMessage]=useState(""),[sending,setSending]=useState(false),[error,setError]=useState("");const textarea=useRef<HTMLTextAreaElement>(null),retry=useRef<{body:string;id:string}|null>(null);
+  const login=`/giris?next=${encodeURIComponent(`/ilan/${listing.id}`)}`;
+  useEffect(()=>{const c=new AbortController();setSeller(null);setPhoneVisible(false);setReady(false);fetch('/api/account',{cache:'no-store',signal:c.signal}).then(async r=>await r.json() as {user?:{id:string;name:string}}).then(async data=>{if(c.signal.aborted)return;setUser(data.user||null);if(data.user&&listing.source==='user'){const r=await fetch(`/api/listings/${encodeURIComponent(listing.id)}/contact`,{cache:'no-store',signal:c.signal});if(r.ok){const d=await r.json() as {seller?:Seller};if(!c.signal.aborted)setSeller(d.seller||null);}}}).catch(()=>{}).finally(()=>{if(!c.signal.aborted)setReady(true);});return()=>c.abort();},[listing.id,listing.source]);
+  useEffect(()=>{if(writing)textarea.current?.focus();},[writing]);
+  function compose(price=false){if(!user){location.assign(login);return;}setWriting(true);if(price&&!message)setMessage('Merhaba, bu ilanın fiyatı ve teklif koşulları hakkında görüşmek istiyorum.');}
+  async function send(e:React.FormEvent){e.preventDefault();if(sending||message.trim().length<2)return;const body=message.trim(),requestId=retry.current?.body===body?retry.current.id:crypto.randomUUID();retry.current={body,id:requestId};setSending(true);setError("");try{const r=await fetch('/api/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({listingId:listing.id,peerId:listing.ownerId,message:body,requestId})});const d=await r.json() as {error?:string;peerId?:string};if(!r.ok)throw Error(d.error||'Mesaj gönderilemedi.');const p=new URLSearchParams({tab:'mesajlar',listingId:listing.id,peerId:d.peerId||listing.ownerId||''});location.assign(`/hesabim?${p}`);}catch(cause){setError(cause instanceof Error?cause.message:'Mesaj gönderilemedi.');setSending(false);}}
+  const name=seller?.name||listing.ownerName||'İlan sahibi';const avatar=seller?.avatarUrl&&(/^https:\/\//.test(seller.avatarUrl)||seller.avatarUrl.startsWith('/api/media/'))?seller.avatarUrl:null;const own=user?.id===listing.ownerId;
+  return <div className="property-contact-card">
+    <div className="property-seller"><div className="property-seller-avatar">{avatar?<img src={avatar} alt=""/>:<span>{name.split(/\s+/).filter(Boolean).slice(0,2).map(n=>n.charAt(0)).join('').toLocaleUpperCase('tr')}</span>}</div><div><strong>{name}</strong><span>{listing.source==='demo'?'Örnek ilan':seller?.role==='agent'?'Emlak danışmanı':'İlan sahibi'}</span>{listing.source==='user'&&(user?<button className="property-phone-reveal" onClick={()=>setPhoneVisible(!phoneVisible)} disabled={!ready || !seller}><Phone size={13}/>{!seller && ready ? "Telefon bilgisi yüklenemedi" : phoneVisible?'Telefonu gizle':'Telefon numarasını göster'}</button>:<Link className="property-phone-reveal" href={login}>Telefon için giriş yap</Link>)}</div></div>
+    {phoneVisible&&<div className="property-phone-number">{seller?.phone?<a href={`tel:${seller.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>{seller.phone}</a>:<span>İlan sahibi telefon numarası paylaşmamış. Mesaj gönderebilirsiniz.</span>}</div>}
+    {listing.source==='demo'?<><div className="property-example-note">Bu bir örnek ilandır. Gerçek bir satıcıya mesaj iletilmez.</div><Link className="property-message-button" href="/ilanlar"><Building2 size={17}/> Gerçek ilanları keşfet</Link></>:!ready?<div className="property-contact-loading">İletişim bilgileri yükleniyor…</div>:own?<Link className="property-message-button" href="/hesabim?tab=mesajlar"><Mail size={18}/> Mesajlarım</Link>:<><button className="property-message-button" onClick={()=>compose()}><Mail size={18}/> {t('Mesaj gönder')}</button><button className="property-price-button" onClick={()=>compose(true)}><Tag size={16}/> Fiyat hakkında görüş</button>{!user&&<div className="property-contact-membership"><LockKeyhole size={13}/> İletişim için üyelik gereklidir</div>}</>}
+    {writing&&user&&!own&&listing.source!=='demo'&&<form className="property-contact-form" onSubmit={send}><div><label htmlFor="listing-message">Mesajınız</label><button type="button" onClick={()=>setWriting(false)} aria-label="Mesaj alanını daralt"><ChevronDown size={17}/></button></div><textarea ref={textarea} id="listing-message" value={message} onChange={e=>setMessage(e.target.value)} minLength={2} maxLength={2000} required rows={4} placeholder="Merhaba, bu gayrimenkul hakkında bilgi almak istiyorum…"/><div className="property-contact-counter">{message.length}/2000</div><button className="property-message-button" type="submit" disabled={sending||message.trim().length<2}><Send size={16}/>{sending?'Gönderiliyor…':'Mesajı ilet'}</button>{error&&<p className="form-error" role="alert">{error}</p>}</form>}
+    <div className="property-seller-company"><div className="property-company-icon"><Building2 size={22}/></div><strong>{seller?.company|| (listing.source==='demo'?'Sales or rent · Sunum':name)}</strong><p>{seller?.role==='agent'?'Emlak ofisi / şirket':listing.source==='demo'?'Tasarım ve tanıtım amaçlı örnek içerik':seller?.role==='individual'?'Bireysel ilan sahibi':'İlan sahibi'}</p>{seller?.agentApproved&&<span className="property-agent-approved"><BadgeCheck size={17}/> Emlakçı hesabı onaylı</span>}<small>İlan no: {listing.id}</small></div>
   </div>;
 }
+

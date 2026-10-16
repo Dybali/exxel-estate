@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./market-refresh.css";
+import "./messaging.css";
+import "./property-detail.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocaleProvider } from "@/lib/i18n";
@@ -26,4 +28,6 @@ export default function RootLayout({
     </html>
   );
 }
+
+
 

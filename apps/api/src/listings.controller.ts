@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Query, Req } from "@nestjs/common";
+import type { Response } from "express";
+import { BadRequestException, Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Query, Req, Res } from "@nestjs/common";
 import { Prisma, type listings } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { AuthService } from "./auth.service";
@@ -20,7 +21,7 @@ const demoListings = demoRows as unknown as DemoListing[];
 
 export function listingView(row: Row) {
   return {
-    id: row.id, ownerId: row.owner_id, ownerName: row.users_listings_owner_idTousers?.name || "Exxel Estate", source: "user",
+    id: row.id, ownerId: row.owner_id, ownerName: row.users_listings_owner_idTousers?.name || "Sales or rent", source: "user",
     title: row.title, description: row.description, purpose: row.purpose, propertyType: row.property_type,
     price: Number(row.price), currency: row.currency, city: row.city, district: row.district,
     neighborhood: row.neighborhood, neighborhoodId: row.neighborhood_id, postalCode: row.postal_code,
@@ -84,6 +85,15 @@ export class ListingsController {
     const demoOffset = Math.max(0, pageStart - realCount);
     return { listings: [...rows.map(listingView), ...demo.slice(demoOffset, demoOffset + pageSize - rows.length)], total: realCount + demo.length, page, pageSize };
   }
+  @Get(":id/contact") async contact(@Param("id") id: string, @Req() request: AuthRequest, @Res({passthrough:true}) response: Response) {
+    const user = await this.auth.current(request); requireUser(user);
+    if (!/^[a-f0-9-]{36}$/i.test(id)) throw new NotFoundException("İlan bulunamadı.");
+    const row = await this.prisma.listings.findUnique({where:{id},include:{users_listings_owner_idTousers:true}});
+    if (!row || row.status !== "published" && row.owner_id !== user.id && !this.auth.isAdmin(user)) throw new NotFoundException("İlan bulunamadı.");
+    const seller = row.users_listings_owner_idTousers;
+    response.setHeader("Cache-Control","private, no-store");
+    return {seller:{id:seller.id,name:seller.name,phone:seller.phone,company:seller.company,role:seller.role,agentApproved:seller.role === "agent" && seller.agent_status === "approved",avatarUrl:seller.avatar_url}};
+  }
   @Get(":id") async detail(@Param("id") id: string) {
     const demo = demoListings.find((item) => item.id === id);
     if (demo) return { listing: demo };
@@ -128,3 +138,4 @@ export class ListingsController {
     return { id, status: "pending" };
   }
 }
+
