@@ -69,3 +69,11 @@
 .admin-pagination{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:15px;font-size:12px;color:#667a69}.admin-pagination button{border:1px solid #dce5d9;background:#fff;color:#285b43;padding:9px 13px;font-size:12px;font-weight:700}.admin-pagination button:disabled{opacity:.45;cursor:not-allowed}
 .admin-review-actions button.approve{background:var(--deep);color:#fff;border-color:var(--deep)}.admin-review-actions button.reject{background:#fff3f0;color:#9b463b;border-color:#f0d4cf}
 .admin-setup-wrap{display:grid;place-items:center;padding-top:45px;padding-bottom:100px}.admin-setup-card{background:#fff;border:1px solid #e3e9e0;padding:38px;width:min(100%,480px)}.admin-setup-card>svg{color:#ad956c}.admin-setup-card h2{font-family:var(--serif);font-size:33px;margin:15px 0 9px}.admin-setup-card p{color:#718073;font-size:13px;line-height:1.65}.admin-setup-card form{display:grid;gap:15px;margin-top:25px}.admin-setup-card label{font-size:12px;font-weight:700}.admin-setup-card input{display:block;width:100%;margin-top:7px;border:1px solid #dae4d8;padding:12px;color:var(--ink)}.admin-setup-card form button{width:100%;margin-top:5px}.admin-setup-card .back-link{margin-top:25px}
+
+/* Salesorrent wordmark: a single continuous name, fixed reading direction. */
+.salesorrent-wordmark{display:inline-flex;align-items:baseline;white-space:nowrap;font-family:Manrope,Arial,sans-serif;font-size:31px;font-weight:800;line-height:1.1;letter-spacing:-1.5px;direction:ltr;unicode-bidi:isolate}
+.wordmark-sales{color:#17334b}.wordmark-or{color:#78838b;font-weight:500;letter-spacing:-1.7px}.wordmark-rent{color:#268460}
+.footer-brand .wordmark-sales{color:#f1f5f7}.footer-brand .wordmark-or{color:#a8b5b0}.footer-brand .wordmark-rent{color:#74d5aa}
+@media(max-width:1200px) and (min-width:901px){.header-inner{gap:18px}.main-nav{gap:18px}.header-inner .salesorrent-wordmark{font-size:27px}}
+@media(max-width:700px){.salesorrent-wordmark{font-size:27px;letter-spacing:-1.3px}.header-inner{gap:12px}.wordmark-or{letter-spacing:-1.5px}}
+@media(max-width:360px){.header-inner .salesorrent-wordmark{font-size:24px}.header-actions{gap:9px}}

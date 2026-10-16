@@ -35,7 +35,7 @@ export function CompanyDirectory({ preview = false }: { preview?: boolean }) {
   </div>;
 
   return <main className="directory-page"><div className="container">
-    <div className="directory-heading"><span className="market-overline">EXXEL ESTATE / {t("İş ortakları")}</span><h1>{t("Emlak ofisleri ve inşaat firmaları")}</h1><p>{t("Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.")}</p></div>
+    <div className="directory-heading"><span className="market-overline">SALESORRENT / {t("İş ortakları")}</span><h1>{t("Emlak ofisleri ve inşaat firmaları")}</h1><p>{t("Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.")}</p></div>
     <div className="directory-tabs" role="group" aria-label={t("Şirket türü")}>
       {[{ value: "", label: "Tüm şirketler" }, { value: "agency", label: "Emlak ofisleri" }, { value: "developer", label: "İnşaat firmaları" }].map((item) => <button key={item.value} type="button" className={category === item.value ? "active" : ""} onClick={() => { setCategory(item.value); setPage(1); }}>{t(item.label)}</button>)}
     </div>

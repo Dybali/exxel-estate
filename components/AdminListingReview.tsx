@@ -59,7 +59,7 @@ export function AdminListingReview({ listingId }: { listingId: string }) {
   if (!listing || !owner) return <main className="admin-page"><div className="container form-gate"><ShieldCheck size={36}/><h1>İlan incelemesi açılamadı.</h1><p>{error}</p><Link href="/yonetim" className="primary-button">Yönetim paneline dön</Link></div></main>;
 
   return <main className="admin-page">
-    <div className="form-hero"><div className="container"><Link href="/yonetim" className="admin-review-back"><ArrowLeft size={16}/> Yönetim paneli</Link><span className="eyebrow dark-eyebrow">EXXEL ESTATE · İLAN İNCELEME</span><h1>{listing.title}</h1><p>{listing.neighborhood ? `${listing.neighborhood}, ` : ""}{listing.district}, {listing.city}</p></div></div>
+    <div className="form-hero"><div className="container"><Link href="/yonetim" className="admin-review-back"><ArrowLeft size={16}/> Yönetim paneli</Link><span className="eyebrow dark-eyebrow">SALESORRENT · İLAN İNCELEME</span><h1>{listing.title}</h1><p>{listing.neighborhood ? `${listing.neighborhood}, ` : ""}{listing.district}, {listing.city}</p></div></div>
     <div className="container admin-review-layout">
       <article className="admin-review-main">
         <div className="admin-review-photos">{listing.images.map((src, index) => <img key={src} src={src} alt={`${listing.title} fotoğraf ${index + 1}`} loading={index ? "lazy" : "eager"}/>)}</div>

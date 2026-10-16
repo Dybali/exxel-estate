@@ -51,7 +51,7 @@ export function AdminPanel() {
   const pageCount = Math.max(1, Math.ceil(data.listingTotal / data.pageSize));
 
   return <main className="admin-page">
-    <div className="form-hero"><div className="container"><span className="eyebrow dark-eyebrow">EXXEL ESTATE · YÖNETİM</span><h1>Platform <em>yönetimi.</em></h1><p>İlanları, emlakçıları ve gelen mesajları tek yerden kontrol edin.</p></div></div>
+    <div className="form-hero"><div className="container"><span className="eyebrow dark-eyebrow">SALESORRENT · YÖNETİM</span><h1>Platform <em>yönetimi.</em></h1><p>İlanları, emlakçıları ve gelen mesajları tek yerden kontrol edin.</p></div></div>
     <div className="container admin-body">
       <div className="admin-stats"><div><strong>{data.listingTotal}</strong><span>Gerçek ilan</span></div><div><strong>{data.pendingTotal}</strong><span>Onay bekleyen ilan</span></div><div><strong>{data.users.filter((user) => user.agent_status === "pending").length}</strong><span>Onay bekleyen emlakçı</span></div><div><strong>{data.messages.length}</strong><span>Demo mesajı</span></div></div>
       <div className="admin-section-head"><div><span className="eyebrow dark-eyebrow">İLANLAR</span><h2>Yayın yönetimi</h2></div><a href="/api/export" className="outline-button" download><ArrowDownToLine size={17}/> Verileri indir</a></div>

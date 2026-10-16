@@ -115,7 +115,7 @@ export function AuthForm() {
       <div className="auth-visual">
         <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=85" alt="Şık bir evin yaşam alanı" />
         <div className="auth-visual-copy">
-          <span className="eyebrow light-eyebrow">EXXEL ESTATE</span>
+          <span className="eyebrow light-eyebrow">SALESORRENT</span>
           <h2>{t("Yeni yaşamınız,")}<br /><em>{t("burada başlar.")}</em></h2>
           <p>{t("Türkiye'nin en güzel adresleri tek bir yerde.")}</p>
         </div>
