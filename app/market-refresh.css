@@ -41,3 +41,8 @@ h1 em,h2 em{font-style:normal;color:inherit;font-weight:inherit}
 @media(max-width:390px){.market-feature-grid{grid-template-columns:1fr}.results-grid .listing-photo{min-height:165px}}
 @media(max-width:700px){.topline{height:38px}.top-inner{justify-content:flex-end}.top-inner>span{display:none}.locale-switch summary{gap:6px;padding:4px 0}.locale-switch .locale-hint{font-size:10px}.locale-switch summary strong{font-size:11px}.locale-options{min-width:170px}}
 .company-sample-tag{display:inline-flex;align-items:center;font-size:9px;font-style:normal;font-weight:800;letter-spacing:0;text-transform:none;color:#546759;background:#eaf0e9;border:1px solid #cbd8ca;padding:3px 6px;margin-left:9px;vertical-align:middle}.company-card-city{font-size:10px!important;color:#637268!important}.company-profile-description{font-size:12px;color:#65716a;margin-bottom:8px}.company-demo-disclosure{border-left:3px solid #9cac9a;background:#f4f7f2;color:#4d5e50;padding:12px 16px;margin:18px 0 30px;font-size:12px;line-height:1.5}
+
+/* Color illustrations for the three primary discovery shortcuts. */
+.market-shortcuts .shortcut-icon{width:56px;height:56px;background:transparent;border-radius:14px}
+.shortcut-icon img{display:block;width:100%;height:100%;object-fit:contain}
+@media(max-width:700px){.market-shortcuts .shortcut-icon{width:46px;height:46px;border-radius:12px}}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
-import { ArrowRight, Building2, House, KeyRound } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { HomeSearch } from "@/components/HomeSearch";
 import { ListingCard } from "@/components/ListingCard";
 import { CityMap } from "@/components/CityMap";
@@ -33,12 +33,13 @@ export default function Home() {
       <span className="hero-photo-credit">{t("Fotoğraf")}: <a href="https://www.pexels.com/photo/modern-luxury-villa-with-infinity-pool-and-scenic-views-32226001/" target="_blank" rel="noreferrer">Ahmet ÇÖTÜR / Pexels</a> · Antalya</span>
     </div></section>
     <section className="market-shortcuts container" aria-label={t("Hızlı bağlantılar")}>
-      <Link href="/ilanlar?purpose=satilik"><span className="shortcut-icon"><House size={22}/></span><span><strong>{t("Satın al")}</strong><small>{t("Satılık gayrimenkulleri keşfedin")}</small></span><ArrowRight size={18}/></Link>
-      <Link href="/ilanlar?purpose=kiralik"><span className="shortcut-icon"><KeyRound size={22}/></span><span><strong>{t("Kirala")}</strong><small>{t("Kiralık ev ve daireleri görün")}</small></span><ArrowRight size={18}/></Link>
-      <Link href="/sirketler"><span className="shortcut-icon"><Building2 size={22}/></span><span><strong>{t("Şirketler")}</strong><small>{t("Ofis ve firmaların ilanlarını inceleyin")}</small></span><ArrowRight size={18}/></Link>
+      <Link href="/ilanlar?purpose=satilik"><span className="shortcut-icon"><img src="/shortcuts/buy.svg" width={56} height={56} alt=""/></span><span><strong>{t("Satın al")}</strong><small>{t("Satılık gayrimenkulleri keşfedin")}</small></span><ArrowRight size={18}/></Link>
+      <Link href="/ilanlar?purpose=kiralik"><span className="shortcut-icon"><img src="/shortcuts/rent.svg" width={56} height={56} alt=""/></span><span><strong>{t("Kirala")}</strong><small>{t("Kiralık ev ve daireleri görün")}</small></span><ArrowRight size={18}/></Link>
+      <Link href="/sirketler"><span className="shortcut-icon"><img src="/shortcuts/companies.svg" width={56} height={56} alt=""/></span><span><strong>{t("Şirketler")}</strong><small>{t("Ofis ve firmaların ilanlarını inceleyin")}</small></span><ArrowRight size={18}/></Link>
     </section>
     <section className="market-section container"><div className="market-section-head"><div><span className="market-overline">SALESORRENT</span><h2>{t("Öne çıkan ilanlar")}</h2><p>{t("Satılık ve kiralık seçenekleri karşılaştırın.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm ilanlar")}<ArrowRight size={18}/></Link></div><div className="market-feature-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing}/>)}</div></section>
     <section className="market-section market-map-section"><div className="container"><div className="market-section-head"><div><span className="market-overline">81 {t("il")}</span><h2>{t("Haritadan ilan keşfedin")}</h2><p>{t("İl seçin; yayındaki ilan sayısını görün ve sonuçlara geçin.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm şehirler")}<ArrowRight size={18}/></Link></div><CityMap/></div></section>
     <section className="market-section container market-companies-section"><div className="market-section-head"><div><span className="market-overline">{t("İş ortakları")}</span><h2>{t("Emlak ofisleri ve inşaat firmaları")}</h2><p>{t("Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.")}</p></div><Link href="/sirketler" className="market-more">{t("Tüm şirketler")}<ArrowRight size={18}/></Link></div><CompanyDirectory preview/></section>
   </main>;
 }
+
