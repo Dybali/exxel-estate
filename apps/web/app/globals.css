@@ -77,3 +77,12 @@
 @media(max-width:1200px) and (min-width:901px){.header-inner{gap:18px}.main-nav{gap:18px}.header-inner .salesorrent-wordmark{font-size:27px}}
 @media(max-width:700px){.salesorrent-wordmark{font-size:27px;letter-spacing:-1.3px}.header-inner{gap:12px}.wordmark-or{letter-spacing:-1.5px}}
 @media(max-width:360px){.header-inner .salesorrent-wordmark{font-size:24px}.header-actions{gap:9px}}
+
+/* Two-line brand signature with a warm, contrasting tagline. */
+.brand-lockup{display:inline-flex;flex-direction:column;align-items:flex-start;gap:5px;direction:ltr;unicode-bidi:isolate}
+.salesorrent-wordmark{column-gap:6px;letter-spacing:-1.2px}
+.wordmark-or{letter-spacing:-1.2px}
+.brand-tagline{display:block;color:#94703c;font-family:Manrope,Arial,sans-serif;font-size:9.5px;font-weight:500;line-height:1.2;letter-spacing:.12px;white-space:nowrap}
+.footer-brand .brand-tagline{color:#d8ba86}
+@media(max-width:700px){.brand-lockup{gap:4px}.salesorrent-wordmark{column-gap:5px}.brand-tagline{font-size:8px;letter-spacing:.05px}.site-header .header-actions{gap:12px}.site-header .account-link span{display:none}}
+@media(max-width:360px){.salesorrent-wordmark{column-gap:4px}.brand-tagline{font-size:7.5px;letter-spacing:0}}
