@@ -6,6 +6,9 @@ import "./messaging.css";
 import "./property-detail.css";
 import "./interior-refresh.css";
 import "./account-features.css";
+import "leaflet/dist/leaflet.css";
+import "./discovery.css";
+import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppPrompt } from "@/components/WhatsAppPrompt";
@@ -28,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<Footer/></LocaleProvider></body>
+      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><Footer/></LocaleProvider></body>
     </html>
   );
 }

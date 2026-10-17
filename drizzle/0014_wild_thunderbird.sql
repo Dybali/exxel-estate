@@ -1,0 +1,1 @@
+CREATE INDEX `listings_published_at_idx` ON `listings` (`status`,`published_at`);

@@ -1,4 +1,5 @@
 "use client";
+import {CompareButton} from "./Compare";
 import { useEffect, useRef, useState } from "react";
 import { Heart, Share2, MoreHorizontal, Copy, Images, Check, X } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
@@ -13,7 +14,7 @@ export function ListingActions({listingId,title,onGallery,canViewPhotos=true}:{l
   async function share(){if(navigator.share){try{await navigator.share({title,url:location.href});return;}catch(e){if(e instanceof Error&&e.name==='AbortError')return;}}await copy();}
   return <div className="listing-actions" ref={box}>
     <button aria-label={t(saved?'Favorilerden kaldır':'Favorilere ekle')} aria-pressed={saved} disabled={busy} className={saved?'saved':''} onClick={toggle}><Heart size={20} fill={saved?'currentColor':'none'}/></button>
-    <button aria-label={t('İlanı paylaş')} onClick={share}><Share2 size={19}/></button><button aria-label={t('Diğer ilan işlemleri')} aria-expanded={menu} onClick={()=>setMenu(!menu)}><MoreHorizontal size={22}/></button>
+    <CompareButton id={listingId}/><button aria-label={t('İlanı paylaş')} onClick={share}><Share2 size={19}/></button><button aria-label={t('Diğer ilan işlemleri')} aria-expanded={menu} onClick={()=>setMenu(!menu)}><MoreHorizontal size={22}/></button>
     {menu&&<div className="listing-actions-menu"><button disabled={!canViewPhotos} onClick={()=>{setMenu(false);onGallery();}}><Images size={16}/> Fotoğrafları görüntüle</button><button onClick={()=>copy()}><Copy size={16}/> Bağlantıyı kopyala</button><button onClick={()=>copy(listingId)}><Copy size={16}/> İlan numarasını kopyala</button></div>}
     {notice&&<div className="listing-action-notice" role="status"><Check size={14}/>{notice}</div>}
     {copyUrl&&<div className="listing-copy-box"><button aria-label="Kopyalama alanını kapat" onClick={()=>setCopyUrl("")}><X size={16}/></button><label>Seçip kopyalayın<input value={copyUrl} readOnly autoFocus onFocus={e=>e.currentTarget.select()}/></label></div>}

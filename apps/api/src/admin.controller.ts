@@ -42,7 +42,7 @@ export class AdminController {
       const current = await this.prisma.listings.findUnique({ where: { id } });
       if (!current) throw new NotFoundException("İlan bulunamadı.");
       if (current.status === status) throw new ConflictException("İlan zaten bu durumda.");
-      await this.prisma.listings.update({ where: { id }, data: { status, review_note: status === "pending" ? null : note || null, reviewed_by: user.id, reviewed_at: now(), updated_at: now() } });
+      await this.prisma.listings.update({ where: { id }, data: { published_at:status==="published"?current.published_at||now():current.published_at, status, review_note: status === "pending" ? null : note || null, reviewed_by: user.id, reviewed_at: now(), updated_at: now() } });
       return { success:true,status };
     }
     if (kind === "agent" && ["approved","rejected","pending"].includes(status)) {

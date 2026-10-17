@@ -1,0 +1,4 @@
+import {body,currentUser,db,error,ok,sameOrigin} from "@/lib/server";
+import {discoveryFeed,mutateDiscovery,DiscoveryError} from "@/lib/discovery-service";
+export async function GET(request:Request){const user=await currentUser(request);if(!user)return error("Giriş gerekli.",401);return ok(await discoveryFeed(db(),user.id),{headers:{"Cache-Control":"private, no-store"}});}
+export async function POST(request:Request){if(!sameOrigin(request))return error("Geçersiz kaynak.",403);const user=await currentUser(request);if(!user)return error("Giriş gerekli.",401);let data:Record<string,unknown>;try{data=await body(request);}catch{return error("Geçersiz istek.");}try{return ok(await mutateDiscovery(db(),user.id,data),{headers:{"Cache-Control":"private, no-store"}});}catch(e){if(e instanceof DiscoveryError)return error(e.message,e.status);throw e;}}

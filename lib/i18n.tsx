@@ -1,4 +1,5 @@
 "use client";
+import discoveryTranslations from "@/data/discovery-translations.json";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
@@ -613,6 +614,8 @@ const accountFeatureWords:Record<string,[string,string,string,string,string]>={
   "Fiyatı, fotoğrafları ve açıklamayı gerçeğe uygun tutun. İlanınızın güncel durumunu hesabınızdan görebilirsiniz.":["Halten Sie Preis, Fotos und Beschreibung korrekt. Den Status sehen Sie in Ihrem Konto.","Gardez le prix, les photos et la description exacts. Consultez le statut dans votre compte.","Keep the price, photos and description accurate. You can view the current status in your account.","حافظ على دقة السعر والصور والوصف. يمكنك عرض الحالة الحالية في حسابك.","Указывайте точные цену, фото и описание. Текущий статус доступен в аккаунте."],
 };
 for(const [key,[de,fr,en,ar,ru]] of Object.entries(accountFeatureWords))words[key]={de,fr,en,ar,ru};
+
+for(const [key,[de,fr,en,ar,ru]] of Object.entries(discoveryTranslations))words[key]={de,fr,en,ar,ru};
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,

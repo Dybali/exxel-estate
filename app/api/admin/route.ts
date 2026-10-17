@@ -41,8 +41,8 @@ export async function POST(request: Request) {
     const current = await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{ status: string }>();
     if (!current) return error("İlan bulunamadı.", 404);
     if (current.status === status) return error("İlan zaten bu durumda.", 409);
-    await db().prepare("UPDATE listings SET status=?,review_note=?,reviewed_by=?,reviewed_at=?,updated_at=? WHERE id=?")
-      .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(), id).run();
+    await db().prepare("UPDATE listings SET status=?,review_note=?,reviewed_by=?,reviewed_at=?,updated_at=?,published_at=CASE WHEN ?='published' THEN COALESCE(published_at,?) ELSE published_at END WHERE id=?")
+      .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(),status,now(), id).run();
     return ok({ success: true, status });
   }
   if (kind === "agent" && ["approved", "rejected", "pending"].includes(status)) {

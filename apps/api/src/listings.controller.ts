@@ -1,3 +1,4 @@
+import {centers,citiesInBounds, validBounds } from "./shared/search-filters";
 import type { Response } from "express";
 import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Query, Req, Res } from "@nestjs/common";
 import { Prisma, type listings } from "@prisma/client";
@@ -42,7 +43,7 @@ export class ListingsController {
     return { neighborhoods: districts[city]?.includes(district) ? neighborhoods[city]?.[district] || [] : [] };
   }
   @Get() async list(@Query() query: Record<string, string>) {
-    const page = Math.min(1000, Math.max(1, Number(query.page) || 1)), pageSize = 12;
+    const page = Math.min(1000, Math.max(1, Number(query.page) || 1)), pageSize = query.map==="1"?500:12;
     const where: Prisma.listingsWhereInput = { status: "published" };
     if (["satilik", "kiralik"].includes(query.purpose)) where.purpose = query.purpose;
     if (query.city && query.city.length < 80) where.city = query.city;
@@ -63,6 +64,8 @@ export class ListingsController {
     if (query.furnished === "1") where.furnished = 1;
     const amenities = (query.amenities || "").split(",").filter((item) => item && item.length < 50).slice(0, 12);
     if (amenities.length) where.AND = amenities.map((item) => ({ amenities: { contains: JSON.stringify(item) } }));
+    const bounds=validBounds(query.bounds||"");
+    if(bounds){where.OR=[{longitude:{gte:bounds[0],lte:bounds[2]},latitude:{gte:bounds[1],lte:bounds[3]}},{OR:[{latitude:null},{longitude:null}],city:{in:citiesInBounds(bounds)}}];}
     const orderBy: Prisma.listingsOrderByWithRelationInput[] = query.sort === "priceAsc" ? [{price:"asc"}] : query.sort === "priceDesc" ? [{price:"desc"}] : query.sort === "area" ? [{gross_area:"desc"}] : [{featured:"desc"},{created_at:"desc"}];
     const demo = demoListings.filter((item) => {
       for (const [param, field] of [["purpose", "purpose"], ["city", "city"], ["district", "district"], ["type", "propertyType"], ["rooms", "rooms"]] as const) {
@@ -75,6 +78,7 @@ export class ListingsController {
           if (mode === "min" && actual < limit || mode === "max" && actual > limit) return false;
         }
       }
+      if(bounds){const point=item as unknown as {latitude?:number;longitude?:number};if(!point.latitude||!point.longitude||point.longitude<bounds[0]||point.latitude<bounds[1]||point.longitude>bounds[2]||point.latitude>bounds[3])return false;}
       if (query.furnished === "1" && !item.furnished) return false;
       return amenities.every((feature) => item.amenities.includes(feature));
     }).sort((a, b) => query.sort === "priceAsc" ? a.price - b.price : query.sort === "priceDesc" ? b.price - a.price : query.sort === "area" ? b.grossArea - a.grossArea : Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
@@ -83,7 +87,8 @@ export class ListingsController {
     const realLimit = Math.max(0, Math.min(pageSize, realCount - pageStart));
     const rows = realLimit ? await this.prisma.listings.findMany({ where, orderBy, include: fields, take: realLimit, skip: pageStart }) : [];
     const demoOffset = Math.max(0, pageStart - realCount);
-    return { listings: [...rows.map(listingView), ...demo.slice(demoOffset, demoOffset + pageSize - rows.length)], total: realCount + demo.length, page, pageSize };
+    const results=[...rows.map(listingView), ...demo.slice(demoOffset, demoOffset + pageSize - rows.length)];
+    return { listings:query.map==="1"?results.map(item=>{const l=item as ReturnType<typeof listingView>;return {...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province":"approximate",description:"",images:l.images.slice(0,1),translations:undefined};}):results, total: realCount + demo.length, page, pageSize };
   }
   @Get(":id/contact") async contact(@Param("id") id: string, @Req() request: AuthRequest, @Res({passthrough:true}) response: Response) {
     const user = await this.auth.current(request); requireUser(user);
@@ -125,7 +130,7 @@ export class ListingsController {
     const translations = data.translations && typeof data.translations === "object" ? data.translations : {};
     await this.prisma.$transaction(async (db) => {
       await db.listings.create({ data: {
-      id, owner_id: user.id, title, description, purpose, property_type: propertyType, price: BigInt(price), currency: str(data.currency, 3) || "TRY",
+      id, published_at:status==="published"?createdAt:null, owner_id: user.id, title, description, purpose, property_type: propertyType, price: BigInt(price), currency: str(data.currency, 3) || "TRY",
       city, district, neighborhood: neighborhood.name, neighborhood_id: neighborhood.id, postal_code: neighborhood.postalCode || null,
       latitude: null, longitude: null, gross_area: grossArea, net_area: numberOrNull(data.netArea), rooms: str(data.rooms, 10) || null,
       bedrooms: numberOrNull(data.bedrooms), bathrooms: numberOrNull(data.bathrooms), building_age: numberOrNull(data.buildingAge), floor: numberOrNull(data.floor), total_floors: numberOrNull(data.totalFloors), heating: str(data.heating, 50) || null,
@@ -165,7 +170,8 @@ export class ListingsController {
     for(const locale of ["de","fr","en","ar","ru"]){const entry=(data.translations as Record<string,unknown>)[locale];if(!entry)continue;if(typeof entry!=="object"||Array.isArray(entry))throw new BadRequestException("Çevirileri kontrol edin.");const item=entry as Record<string,unknown>,translatedTitle=str(item.title,150),translatedDescription=str(item.description,5000);if(!translatedTitle&&!translatedDescription)continue;if(translatedTitle.length<12||translatedDescription.length<30)throw new BadRequestException("Çevirileri eksiksiz doldurun.");translations[locale]={title:translatedTitle,description:translatedDescription};}
     const status=user.role==="agent"&&user.agent_status==="approved"||this.auth.isAdmin(user)?"published":"pending",updatedAt=now();
     await this.prisma.$transaction(async db=>{
-      await db.listings.update({where:{id},data:{title,description,purpose,property_type:propertyType,price:BigInt(price),currency,city,district,neighborhood:neighborhood?.name??row.neighborhood,neighborhood_id:neighborhood?.id??row.neighborhood_id,postal_code:neighborhood?.postalCode??row.postal_code,gross_area:grossArea,net_area:numberOrNull(data.netArea),rooms:str(data.rooms,10)||null,bedrooms:numberOrNull(data.bedrooms),bathrooms:numberOrNull(data.bathrooms),building_age:numberOrNull(data.buildingAge),floor:numberOrNull(data.floor),total_floors:numberOrNull(data.totalFloors),heating:str(data.heating,50)||null,furnished:data.furnished?1:0,amenities:JSON.stringify(amenities),images:JSON.stringify(images),translations:JSON.stringify(translations),status,review_note:null,reviewed_by:null,reviewed_at:null,updated_at:updatedAt}});
+      if(Number(row.price)!==price||row.currency!==currency||row.purpose!==purpose)await db.price_history.create({data:{id:randomUUID(),listing_id:id,old_price:row.currency===currency&&row.purpose===purpose?row.price:BigInt(price),new_price:BigInt(price),currency,purpose,changed_at:updatedAt}});
+      await db.listings.update({where:{id},data:{published_at:status==="published"?row.published_at||updatedAt:row.published_at,title,description,purpose,property_type:propertyType,price:BigInt(price),currency,city,district,neighborhood:neighborhood?.name??row.neighborhood,neighborhood_id:neighborhood?.id??row.neighborhood_id,postal_code:neighborhood?.postalCode??row.postal_code,gross_area:grossArea,net_area:numberOrNull(data.netArea),rooms:str(data.rooms,10)||null,bedrooms:numberOrNull(data.bedrooms),bathrooms:numberOrNull(data.bathrooms),building_age:numberOrNull(data.buildingAge),floor:numberOrNull(data.floor),total_floors:numberOrNull(data.totalFloors),heating:str(data.heating,50)||null,furnished:data.furnished?1:0,amenities:JSON.stringify(amenities),images:JSON.stringify(images),translations:JSON.stringify(translations),status,review_note:null,reviewed_by:null,reviewed_at:null,updated_at:updatedAt}});
       await db.property_images.deleteMany({where:{property_id:id,object_key:{notIn:images.map(image=>image.slice(imagePrefix.length))}}});
       for(let index=0;index<images.length;index++){const image=images[index],key=image.slice(imagePrefix.length);if(original.includes(image))await db.property_images.updateMany({where:{property_id:id,object_key:key},data:{sort_order:index}});else{const metadata=info[added.indexOf(image)]!;await db.property_images.create({data:{id:randomUUID(),property_id:id,storage_provider:"r2",bucket:metadata.bucket,object_key:key,content_type:metadata.contentType,byte_size:BigInt(metadata.size),checksum_sha256:metadata.checksum,sort_order:index,created_at:updatedAt}});}}
     });return {success:true,id,status,updatedAt};

@@ -1,0 +1,275 @@
+{
+  "Aramalarım ve bildirimler": [
+    "Meine Suchen & Benachrichtigungen",
+    "Mes recherches et alertes",
+    "My searches & alerts",
+    "عمليات البحث والتنبيهات",
+    "Мои поиски и уведомления"
+  ],
+  "Bildirimler": [
+    "Benachrichtigungen",
+    "Notifications",
+    "Notifications",
+    "التنبيهات",
+    "Уведомления"
+  ],
+  "SİZE ÖZEL": [
+    "FÜR SIE",
+    "POUR VOUS",
+    "FOR YOU",
+    "من أجلك",
+    "ДЛЯ ВАС"
+  ],
+  "Aramalarınız hesabınıza kaydedilir. Yeni ilanları ve favorilerinizdeki fiyat düşüşlerini buradan takip edin.": [
+    "Ihre Suchen werden im Konto gespeichert. Verfolgen Sie neue Anzeigen und Preissenkungen Ihrer Favoriten.",
+    "Vos recherches sont enregistrées dans votre compte. Retrouvez les nouvelles annonces et les baisses de prix de vos favoris.",
+    "Your searches are saved to your account. Track new listings and price drops on your favorites here.",
+    "يتم حفظ عمليات البحث في حسابك. تابع الإعلانات الجديدة وانخفاض أسعار المفضلة هنا.",
+    "Поиски сохраняются в аккаунте. Следите за новыми объявлениями и снижением цен избранного."
+  ],
+  "Tümünü okundu işaretle": [
+    "Alle als gelesen markieren",
+    "Tout marquer comme lu",
+    "Mark all as read",
+    "تحديد الكل كمقروء",
+    "Отметить всё прочитанным"
+  ],
+  "Favorilerim için fiyat düşüşü bildirimleri": [
+    "Preissenkungen für meine Favoriten melden",
+    "Alertes de baisse de prix pour mes favoris",
+    "Price drop alerts for my favorites",
+    "تنبيهات انخفاض أسعار المفضلة",
+    "Уведомления о снижении цен избранного"
+  ],
+  "Fiyat düştü": [
+    "Preis gesunken",
+    "Baisse de prix",
+    "Price dropped",
+    "انخفض السعر",
+    "Цена снижена"
+  ],
+  "Aramanıza uygun yeni ilanlar": [
+    "Neue passende Anzeigen",
+    "Nouvelles annonces correspondantes",
+    "New listings matching your search",
+    "إعلانات جديدة تطابق بحثك",
+    "Новые объявления по вашему поиску"
+  ],
+  "yeni ilan": [
+    "neue Anzeigen",
+    "nouvelles annonces",
+    "new listings",
+    "إعلانات جديدة",
+    "новых объявлений"
+  ],
+  "Şu anda yeni bildiriminiz yok.": [
+    "Keine neuen Benachrichtigungen.",
+    "Aucune nouvelle notification.",
+    "No new notifications right now.",
+    "لا توجد تنبيهات جديدة حاليًا.",
+    "Пока нет новых уведомлений."
+  ],
+  "Kayıtlı aramalarım": [
+    "Meine gespeicherten Suchen",
+    "Mes recherches enregistrées",
+    "My saved searches",
+    "عمليات البحث المحفوظة",
+    "Сохранённые поиски"
+  ],
+  "Yeni arama oluştur": [
+    "Neue Suche erstellen",
+    "Créer une recherche",
+    "Create a new search",
+    "إنشاء بحث جديد",
+    "Создать новый поиск"
+  ],
+  "Bildirim al": [
+    "Benachrichtigen",
+    "Recevoir des alertes",
+    "Notify me",
+    "تلقي التنبيهات",
+    "Получать уведомления"
+  ],
+  "İlan aramasında ‘Aramayı kaydet’ düğmesini kullanın.": [
+    "Nutzen Sie „Suche speichern“ in der Immobiliensuche.",
+    "Utilisez « Enregistrer la recherche » dans les résultats.",
+    "Use ‘Save search’ in the listing search.",
+    "استخدم زر حفظ البحث في صفحة الإعلانات.",
+    "Нажмите «Сохранить поиск» на странице объявлений."
+  ],
+  "Bildirimler site içinde gösterilir; hesabınıza giriş yaptığınızda güncellenir. Örnek ilanlar bildirim üretmez.": [
+    "Benachrichtigungen erscheinen auf der Website und werden nach der Anmeldung aktualisiert. Demo-Anzeigen lösen keine Meldungen aus.",
+    "Les alertes sont affichées sur le site et actualisées après connexion. Les annonces de démonstration ne génèrent pas d’alertes.",
+    "Alerts appear on the website and update when you sign in. Demo listings do not generate alerts.",
+    "تظهر التنبيهات داخل الموقع وتتحدث عند تسجيل الدخول. الإعلانات التجريبية لا تنتج تنبيهات.",
+    "Уведомления показываются на сайте и обновляются после входа. Демо-объявления не создают уведомлений."
+  ],
+  "Aramanız hesabınıza kaydedilir. Uygun yeni ilanlarda site içi bildirim alırsınız.": [
+    "Die Suche wird in Ihrem Konto gespeichert. Neue passende Anzeigen werden auf der Website gemeldet.",
+    "La recherche est enregistrée dans votre compte. Les nouvelles annonces correspondantes déclenchent une alerte sur le site.",
+    "Your search is saved to your account. Get on-site alerts for new matching listings.",
+    "يُحفظ البحث في حسابك. ستتلقى تنبيهات داخل الموقع للإعلانات المطابقة الجديدة.",
+    "Поиск сохраняется в аккаунте. Получайте уведомления о новых подходящих объявлениях на сайте."
+  ],
+  "Karşılaştır": [
+    "Vergleichen",
+    "Comparer",
+    "Compare",
+    "مقارنة",
+    "Сравнить"
+  ],
+  "Karşılaştırmaya eklendi": [
+    "Zum Vergleich hinzugefügt",
+    "Ajouté au comparateur",
+    "Added to comparison",
+    "تمت الإضافة للمقارنة",
+    "Добавлено к сравнению"
+  ],
+  "En fazla 4 ilan karşılaştırabilirsiniz.": [
+    "Sie können bis zu 4 Anzeigen vergleichen.",
+    "Vous pouvez comparer 4 annonces maximum.",
+    "You can compare up to 4 listings.",
+    "يمكنك مقارنة 4 إعلانات كحد أقصى.",
+    "Можно сравнить до 4 объявлений."
+  ],
+  "İlan karşılaştırma": [
+    "Immobilienvergleich",
+    "Comparaison d’annonces",
+    "Compare properties",
+    "مقارنة العقارات",
+    "Сравнение объявлений"
+  ],
+  "ilan seçildi": [
+    "Anzeigen ausgewählt",
+    "annonces sélectionnées",
+    "listings selected",
+    "إعلانات محددة",
+    "объявлений выбрано"
+  ],
+  "DAHA BİLİNÇLİ SEÇİN": [
+    "BESSER ENTSCHEIDEN",
+    "CHOISISSEZ EN CONNAISSANCE",
+    "MAKE AN INFORMED CHOICE",
+    "اختر بوعي أكبر",
+    "ВЫБИРАЙТЕ ОСОЗНАННО"
+  ],
+  "En fazla dört ilanı yan yana inceleyin. Farklı para birimleri ve satılık/kiralık fiyatları doğrudan eşdeğer değildir.": [
+    "Vergleichen Sie bis zu vier Anzeigen. Unterschiedliche Währungen sowie Kauf- und Mietpreise sind nicht direkt vergleichbar.",
+    "Comparez jusqu’à quatre annonces. Les devises différentes et les prix de vente/location ne sont pas directement équivalents.",
+    "Compare up to four listings side by side. Different currencies and sale/rental prices are not directly equivalent.",
+    "قارن حتى أربعة إعلانات جنبًا إلى جنب. العملات المختلفة وأسعار البيع والإيجار ليست متكافئة مباشرة.",
+    "Сравните до четырёх объявлений. Разные валюты и цены продажи/аренды не равнозначны."
+  ],
+  "İlanlara dön": [
+    "Zurück zu den Anzeigen",
+    "Retour aux annonces",
+    "Back to listings",
+    "العودة للإعلانات",
+    "К объявлениям"
+  ],
+  "İlan kartlarındaki Karşılaştır düğmesiyle seçim yapın.": [
+    "Wählen Sie Anzeigen mit der Schaltfläche Vergleichen.",
+    "Sélectionnez des annonces avec le bouton Comparer.",
+    "Select listings using the Compare button on property cards.",
+    "اختر الإعلانات باستخدام زر المقارنة في البطاقات.",
+    "Выберите объявления кнопкой «Сравнить» на карточках."
+  ],
+  "ilan artık erişilebilir değil.": [
+    "Anzeigen nicht mehr verfügbar.",
+    "annonces ne sont plus disponibles.",
+    "listings are no longer available.",
+    "إعلانات لم تعد متاحة.",
+    "объявлений больше недоступно."
+  ],
+  "m² fiyatı": [
+    "Preis pro m²",
+    "Prix au m²",
+    "Price per m²",
+    "السعر لكل م²",
+    "Цена за м²"
+  ],
+  "Özellik": [
+    "Merkmal",
+    "Caractéristique",
+    "Feature",
+    "الخاصية",
+    "Характеристика"
+  ],
+  "Bu alanda ara": [
+    "In diesem Bereich suchen",
+    "Rechercher dans cette zone",
+    "Search this area",
+    "البحث في هذه المنطقة",
+    "Искать в этой области"
+  ],
+  "Haritayı hareket ettirdikçe ara": [
+    "Beim Verschieben suchen",
+    "Rechercher en déplaçant la carte",
+    "Search as I move the map",
+    "البحث أثناء تحريك الخريطة",
+    "Искать при перемещении карты"
+  ],
+  "Alan sınırını kaldır": [
+    "Bereichsfilter entfernen",
+    "Retirer la zone",
+    "Clear map boundary",
+    "إزالة حدود المنطقة",
+    "Убрать границы области"
+  ],
+  "Harita alanı seçili": [
+    "Kartenausschnitt ausgewählt",
+    "Zone de carte sélectionnée",
+    "Map area selected",
+    "تم تحديد منطقة الخريطة",
+    "Выбрана область карты"
+  ],
+  "Noktalar yaklaşık konumdur; açık adresi göstermez.": [
+    "Markierungen zeigen ungefähre Positionen, keine genaue Adresse.",
+    "Les points indiquent une position approximative, pas l’adresse exacte.",
+    "Markers show approximate locations, not exact addresses.",
+    "توضح العلامات مواقع تقريبية ولا تكشف العنوان الدقيق.",
+    "Метки показывают примерное местоположение, а не точный адрес."
+  ],
+  "ilanın harita konumu bulunmuyor; liste görünümünde inceleyebilirsiniz.": [
+    "Anzeigen haben keine Kartenposition; nutzen Sie die Listenansicht.",
+    "annonces n’ont pas de position sur la carte ; consultez la liste.",
+    "listings have no map location; view them in the list.",
+    "إعلانات لا تحتوي على موقع بالخريطة؛ يمكنك عرضها في القائمة.",
+    "объявлений без координат; смотрите их в списке."
+  ],
+  "Haritada en fazla 500 ilan gösterilir. Filtreleri daraltın.": [
+    "Die Karte zeigt maximal 500 Anzeigen. Verfeinern Sie die Filter.",
+    "La carte affiche 500 annonces maximum. Affinez les filtres.",
+    "The map shows up to 500 listings. Narrow your filters.",
+    "تعرض الخريطة حتى 500 إعلان. ضيّق المرشحات.",
+    "На карте до 500 объявлений. Уточните фильтры."
+  ],
+  "Harita zemini yüklenemedi. İlan işaretleri kullanılabilir.": [
+    "Kartenhintergrund nicht geladen. Anzeigenmarkierungen bleiben verfügbar.",
+    "Le fond de carte n’a pas chargé. Les marqueurs restent disponibles.",
+    "Map tiles could not load. Property markers remain available.",
+    "تعذر تحميل خلفية الخريطة. علامات العقارات متاحة.",
+    "Подложка карты не загрузилась. Метки объявлений доступны."
+  ],
+  "Bildirimler yüklenemedi.": [
+    "Benachrichtigungen konnten nicht geladen werden.",
+    "Impossible de charger les notifications.",
+    "Could not load notifications.",
+    "تعذر تحميل التنبيهات.",
+    "Не удалось загрузить уведомления."
+  ],
+  "İlanlar yüklenemedi. Sayfayı yenileyin.": [
+    "Anzeigen konnten nicht geladen werden. Bitte aktualisieren.",
+    "Impossible de charger les annonces. Actualisez la page.",
+    "Could not load listings. Refresh the page.",
+    "تعذر تحميل الإعلانات. حدّث الصفحة.",
+    "Не удалось загрузить объявления. Обновите страницу."
+  ],
+  "ilan il genelinde gösteriliyor; kesin konum paylaşılmamış.": [
+    "Anzeigen werden auf Provinzebene angezeigt; kein genauer Standort angegeben.",
+    "annonces sont affichées à l’échelle de la province ; la position précise n’est pas partagée.",
+    "listings are shown at province level; precise locations were not shared.",
+    "إعلانات معروضة على مستوى المحافظة؛ لم تتم مشاركة الموقع الدقيق.",
+    "объявлений показаны на уровне провинции; точное место не указано."
+  ]
+}

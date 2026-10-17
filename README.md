@@ -49,3 +49,5 @@ Alan adını satın alıp `www.exxelestate.com` adresini Sites'e bağlayın ve D
 Google ile ilk kez gelen kullanıcı seçtiği hesap türünde açılır. Emlakçı hesabı önce `pending` olur ve ofis adı profilinden tamamlanır. Şifreli bir hesapla aynı e-posta varsa hesaplar otomatik birleştirilmez; kullanıcı önce şifreyle girer, ardından profilinden Google hesabını bağlar.
 
 Profil, WhatsApp onayı, favoriler ve ilan düzenleme API sözleşmeleri: [Hesap özellikleri](docs/account-features.md).
+
+Hesaba bağlı aramalar, site içi bildirimler, ilan karşılaştırma ve haritalı arama: [Keşif özellikleri](docs/discovery.md).

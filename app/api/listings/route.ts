@@ -1,3 +1,4 @@
+import { centers,mapBoundsSql,validBounds } from "@/lib/search-filters";
 import { AMENITIES, DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
 import { validDistrict } from "@/lib/turkey-locations";
@@ -6,7 +7,7 @@ import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
-  const page=Math.min(1000,Math.max(1,Number(q.get("page"))||1)),pageSize=12;
+  const page=Math.min(1000,Math.max(1,Number(q.get("page"))||1)),pageSize=q.get("map")==="1"?500:12;
   const where=["l.status='published'"],values:(string|number)[]=[];
   const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms"};
   for(const [param,column] of Object.entries(equals)){const v=q.get(param);if(v&&v.length<80){where.push(`l.${column}=?`);values.push(v)}}
@@ -14,12 +15,15 @@ export async function GET(request:Request) {
   if(q.get("furnished")==="1")where.push("l.furnished=1");
   const chosen=(q.get("amenities")||"").split(",").filter((a)=>AMENITIES.includes(a)).slice(0,12);
   for(const a of chosen){where.push("EXISTS (SELECT 1 FROM json_each(l.amenities) WHERE value=?)");values.push(a)}
+  const bounds=validBounds(q.get("bounds")||"");
+  if(bounds){const spatial=mapBoundsSql(bounds);where.push(spatial.where);values.push(...spatial.values);}
   const query=where.join(" AND ");
   const sort=q.get("sort");
   const order=sort==="priceAsc"?"l.price ASC":sort==="priceDesc"?"l.price DESC":sort==="area"?"l.gross_area DESC":"l.featured DESC,l.created_at DESC";
   const demo=DEMO_LISTINGS.filter((l)=>{
     for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["rooms","rooms"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
     for(const [param,field,compare] of [["minPrice","price","min"],["maxPrice","price","max"],["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
+    if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
     if(q.get("furnished")==="1"&&!l.furnished)return false;
     if(chosen.some((a)=>!l.amenities.includes(a)))return false;
     return true;
@@ -34,7 +38,7 @@ export async function GET(request:Request) {
   if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(parseListing)}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
-  return ok({listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+  return ok({listings:q.get("map")==="1"?listings.map(l=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province":"approximate",description:"",images:l.images.slice(0,1),translations:undefined})):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
 }
 
 export async function POST(request:Request) {
@@ -80,6 +84,7 @@ export async function POST(request:Request) {
     .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),status,0,createdAt,createdAt)];
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
+  if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=?").bind(createdAt,id));
   await db().batch(statements);
   return ok({id,status},{status:201});
 }

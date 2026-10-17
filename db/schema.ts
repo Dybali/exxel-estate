@@ -85,6 +85,7 @@ export const listings = sqliteTable("listings", {
   reviewNote: text("review_note"),
   reviewedBy: text("reviewed_by"),
   reviewedAt: text("reviewed_at"),
+  publishedAt: text("published_at"),
   featured: integer("featured", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
@@ -93,6 +94,7 @@ export const listings = sqliteTable("listings", {
   index("listings_location_idx").on(t.status, t.city, t.district),
   index("listings_price_idx").on(t.status, t.price),
   index("listings_recent_idx").on(t.status, t.createdAt),
+  index("listings_published_at_idx").on(t.status,t.publishedAt),
   index("listings_area_idx").on(t.grossArea),
   index("listings_owner_idx").on(t.ownerId),
 ]);
@@ -162,3 +164,9 @@ export const messageReceipts = sqliteTable("message_receipts", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   readAt: text("read_at").notNull(),
 }, (t) => [primaryKey({ columns: [t.messageId, t.userId] })]);
+
+export const savedSearches = sqliteTable("saved_searches", {
+ id:text("id").primaryKey(),userId:text("user_id").notNull().references(()=>users.id,{onDelete:"cascade"}),name:text("name").notNull(),query:text("query").notNull(),enabled:integer("enabled").notNull().default(1),createdAt:text("created_at").notNull(),seenAt:text("seen_at").notNull(),
+},t=>[uniqueIndex("saved_searches_pair_unique").on(t.userId,t.query),index("saved_searches_user_idx").on(t.userId)]);
+export const discoveryPreferences = sqliteTable("discovery_preferences",{userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),priceSeenAt:text("price_seen_at").notNull(),priceEnabled:integer("price_enabled").notNull().default(1)});
+export const priceHistory = sqliteTable("price_history",{id:text("id").primaryKey(),listingId:text("listing_id").notNull().references(()=>listings.id,{onDelete:"cascade"}),oldPrice:integer("old_price").notNull(),newPrice:integer("new_price").notNull(),currency:text("currency").notNull(),purpose:text("purpose").notNull(),changedAt:text("changed_at").notNull()},t=>[index("price_history_listing_idx").on(t.listingId,t.changedAt)]);
