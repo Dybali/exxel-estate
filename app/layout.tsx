@@ -4,6 +4,7 @@ import "./market-refresh.css";
 import "./home-premium.css";
 import "./messaging.css";
 import "./property-detail.css";
+import "./interior-refresh.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocaleProvider } from "@/lib/i18n";
