@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "@/components/SafeLink";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Bookmark, Grid2X2, Map, MapPin, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
@@ -70,6 +70,7 @@ export function Explorer() {
   const [saved, setSaved] = useState<SavedSearch[]>([]);
   const [saveOpen, setSaveOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
+  const requestedOnce = useRef(false);
   const query = useMemo(() => filterQuery(filters, sort).toString(), [filters, sort]);
 
   useEffect(() => {
@@ -77,7 +78,9 @@ export function Explorer() {
     const search = new URLSearchParams(query);
     search.set("page", String(page));
     setLoading(true);
-    fetch(`/api/listings?${search}`, { signal: controller.signal })
+    const delay = requestedOnce.current && page === 1 ? 250 : 0;
+    requestedOnce.current = true;
+    const timer = window.setTimeout(() => fetch(`/api/listings?${search}`, { signal: controller.signal })
       .then(async (response): Promise<{ listings: Listing[]; total: number }> => {
         if (!response.ok) throw new Error("Search failed");
         return response.json();
@@ -87,8 +90,8 @@ export function Explorer() {
         setTotal(data.total);
         setLoading(false);
       })
-      .catch(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
+      .catch(() => { if (!controller.signal.aborted) setLoading(false); }), delay);
+    return () => { window.clearTimeout(timer); controller.abort(); };
   }, [query, page]);
   useEffect(() => {
     const search = new URLSearchParams(query);

@@ -6,29 +6,10 @@ import { ArrowRight, MapPinned, Search } from "lucide-react";
 import { CITIES } from "@/lib/listings";
 import { useLocale } from "@/lib/i18n";
 
-type Point = [number, number];
-type Geometry = { type: "Polygon" | "MultiPolygon"; coordinates: Point[][] | Point[][][] };
-type GeoFeature = { properties: { il_adi: string }; geometry: Geometry };
-type GeoData = { features: GeoFeature[] };
 type Shape = { name: string; path: string; cx: number; cy: number };
 
 const normalize = (value: string) => value.toLocaleLowerCase("tr").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i");
 const officialCity = (value: string) => CITIES.find((city) => normalize(city) === normalize(value)) || value;
-const project = ([lon, lat]: Point): Point => [18 + (lon - 25.665) * 47.2, 21 + (42.105 - lat) * 55.5];
-
-function toShapes(data: GeoData): Shape[] {
-  return data.features.map((feature) => {
-    const polygons = feature.geometry.type === "Polygon" ? [feature.geometry.coordinates as Point[][]] : feature.geometry.coordinates as Point[][][];
-    const points = polygons.flat(2).map(project);
-    const xs = points.map((item) => item[0]), ys = points.map((item) => item[1]);
-    const path = polygons.map((polygon) => polygon.map((ring) => ring.map((point, index) => {
-      const [x, y] = project(point);
-      return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
-    }).join(" ") + " Z").join(" ")).join(" ");
-    return { name: officialCity(feature.properties.il_adi), path, cx: (Math.min(...xs) + Math.max(...xs)) / 2, cy: (Math.min(...ys) + Math.max(...ys)) / 2 };
-  });
-}
-
 export function CityMap() {
   const { t, locale } = useLocale();
   const [shapes, setShapes] = useState<Shape[]>([]);
@@ -40,10 +21,10 @@ export function CityMap() {
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
-      fetch("/turkiye-iller.geojson", { signal: controller.signal }).then((response) => { if (!response.ok) throw new Error("map"); return response.json() as Promise<GeoData>; }),
+      fetch("/turkiye-map-shapes.json", { signal: controller.signal }).then((response) => { if (!response.ok) throw new Error("map"); return response.json() as Promise<Shape[]>; }),
       fetch("/api/city-counts", { signal: controller.signal }).then((response) => { if (!response.ok) throw new Error("count"); return response.json() as Promise<{ cities: { city: string; count: number }[] }>; }),
-    ]).then(([geo, stats]) => {
-      setShapes(toShapes(geo));
+    ]).then(([mapShapes, stats]) => {
+      setShapes(mapShapes.map((shape) => ({ ...shape, name: officialCity(shape.name) })));
       setCounts(Object.fromEntries(stats.cities.map((item) => [normalize(item.city), item.count])));
     }).catch(() => { if (!controller.signal.aborted) setFailed(true); });
     return () => controller.abort();
