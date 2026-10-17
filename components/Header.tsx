@@ -17,7 +17,9 @@ export function Header() {
   const languageMenu = useRef<HTMLDetailsElement>(null);
   const { locale, setLocale, t } = useLocale();
   useEffect(() => {
-    fetch("/api/account").then(async (response) => await response.json() as { user?: { id:string; name:string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(async (response) => await response.json() as { user?: { id:string; name:string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    refresh();window.addEventListener("salesorrent:profile-changed",refresh);
+    return()=>window.removeEventListener("salesorrent:profile-changed",refresh);
   }, [path]);
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {

@@ -1,0 +1,14 @@
+"use client";
+import { useEffect, useState } from "react";
+import { Check, Save } from "lucide-react";
+import { useLocale } from "@/lib/i18n";
+
+export type EditableProfile={id:string;name:string;email:string;phone?:string|null;whatsapp_enabled?:number};
+export function ProfileEditor({user,onSaved}:{user:EditableProfile;onSaved:(user:EditableProfile)=>void}){
+  const {t}=useLocale();
+  const [name,setName]=useState(user.name),[phone,setPhone]=useState(user.phone||""),[whatsapp,setWhatsapp]=useState(Boolean(user.whatsapp_enabled));
+  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[saved,setSaved]=useState(false);
+  useEffect(()=>{setName(user.name);setPhone(user.phone||"");setWhatsapp(Boolean(user.whatsapp_enabled));},[user.id,user.name,user.phone,user.whatsapp_enabled]);
+  async function submit(event:React.FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setError("");setSaved(false);try{const response=await fetch("/api/account",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"update_profile",name,phone,whatsappEnabled:whatsapp})});const data=await response.json() as {error?:string;user?:EditableProfile};if(!response.ok||!data.user)throw new Error(data.error||t("Profil kaydedilemedi."));onSaved(data.user);try{localStorage.setItem(`salesorrent:whatsapp-prompt:${user.id}`,"1");}catch{}setSaved(true);window.dispatchEvent(new Event("salesorrent:profile-changed"));}catch(cause){setError(cause instanceof Error?cause.message:t("Profil kaydedilemedi."));}finally{setBusy(false);}}
+  return <form className="profile-editor" onSubmit={submit}><h3>{t("İletişim ve profil bilgileri")}</h3><p>{t("Adınızı ve numaranızı istediğiniz zaman güncelleyebilirsiniz.")}</p><div className="profile-editor-grid"><label>{t("Ad Soyad")}<input value={name} onChange={(event)=>setName(event.target.value)} minLength={2} maxLength={100} autoComplete="name" required/></label><label>{t("Telefon numarası")}<input value={phone} onChange={(event)=>setPhone(event.target.value)} type="tel" inputMode="tel" autoComplete="tel" placeholder="+90 555 111 22 33"/></label></div><label className="profile-whatsapp-consent"><input type="checkbox" checked={whatsapp} onChange={(event)=>setWhatsapp(event.target.checked)}/><span><strong>{t("WhatsApp iletişimini etkinleştir")}</strong><small>{t("Telefonunuz ilanlarınıza giriş yapan üyelere gösterilir. WhatsApp'ı açarsanız görüşmelerinizdeki kişiler de size doğrudan ulaşabilir. İstediğiniz zaman kapatabilirsiniz.")}</small></span></label>{error&&<p className="form-error" role="alert">{error}</p>}{saved&&<p className="profile-save-success" role="status"><Check size={15}/>{t("Profiliniz kaydedildi.")}</p>}<button type="submit" className="primary-button" disabled={busy}><Save size={16}/>{busy?t("Kaydediliyor..."):t("Değişiklikleri kaydet")}</button></form>;
+}

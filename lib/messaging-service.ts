@@ -74,6 +74,7 @@ export async function chatGet(database: ChatDatabase, actor: ChatActor, params: 
     FROM messages m WHERE (m.sender_id=? OR m.recipient_id=?) AND m.recipient_id IS NOT NULL)
     SELECT ranked.id,ranked.listing_id,ranked.sender_id,ranked.peer_id,ranked.body AS last_body,ranked.created_at AS last_at,
       COALESCE(u.name,'Üye') AS peer_name,u.role AS peer_role,u.company AS peer_company,
+      CASE WHEN u.whatsapp_enabled=1 THEN u.phone ELSE NULL END AS peer_whatsapp_phone,
       CASE WHEN ranked.listing_id LIKE 'admin:%' THEN 'Sales or rent · Destek' ELSE COALESCE(l.title,'İlan artık mevcut değil') END AS listing_title,
       CASE WHEN ranked.listing_id LIKE 'admin:%' THEN 'support' ELSE l.status END AS listing_status,
       (SELECT COUNT(*) FROM messages unseen WHERE unseen.listing_id=ranked.listing_id AND unseen.sender_id=ranked.peer_id AND unseen.recipient_id=?

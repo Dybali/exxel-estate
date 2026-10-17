@@ -6,6 +6,7 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual, pbkdf2 as pbkdf2C
 import { promisify } from "node:util";
 import type { Response } from "express";
 import type { users } from "@prisma/client";
+import { normalizeContactPhone } from "./shared/phone";
 
 const pbkdf2 = promisify(pbkdf2Callback);
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
@@ -31,9 +32,18 @@ export class AuthService {
   }
   publicUser(user: users) {
     const configured = process.env.EXXEL_ADMIN_EMAIL?.toLowerCase();
-    return { id: user.id, email: user.email, email_verified: user.email_verified, name: user.name, phone: user.phone, role: user.role, agent_status: user.agent_status, company: user.company, avatar_url: user.avatar_url, isAdmin: adminUser(user) || Boolean(configured && user.email_verified && user.email.toLowerCase() === configured) };
+    return { id: user.id, email: user.email, email_verified: user.email_verified, name: user.name, phone: user.phone, whatsapp_enabled:user.whatsapp_enabled, role: user.role, agent_status: user.agent_status, company: user.company, avatar_url: user.avatar_url, isAdmin: adminUser(user) || Boolean(configured && user.email_verified && user.email.toLowerCase() === configured) };
   }
   isAdmin(user: users | null) { return Boolean(user && this.publicUser(user).isAdmin); }
+  async updateProfile(user:users,data:Record<string,unknown>){
+    const name=Object.hasOwn(data,"name")?str(data.name,100):user.name;
+    const phoneInput=Object.hasOwn(data,"phone")?str(data.phone,32):user.phone||"";
+    const phone=phoneInput?normalizeContactPhone(phoneInput):null;
+    const whatsappEnabled=Object.hasOwn(data,"whatsappEnabled")?data.whatsappEnabled===true:Boolean(user.whatsapp_enabled);
+    if(name.length<2||phoneInput&&!phone||whatsappEnabled&&!phone)throw new BadRequestException("Adınızı ve ülke koduyla telefon numaranızı kontrol edin.");
+    const updated=await this.prisma.users.update({where:{id:user.id},data:{name,phone,whatsapp_enabled:whatsappEnabled?1:0}});
+    return {success:true,user:this.publicUser(updated)};
+  }
   async current(request: AuthRequest): Promise<users | null> {
     const access = request.cookies?.exxel_access;
     if (access) {

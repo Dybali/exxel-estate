@@ -202,6 +202,7 @@ model users {
   email_verified                        Int              @default(0)
   name                                  String
   phone                                 String?
+  whatsapp_enabled                      Int              @default(0)
   role                                  String           @default("buyer")
   agent_status                          String           @default("none")
   company                               String?

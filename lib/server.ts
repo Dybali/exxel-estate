@@ -49,13 +49,13 @@ export async function verifyPassword(password:string, stored:string) {
   let diff=0; for (let i=0;i<a.length;i++) diff |= a[i]^b[i];
   return diff===0;
 }
-export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; company?:string|null; avatar_url?:string|null};
+export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; whatsapp_enabled?:number; company?:string|null; avatar_url?:string|null};
 export async function currentUser(request:Request):Promise<User|null> {
   const cookie = request.headers.get("cookie") || "";
   const token = cookie.match(/(?:^|;\s*)excell_session=([^;]+)/)?.[1];
   if (!token) return null;
   const tokenHash = await sha256(token);
-  const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.company,u.avatar_url FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
+  const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.whatsapp_enabled,u.company,u.avatar_url FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
   return row || null;
 }
 export function sessionCookie(token:string, clear=false) {
@@ -78,12 +78,13 @@ export function parseListing(row:Record<string,unknown>):Listing {
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
     buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
     heating:row.heating?String(row.heating):undefined,furnished:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
-    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:String(row.status),reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),source:"user"
+    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:String(row.status),reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),updatedAt:String(row.updated_at),source:"user"
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {
   const demo = DEMO_LISTINGS.find((item)=>item.id===id);
   if (demo) return demo;
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) return null;
   const row = await db().prepare("SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.id=?").bind(id).first<Record<string,unknown>>();
   return row?parseListing(row):null;
 }

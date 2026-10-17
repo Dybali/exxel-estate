@@ -1,4 +1,8 @@
-import { currentUser, db, error, isAdmin, listingById, ok, sameOrigin } from "@/lib/server";
+import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
+import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
+import { findNeighborhood } from "@/lib/turkey-neighborhoods";
+import { validDistrict } from "@/lib/turkey-locations";
+import { body, currentUser, db, error, isAdmin, listingById, now, num, ok, sameOrigin, str } from "@/lib/server";
 
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}) {
   const {id}=await params,listing=await listingById(id);
@@ -7,12 +11,69 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
     const user=await currentUser(request);
     if(!user || (user.id!==listing.ownerId&&!isAdmin(user))) return error("İlan bulunamadı.",404);
   }
-  return ok({listing});
+  return ok({listing},{headers:{"Cache-Control":"private, no-store"}});
+}
+
+export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}) {
+  if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
+  const user=await currentUser(request),{id}=await params;
+  if(!user) return error("Giriş gerekli.",401);
+  if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))return error("İlan bulunamadı.",404);
+  const row=await db().prepare("SELECT * FROM listings WHERE id=?").bind(id).first<Record<string,unknown>>();
+  if(!row) return error("İlan bulunamadı.",404);
+  if(row.owner_id!==user.id&&!isAdmin(user)) return error("Bu ilanı düzenleme yetkiniz yok.",403);
+  let data:Record<string,unknown>;
+  try{data=await body(request);}catch{return error("İlan bilgilerini kontrol edin.");}
+  const expected=str(data.expectedUpdatedAt,40);
+  if(expected&&expected!==row.updated_at) return error("İlan başka bir oturumda güncellendi. Sayfayı yenileyin.",409);
+  const value=(key:string,column:string,max:number)=>Object.hasOwn(data,key)?str(data[key],max):str(row[column],max);
+  const title=value("title","title",150),description=value("description","description",5000),purpose=value("purpose","purpose",20),propertyType=value("propertyType","property_type",30),currency=value("currency","currency",3).toUpperCase(),city=value("city","city",70),district=value("district","district",70);
+  const price=Object.hasOwn(data,"price")?num(data.price):Number(row.price),grossArea=Object.hasOwn(data,"grossArea")?num(data.grossArea):Number(row.gross_area);
+  if(title.length<12||description.length<30||!["satilik","kiralik"].includes(purpose)||!PROPERTY_TYPES.some((item)=>item.value===propertyType)||!["TRY","EUR","USD","GBP"].includes(currency)||!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(grossArea)||grossArea<=0)return error("İlanın zorunlu alanlarını kontrol edin.");
+  if(!validDistrict(city,district))return error("Geçerli bir il ve ilçe seçin.");
+  const locationChanged=Object.hasOwn(data,"city")||Object.hasOwn(data,"district")||Object.hasOwn(data,"neighborhoodId");
+  const neighborhoodId=locationChanged?num(data.neighborhoodId??row.neighborhood_id):Number(row.neighborhood_id);
+  const neighborhood=locationChanged?findNeighborhood(city,district,neighborhoodId):null;
+  if(locationChanged&&!neighborhood)return error("Geçerli bir mahalle seçin.");
+  const optionalNumber=(key:string,column:string)=>{
+    const input=Object.hasOwn(data,key)?data[key]:row[column];
+    if(input===""||input===null||input===undefined)return null;
+    const parsed=num(input);
+    return Number.isSafeInteger(parsed)&&parsed>=0?parsed:NaN;
+  };
+  const optionalFields=[optionalNumber("netArea","net_area"),optionalNumber("bedrooms","bedrooms"),optionalNumber("bathrooms","bathrooms"),optionalNumber("buildingAge","building_age"),optionalNumber("floor","floor"),optionalNumber("totalFloors","total_floors")];
+  if(optionalFields.some((item)=>Number.isNaN(item)))return error("Sayısal özellikleri kontrol edin.");
+  const amenities=Object.hasOwn(data,"amenities")?Array.isArray(data.amenities)?data.amenities.filter((item):item is string=>typeof item==="string"&&AMENITIES.includes(item)).slice(0,20):null:JSON.parse(String(row.amenities||"[]")) as string[];
+  if(!amenities)return error("Özellikleri kontrol edin.");
+  const originalImages=JSON.parse(String(row.images||"[]")) as string[];
+  const images=Object.hasOwn(data,"images")?Array.isArray(data.images)?data.images.filter((item):item is string=>typeof item==="string"&&item.startsWith("/api/media/")).slice(0,30):null:originalImages;
+  if(!images||images.length<1||images.length>30||new Set(images).size!==images.length)return error("En az bir benzersiz fotoğraf ekleyin.");
+  const keys=images.map((image)=>image.slice("/api/media/".length));
+  if(keys.some((key)=>!new RegExp(`^listings/${row.owner_id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key)))return error("Yalnızca ilan sahibinin yüklediği fotoğraflar kullanılabilir.",403);
+  const previousKeys=new Set(originalImages.map((image)=>image.slice("/api/media/".length)));
+  const added=keys.filter((key)=>!previousKeys.has(key));
+  const addedInfo=await Promise.all(added.map(headExternalImage));
+  if(addedInfo.some((item)=>!item))return error("Yeni fotoğraflardan biri depoda bulunamadı.");
+  const bucket=externalR2BucketName();
+  if(added.length&&!bucket)return error("Fotoğraf deposu yapılandırılmamış.",503);
+  const translations=Object.hasOwn(data,"translations")?data.translations:JSON.parse(String(row.translations||"{}"));
+  if(!translations||typeof translations!=="object"||Array.isArray(translations))return error("Çevirileri kontrol edin.");
+  const cleanTranslations:Record<string,{title:string;description:string}>={};
+  for(const locale of ["de","fr","en","ar","ru"]){const entry=(translations as Record<string,unknown>)[locale];if(!entry)continue;if(typeof entry!=="object"||Array.isArray(entry))return error("Çevirileri kontrol edin.");const item=entry as Record<string,unknown>,translatedTitle=str(item.title,150),translatedDescription=str(item.description,5000);if(!translatedTitle&&!translatedDescription)continue;if(translatedTitle.length<12||translatedDescription.length<30)return error("Çeviri başlığı ve açıklaması eksiksiz olmalıdır.");cleanTranslations[locale]={title:translatedTitle,description:translatedDescription};}
+  const status=user.role==="agent"&&user.agent_status==="approved"||isAdmin(user)?"published":"pending";
+  const updatedAt=now();
+  const statements=[db().prepare("UPDATE listings SET title=?,description=?,purpose=?,property_type=?,price=?,currency=?,city=?,district=?,neighborhood=?,neighborhood_id=?,postal_code=?,gross_area=?,net_area=?,rooms=?,bedrooms=?,bathrooms=?,building_age=?,floor=?,total_floors=?,heating=?,furnished=?,amenities=?,images=?,translations=?,status=?,review_note=NULL,reviewed_by=NULL,reviewed_at=NULL,updated_at=? WHERE id=?")
+    .bind(title,description,purpose,propertyType,price,currency,city,district,neighborhood?.name??row.neighborhood??null,neighborhood?.id??row.neighborhood_id??null,neighborhood?.postalCode??row.postal_code??null,grossArea,...optionalFields.slice(0,1),value("rooms","rooms",10)||null,...optionalFields.slice(1),value("heating","heating",50)||null,Object.hasOwn(data,"furnished")?data.furnished?1:0:Number(row.furnished)||0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(cleanTranslations),status,updatedAt,id)];
+  originalImages.forEach((image)=>{const key=image.slice("/api/media/".length);if(!keys.includes(key))statements.push(db().prepare("DELETE FROM property_images WHERE property_id=? AND object_key=?").bind(id,key));});
+  keys.forEach((key,index)=>{if(previousKeys.has(key))statements.push(db().prepare("UPDATE property_images SET sort_order=? WHERE property_id=? AND object_key=?").bind(index,id,key));else{const info=addedInfo[added.indexOf(key)]!;statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,"r2",bucket!,key,info.contentType,info.size,info.checksum,index,updatedAt));}});
+  await db().batch(statements);
+  return ok({success:true,id,status,updatedAt},{headers:{"Cache-Control":"private, no-store"}});
 }
 export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request),{id}=await params;
   if(!user) return error("Giriş gerekli.",401);
+  if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))return error("İlan bulunamadı.",404);
   const row=await db().prepare("SELECT owner_id FROM listings WHERE id=?").bind(id).first<{owner_id:string}>();
   if(!row) return error("İlan bulunamadı.",404);
   if(row.owner_id!==user.id&&!isAdmin(user)) return error("Yetkiniz yok.",403);

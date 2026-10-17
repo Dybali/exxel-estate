@@ -5,8 +5,10 @@ import "./home-premium.css";
 import "./messaging.css";
 import "./property-detail.css";
 import "./interior-refresh.css";
+import "./account-features.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { WhatsAppPrompt } from "@/components/WhatsAppPrompt";
 import { LocaleProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -26,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><LocaleProvider><Header/>{children}<Footer/></LocaleProvider></body>
+      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<Footer/></LocaleProvider></body>
     </html>
   );
 }

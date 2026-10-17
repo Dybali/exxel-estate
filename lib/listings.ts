@@ -9,7 +9,7 @@ export type Listing = {
   amenities: string[]; images: string[]; featured?: boolean; status?: string;
   reviewNote?: string; reviewedAt?: string;
   translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "ru", { title: string; description: string }>>;
-  ownerName?: string; ownerId?: string; createdAt?: string; source?: "demo" | "user";
+  ownerName?: string; ownerId?: string; createdAt?: string; updatedAt?: string; source?: "demo" | "user";
 };
 
 const photo = (id: string, width = 1200) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=82`;

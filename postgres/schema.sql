@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id uuid PRIMARY KEY, email text NOT NULL UNIQUE, password_hash text NOT NULL,
   email_verified integer NOT NULL DEFAULT 0 CHECK (email_verified IN (0,1)),
-  name text NOT NULL, phone text,
+  name text NOT NULL, phone text, whatsapp_enabled integer NOT NULL DEFAULT 0 CHECK (whatsapp_enabled IN (0,1)),
   role text NOT NULL DEFAULT 'buyer' CHECK (role IN ('buyer','individual','agent','admin')),
   agent_status text NOT NULL DEFAULT 'none' CHECK (agent_status IN ('none','pending','approved','rejected')),
   company text, avatar_url text, created_at text NOT NULL

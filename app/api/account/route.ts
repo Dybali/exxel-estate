@@ -1,8 +1,9 @@
 import { body, createSession, currentUser, db, error, isAdmin, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str, verifyPassword } from "@/lib/server";
+import { normalizeContactPhone } from "@/lib/phone";
 
 export async function GET(request:Request) {
   const user=await currentUser(request);
-  return ok({user:user?{...user,isAdmin:isAdmin(user)}:null});
+  return ok({user:user?{...user,isAdmin:isAdmin(user)}:null},{headers:{"Cache-Control":"private, no-store"}});
 }
 
 export async function POST(request:Request) {
@@ -14,6 +15,20 @@ export async function POST(request:Request) {
     const token=(request.headers.get("cookie")||"").match(/(?:^|;\s*)excell_session=([^;]+)/)?.[1];
     if(token) await db().prepare("DELETE FROM sessions WHERE token_hash=?").bind(await sha256(token)).run();
     return ok({success:true},{headers:{"Set-Cookie":sessionCookie("",true)}});
+  }
+  if (action==="update_profile") {
+    const user=await currentUser(request);
+    if(!user) return error("Önce giriş yapın.",401);
+    const name=Object.hasOwn(data,"name")?str(data.name,100):user.name;
+    const phoneInput=Object.hasOwn(data,"phone")?str(data.phone,32):user.phone||"";
+    const phone=phoneInput?normalizeContactPhone(phoneInput):null;
+    const whatsappEnabled=Object.hasOwn(data,"whatsappEnabled")?data.whatsappEnabled===true:Boolean(user.whatsapp_enabled);
+    if(name.length<2) return error("Ad soyad en az 2 karakter olmalıdır.");
+    if(phoneInput&&!phone) return error("Telefonu ülke koduyla girin. Örnek: +905551112233.");
+    if(whatsappEnabled&&!phone) return error("WhatsApp iletişimi için geçerli bir telefon numarası ekleyin.");
+    await db().prepare("UPDATE users SET name=?,phone=?,whatsapp_enabled=? WHERE id=?")
+      .bind(name,phone,whatsappEnabled?1:0,user.id).run();
+    return ok({success:true,user:{...user,name,phone,whatsapp_enabled:whatsappEnabled?1:0,isAdmin:isAdmin(user)}},{headers:{"Cache-Control":"private, no-store"}});
   }
   if (action==="request_seller_role") {
     const user=await currentUser(request);
@@ -58,7 +73,7 @@ export async function POST(request:Request) {
     const limitKey=await sha256(`login:${email}:${ip}`),windowStart=new Date(Date.now()-15*60*1000).toISOString();
     const attempts=await db().prepare("SELECT failures,window_started_at FROM auth_limits WHERE key=?").bind(limitKey).first<{failures:number;window_started_at:string}>();
     if(attempts&&attempts.window_started_at>windowStart&&attempts.failures>=10)return error("Çok fazla giriş denemesi. 15 dakika sonra tekrar deneyin.",429);
-    const row=await db().prepare("SELECT id,email,password_hash,email_verified,name,role,agent_status,phone,company FROM users WHERE email=?").bind(email).first<Record<string,unknown>>();
+    const row=await db().prepare("SELECT id,email,password_hash,email_verified,name,role,agent_status,phone,whatsapp_enabled,company FROM users WHERE email=?").bind(email).first<Record<string,unknown>>();
     if(!row || !(await verifyPassword(password,String(row.password_hash)))) {
       const started=attempts&&attempts.window_started_at>windowStart?attempts.window_started_at:now();
       const count=attempts&&attempts.window_started_at>windowStart?attempts.failures+1:1;
@@ -67,7 +82,7 @@ export async function POST(request:Request) {
     }
     await db().prepare("DELETE FROM auth_limits WHERE key=?").bind(limitKey).run();
     const token=await createSession(String(row.id));
-    const user={id:row.id,email:row.email,email_verified:row.email_verified,name:row.name,role:row.role,agent_status:row.agent_status,phone:row.phone,company:row.company};
+    const user={id:row.id,email:row.email,email_verified:row.email_verified,name:row.name,role:row.role,agent_status:row.agent_status,phone:row.phone,whatsapp_enabled:row.whatsapp_enabled,company:row.company};
     return ok({user:{...user,isAdmin:isAdmin(user as Parameters<typeof isAdmin>[0])}},{headers:{"Set-Cookie":sessionCookie(token)}});
   }
   return error("Geçersiz işlem.");

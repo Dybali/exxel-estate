@@ -7,6 +7,7 @@ export const users = sqliteTable("users", {
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   name: text("name").notNull(),
   phone: text("phone"),
+  whatsappEnabled: integer("whatsapp_enabled", { mode: "boolean" }).notNull().default(false),
   role: text("role").notNull().default("buyer"),
   agentStatus: text("agent_status").notNull().default("none"),
   company: text("company"),
@@ -95,6 +96,19 @@ export const listings = sqliteTable("listings", {
   index("listings_area_idx").on(t.grossArea),
   index("listings_owner_idx").on(t.ownerId),
 ]);
+
+export const propertyImages = sqliteTable("property_images", {
+  id: text("id").primaryKey(),
+  propertyId: text("property_id").notNull().references(() => listings.id, {onDelete:"cascade"}),
+  storageProvider: text("storage_provider").notNull().default("r2"),
+  bucket: text("bucket").notNull(),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  checksumSha256: text("checksum_sha256"),
+  sortOrder: integer("sort_order").notNull(),
+  createdAt: text("created_at").notNull(),
+}, (t)=>[uniqueIndex("property_images_object_key_unique").on(t.objectKey),index("property_images_property_idx").on(t.propertyId,t.sortOrder)]);
 
 export const favorites = sqliteTable("favorites", {
   userId: text("user_id").notNull().references(() => users.id),
