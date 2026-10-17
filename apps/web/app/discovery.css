@@ -8,3 +8,4 @@
 .listing-actions .compare-choice{border:0;margin:0;padding:0}.listing-actions .compare-choice button{height:38px;padding:0 9px;font-size:11px}.listing-actions .compare-choice small{position:absolute;top:100%;right:0;background:white;padding:8px;box-shadow:0 3px 8px #0002;z-index:5;width:230px}
 
 @media(max-width:850px){.map-panel{height:680px;min-height:680px}.property-map-shell{min-height:680px}.property-map-canvas{min-height:400px}}
+.comparison-page~.compare-tray{display:none}.comparison-table thead img{height:180px;aspect-ratio:auto}.listing-actions .compare-choice button{background:#fff;border-radius:5px;box-shadow:0 2px 10px #14291b16;white-space:nowrap}@media(max-width:700px){.comparison-table thead img{height:140px}}
