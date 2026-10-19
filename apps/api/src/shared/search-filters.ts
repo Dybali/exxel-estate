@@ -1,3 +1,4 @@
+import {priceCurrency} from "./price-filters";
 import provinceCenters from "./province-centers.json";
 // Shared validation for saved searches, alerts and map queries.
 export const searchFields = {purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency"};
@@ -11,6 +12,7 @@ export function cleanSearch(input: string) {
   const amenities=(source.get("amenities")||"").split(",").filter(value=>value&&value.length<50).slice(0,12);
   if(amenities.length)result.set("amenities",amenities.join(","));
   const bounds=source.get("bounds");if(bounds&&validBounds(bounds))result.set("bounds",bounds);
+  const currency=priceCurrency(source);if(currency)result.set("currency",currency);
   result.sort();return result.toString();
 }
 export function validBounds(value:string):number[]|null {

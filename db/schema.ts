@@ -172,3 +172,7 @@ export const discoveryPreferences = sqliteTable("discovery_preferences",{userId:
 export const priceHistory = sqliteTable("price_history",{id:text("id").primaryKey(),listingId:text("listing_id").notNull().references(()=>listings.id,{onDelete:"cascade"}),oldPrice:integer("old_price").notNull(),newPrice:integer("new_price").notNull(),currency:text("currency").notNull(),purpose:text("purpose").notNull(),changedAt:text("changed_at").notNull()},t=>[index("price_history_listing_idx").on(t.listingId,t.changedAt)]);
 
 export const sellerProfiles=sqliteTable('seller_profiles',{userId:text('user_id').primaryKey().references(()=>users.id,{onDelete:'cascade'}),bio:text('bio').notNull().default(''),updatedAt:text('updated_at').notNull()});
+
+export const listingDrafts = sqliteTable("listing_drafts", {userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),payload:text("payload").notNull(),version:integer("version").notNull().default(1),updatedAt:text("updated_at").notNull()});
+
+export const adminAudit = sqliteTable("admin_audit", {id:text("id").primaryKey(),actorId:text("actor_id").notNull(),actorName:text("actor_name").notNull(),action:text("action").notNull(),targetId:text("target_id").notNull(),summary:text("summary").notNull(),createdAt:text("created_at").notNull()},t=>[index("admin_audit_time_idx").on(t.createdAt)]);

@@ -50,6 +50,11 @@ export class AuthService {
     const [updated]=await this.prisma.$transaction([this.prisma.users.update({where:{id:user.id},data:{name,phone,whatsapp_enabled:whatsappEnabled?1:0,avatar_url:avatarUrl||null}}),this.prisma.seller_profiles.upsert({where:{user_id:user.id},create:{user_id:user.id,bio,updated_at:now()},update:{bio,updated_at:now()}})]);
     return {success:true,user:{...this.publicUser(updated),bio}};
   }
+  async currentSessionKey(request:AuthRequest,userId:string){
+    const access=request.cookies?.exxel_access;
+    if(access){try{const payload=await this.jwt.verifyAsync<{sid:string}>(access,{issuer:'exxel-estate',audience:'exxel-estate-web'});const session=await this.prisma.sessions.findUnique({where:{token_hash:payload.sid}});if(session?.user_id===userId&&session.expires_at>now())return payload.sid;}catch{}}
+    const token=request.cookies?.excell_session;return token&&/^[a-f0-9]{64}$/.test(token)?sha256(token):null;
+  }
   async current(request: AuthRequest): Promise<users | null> {
     const access = request.cookies?.exxel_access;
     if (access) {

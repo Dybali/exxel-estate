@@ -1,4 +1,5 @@
 "use client";
+import listingToolsTranslations from "@/data/listing-tools-translations.json";
 import discoveryTranslations from "@/data/discovery-translations.json";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
@@ -615,7 +616,7 @@ const accountFeatureWords:Record<string,[string,string,string,string,string]>={
 };
 for(const [key,[de,fr,en,ar,ru]] of Object.entries(accountFeatureWords))words[key]={de,fr,en,ar,ru};
 
-for(const [key,[de,fr,en,ar,ru]] of Object.entries(discoveryTranslations))words[key]={de,fr,en,ar,ru};
+for(const [key,[de,fr,en,ar,ru]] of Object.entries({...discoveryTranslations,...listingToolsTranslations}))words[key]={de,fr,en,ar,ru};
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
@@ -640,7 +641,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 }
 export const useLocale = () => useContext(LocaleContext);
 export function T({ id }: { id: string }) { const { t } = useLocale(); return <>{t(id)}</>; }
-export function Money({ value, currency = "TRY" }: { value: number; currency?: string }) {
+export function Money({ value, currency = "TRY",fractionDigits=0 }: { value: number; currency?: string;fractionDigits?:number }) {
   const { locale } = useLocale();
-  return <>{new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(value)}</>;
+  return <>{new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: fractionDigits }).format(value)}</>;
 }

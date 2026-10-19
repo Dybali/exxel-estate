@@ -5,6 +5,7 @@ import Link from "@/components/SafeLink";
 import { ArrowDownToLine, Check, ShieldCheck, X } from "lucide-react";
 import { AdminMessages } from "./AdminMessages";
 import type { MessageRecipient } from "./MessagesInbox";
+import {AdminAudit} from "./AdminAudit";
 import { CountrySettings } from "./CountrySettings";
 
 type UserRow = { id: string; name: string; email: string; role: string; agent_status: string; company?: string };
@@ -66,7 +67,7 @@ export function AdminPanel() {
       <div className="admin-table-wrap"><table><thead><tr><th>Ad / ofis</th><th>E-posta</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>{agents.length ? agents.map((agent) => <tr key={agent.id}><td>{agent.name}{agent.company && <small>{agent.company}</small>}</td><td>{agent.email}</td><td>{agent.agent_status}</td><td><button type="button" onClick={() => updateAgent(agent.id, "approved")}><Check size={15}/> Onayla</button><button type="button" onClick={() => updateAgent(agent.id, "rejected")}><X size={15}/> Reddet</button><button className="admin-contact-link" onClick={() => contact(agent)}>Mesaj yaz</button></td></tr>) : <tr><td colSpan={4}>Henüz emlakçı başvurusu yok.</td></tr>}</tbody></table></div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <AdminMessages recipient={recipient} onUnreadChange={setUnread}/>
-      <CountrySettings countries={data.countries || []} onSaved={reload}/>
+      <CountrySettings countries={data.countries || []} onSaved={reload}/><AdminAudit/>
     </div>
   </main>;
 }

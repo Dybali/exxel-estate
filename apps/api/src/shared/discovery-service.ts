@@ -25,7 +25,7 @@ export async function mutateDiscovery(db:DiscoveryDatabase,userId:string,data:Re
   if(data.action==="save"){
     const name=typeof data.name==="string"?data.name.trim().slice(0,70):"";
     if(!name||typeof data.query!=="string"||data.query.length>3000)throw new DiscoveryError("Arama adını ve filtreleri kontrol edin.");
-    const query=cleanSearch(data.query),id=crypto.randomUUID();
+    let query:string;try{query=cleanSearch(data.query);}catch{throw new DiscoveryError("Arama filtrelerini kontrol edin.");}const id=crypto.randomUUID();
     const existing=await db.prepare("SELECT id FROM saved_searches WHERE user_id=? AND query=?").bind(userId,query).first<{id:string}>();
     if(existing){await db.prepare("UPDATE saved_searches SET name=? WHERE id=? AND user_id=?").bind(name,existing.id,userId).run();return {success:true};}
     // Bound saved searches per account and deduplicate identical filters.

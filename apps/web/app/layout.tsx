@@ -9,6 +9,7 @@ import "./account-features.css";
 import "leaflet/dist/leaflet.css";
 import "./discovery.css";
 import "./seller-profile.css";
+import "./listing-tools.css";
 import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";

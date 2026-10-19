@@ -109,3 +109,8 @@ CREATE TABLE IF NOT EXISTS price_history(id uuid PRIMARY KEY,listing_id uuid NOT
 CREATE INDEX IF NOT EXISTS price_history_listing_idx ON price_history(listing_id,changed_at);
 
 CREATE TABLE IF NOT EXISTS seller_profiles (user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, bio text NOT NULL DEFAULT '', updated_at text NOT NULL);
+
+CREATE TABLE IF NOT EXISTS listing_drafts (user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, payload text NOT NULL, version integer NOT NULL DEFAULT 1 CHECK (version>0), updated_at text NOT NULL);
+
+CREATE TABLE IF NOT EXISTS admin_audit (id uuid PRIMARY KEY, actor_id uuid NOT NULL, actor_name text NOT NULL, action text NOT NULL, target_id text NOT NULL, summary text NOT NULL, created_at text NOT NULL);
+CREATE INDEX IF NOT EXISTS admin_audit_time_idx ON admin_audit(created_at DESC);

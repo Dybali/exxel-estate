@@ -1,3 +1,4 @@
+import {priceCurrency} from "./shared/price-filters";
 import {centers,citiesInBounds, validBounds } from "./shared/search-filters";
 import type { Response } from "express";
 import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Query, Req, Res } from "@nestjs/common";
@@ -17,7 +18,7 @@ const fields = { users_listings_owner_idTousers: { select: { name: true } } } as
 type Row = listings & { users_listings_owner_idTousers?: { name: string } };
 const districts = districtsData as Record<string, string[]>;
 const neighborhoods = neighborhoodsData as Record<string, Record<string, {id:number;name:string;postalCode:string;label:string}[]>>;
-type DemoListing = { id: string; purpose: string; city: string; district: string; propertyType: string; rooms?: string; price: number; grossArea: number; bedrooms?: number; bathrooms?: number; furnished?: boolean; amenities: string[]; featured?: boolean; source: string };
+type DemoListing = { id: string; purpose: string; currency:string; city: string; district: string; propertyType: string; rooms?: string; price: number; grossArea: number; bedrooms?: number; bathrooms?: number; furnished?: boolean; amenities: string[]; featured?: boolean; source: string };
 const demoListings = demoRows as unknown as DemoListing[];
 
 export function listingView(row: Row) {
@@ -44,7 +45,8 @@ export class ListingsController {
   }
   @Get() async list(@Query() query: Record<string, string>) {
     const page = Math.min(1000, Math.max(1, Number(query.page) || 1)), pageSize = query.map==="1"?500:12;
-    const where: Prisma.listingsWhereInput = { status: "published" };
+    let currency:string;try{currency=priceCurrency({get:key=>query[key]||null});}catch{throw new BadRequestException("Geçersiz para birimi.");}if(currency)query.currency=currency;
+    const where: Prisma.listingsWhereInput = { status: "published",...(currency?{currency}:{}) };
     if (["satilik", "kiralik"].includes(query.purpose)) where.purpose = query.purpose;
     if (query.city && query.city.length < 80) where.city = query.city;
     if (query.district && query.district.length < 80) where.district = query.district;
@@ -66,9 +68,9 @@ export class ListingsController {
     if (amenities.length) where.AND = amenities.map((item) => ({ amenities: { contains: JSON.stringify(item) } }));
     const bounds=validBounds(query.bounds||"");
     if(bounds){where.OR=[{longitude:{gte:bounds[0],lte:bounds[2]},latitude:{gte:bounds[1],lte:bounds[3]}},{OR:[{latitude:null},{longitude:null}],city:{in:citiesInBounds(bounds)}}];}
-    const orderBy: Prisma.listingsOrderByWithRelationInput[] = query.sort === "priceAsc" ? [{price:"asc"}] : query.sort === "priceDesc" ? [{price:"desc"}] : query.sort === "area" ? [{gross_area:"desc"}] : [{featured:"desc"},{created_at:"desc"}];
+    const orderBy: Prisma.listingsOrderByWithRelationInput[] = query.sort === "priceAsc" ? [{price:"asc"},{id:"asc"}] : query.sort === "priceDesc" ? [{price:"desc"},{id:"asc"}] : query.sort === "area" ? [{gross_area:"desc"},{id:"asc"}] : [{featured:"desc"},{created_at:"desc"}];
     const demo = demoListings.filter((item) => {
-      for (const [param, field] of [["purpose", "purpose"], ["city", "city"], ["district", "district"], ["type", "propertyType"], ["rooms", "rooms"]] as const) {
+      for (const [param, field] of [["purpose", "purpose"], ["city", "city"], ["district", "district"], ["type", "propertyType"], ["rooms", "rooms"], ["currency","currency"]] as const) {
         if (query[param] && item[field] !== query[param]) return false;
       }
       for (const [param, field, mode] of [["minPrice", "price", "min"], ["maxPrice", "price", "max"], ["minArea", "grossArea", "min"], ["maxArea", "grossArea", "max"], ["bedrooms", "bedrooms", "min"], ["bathrooms", "bathrooms", "min"]] as const) {
@@ -84,10 +86,12 @@ export class ListingsController {
     }).sort((a, b) => query.sort === "priceAsc" ? a.price - b.price : query.sort === "priceDesc" ? b.price - a.price : query.sort === "area" ? b.grossArea - a.grossArea : Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
     const realCount = await this.prisma.listings.count({ where });
     const pageStart = (page - 1) * pageSize;
-    const realLimit = Math.max(0, Math.min(pageSize, realCount - pageStart));
-    const rows = realLimit ? await this.prisma.listings.findMany({ where, orderBy, include: fields, take: realLimit, skip: pageStart }) : [];
+    const ordered=["priceAsc","priceDesc","area"].includes(query.sort);
+    const realOffset=Math.min(ordered?Math.max(0,pageStart-demo.length):pageStart,realCount);
+    const realLimit = Math.max(0, Math.min(ordered?pageStart+pageSize-realOffset:pageSize, realCount - realOffset));
+    const rows = realLimit ? await this.prisma.listings.findMany({ where, orderBy, include: fields, take: realLimit, skip: realOffset }) : [];
     const demoOffset = Math.max(0, pageStart - realCount);
-    const results=[...rows.map(listingView), ...demo.slice(demoOffset, demoOffset + pageSize - rows.length)];
+    const results=ordered?[...rows.map(listingView),...demo].sort((a,b)=>query.sort==="priceAsc"?a.price-b.price||a.id.localeCompare(b.id):query.sort==="priceDesc"?b.price-a.price||a.id.localeCompare(b.id):b.grossArea-a.grossArea||a.id.localeCompare(b.id)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...rows.map(listingView), ...demo.slice(demoOffset, demoOffset + pageSize - rows.length)];
     return { listings:query.map==="1"?results.map(item=>{const l=item as ReturnType<typeof listingView>;return {...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province":"approximate",description:"",images:l.images.slice(0,1),translations:undefined};}):results, total: realCount + demo.length, page, pageSize };
   }
   @Get(":id/contact") async contact(@Param("id") id: string, @Req() request: AuthRequest, @Res({passthrough:true}) response: Response) {
@@ -124,6 +128,7 @@ export class ListingsController {
     if (imageInfo.some((item) => !item)) throw new BadRequestException("Fotoğraflardan biri depoda bulunamadı.");
     const count = await this.prisma.listings.count({ where: { owner_id: user.id, status: { not: "rejected" } } });
     if (user.role === "individual" && count >= 3) throw new ForbiddenException("İlan kotası dolu.");
+    if(!["TRY","EUR","USD","GBP"].includes(str(data.currency,3)||"TRY"))throw new BadRequestException("Geçersiz para birimi.");
     const id = randomUUID(), createdAt = now(),status=user.role==="agent"&&user.agent_status==="approved"||this.auth.isAdmin(user)?"published":"pending";
     const numberOrNull = (value: unknown) => value === "" || value == null ? null : Number.isSafeInteger(Number(value)) ? Number(value) : null;
     const amenities = Array.isArray(data.amenities) ? data.amenities.filter((item): item is string => typeof item === "string" && item.length < 50).slice(0, 20) : [];

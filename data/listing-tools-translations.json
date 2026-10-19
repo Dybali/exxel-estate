@@ -1,0 +1,282 @@
+{
+  "Taslak": [
+    "Entwurf",
+    "Brouillon",
+    "Draft",
+    "مسودة",
+    "Черновик"
+  ],
+  "Taslağı kaydet": [
+    "Entwurf speichern",
+    "Enregistrer le brouillon",
+    "Save draft",
+    "حفظ المسودة",
+    "Сохранить черновик"
+  ],
+  "Taslağı sil": [
+    "Entwurf löschen",
+    "Supprimer le brouillon",
+    "Delete draft",
+    "حذف المسودة",
+    "Удалить черновик"
+  ],
+  "Taslağa devam et": [
+    "Entwurf fortsetzen",
+    "Reprendre le brouillon",
+    "Continue draft",
+    "متابعة المسودة",
+    "Продолжить черновик"
+  ],
+  "Tamamlanmamış ilanınız var": [
+    "Sie haben einen Anzeigenentwurf",
+    "Vous avez une annonce inachevée",
+    "You have an unfinished listing",
+    "لديك إعلان غير مكتمل",
+    "У вас есть незавершённое объявление"
+  ],
+  "Önizleme": [
+    "Vorschau",
+    "Aperçu",
+    "Preview",
+    "معاينة",
+    "Предпросмотр"
+  ],
+  "İlan önizlemesi": [
+    "Anzeigenvorschau",
+    "Aperçu de l’annonce",
+    "Listing preview",
+    "معاينة الإعلان",
+    "Предпросмотр объявления"
+  ],
+  "Bu bir önizlemedir. İlan henüz yayımlanmadı.": [
+    "Dies ist eine Vorschau. Die Anzeige wurde noch nicht veröffentlicht.",
+    "Ceci est un aperçu. L’annonce n’est pas encore publiée.",
+    "This is a preview. Your listing has not been published.",
+    "هذه معاينة. لم يتم نشر الإعلان بعد.",
+    "Это предпросмотр. Объявление ещё не опубликовано."
+  ],
+  "Taslağınız otomatik kaydedilir.": [
+    "Ihr Entwurf wird automatisch gespeichert.",
+    "Votre brouillon est enregistré automatiquement.",
+    "Your draft is saved automatically.",
+    "تُحفظ مسودتك تلقائيًا.",
+    "Ваш черновик сохраняется автоматически."
+  ],
+  "Taslağınız hesabınıza kaydedilir; başka cihazdan devam edebilirsiniz.": [
+    "Ihr Entwurf wird in Ihrem Konto gespeichert. Sie können auf einem anderen Gerät fortfahren.",
+    "Votre brouillon est enregistré dans votre compte. Reprenez sur un autre appareil.",
+    "Your draft is saved to your account. Continue on another device.",
+    "تُحفظ مسودتك في حسابك. يمكنك المتابعة من جهاز آخر.",
+    "Черновик сохраняется в аккаунте. Продолжайте на другом устройстве."
+  ],
+  "Kayıtlı taslağınız yüklendi.": [
+    "Ihr Entwurf wurde geladen.",
+    "Votre brouillon a été chargé.",
+    "Your saved draft was loaded.",
+    "تم تحميل المسودة المحفوظة.",
+    "Сохранённый черновик загружен."
+  ],
+  "Taslak hesabınıza kaydedildi.": [
+    "Entwurf im Konto gespeichert.",
+    "Brouillon enregistré dans votre compte.",
+    "Draft saved to your account.",
+    "تم حفظ المسودة في حسابك.",
+    "Черновик сохранён в аккаунте."
+  ],
+  "Taslak kaydedilemedi.": [
+    "Entwurf konnte nicht gespeichert werden.",
+    "Impossible d’enregistrer le brouillon.",
+    "Could not save your draft.",
+    "تعذر حفظ المسودة.",
+    "Не удалось сохранить черновик."
+  ],
+  "Taslak silindi.": [
+    "Entwurf gelöscht.",
+    "Brouillon supprimé.",
+    "Draft deleted.",
+    "تم حذف المسودة.",
+    "Черновик удалён."
+  ],
+  "Taslak başka bir sekmede değişti. Sayfayı yenileyin.": [
+    "Der Entwurf wurde in einem anderen Tab geändert. Laden Sie die Seite neu.",
+    "Le brouillon a été modifié dans un autre onglet. Rechargez la page.",
+    "This draft changed in another tab. Reload the page.",
+    "تغيرت المسودة في علامة تبويب أخرى. أعد تحميل الصفحة.",
+    "Черновик изменён в другой вкладке. Обновите страницу."
+  ],
+  "Taslak yüklenemedi. Sayfayı yenileyin.": [
+    "Entwurf konnte nicht geladen werden. Laden Sie die Seite neu.",
+    "Impossible de charger le brouillon. Rechargez la page.",
+    "Could not load your draft. Reload the page.",
+    "تعذر تحميل المسودة. أعد تحميل الصفحة.",
+    "Не удалось загрузить черновик. Обновите страницу."
+  ],
+  "Kaydedilmemiş değişiklikler": [
+    "Ungespeicherte Änderungen",
+    "Modifications non enregistrées",
+    "Unsaved changes",
+    "تغييرات غير محفوظة",
+    "Несохранённые изменения"
+  ],
+  "Yeniden yükle": [
+    "Neu laden",
+    "Recharger",
+    "Reload",
+    "إعادة التحميل",
+    "Обновить"
+  ],
+  "Yeniden dene": [
+    "Erneut versuchen",
+    "Réessayer",
+    "Try again",
+    "حاول مجددًا",
+    "Повторить"
+  ],
+  "Fotoğraf": [
+    "Foto",
+    "Photo",
+    "Photo",
+    "صورة",
+    "Фото"
+  ],
+  "Fotoğraf sıralaması": [
+    "Fotoreihenfolge",
+    "Ordre des photos",
+    "Photo order",
+    "ترتيب الصور",
+    "Порядок фотографий"
+  ],
+  "Kapak yap": [
+    "Als Titelbild verwenden",
+    "Définir comme couverture",
+    "Set as cover",
+    "تعيين كغلاف",
+    "Сделать обложкой"
+  ],
+  "Öne taşı": [
+    "Nach vorne verschieben",
+    "Déplacer avant",
+    "Move earlier",
+    "نقل للأمام",
+    "Переместить вперёд"
+  ],
+  "Arkaya taşı": [
+    "Nach hinten verschieben",
+    "Déplacer après",
+    "Move later",
+    "نقل للخلف",
+    "Переместить назад"
+  ],
+  "Fotoğrafları sürükleyin veya oklarla sıralayın. Yıldız ile kapak seçin.": [
+    "Ziehen Sie Fotos oder nutzen Sie die Pfeile. Wählen Sie das Titelbild mit dem Stern.",
+    "Glissez les photos ou utilisez les flèches. Choisissez la couverture avec l’étoile.",
+    "Drag photos or use the arrows to reorder. Use the star to set the cover.",
+    "اسحب الصور أو استخدم الأسهم لترتيبها. اختر الغلاف بالنجمة.",
+    "Перетаскивайте фото или используйте стрелки. Выберите обложку звёздочкой."
+  ],
+  "JPG, PNG veya WEBP; en fazla 8 MB.": [
+    "JPG, PNG oder WEBP; maximal 8 MB.",
+    "JPG, PNG ou WEBP ; 8 Mo maximum.",
+    "JPG, PNG or WEBP; up to 8 MB.",
+    "JPG أو PNG أو WEBP؛ حتى 8 ميغابايت.",
+    "JPG, PNG или WEBP; до 8 МБ."
+  ],
+  "Tüm para birimleri": [
+    "Alle Währungen",
+    "Toutes les devises",
+    "All currencies",
+    "كل العملات",
+    "Все валюты"
+  ],
+  "En az": [
+    "Mindestens",
+    "Minimum",
+    "Minimum",
+    "الحد الأدنى",
+    "Минимум"
+  ],
+  "En çok": [
+    "Höchstens",
+    "Maximum",
+    "Maximum",
+    "الحد الأقصى",
+    "Максимум"
+  ],
+  "Fiyat filtresi ve sıralaması seçili para birimine uygulanır. Döviz çevrimi yapılmaz.": [
+    "Preisfilter und Sortierung gelten für die gewählte Währung. Keine Währungsumrechnung.",
+    "Le filtre et le tri des prix utilisent la devise choisie. Aucune conversion.",
+    "Price filters and sorting use the selected currency. No currency conversion.",
+    "تُطبق تصفية الأسعار وترتيبها بالعملة المختارة. لا يتم تحويل العملات.",
+    "Фильтрация и сортировка цен используют выбранную валюту. Без конвертации."
+  ],
+  "Geçersiz para birimi.": [
+    "Ungültige Währung.",
+    "Devise invalide.",
+    "Invalid currency.",
+    "عملة غير صالحة.",
+    "Недопустимая валюта."
+  ],
+  "İlanlar yüklenemedi. Tekrar deneyin.": [
+    "Anzeigen konnten nicht geladen werden. Versuchen Sie es erneut.",
+    "Impossible de charger les annonces. Réessayez.",
+    "Could not load listings. Please try again.",
+    "تعذر تحميل الإعلانات. حاول مجددًا.",
+    "Не удалось загрузить объявления. Повторите попытку."
+  ],
+  "Arama filtrelerini kontrol edin.": [
+    "Prüfen Sie die Suchfilter.",
+    "Vérifiez les filtres de recherche.",
+    "Check your search filters.",
+    "تحقق من عوامل تصفية البحث.",
+    "Проверьте фильтры поиска."
+  ],
+  "Hesap güvenliği": [
+    "Kontosicherheit",
+    "Sécurité du compte",
+    "Account security",
+    "أمان الحساب",
+    "Безопасность аккаунта"
+  ],
+  "Etkin oturum sayısı": [
+    "Aktive Sitzungen",
+    "Sessions actives",
+    "Active sessions",
+    "الجلسات النشطة",
+    "Активные сеансы"
+  ],
+  "Diğer cihazlardaki oturumlarınızı kapatabilirsiniz. Bu cihazda açık kalırsınız.": [
+    "Melden Sie andere Geräte ab. Dieses Gerät bleibt angemeldet.",
+    "Déconnectez les autres appareils. Cet appareil reste connecté.",
+    "Sign out other devices. This device stays signed in.",
+    "سجّل الخروج من الأجهزة الأخرى. سيبقى هذا الجهاز مسجلاً.",
+    "Завершите сеансы на других устройствах. Это устройство останется в системе."
+  ],
+  "Diğer oturumları kapat": [
+    "Andere Sitzungen beenden",
+    "Fermer les autres sessions",
+    "Sign out other sessions",
+    "إغلاق الجلسات الأخرى",
+    "Завершить другие сеансы"
+  ],
+  "Tüm cihazlardan çıkış yap": [
+    "Überall abmelden",
+    "Déconnecter tous les appareils",
+    "Sign out all devices",
+    "الخروج من جميع الأجهزة",
+    "Выйти на всех устройствах"
+  ],
+  "Diğer oturumlar kapatıldı.": [
+    "Andere Sitzungen beendet.",
+    "Autres sessions fermées.",
+    "Other sessions signed out.",
+    "تم إغلاق الجلسات الأخرى.",
+    "Другие сеансы завершены."
+  ],
+  "Oturum bilgileri yüklenemedi.": [
+    "Sitzungen konnten nicht geladen werden.",
+    "Impossible de charger les sessions.",
+    "Could not load sessions.",
+    "تعذر تحميل الجلسات.",
+    "Не удалось загрузить сеансы."
+  ]
+}

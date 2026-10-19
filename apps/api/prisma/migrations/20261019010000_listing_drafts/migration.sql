@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS listing_drafts (user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, payload text NOT NULL, version integer NOT NULL DEFAULT 1 CHECK (version>0), updated_at text NOT NULL);

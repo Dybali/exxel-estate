@@ -60,3 +60,5 @@ export const AMENITIES = ["Deniz manzarası","Boğaz manzarası","Havuz","Özel 
 export const formatPrice = (value:number, currency="TRY", locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,maximumFractionDigits:0}).format(value);
 export const typeLabel = (value:string) => PROPERTY_TYPES.find((item)=>item.value===value)?.label || value;
 
+
+export const formatUnitPrice = (value:number,currency="TRY",locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,minimumFractionDigits:0,maximumFractionDigits:2}).format(value);
