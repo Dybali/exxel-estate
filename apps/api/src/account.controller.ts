@@ -8,7 +8,7 @@ export class AccountController {
   constructor(private readonly auth: AuthService) {}
   @Get() @Header("Cache-Control","private, no-store") async account(@Req() request: AuthRequest) {
     const user = await this.auth.current(request);
-    return { user: user ? this.auth.publicUser(user) : null };
+    return { user: user ? await this.auth.accountProfile(user) : null };
   }
   @Post() @HttpCode(200) async action(@Body() data: Record<string, unknown>, @Req() request: AuthRequest, @Res({ passthrough: true }) response: Response) {
     assertOrigin(request);

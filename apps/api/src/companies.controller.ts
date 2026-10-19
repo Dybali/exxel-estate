@@ -43,7 +43,7 @@ export class CompaniesController {
     if (sample) return { company: sample, listings: demoListings.filter((listing) => sample.listingIds.includes(listing.id)), page: 1, pageSize: 24 };
     const page = Math.min(1000, Math.max(1, Number(pageValue) || 1));
     const pageSize = 24;
-    const company = await this.prisma.agencies.findFirst({ where: { id, status: "approved", users: { role: "agent", agent_status: "approved" } } });
+    const company = await this.prisma.agencies.findFirst({ where: { id, status: "approved", users: { role: "agent", agent_status: "approved" } },include:{users:{include:{seller_profile:true}}} });
     if (!company) throw new NotFoundException("Şirket bulunamadı.");
     const scope = { owner_id: company.owner_id, status: "published" };
     const [rows, listingCount, saleCount, rentCount] = await Promise.all([
@@ -53,6 +53,6 @@ export class CompaniesController {
       this.prisma.listings.count({ where: { ...scope, purpose: "kiralik" } }),
     ]);
     const listings = rows.map(listingView);
-    return { company: { id: company.id, name: company.name, category: company.category, listingCount, saleCount, rentCount }, listings, page, pageSize };
+    return { company: { id: company.id,ownerId:company.owner_id,description:company.users.seller_profile?.bio||"",avatarUrl:company.users.avatar_url, name: company.name, category: company.category, listingCount, saleCount, rentCount }, listings, page, pageSize };
   }
 }

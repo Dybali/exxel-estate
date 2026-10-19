@@ -6,6 +6,7 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual, pbkdf2 as pbkdf2C
 import { promisify } from "node:util";
 import type { Response } from "express";
 import type { users } from "@prisma/client";
+import {validProfileImage} from './shared/seller-profiles';
 import { normalizeContactPhone } from "./shared/phone";
 
 const pbkdf2 = promisify(pbkdf2Callback);
@@ -35,14 +36,19 @@ export class AuthService {
     return { id: user.id, email: user.email, email_verified: user.email_verified, name: user.name, phone: user.phone, whatsapp_enabled:user.whatsapp_enabled, role: user.role, agent_status: user.agent_status, company: user.company, avatar_url: user.avatar_url, isAdmin: adminUser(user) || Boolean(configured && user.email_verified && user.email.toLowerCase() === configured) };
   }
   isAdmin(user: users | null) { return Boolean(user && this.publicUser(user).isAdmin); }
+  async accountProfile(user:users){const profile=await this.prisma.seller_profiles.findUnique({where:{user_id:user.id}});return {...this.publicUser(user),bio:profile?.bio||''};}
   async updateProfile(user:users,data:Record<string,unknown>){
     const name=Object.hasOwn(data,"name")?str(data.name,100):user.name;
     const phoneInput=Object.hasOwn(data,"phone")?str(data.phone,32):user.phone||"";
     const phone=phoneInput?normalizeContactPhone(phoneInput):null;
     const whatsappEnabled=Object.hasOwn(data,"whatsappEnabled")?data.whatsappEnabled===true:Boolean(user.whatsapp_enabled);
     if(name.length<2||phoneInput&&!phone||whatsappEnabled&&!phone)throw new BadRequestException("Adınızı ve ülke koduyla telefon numaranızı kontrol edin.");
-    const updated=await this.prisma.users.update({where:{id:user.id},data:{name,phone,whatsapp_enabled:whatsappEnabled?1:0}});
-    return {success:true,user:this.publicUser(updated)};
+    const previous=await this.prisma.seller_profiles.findUnique({where:{user_id:user.id}});
+    const bio=Object.hasOwn(data,'bio')?str(data.bio,2001):previous?.bio||'';if(bio.length>2000)throw new BadRequestException('Tanıtım yazısı en fazla 2000 karakter olabilir.');
+    const avatarUrl=Object.hasOwn(data,'avatarUrl')?str(data.avatarUrl,500):user.avatar_url||null;
+    if(avatarUrl&&avatarUrl!==user.avatar_url){if(!validProfileImage(avatarUrl,user.id))throw new ForbiddenException('Kendi yüklediğiniz fotoğrafı kullanın.');}
+    const [updated]=await this.prisma.$transaction([this.prisma.users.update({where:{id:user.id},data:{name,phone,whatsapp_enabled:whatsappEnabled?1:0,avatar_url:avatarUrl||null}}),this.prisma.seller_profiles.upsert({where:{user_id:user.id},create:{user_id:user.id,bio,updated_at:now()},update:{bio,updated_at:now()}})]);
+    return {success:true,user:{...this.publicUser(updated),bio}};
   }
   async current(request: AuthRequest): Promise<users | null> {
     const access = request.cookies?.exxel_access;

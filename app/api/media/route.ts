@@ -4,7 +4,7 @@ import { externalR2Ready, putExternalImage } from "@/lib/external-r2";
 export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request);
-  if(!user || !["agent","individual","admin"].includes(user.role)) return error("Fotoğraf yüklemek için ilan veren hesabı gerekir.",403);
+  if(!user || new URL(request.url).searchParams.get("purpose")!=="profile"&&!["agent","individual","admin"].includes(user.role)) return error("Fotoğraf yüklemek için ilan veren hesabı gerekir.",403);
   if(!externalR2Ready()) return error("Fotoğraf deposu yapılandırılmamış.",503);
   let form:FormData;try{form=await request.formData();}catch{return error("Geçersiz dosya.");}
   const part=form.get("file");

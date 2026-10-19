@@ -198,6 +198,7 @@ model sessions {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
+  seller_profile seller_profiles?
   saved_searches saved_searches[]
   discovery_preferences discovery_preferences?
   message_receipts message_receipts[]
@@ -262,4 +263,11 @@ model price_history {
  purpose String
  changed_at String
  @@index([listing_id,changed_at],map:"price_history_listing_idx")
+}
+
+model seller_profiles {
+ user_id String @id @db.Uuid
+ bio String @default("")
+ updated_at String
+ users users @relation(fields:[user_id],references:[id],onDelete:Cascade)
 }

@@ -13,7 +13,7 @@ import { favoritesChanged } from "@/lib/favorites-client";
 import { SellerUpgrade } from "@/components/SellerUpgrade";
 import { MessagesInbox, type Conversation } from "@/components/MessagesInbox";
 
-type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; isAdmin?: boolean };
+type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; bio?:string; isAdmin?: boolean };
 
 export function Dashboard() {
   const { t, locale } = useLocale();

@@ -170,3 +170,5 @@ export const savedSearches = sqliteTable("saved_searches", {
 },t=>[uniqueIndex("saved_searches_pair_unique").on(t.userId,t.query),index("saved_searches_user_idx").on(t.userId)]);
 export const discoveryPreferences = sqliteTable("discovery_preferences",{userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),priceSeenAt:text("price_seen_at").notNull(),priceEnabled:integer("price_enabled").notNull().default(1)});
 export const priceHistory = sqliteTable("price_history",{id:text("id").primaryKey(),listingId:text("listing_id").notNull().references(()=>listings.id,{onDelete:"cascade"}),oldPrice:integer("old_price").notNull(),newPrice:integer("new_price").notNull(),currency:text("currency").notNull(),purpose:text("purpose").notNull(),changedAt:text("changed_at").notNull()},t=>[index("price_history_listing_idx").on(t.listingId,t.changedAt)]);
+
+export const sellerProfiles=sqliteTable('seller_profiles',{userId:text('user_id').primaryKey().references(()=>users.id,{onDelete:'cascade'}),bio:text('bio').notNull().default(''),updatedAt:text('updated_at').notNull()});

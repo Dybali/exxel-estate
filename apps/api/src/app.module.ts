@@ -1,4 +1,5 @@
 import { DiscoveryController } from "./discovery.controller";
+import {ProfilesController} from './profiles.controller';
 import { Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PrismaService } from "./prisma.service";
@@ -18,7 +19,7 @@ import { CompaniesController } from "./companies.controller";
 
 @Module({
   imports: [JwtModule.register({ secret: process.env.JWT_SECRET, signOptions: { issuer: "exxel-estate", audience: "exxel-estate-web" } })],
-  controllers: [DiscoveryController, AccountController, ListingsController, MessagesController, MediaController, AdminController, LocationsController, FavoritesController, MineController, GoogleController, HealthController, CityCountsController, CompaniesController],
+  controllers: [ProfilesController, DiscoveryController, AccountController, ListingsController, MessagesController, MediaController, AdminController, LocationsController, FavoritesController, MineController, GoogleController, HealthController, CityCountsController, CompaniesController],
   providers: [PrismaService, AuthService, MediaService],
 })
 export class AppModule {}

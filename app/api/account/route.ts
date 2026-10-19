@@ -1,9 +1,12 @@
+import { ensureProfiles, validProfileImage } from '@/lib/seller-profiles';
+import { headExternalImage } from '@/lib/external-r2';
 import { body, createSession, currentUser, db, error, isAdmin, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str, verifyPassword } from "@/lib/server";
 import { normalizeContactPhone } from "@/lib/phone";
 
 export async function GET(request:Request) {
   const user=await currentUser(request);
-  return ok({user:user?{...user,isAdmin:isAdmin(user)}:null},{headers:{"Cache-Control":"private, no-store"}});
+  const database=db();let bio='';if(user){await ensureProfiles(database);bio=(await database.prepare('SELECT bio FROM seller_profiles WHERE user_id=?').bind(user.id).first<{bio:string}>())?.bio||'';}
+  return ok({user:user?{...user,bio,isAdmin:isAdmin(user)}:null},{headers:{"Cache-Control":"private, no-store"}});
 }
 
 export async function POST(request:Request) {
@@ -26,9 +29,14 @@ export async function POST(request:Request) {
     if(name.length<2) return error("Ad soyad en az 2 karakter olmalıdır.");
     if(phoneInput&&!phone) return error("Telefonu ülke koduyla girin. Örnek: +905551112233.");
     if(whatsappEnabled&&!phone) return error("WhatsApp iletişimi için geçerli bir telefon numarası ekleyin.");
-    await db().prepare("UPDATE users SET name=?,phone=?,whatsapp_enabled=? WHERE id=?")
-      .bind(name,phone,whatsappEnabled?1:0,user.id).run();
-    return ok({success:true,user:{...user,name,phone,whatsapp_enabled:whatsappEnabled?1:0,isAdmin:isAdmin(user)}},{headers:{"Cache-Control":"private, no-store"}});
+    const database=db();await ensureProfiles(database);
+    const previous=await database.prepare('SELECT bio FROM seller_profiles WHERE user_id=?').bind(user.id).first<{bio:string}>();
+    const bio=Object.hasOwn(data,'bio')?str(data.bio,2001):previous?.bio||'';
+    if(bio.length>2000)return error('Tanıtım yazısı en fazla 2000 karakter olabilir.');
+    const avatarUrl=Object.hasOwn(data,'avatarUrl')?str(data.avatarUrl,500):user.avatar_url||null;
+    if(avatarUrl&&avatarUrl!==user.avatar_url){if(!validProfileImage(avatarUrl,user.id))return error('Kendi yüklediğiniz profil fotoğrafını kullanın.',403);if(!await headExternalImage(avatarUrl.slice('/api/media/'.length)))return error('Profil fotoğrafı depoda bulunamadı.');}
+    await database.batch([database.prepare('UPDATE users SET name=?,phone=?,whatsapp_enabled=?,avatar_url=? WHERE id=?').bind(name,phone,whatsappEnabled?1:0,avatarUrl||null,user.id),database.prepare('INSERT INTO seller_profiles(user_id,bio,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET bio=excluded.bio,updated_at=excluded.updated_at').bind(user.id,bio,now())]);
+    return ok({success:true,user:{...user,name,phone,bio,avatar_url:avatarUrl||null,whatsapp_enabled:whatsappEnabled?1:0,isAdmin:isAdmin(user)}},{headers:{"Cache-Control":"private, no-store"}});
   }
   if (action==="request_seller_role") {
     const user=await currentUser(request);

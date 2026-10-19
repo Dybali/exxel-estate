@@ -85,7 +85,8 @@ export class MediaController {
     if (!/^[a-f0-9-]{36}$/i.test(owner) || !/^[a-f0-9-]{36}\.(jpg|png|webp)$/.test(file)) throw new NotFoundException();
     const key = `listings/${owner}/${file}`;
     const image = await this.prisma.property_images.findUnique({ where: { object_key: key }, include: { listings: true } });
-    if (image?.listings.status !== "published") {
+    const profile=await this.prisma.users.findFirst({where:{id:owner,avatar_url:'/api/media/'+key},select:{id:true}});
+    if (image?.listings.status !== "published"&&!profile) {
       const user = await this.auth.current(request);
       if ((!user || user.id !== owner && !this.auth.isAdmin(user)) || image && image.listings.owner_id !== user.id && !this.auth.isAdmin(user)) throw new NotFoundException();
     }
@@ -94,7 +95,7 @@ export class MediaController {
     try {
       const object = await this.media.get(key);
       response.setHeader("Content-Type", object.ContentType || "application/octet-stream");
-      response.setHeader("Cache-Control", image?.listings.status === "published" ? "public, max-age=86400, s-maxage=604800" : "private, no-store");
+      response.setHeader("Cache-Control", (image?.listings.status === "published"||profile) ? "public, max-age=86400, s-maxage=604800" : "private, no-store");
       const bytes = await object.Body?.transformToByteArray();
       if (!bytes) throw new Error("Empty object");
       return response.end(Buffer.from(bytes));
