@@ -16,8 +16,8 @@ import { LocaleProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://exxel-estate.blue-grape-8839.chatgpt.site"),
-  title: "salesorrent | Türkiye'de Seçkin Gayrimenkuller",
-  description: "Türkiye'deki seçkin satılık ve kiralık daire, villa ve yaşam alanlarını salesorrent ile keşfedin.",
+  title: "estatemarket24 | Türkiye'de Seçkin Gayrimenkuller",
+  description: "Türkiye'deki seçkin satılık ve kiralık daire, villa ve yaşam alanlarını estatemarket24 ile keşfedin.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

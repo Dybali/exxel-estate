@@ -1,12 +1,12 @@
-/* salesorrent marketplace: editorial photography, clear hierarchy and compact search. */
-.salesorrent-wordmark,
+/* estatemarket24 marketplace: editorial photography, clear hierarchy and compact search. */
+.estatemarket-wordmark,
 .brand-tagline{font-family:Inter,Arial,sans-serif}
-.wordmark-sales{color:#202b24}
-.wordmark-or{color:#69756e}
-.wordmark-rent{color:#267657}
-.footer-brand .wordmark-sales{color:#f1f5f7}
-.footer-brand .wordmark-or{color:#a8b5b0}
-.footer-brand .wordmark-rent{color:#74d5aa}
+.wordmark-estate{color:#202b24}
+.wordmark-24{color:#69756e}
+.wordmark-market{color:#267657}
+.footer-brand .wordmark-estate{color:#f1f5f7}
+.footer-brand .wordmark-24{color:#a8b5b0}
+.footer-brand .wordmark-market{color:#74d5aa}
 
 .home-topline{
   position:absolute;top:0;left:0;right:0;z-index:90;
@@ -23,9 +23,9 @@
   height:82px;background:transparent;border-bottom:1px solid #ffffff38;
 }
 .home-header .header-inner{gap:22px}
-.home-header .wordmark-sales{color:#fff}
-.home-header .wordmark-or{color:#e6eee7}
-.home-header .wordmark-rent{color:#9de7bd}
+.home-header .wordmark-estate{color:#fff}
+.home-header .wordmark-24{color:#e6eee7}
+.home-header .wordmark-market{color:#9de7bd}
 .home-header .brand-tagline{color:#f1f6ef}
 .home-header .main-nav a,.home-header .account-link,.home-header .icon-link{color:#fff}
 .home-header .main-nav a:hover,.home-header .main-nav a.active{color:#d2f5df}
@@ -166,7 +166,7 @@
   .home-header .main-nav{gap:13px}
   .home-header .main-nav a{font-size:12px}
   .home-header .header-actions{gap:11px}
-  .home-header .salesorrent-wordmark{font-size:26px}
+  .home-header .estatemarket-wordmark{font-size:26px}
   .home-header .brand-tagline{font-size:9px}
 }
 @media(max-width:900px){
@@ -190,7 +190,7 @@
   .home-header .main-nav{top:69px}
   .home-header .account-link{border-color:#ffffff9c;color:#fff}
   .home-header .header-actions{gap:8px}
-  .home-header .salesorrent-wordmark{font-size:25px}
+  .home-header .estatemarket-wordmark{font-size:25px}
   .home-header .brand-tagline{font-size:8.5px}
   .market-home .market-hero,.market-home .market-hero-inner{min-height:665px}
   .market-home .market-hero{background-position:center,52% center}

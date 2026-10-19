@@ -11,8 +11,8 @@ import { PropertyText } from "@/components/PropertyText";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params, listing=await listingById(id);
-  if(!listing || listing.source==='user'&&listing.status!=='published')return {title:'İlan bulunamadı | sales or rent'};
-  return {title:`${listing.title} | sales or rent`,description:listing.description.slice(0,155),openGraph:{title:listing.title,description:listing.description.slice(0,155),images:listing.images[0]?[listing.images[0]]:[]}};
+  if(!listing || listing.source==='user'&&listing.status!=='published')return {title:'İlan bulunamadı | estatemarket24'};
+  return {title:`${listing.title} | estatemarket24`,description:listing.description.slice(0,155),openGraph:{title:listing.title,description:listing.description.slice(0,155),images:listing.images[0]?[listing.images[0]]:[]}};
 }
 export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const {id}=await params,listing=await listingById(id);

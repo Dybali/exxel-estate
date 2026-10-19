@@ -22,7 +22,7 @@ const demoListings = demoRows as unknown as DemoListing[];
 
 export function listingView(row: Row) {
   return {
-    id: row.id, ownerId: row.owner_id, ownerName: row.users_listings_owner_idTousers?.name || "Sales or rent", source: "user",
+    id: row.id, ownerId: row.owner_id, ownerName: row.users_listings_owner_idTousers?.name || "estatemarket24", source: "user",
     title: row.title, description: row.description, purpose: row.purpose, propertyType: row.property_type,
     price: Number(row.price), currency: row.currency, city: row.city, district: row.district,
     neighborhood: row.neighborhood, neighborhoodId: row.neighborhood_id, postalCode: row.postal_code,

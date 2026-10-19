@@ -26,7 +26,7 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
   const loadedPage = useRef(1);
   const selectedRef = useRef(selectedKey), bottom = useRef<HTMLDivElement>(null), pane = useRef<HTMLDivElement>(null), composer = useRef<HTMLTextAreaElement>(null);
   selectedRef.current = selectedKey;
-  const provisional: Conversation | null = newRecipient ? { id: `new-${newRecipient.id}`, listing_id: `admin:${userId}:${newRecipient.id}`, peer_id: newRecipient.id, peer_name: newRecipient.name, peer_role: newRecipient.role, peer_company: newRecipient.company, listing_title: "Sales or rent · Destek", listing_status: "support", sender_id: userId, last_body: "Yeni görüşme", last_at: "", unread_count: 0 } : null;
+  const provisional: Conversation | null = newRecipient ? { id: `new-${newRecipient.id}`, listing_id: `admin:${userId}:${newRecipient.id}`, peer_id: newRecipient.id, peer_name: newRecipient.name, peer_role: newRecipient.role, peer_company: newRecipient.company, listing_title: "estatemarket24 · Destek", listing_status: "support", sender_id: userId, last_body: "Yeni görüşme", last_at: "", unread_count: 0 } : null;
   const all = provisional && !conversations.some(c => keyOf(c) === keyOf(provisional)) ? [provisional, ...conversations] : conversations;
   const selected = all.find(c => keyOf(c) === selectedKey);
   const support = selected?.listing_id.startsWith("admin:");

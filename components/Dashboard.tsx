@@ -71,7 +71,7 @@ export function Dashboard() {
   ];
 
   return <main className="account-page">
-    <div className="account-head"><div className="container"><span className="eyebrow dark-eyebrow">{t("SALESORRENT HESABIM")}</span><h1>{t("Hoş geldiniz,")} <em>{user.name.split(" ")[0]}.</em></h1><p>{t("Yaşam alanlarınızı ve görüşmelerinizi buradan yönetin.")}</p></div></div>
+    <div className="account-head"><div className="container"><span className="eyebrow dark-eyebrow">{t("ESTATEMARKET24 HESABIM")}</span><h1>{t("Hoş geldiniz,")} <em>{user.name.split(" ")[0]}.</em></h1><p>{t("Yaşam alanlarınızı ve görüşmelerinizi buradan yönetin.")}</p></div></div>
     <div className="container account-layout">
       <aside className="account-sidebar">
         <div className="account-user">{user.avatar_url ? <img src={user.avatar_url} alt="" width={42} height={42} className="account-avatar-img"/> : <div>{user.name.charAt(0).toUpperCase()}</div>}<span><strong>{user.name}</strong><small>{user.email}</small></span></div>
