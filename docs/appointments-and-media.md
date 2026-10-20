@@ -91,3 +91,37 @@ All 19 D1 migrations were applied successfully to an empty SQLite database.
 The source includes `test/load-smoke.mjs`, which refuses public/non-local URLs.
 Production monitoring, daily backup/restore automation, an email provider and
 real-domain Google OAuth verification still require external service setup.
+
+## Native 360° panoramas
+
+An optional `panoramas` array is stored inside the existing `presentation` JSON;
+no database migration is needed. Each entry has `{id,name,url}`. Creation and
+editing accept either that array or its JSON string (the private draft stores
+string fields). Up to eight unique room IDs/images are accepted; names are
+required and limited to 60 characters. Paths must belong to the listing owner.
+Panorama attachments participate in the existing R2 object-existence checks and
+`property_images` reference/metadata maintenance, alongside gallery and floor plan
+images. Removing a room removes the listing reference; it follows the existing
+media-retention policy and does not immediately delete the R2 object.
+
+Upload through `POST /api/media?purpose=panorama`, with the existing authenticated
+same-origin multipart pipeline. The form accepts spherical 2:1 JPEG sources up to
+25 MB, resizes them to at most 4096×2048 and strips source metadata by re-encoding.
+The uploaded file remains subject to the 8 MB image cap. The server independently
+checks JPEG SOF dimensions (1024×512 through 4096×2048, approximately 2:1).
+Ordinary photos are not converted into missing 360° imagery.
+
+The gallery exposes a 360° button only when the property has panoramas. An
+on-demand Pannellum 2.5.7 viewer, served locally with its MIT license, provides
+mouse/touch panning, zoom, reset, fullscreen and room selection. Labels are React
+escaped; Pannellum HTML escaping is also enabled. Close/Escape returns focus and
+releases the WebGL viewer. Mobile and unsupported-WebGL states are handled.
+There are no spatial hotspots, floor-plan navigation or 3D geometry reconstruction.
+
+Validation: `node --test tests/panoramas.test.mjs`; API TypeScript check after
+Prisma client generation; local Playwright checks covered actual WebGL rendering,
+room switching, reset, modal lifecycle, 1440/390/320 layouts, upload preparation,
+real local draft persistence/reload and existing-attachment PATCH persistence.
+Upload HTTP transport was mocked during local UI tests because local R2
+credentials were unavailable. Production R2 upload needs a real user panorama
+for a full end-to-end delivery check; no sample panoramas were published.

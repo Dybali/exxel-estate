@@ -4,6 +4,7 @@ import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from 
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createHash, randomUUID } from "node:crypto";
 import type { Response } from "express";
+import {panoramaDimensions} from './shared/panoramas';
 import { AuthService } from "./auth.service";
 import { assertOrigin, AuthRequest, requireUser } from "./common";
 import { PrismaService } from "./prisma.service";
@@ -77,6 +78,7 @@ export class MediaController {
     assertOrigin(request);
     const user = await this.seller(request);
     if (!file || !(file.mimetype in mimeTypes) || !file.buffer?.length || file.buffer.length > maxImageBytes || !validSignature(file.mimetype, file.buffer)) throw new BadRequestException("Fotoğraf biçimi geçersiz.");
+    if(request.query.purpose==='panorama'){try{if(file.mimetype!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(file.buffer);}catch(cause){throw new BadRequestException((cause as Error).message);}}
     const key = `listings/${user.id}/${randomUUID()}.${mimeTypes[file.mimetype as ImageMime]}`;
     await this.media.put(key, file.buffer, file.mimetype as ImageMime);
     return { url: `/api/media/${key}` };

@@ -51,10 +51,11 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const originalImages=JSON.parse(String(row.images||"[]")) as string[];
   const images=Object.hasOwn(data,"images")?Array.isArray(data.images)?data.images.filter((item):item is string=>typeof item==="string"&&item.startsWith("/api/media/")).slice(0,30):null:originalImages;
   if(!images||images.length<1||images.length>30||new Set(images).size!==images.length)return error("En az bir benzersiz fotoğraf ekleyin.");
-  const keys=[...new Set([...images,presentation.floorPlan].filter(Boolean))].map((image)=>image.slice("/api/media/".length));
+  const keys=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))].map((image)=>image.slice("/api/media/".length));
   if(keys.some((key)=>!new RegExp(`^listings/${row.owner_id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key)))return error("Yalnızca ilan sahibinin yüklediği fotoğraflar kullanılabilir.",403);
   const originalFloorPlan=JSON.parse(String(row.presentation||"{}")).floorPlan as string|undefined;
-  const previousKeys=new Set([...originalImages,...(originalFloorPlan?[originalFloorPlan]:[])].map((image)=>image.slice("/api/media/".length)));
+  const originalPanoramas=(JSON.parse(String(row.presentation||'{}')).panoramas||[]) as {url:string}[];
+  const previousKeys=new Set([...originalImages,...originalPanoramas.map(scene=>scene.url),...(originalFloorPlan?[originalFloorPlan]:[])].map((image)=>image.slice("/api/media/".length)));
   const added=keys.filter((key)=>!previousKeys.has(key));
   const addedInfo=await Promise.all(added.map(headExternalImage));
   if(addedInfo.some((item)=>!item))return error("Yeni fotoğraflardan biri depoda bulunamadı.");
@@ -68,7 +69,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const updatedAt=now();
   const statements=[db().prepare("UPDATE listings SET title=?,description=?,purpose=?,property_type=?,price=?,currency=?,city=?,district=?,neighborhood=?,neighborhood_id=?,postal_code=?,gross_area=?,net_area=?,rooms=?,bedrooms=?,bathrooms=?,building_age=?,floor=?,total_floors=?,heating=?,furnished=?,amenities=?,images=?,translations=?,presentation=?,status=?,review_note=NULL,reviewed_by=NULL,reviewed_at=NULL,updated_at=? WHERE id=?")
     .bind(title,description,purpose,propertyType,price,currency,city,district,neighborhood?.name??row.neighborhood??null,neighborhood?.id??row.neighborhood_id??null,neighborhood?.postalCode??row.postal_code??null,grossArea,...optionalFields.slice(0,1),value("rooms","rooms",10)||null,...optionalFields.slice(1),value("heating","heating",50)||null,Object.hasOwn(data,"furnished")?data.furnished?1:0:Number(row.furnished)||0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(cleanTranslations),JSON.stringify(presentation),status,updatedAt,id)];
-  [...new Set([...originalImages,...(originalFloorPlan?[originalFloorPlan]:[])])].forEach((image)=>{const key=image.slice("/api/media/".length);if(!keys.includes(key))statements.push(db().prepare("DELETE FROM property_images WHERE property_id=? AND object_key=?").bind(id,key));});
+  [...new Set([...originalImages,...originalPanoramas.map(scene=>scene.url),...(originalFloorPlan?[originalFloorPlan]:[])])].forEach((image)=>{const key=image.slice("/api/media/".length);if(!keys.includes(key))statements.push(db().prepare("DELETE FROM property_images WHERE property_id=? AND object_key=?").bind(id,key));});
   keys.forEach((key,index)=>{if(previousKeys.has(key))statements.push(db().prepare("UPDATE property_images SET sort_order=? WHERE property_id=? AND object_key=?").bind(index,id,key));else{const info=addedInfo[added.indexOf(key)]!;statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,"r2",bucket!,key,info.contentType,info.size,info.checksum,index,updatedAt));}});
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=COALESCE(published_at,?) WHERE id=?").bind(updatedAt,id));
   if(Number(row.price)!==price||String(row.currency)!==currency||row.purpose!==purpose)statements.push(db().prepare("INSERT INTO price_history(id,listing_id,old_price,new_price,currency,purpose,changed_at) VALUES(?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,Number(row.currency===currency&&row.purpose===purpose?row.price:price),price,currency,purpose,updatedAt));

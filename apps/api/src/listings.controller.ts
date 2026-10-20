@@ -126,7 +126,7 @@ export class ListingsController {
     const images = Array.isArray(data.images) ? data.images.filter((value): value is string => typeof value === "string").slice(0, 30) : [];
     if (!images.length || new Set(images).size !== images.length || images.some((url) => !url.startsWith(`${imagePrefix}listings/${user.id}/`))) throw new BadRequestException("Fotoğraf bilgilerini kontrol edin.");
     let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){throw new BadRequestException((e as Error).message);}
-    const allImages=[...new Set([...images,presentation.floorPlan].filter(Boolean))];
+    const allImages=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))];
     const imageInfo = await Promise.all(allImages.map((url) => this.media.head(url.slice(imagePrefix.length))));
     if (imageInfo.some((item) => !item)) throw new BadRequestException("Fotoğraflardan biri depoda bulunamadı.");
     const count = await this.prisma.listings.count({ where: { owner_id: user.id, status: { not: "rejected" } } });
@@ -166,11 +166,11 @@ export class ListingsController {
     if(locationChanged&&!neighborhood)throw new BadRequestException("Geçerli bir mahalle seçin.");
     const numberOrNull=(value:unknown)=>{if(value===""||value==null)return null;const result=Number(value);if(!Number.isSafeInteger(result)||result<0)throw new BadRequestException("Sayısal özellikleri kontrol edin.");return result;};
     let presentation;try{presentation=presentationFrom({...safeJson<Record<string,unknown>>(row.presentation,{}),...input},row.owner_id);}catch(e){throw new BadRequestException((e as Error).message);}
-    const original=[...new Set([...safeJson<string[]>(row.images,[]),safeJson<{floorPlan?:string}>(row.presentation,{}).floorPlan||''].filter(Boolean))];
+    const original=[...new Set([...safeJson<string[]>(row.images,[]),...(safeJson<{panoramas?:{url:string}[]}>(row.presentation,{}).panoramas||[]).map(scene=>scene.url),safeJson<{floorPlan?:string}>(row.presentation,{}).floorPlan||''].filter(Boolean))];
     const images=Array.isArray(data.images)?data.images.filter((image):image is string=>typeof image==="string"):[];
     const pattern=new RegExp(`^/api/media/listings/${row.owner_id}/[a-f0-9-]+\\.(jpg|png|webp)$`);
     if(!images.length||images.length>30||new Set(images).size!==images.length||images.some(image=>!pattern.test(image)))throw new BadRequestException("Fotoğraf bilgilerini kontrol edin.");
-    const allImages=[...new Set([...images,presentation.floorPlan].filter(Boolean))];
+    const allImages=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))];
     const added=allImages.filter(image=>!original.includes(image));const info=await Promise.all(added.map(image=>this.media.head(image.slice(imagePrefix.length))));
     if(info.some(item=>!item))throw new BadRequestException("Yeni fotoğraflardan biri depoda bulunamadı.");
     const allowed=["Deniz manzarası","Boğaz manzarası","Havuz","Özel havuz","Bahçe","Teras","Balkon","Otopark","Asansör","Güvenlik","Eşyalı","Şömine"];

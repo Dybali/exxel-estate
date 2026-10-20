@@ -67,7 +67,7 @@ export async function POST(request:Request) {
   if(images.length===0) return error("En az bir fotoğraf yükleyin.");
   if(new Set(images).size!==images.length) return error("Aynı fotoğraf birden fazla eklenemez.");
   let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){return error((e as Error).message);}
-  const imageKeys=[...new Set([...images,presentation.floorPlan].filter(Boolean))].map((url)=>url.slice("/api/media/".length));
+  const imageKeys=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))].map((url)=>url.slice("/api/media/".length));
   if(imageKeys.some((key)=>!new RegExp(`^listings/${user.id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key))) return error("Yalnızca kendi yüklediğiniz fotoğrafları ekleyebilirsiniz.",403);
   const imageInfo=await Promise.all(imageKeys.map(headExternalImage));
   if(imageInfo.some((item)=>!item)) return error("Fotoğraflardan biri depoda bulunamadı.");

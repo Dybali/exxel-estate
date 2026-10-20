@@ -1,16 +1,18 @@
+import {validatePanoramas} from './panoramas';
 // One portable, private working copy per account. Publishing always uses listing validation.
 export type DraftPayload = {fields:Record<string,string>;images:string[];amenities:string[]};
 export type DraftRecord = {payload:DraftPayload;version:number;updatedAt:string};
 type Value=string|number|null;
 export interface DraftDatabase {prepare(query:string):{bind(...values:Value[]):{first<T>():Promise<T|null>}}}
 export class DraftError extends Error {constructor(message:string,public status=400){super(message);}}
-const fieldNames=new Set(['floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','grossArea','netArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','ru'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
+const fieldNames=new Set(['panoramas','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','grossArea','netArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','ru'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
 export function validateDraft(input:unknown,userId:string):DraftPayload {
  if(!input||typeof input!=="object"||Array.isArray(input))throw new DraftError('Taslak bilgileri geçersiz.');
  const data=input as Record<string,unknown>;
  if(!data.fields||typeof data.fields!=="object"||Array.isArray(data.fields)||!Array.isArray(data.images)||!Array.isArray(data.amenities))throw new DraftError('Taslak bilgileri geçersiz.');
  const fields:Record<string,string>={};
- for(const [key,value] of Object.entries(data.fields)){if(!fieldNames.has(key)||typeof value!=="string"||value.length>(key.startsWith('description')?5000:['floorPlan','videoUrl','tourUrl'].includes(key)?500:150))throw new DraftError('Taslak alanlarını kontrol edin.');fields[key]=value;}
+ for(const [key,value] of Object.entries(data.fields)){if(!fieldNames.has(key)||typeof value!=="string"||value.length>(key==='panoramas'?6000:key.startsWith('description')?5000:['floorPlan','videoUrl','tourUrl'].includes(key)?500:150))throw new DraftError('Taslak alanlarını kontrol edin.');fields[key]=value;}
+ if(fields.panoramas){try{validatePanoramas(fields.panoramas,userId);}catch(cause){throw new DraftError((cause as Error).message);}}
  if(fields.currency&&!['TRY','EUR','USD','GBP'].includes(fields.currency))throw new DraftError('Geçersiz para birimi.');
  if(fields.purpose&&!['satilik','kiralik'].includes(fields.purpose))throw new DraftError('Taslak bilgileri geçersiz.');
  const prefix=`/api/media/listings/${userId}/`;

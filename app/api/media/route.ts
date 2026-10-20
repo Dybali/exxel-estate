@@ -1,5 +1,6 @@
 import { bucket, currentUser, error, ok, sameOrigin } from "@/lib/server";
 import { externalR2Ready, putExternalImage } from "@/lib/external-r2";
+import {panoramaDimensions} from '@/lib/panoramas';
 
 export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
@@ -20,6 +21,7 @@ export async function POST(request:Request) {
   const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
   const key=`listings/${user.id}/${crypto.randomUUID()}.${ext}`;
   const bytes=new Uint8Array(await file.arrayBuffer());
+  if(new URL(request.url).searchParams.get('purpose')==='panorama'){try{if(file.type!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(bytes);}catch(cause){return error((cause as Error).message);}}
   const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map((item)=>item.toString(16).padStart(2,"0")).join("");
   await putExternalImage(key,bytes,file.type,digest);
   return ok({url:`/api/media/${key}`},{status:201});

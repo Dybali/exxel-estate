@@ -1,4 +1,5 @@
-export type Presentation={floorPlan:string;videoUrl:string;tourUrl:string};
+import {validatePanoramas,type PanoramaScene} from './panoramas';
+export type Presentation={floorPlan:string;videoUrl:string;tourUrl:string;panoramas?:PanoramaScene[]};
 export function videoEmbed(value:string){
  try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port)return null;const host=url.hostname.replace(/^www\./,'');if(host==='youtu.be'||host==='youtube.com'){const id=host==='youtu.be'?url.pathname.slice(1):url.pathname==='/watch'?url.searchParams.get('v'):url.pathname.match(/^\/(?:shorts|embed)\/([A-Za-z0-9_-]{11})$/)?.[1];return id&&/^[A-Za-z0-9_-]{11}$/.test(id)?`https://www.youtube-nocookie.com/embed/${id}`:null;}if(host==='vimeo.com'&&/^\/\d{5,12}$/.test(url.pathname))return `https://player.vimeo.com/video/${url.pathname.slice(1)}`;}catch{}return null;
 }
@@ -9,5 +10,5 @@ export function presentationFrom(data:Record<string,unknown>,ownerId:string):Pre
  if(floorPlan&&!new RegExp(`^/api/media/listings/${ownerId}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(floorPlan))throw Error('Kat planı ilan sahibinin yüklediği bir görsel olmalıdır.');
  if(videoUrl&&!videoEmbed(videoUrl))throw Error('YouTube veya Vimeo HTTPS video bağlantısı ekleyin.');
  if(tourUrl&&!tourLink(tourUrl))throw Error('Matterport veya Kuula HTTPS tur bağlantısı ekleyin.');
- return {floorPlan,videoUrl,tourUrl:tourUrl?tourLink(tourUrl)!:''};
+ return {floorPlan,videoUrl,tourUrl:tourUrl?tourLink(tourUrl)!:'',panoramas:validatePanoramas(data.panoramas,ownerId)};
 }
