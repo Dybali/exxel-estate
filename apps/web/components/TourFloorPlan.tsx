@@ -1,0 +1,10 @@
+"use client";
+import {useState} from 'react';
+import {Minus,Plus} from 'lucide-react';
+import type {PanoramaScene} from '@/lib/panoramas';
+export function TourFloorPlan({url,scenes,activeId,onNavigate,onPlace}:{url:string;scenes:PanoramaScene[];activeId:string;onNavigate:(id:string)=>void;onPlace?:(position:{x:number;y:number})=>void}){
+ const [zoom,setZoom]=useState(1),[failed,setFailed]=useState(false);
+ if(failed)return <div className="tour-plan-empty" role="status">Kat planı yüklenemedi. Oda listesinden devam edebilirsiniz.</div>;
+ const active=scenes.find(scene=>scene.id===activeId);
+ return <div className={'tour-plan'+(onPlace?' is-editable':'')}><div className="tour-plan-scroll"><div className="tour-plan-image" style={{width:zoom*100+'%'}} onClick={event=>{if(!onPlace)return;const area=event.currentTarget.getBoundingClientRect();onPlace({x:Math.round(Math.max(0,Math.min(100,(event.clientX-area.left)/area.width*100))*100)/100,y:Math.round(Math.max(0,Math.min(100,(event.clientY-area.top)/area.height*100))*100)/100});}}><img src={url} alt="Kat planı" draggable={false} onError={()=>setFailed(true)}/>{scenes.filter(scene=>scene.planPosition).map(scene=><button type="button" key={scene.id} className={'tour-plan-pin'+(scene.id===activeId?' is-active':'')} style={{left:scene.planPosition!.x+'%',top:scene.planPosition!.y+'%'}} aria-label={scene.name+' odasını kat planından aç'} aria-pressed={scene.id===activeId} title={scene.name} onClick={event=>{event.stopPropagation();onNavigate(scene.id);}}><span className="sr-only">{scene.name}</span></button>)}</div></div><div className="tour-plan-zoom"><button type="button" disabled={zoom<=1} onClick={()=>setZoom(n=>Math.max(1,n-.25))} aria-label="Kat planını uzaklaştır"><Minus size={15}/></button><span>{Math.round(zoom*100)}%</span><button type="button" disabled={zoom>=2.5} onClick={()=>setZoom(n=>Math.min(2.5,n+.25))} aria-label="Kat planını yakınlaştır"><Plus size={15}/></button></div>{onPlace&&<p className="tour-plan-help"><strong>{active?.name}</strong> odasının konumunu plana dokunarak belirleyin.</p>}</div>;
+}

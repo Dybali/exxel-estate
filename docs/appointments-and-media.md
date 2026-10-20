@@ -116,7 +116,7 @@ on-demand Pannellum 2.5.7 viewer, served locally with its MIT license, provides
 mouse/touch panning, zoom, reset, fullscreen and room selection. Labels are React
 escaped; Pannellum HTML escaping is also enabled. Close/Escape returns focus and
 releases the WebGL viewer. Mobile and unsupported-WebGL states are handled.
-There are no spatial hotspots, floor-plan navigation or 3D geometry reconstruction.
+Owner-authored navigation is described below; there is no 3D geometry reconstruction.
 
 Validation: `node --test tests/panoramas.test.mjs`; API TypeScript check after
 Prisma client generation; local Playwright checks covered actual WebGL rendering,
@@ -125,3 +125,41 @@ real local draft persistence/reload and existing-attachment PATCH persistence.
 Upload HTTP transport was mocked during local UI tests because local R2
 credentials were unavailable. Production R2 upload needs a real user panorama
 for a full end-to-end delivery check; no sample panoramas were published.
+
+## Connected room navigation and floor-plan pins
+
+The native tour now fills the viewport. Visitors can follow owner-authored
+in-scene arrows, go back through their room history, select a thumbnail or jump
+from a floor-plan pin. A separate floor-plan view and a mobile navigation drawer
+use the same room IDs. The existing uploaded `floorPlan` image is reused; no
+floor plan is inferred from photographs or reconstructed automatically.
+
+Optional fields on each panorama:
+- `hotSpots: [{id,targetId,pitch,yaw}]`: up to seven unique destination rooms,
+  no self links, no dangling room IDs; pitch -85..85 and yaw -180..180.
+- `planPosition: {x,y}`: finite percentages 0..100 on the uploaded plan.
+- `startView: {pitch,yaw}`: the camera orientation shown when entering the room.
+
+The creation/editing forms expose “Tur bağlantılarını düzenle”. Owners select
+an origin room and destination, point the center target at a doorway and add
+an arrow. Reverse arrows are authored separately. They can set the current
+camera as the starting view and click the plan to position the room. These
+changes return to the form and persist on save/publish; the creation form also
+includes them in its existing private autosave draft. Removing a panorama
+cleans incoming links. Serialized panorama draft fields permit up to 20 KB.
+
+All added metadata is server validated, including finite coordinate bounds,
+destination membership, duplicate destinations and owner image paths. Room
+labels are inserted into marker DOM with textContent, not HTML. Backward
+compatibility with existing panorama-only listings is retained. No database
+migration is required; the fields remain inside presentation JSON. The same
+validation is copied to the separate Nest API.
+
+Verification: 26 unit tests, independent API TypeScript check, Vinext build,
+actual local WebGL tests for arrows/back, mini-map and full-plan navigation,
+mobile drawer at 390/320, owner placement/removal, opening orientation, real
+local PATCH persistence and reload, and mobile editing. Source images and a
+schematic floor plan were local fixtures; no example tour was published.
+Hugin's stitching pilot remains a separate local proof of concept, not a hosted
+photo-to-panorama service. This feature navigates between existing 360 images;
+it is not a reconstructed 3D mesh or automatic measured floor plan.
