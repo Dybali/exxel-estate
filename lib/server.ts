@@ -72,7 +72,7 @@ export function isAdmin(user:User|null) {
 }
 export function parseListing(row:Record<string,unknown>):Listing {
   return {
-    id:String(row.id), title:String(row.title),description:String(row.description), purpose:row.purpose as Listing["purpose"],propertyType:row.property_type as Listing["propertyType"],
+    presentation:JSON.parse(String(row.presentation||"{}")),id:String(row.id), title:String(row.title),description:String(row.description), purpose:row.purpose as Listing["purpose"],propertyType:row.property_type as Listing["propertyType"],
     price:Number(row.price),currency:String(row.currency),city:String(row.city),district:String(row.district),neighborhood:row.neighborhood?String(row.neighborhood):undefined,neighborhoodId:row.neighborhood_id==null?undefined:Number(row.neighborhood_id),postalCode:row.postal_code?String(row.postal_code):undefined,
     latitude:row.latitude==null?undefined:Number(row.latitude),longitude:row.longitude==null?undefined:Number(row.longitude),grossArea:Number(row.gross_area),netArea:row.net_area==null?undefined:Number(row.net_area),
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),

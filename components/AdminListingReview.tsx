@@ -1,4 +1,5 @@
 "use client";
+import {PropertyPresentation} from "./PropertyPresentation";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
@@ -78,7 +79,7 @@ export function AdminListingReview({ listingId }: { listingId: string }) {
           {listing.heating && <div><span>Isıtma</span><strong>{listing.heating}</strong></div>}
           <div><span>Eşyalı</span><strong>{listing.furnished ? "Evet" : "Hayır"}</strong></div>
         </div></div>
-        <div className="admin-review-section"><span className="eyebrow dark-eyebrow">AÇIKLAMA</span><p className="admin-review-description">{listing.description}</p></div>
+        <div className="admin-review-section"><span className="eyebrow dark-eyebrow">AÇIKLAMA</span><PropertyPresentation value={listing.presentation}/><p className="admin-review-description">{listing.description}</p></div>
         <div className="admin-review-section"><span className="eyebrow dark-eyebrow">ÖZELLİKLER</span><p>{listing.amenities.length ? listing.amenities.join(" · ") : "Belirtilmemiş"}</p></div>
         {listing.translations && Object.entries(listing.translations).length > 0 && <div className="admin-review-section"><span className="eyebrow dark-eyebrow">ÇEVİRİLER</span>{Object.entries(listing.translations).map(([locale, translation]) => <div className="admin-review-translation" key={locale}><strong>{locale.toUpperCase()} · {translation?.title}</strong><p>{translation?.description}</p></div>)}</div>}
       </article>

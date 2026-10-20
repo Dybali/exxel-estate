@@ -278,5 +278,362 @@
     "Could not load sessions.",
     "تعذر تحميل الجلسات.",
     "Не удалось загрузить сеансы."
+  ],
+  "Kat planı ve sanal tur": [
+    "Grundriss und virtuelle Tour",
+    "Plan et visite virtuelle",
+    "Floor plan and virtual tour",
+    "مخطط الطابق والجولة الافتراضية",
+    "Планировка и виртуальный тур"
+  ],
+  "Kat planı": [
+    "Grundriss",
+    "Plan",
+    "Floor plan",
+    "مخطط الطابق",
+    "Планировка"
+  ],
+  "Kat planını büyütmek için tıklayın.": [
+    "Klicken, um den Grundriss zu vergrößern.",
+    "Cliquez pour agrandir le plan.",
+    "Click to enlarge the floor plan.",
+    "انقر لتكبير مخطط الطابق.",
+    "Нажмите, чтобы увеличить план."
+  ],
+  "İlan videosu": [
+    "Immobilienvideo",
+    "Vidéo du bien",
+    "Property video",
+    "فيديو العقار",
+    "Видео объекта"
+  ],
+  "Videoyu oynat": [
+    "Video abspielen",
+    "Lire la vidéo",
+    "Play video",
+    "تشغيل الفيديو",
+    "Смотреть видео"
+  ],
+  "360° sanal turu aç": [
+    "360°-Tour öffnen",
+    "Ouvrir la visite 360°",
+    "Open 360° virtual tour",
+    "فتح جولة افتراضية 360°",
+    "Открыть тур 360°"
+  ],
+  "İsteğe bağlı: kat planı görseli, YouTube/Vimeo videosu ve Matterport/Kuula turu.": [
+    "Optional: Grundriss, YouTube-/Vimeo-Video und Matterport-/Kuula-Tour.",
+    "Facultatif : plan, vidéo YouTube/Vimeo et visite Matterport/Kuula.",
+    "Optional: floor plan image, YouTube/Vimeo video and Matterport/Kuula tour.",
+    "اختياري: صورة المخطط وفيديو YouTube/Vimeo وجولة Matterport/Kuula.",
+    "Необязательно: планировка, видео YouTube/Vimeo и тур Matterport/Kuula."
+  ],
+  "Video bağlantısı": [
+    "Videolink",
+    "Lien vidéo",
+    "Video link",
+    "رابط الفيديو",
+    "Ссылка на видео"
+  ],
+  "360° tur bağlantısı": [
+    "360°-Tour-Link",
+    "Lien de visite 360°",
+    "360° tour link",
+    "رابط جولة 360°",
+    "Ссылка на тур 360°"
+  ],
+  "YouTube veya Vimeo HTTPS video bağlantısı ekleyin.": [
+    "Einen HTTPS-Link zu YouTube oder Vimeo eingeben.",
+    "Ajoutez un lien HTTPS YouTube ou Vimeo.",
+    "Add a YouTube or Vimeo HTTPS video link.",
+    "أضف رابط فيديو HTTPS من YouTube أو Vimeo.",
+    "Добавьте HTTPS-ссылку на YouTube или Vimeo."
+  ],
+  "Matterport veya Kuula HTTPS tur bağlantısı ekleyin.": [
+    "Einen HTTPS-Link zu Matterport oder Kuula eingeben.",
+    "Ajoutez un lien HTTPS Matterport ou Kuula.",
+    "Add a Matterport or Kuula HTTPS tour link.",
+    "أضف رابط جولة HTTPS من Matterport أو Kuula.",
+    "Добавьте HTTPS-ссылку на Matterport или Kuula."
+  ],
+  "Kat planı ilan sahibinin yüklediği bir görsel olmalıdır.": [
+    "Der Grundriss muss vom Anbieter hochgeladen sein.",
+    "Le plan doit être une image chargée par le propriétaire.",
+    "The floor plan must be an image uploaded by the listing owner.",
+    "يجب أن يكون المخطط صورة رفعها صاحب الإعلان.",
+    "Планировку должен загрузить владелец объявления."
+  ],
+  "Kat planı, video veya tur bağlantısını kontrol edin.": [
+    "Grundriss-, Video- oder Tour-Link prüfen.",
+    "Vérifiez le plan et les liens vidéo ou visite.",
+    "Check the floor plan, video or tour link.",
+    "تحقق من المخطط ورابط الفيديو أو الجولة.",
+    "Проверьте планировку и ссылки на видео и тур."
+  ],
+  "Randevularım": [
+    "Meine Termine",
+    "Mes rendez-vous",
+    "My appointments",
+    "مواعيدي",
+    "Мои встречи"
+  ],
+  "Randevu talep et": [
+    "Termin anfragen",
+    "Demander un rendez-vous",
+    "Request a viewing",
+    "طلب موعد",
+    "Запросить просмотр"
+  ],
+  "Tercih ettiğiniz tarih ve saat": [
+    "Wunschtermin",
+    "Date et heure souhaitées",
+    "Preferred date and time",
+    "التاريخ والوقت المفضلان",
+    "Предпочтительные дата и время"
+  ],
+  "Saatler cihazınızın saat diliminde gösterilir. Satıcı onayı gerekir.": [
+    "Zeiten in Ihrer Gerätezeitzone. Bestätigung des Anbieters erforderlich.",
+    "Heures dans le fuseau de votre appareil. Confirmation du vendeur nécessaire.",
+    "Times use your device time zone. Seller confirmation is required.",
+    "الأوقات حسب المنطقة الزمنية لجهازك. يلزم تأكيد البائع.",
+    "Время указано в часовом поясе устройства. Требуется подтверждение продавца."
+  ],
+  "Kısa açıklama": [
+    "Kurze Nachricht",
+    "Court message",
+    "Short message",
+    "رسالة قصيرة",
+    "Короткое сообщение"
+  ],
+  "Talebi gönder": [
+    "Anfrage senden",
+    "Envoyer la demande",
+    "Send request",
+    "إرسال الطلب",
+    "Отправить запрос"
+  ],
+  "Randevu talebiniz alındı.": [
+    "Ihre Terminanfrage wurde gespeichert.",
+    "Votre demande a été reçue.",
+    "Your viewing request was received.",
+    "تم استلام طلب موعدك.",
+    "Запрос на просмотр получен."
+  ],
+  "Talep alındı": [
+    "Angefragt",
+    "Demande reçue",
+    "Requested",
+    "تم استلام الطلب",
+    "Запрошено"
+  ],
+  "Randevu onaylandı": [
+    "Termin bestätigt",
+    "Rendez-vous confirmé",
+    "Confirmed",
+    "تم تأكيد الموعد",
+    "Подтверждено"
+  ],
+  "Talep reddedildi": [
+    "Anfrage abgelehnt",
+    "Demande refusée",
+    "Declined",
+    "تم رفض الطلب",
+    "Отклонено"
+  ],
+  "Randevu iptal edildi": [
+    "Termin abgesagt",
+    "Rendez-vous annulé",
+    "Cancelled",
+    "تم إلغاء الموعد",
+    "Отменено"
+  ],
+  "Görüşme tamamlandı": [
+    "Besichtigung abgeschlossen",
+    "Visite terminée",
+    "Viewing completed",
+    "اكتملت المعاينة",
+    "Просмотр завершён"
+  ],
+  "Yeni müşteri": [
+    "Neuer Kontakt",
+    "Nouveau contact",
+    "New lead",
+    "عميل جديد",
+    "Новый клиент"
+  ],
+  "İletişime geçildi": [
+    "Kontaktiert",
+    "Contacté",
+    "Contacted",
+    "تم التواصل",
+    "Связались"
+  ],
+  "Gösterim aşaması": [
+    "Besichtigung",
+    "Visite",
+    "Viewing",
+    "مرحلة المعاينة",
+    "Показ"
+  ],
+  "Teklif aşaması": [
+    "Angebot",
+    "Offre",
+    "Offer",
+    "مرحلة العرض",
+    "Предложение"
+  ],
+  "Tamamlandı": [
+    "Abgeschlossen",
+    "Terminé",
+    "Closed",
+    "مكتمل",
+    "Завершено"
+  ],
+  "İlgilenen kişi": [
+    "Interessent",
+    "Personne intéressée",
+    "Interested person",
+    "الشخص المهتم",
+    "Заинтересованное лицо"
+  ],
+  "İlan sahibi": [
+    "Anbieter",
+    "Propriétaire",
+    "Listing owner",
+    "صاحب الإعلان",
+    "Владелец объявления"
+  ],
+  "Müşteri aşaması": [
+    "Kontaktphase",
+    "Étape du contact",
+    "Lead stage",
+    "مرحلة العميل",
+    "Этап работы"
+  ],
+  "Özel müşteri notu": [
+    "Private Kontaktnotiz",
+    "Note privée du contact",
+    "Private client note",
+    "ملاحظة خاصة بالعميل",
+    "Личная заметка о клиенте"
+  ],
+  "Bu notu yalnızca siz görebilirsiniz.": [
+    "Nur Sie können diese Notiz sehen.",
+    "Vous seul pouvez voir cette note.",
+    "Only you can see this note.",
+    "أنت وحدك تستطيع رؤية هذه الملاحظة.",
+    "Эту заметку видите только вы."
+  ],
+  "Müşteri bilgilerini kaydet": [
+    "Kontaktdaten speichern",
+    "Enregistrer le contact",
+    "Save client details",
+    "حفظ بيانات العميل",
+    "Сохранить данные клиента"
+  ],
+  "Randevuyu onayla": [
+    "Termin bestätigen",
+    "Confirmer le rendez-vous",
+    "Confirm viewing",
+    "تأكيد الموعد",
+    "Подтвердить просмотр"
+  ],
+  "Görüşmeyi tamamla": [
+    "Besichtigung abschließen",
+    "Terminer la visite",
+    "Complete viewing",
+    "إكمال المعاينة",
+    "Завершить просмотр"
+  ],
+  "Randevuyu iptal et": [
+    "Termin absagen",
+    "Annuler le rendez-vous",
+    "Cancel viewing",
+    "إلغاء الموعد",
+    "Отменить просмотр"
+  ],
+  "RANDEVU VE MÜŞTERİ TAKİBİ": [
+    "TERMINE UND KONTAKTE",
+    "RENDEZ-VOUS ET CONTACTS",
+    "APPOINTMENTS AND CLIENTS",
+    "المواعيد ومتابعة العملاء",
+    "ВСТРЕЧИ И КЛИЕНТЫ"
+  ],
+  "Talepleri takip edin; ilan sahipleri müşteri aşamalarını ve özel notlarını yönetebilir.": [
+    "Anfragen verfolgen; Anbieter verwalten Kontaktphasen und private Notizen.",
+    "Suivez les demandes ; les propriétaires gèrent les étapes et notes privées.",
+    "Track requests; listing owners can manage lead stages and private notes.",
+    "تابع الطلبات؛ يمكن لأصحاب الإعلانات إدارة مراحل العملاء والملاحظات الخاصة.",
+    "Следите за запросами; владельцы управляют этапами работы и личными заметками."
+  ],
+  "İlan veya kişi ara": [
+    "Immobilie oder Person suchen",
+    "Chercher un bien ou un contact",
+    "Search listing or person",
+    "البحث عن إعلان أو شخص",
+    "Поиск объявления или человека"
+  ],
+  "Randevu filtresi": [
+    "Terminfilter",
+    "Filtre des rendez-vous",
+    "Appointment filter",
+    "تصفية المواعيد",
+    "Фильтр встреч"
+  ],
+  "Gelen talepler": [
+    "Erhaltene Anfragen",
+    "Demandes reçues",
+    "Received requests",
+    "الطلبات الواردة",
+    "Входящие запросы"
+  ],
+  "Gönderdiğim talepler": [
+    "Meine Anfragen",
+    "Mes demandes",
+    "My requests",
+    "طلباتي المرسلة",
+    "Мои запросы"
+  ],
+  "Henüz randevu yok.": [
+    "Noch keine Termine.",
+    "Aucun rendez-vous.",
+    "No appointments yet.",
+    "لا توجد مواعيد بعد.",
+    "Встреч пока нет."
+  ],
+  "Son 100 randevu gösterilir. E-posta veya SMS gönderilmez.": [
+    "Die letzten 100 Termine. Keine E-Mail- oder SMS-Zustellung.",
+    "Les 100 derniers rendez-vous. Aucun e-mail ni SMS envoyé.",
+    "Latest 100 appointments. No email or SMS is sent.",
+    "يتم عرض آخر 100 موعد. لا يتم إرسال بريد أو رسائل نصية.",
+    "Последние 100 встреч. Электронные письма и SMS не отправляются."
+  ],
+  "Randevular yüklenemedi.": [
+    "Termine konnten nicht geladen werden.",
+    "Impossible de charger les rendez-vous.",
+    "Could not load appointments.",
+    "تعذر تحميل المواعيد.",
+    "Не удалось загрузить встречи."
+  ],
+  "Gelecek 180 gün içinde bir saat ve en az 5 karakter açıklama seçin.": [
+    "Wählen Sie eine Zeit in den nächsten 180 Tagen und eine Nachricht ab 5 Zeichen.",
+    "Choisissez une heure dans les 180 jours et un message de 5 caractères minimum.",
+    "Choose a time within 180 days and a message of at least 5 characters.",
+    "اختر وقتًا خلال 180 يومًا ورسالة من 5 أحرف على الأقل.",
+    "Выберите время в течение 180 дней и сообщение от 5 символов."
+  ],
+  "Bu ilan için açık talebiniz var veya 10 açık talep sınırına ulaştınız.": [
+    "Sie haben bereits eine offene Anfrage oder das Limit von 10 erreicht.",
+    "Une demande est déjà ouverte pour ce bien ou la limite de 10 est atteinte.",
+    "You already have an open request for this listing or reached the limit of 10.",
+    "لديك طلب مفتوح لهذا الإعلان أو بلغت حد 10 طلبات.",
+    "Для объявления уже есть открытый запрос или достигнут лимит 10."
+  ],
+  "Randevu başka bir sekmede güncellendi. Yenileyin.": [
+    "Termin in einem anderen Tab geändert. Neu laden.",
+    "Rendez-vous modifié dans un autre onglet. Actualisez.",
+    "Appointment changed in another tab. Refresh.",
+    "تم تحديث الموعد في علامة تبويب أخرى. حدّث الصفحة.",
+    "Встреча изменена в другой вкладке. Обновите страницу."
   ]
 }

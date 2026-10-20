@@ -1,6 +1,7 @@
 export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" | "ticari";
 export type Purpose = "satilik" | "kiralik";
 export type Listing = {
+  presentation?:import("./presentation").Presentation;
   id: string; title: string; description: string; purpose: Purpose; propertyType: PropertyType;
   price: number; currency: string; city: string; district: string; neighborhood?: string; neighborhoodId?: number; postalCode?: string;
   latitude?: number; longitude?: number; locationPrecision?:"province"|"approximate"; grossArea: number; netArea?: number;

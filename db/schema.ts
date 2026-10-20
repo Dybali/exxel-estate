@@ -1,3 +1,4 @@
+import {sql} from "drizzle-orm";
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -53,6 +54,7 @@ export const adminSetup = sqliteTable("admin_setup", {
 });
 
 export const listings = sqliteTable("listings", {
+ presentation:text("presentation").notNull().default("{}"),
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id),
   title: text("title").notNull(),
@@ -176,3 +178,7 @@ export const sellerProfiles=sqliteTable('seller_profiles',{userId:text('user_id'
 export const listingDrafts = sqliteTable("listing_drafts", {userId:text("user_id").primaryKey().references(()=>users.id,{onDelete:"cascade"}),payload:text("payload").notNull(),version:integer("version").notNull().default(1),updatedAt:text("updated_at").notNull()});
 
 export const adminAudit = sqliteTable("admin_audit", {id:text("id").primaryKey(),actorId:text("actor_id").notNull(),actorName:text("actor_name").notNull(),action:text("action").notNull(),targetId:text("target_id").notNull(),summary:text("summary").notNull(),createdAt:text("created_at").notNull()},t=>[index("admin_audit_time_idx").on(t.createdAt)]);
+
+export const appointments = sqliteTable("appointments", {
+ id:text("id").primaryKey(),listingId:text("listing_id").notNull().references(()=>listings.id,{onDelete:"cascade"}),buyerId:text("buyer_id").notNull().references(()=>users.id,{onDelete:"cascade"}),sellerId:text("seller_id").notNull().references(()=>users.id,{onDelete:"cascade"}),slotAt:text("slot_at").notNull(),message:text("message").notNull(),status:text("status").notNull().default("requested"),stage:text("stage").notNull().default("new"),privateNote:text("private_note").notNull().default(""),version:integer("version").notNull().default(1),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull()
+},t=>[uniqueIndex("appointments_active_unique").on(t.buyerId,t.listingId).where(sql`${t.status} IN ('requested','confirmed')`),index("appointments_buyer_idx").on(t.buyerId,t.createdAt),index("appointments_seller_idx").on(t.sellerId,t.createdAt)]);

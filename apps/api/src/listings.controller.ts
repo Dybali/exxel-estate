@@ -1,3 +1,4 @@
+import {presentationFrom} from "./shared/presentation";
 import {priceCurrency} from "./shared/price-filters";
 import {centers,citiesInBounds, validBounds } from "./shared/search-filters";
 import type { Response } from "express";
@@ -24,7 +25,7 @@ const demoListings = demoRows as unknown as DemoListing[];
 export function listingView(row: Row) {
   return {
     id: row.id, ownerId: row.owner_id, ownerName: row.users_listings_owner_idTousers?.name || "estatemarket24", source: "user",
-    title: row.title, description: row.description, purpose: row.purpose, propertyType: row.property_type,
+    presentation:safeJson<import("./shared/presentation").Presentation>(row.presentation,{floorPlan:"",videoUrl:"",tourUrl:""}),title: row.title, description: row.description, purpose: row.purpose, propertyType: row.property_type,
     price: Number(row.price), currency: row.currency, city: row.city, district: row.district,
     neighborhood: row.neighborhood, neighborhoodId: row.neighborhood_id, postalCode: row.postal_code,
     latitude: row.latitude, longitude: row.longitude, grossArea: row.gross_area, netArea: row.net_area,
@@ -124,7 +125,9 @@ export class ListingsController {
     if (title.length < 12 || description.length < 30 || !["satilik", "kiralik"].includes(purpose) || !types.has(propertyType) || !districts[city]?.includes(district) || !neighborhood) throw new BadRequestException("Zorunlu ilan veya konum alanları geçersiz.");
     const images = Array.isArray(data.images) ? data.images.filter((value): value is string => typeof value === "string").slice(0, 30) : [];
     if (!images.length || new Set(images).size !== images.length || images.some((url) => !url.startsWith(`${imagePrefix}listings/${user.id}/`))) throw new BadRequestException("Fotoğraf bilgilerini kontrol edin.");
-    const imageInfo = await Promise.all(images.map((url) => this.media.head(url.slice(imagePrefix.length))));
+    let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){throw new BadRequestException((e as Error).message);}
+    const allImages=[...new Set([...images,presentation.floorPlan].filter(Boolean))];
+    const imageInfo = await Promise.all(allImages.map((url) => this.media.head(url.slice(imagePrefix.length))));
     if (imageInfo.some((item) => !item)) throw new BadRequestException("Fotoğraflardan biri depoda bulunamadı.");
     const count = await this.prisma.listings.count({ where: { owner_id: user.id, status: { not: "rejected" } } });
     if (user.role === "individual" && count >= 3) throw new ForbiddenException("İlan kotası dolu.");
@@ -139,11 +142,11 @@ export class ListingsController {
       city, district, neighborhood: neighborhood.name, neighborhood_id: neighborhood.id, postal_code: neighborhood.postalCode || null,
       latitude: null, longitude: null, gross_area: grossArea, net_area: numberOrNull(data.netArea), rooms: str(data.rooms, 10) || null,
       bedrooms: numberOrNull(data.bedrooms), bathrooms: numberOrNull(data.bathrooms), building_age: numberOrNull(data.buildingAge), floor: numberOrNull(data.floor), total_floors: numberOrNull(data.totalFloors), heating: str(data.heating, 50) || null,
-      furnished: data.furnished ? 1 : 0, amenities: JSON.stringify(amenities), images: JSON.stringify(images), translations: JSON.stringify(translations), status, featured: 0, created_at: createdAt, updated_at: createdAt,
+      furnished: data.furnished ? 1 : 0, amenities: JSON.stringify(amenities), images: JSON.stringify(images), translations: JSON.stringify(translations),presentation:JSON.stringify(presentation), status, featured: 0, created_at: createdAt, updated_at: createdAt,
       } });
-      for (let index = 0; index < images.length; index++) {
+      for (let index = 0; index < allImages.length; index++) {
         const info = imageInfo[index]!;
-        await db.property_images.create({ data: { id: randomUUID(), property_id: id, storage_provider: "r2", bucket: info.bucket, object_key: images[index].slice(imagePrefix.length), content_type: info.contentType, byte_size: BigInt(info.size), checksum_sha256: info.checksum, sort_order: index, created_at: createdAt } });
+        await db.property_images.create({ data: { id: randomUUID(), property_id: id, storage_provider: "r2", bucket: info.bucket, object_key: allImages[index].slice(imagePrefix.length), content_type: info.contentType, byte_size: BigInt(info.size), checksum_sha256: info.checksum, sort_order: index, created_at: createdAt } });
       }
     });
     return { id, status };
@@ -162,11 +165,13 @@ export class ListingsController {
     const neighborhood=locationChanged?neighborhoods[city]?.[district]?.find(item=>item.id===Number(data.neighborhoodId)):null;
     if(locationChanged&&!neighborhood)throw new BadRequestException("Geçerli bir mahalle seçin.");
     const numberOrNull=(value:unknown)=>{if(value===""||value==null)return null;const result=Number(value);if(!Number.isSafeInteger(result)||result<0)throw new BadRequestException("Sayısal özellikleri kontrol edin.");return result;};
-    const original=safeJson<string[]>(row.images,[]);
+    let presentation;try{presentation=presentationFrom({...safeJson<Record<string,unknown>>(row.presentation,{}),...input},row.owner_id);}catch(e){throw new BadRequestException((e as Error).message);}
+    const original=[...new Set([...safeJson<string[]>(row.images,[]),safeJson<{floorPlan?:string}>(row.presentation,{}).floorPlan||''].filter(Boolean))];
     const images=Array.isArray(data.images)?data.images.filter((image):image is string=>typeof image==="string"):[];
     const pattern=new RegExp(`^/api/media/listings/${row.owner_id}/[a-f0-9-]+\\.(jpg|png|webp)$`);
     if(!images.length||images.length>30||new Set(images).size!==images.length||images.some(image=>!pattern.test(image)))throw new BadRequestException("Fotoğraf bilgilerini kontrol edin.");
-    const added=images.filter(image=>!original.includes(image));const info=await Promise.all(added.map(image=>this.media.head(image.slice(imagePrefix.length))));
+    const allImages=[...new Set([...images,presentation.floorPlan].filter(Boolean))];
+    const added=allImages.filter(image=>!original.includes(image));const info=await Promise.all(added.map(image=>this.media.head(image.slice(imagePrefix.length))));
     if(info.some(item=>!item))throw new BadRequestException("Yeni fotoğraflardan biri depoda bulunamadı.");
     const allowed=["Deniz manzarası","Boğaz manzarası","Havuz","Özel havuz","Bahçe","Teras","Balkon","Otopark","Asansör","Güvenlik","Eşyalı","Şömine"];
     const amenities=Array.isArray(data.amenities)?data.amenities.filter((item):item is string=>typeof item==="string"&&allowed.includes(item)).slice(0,20):[];
@@ -176,9 +181,9 @@ export class ListingsController {
     const status=user.role==="agent"&&user.agent_status==="approved"||this.auth.isAdmin(user)?"published":"pending",updatedAt=now();
     await this.prisma.$transaction(async db=>{
       if(Number(row.price)!==price||row.currency!==currency||row.purpose!==purpose)await db.price_history.create({data:{id:randomUUID(),listing_id:id,old_price:row.currency===currency&&row.purpose===purpose?row.price:BigInt(price),new_price:BigInt(price),currency,purpose,changed_at:updatedAt}});
-      await db.listings.update({where:{id},data:{published_at:status==="published"?row.published_at||updatedAt:row.published_at,title,description,purpose,property_type:propertyType,price:BigInt(price),currency,city,district,neighborhood:neighborhood?.name??row.neighborhood,neighborhood_id:neighborhood?.id??row.neighborhood_id,postal_code:neighborhood?.postalCode??row.postal_code,gross_area:grossArea,net_area:numberOrNull(data.netArea),rooms:str(data.rooms,10)||null,bedrooms:numberOrNull(data.bedrooms),bathrooms:numberOrNull(data.bathrooms),building_age:numberOrNull(data.buildingAge),floor:numberOrNull(data.floor),total_floors:numberOrNull(data.totalFloors),heating:str(data.heating,50)||null,furnished:data.furnished?1:0,amenities:JSON.stringify(amenities),images:JSON.stringify(images),translations:JSON.stringify(translations),status,review_note:null,reviewed_by:null,reviewed_at:null,updated_at:updatedAt}});
-      await db.property_images.deleteMany({where:{property_id:id,object_key:{notIn:images.map(image=>image.slice(imagePrefix.length))}}});
-      for(let index=0;index<images.length;index++){const image=images[index],key=image.slice(imagePrefix.length);if(original.includes(image))await db.property_images.updateMany({where:{property_id:id,object_key:key},data:{sort_order:index}});else{const metadata=info[added.indexOf(image)]!;await db.property_images.create({data:{id:randomUUID(),property_id:id,storage_provider:"r2",bucket:metadata.bucket,object_key:key,content_type:metadata.contentType,byte_size:BigInt(metadata.size),checksum_sha256:metadata.checksum,sort_order:index,created_at:updatedAt}});}}
+      await db.listings.update({where:{id},data:{published_at:status==="published"?row.published_at||updatedAt:row.published_at,title,description,purpose,property_type:propertyType,price:BigInt(price),currency,city,district,neighborhood:neighborhood?.name??row.neighborhood,neighborhood_id:neighborhood?.id??row.neighborhood_id,postal_code:neighborhood?.postalCode??row.postal_code,gross_area:grossArea,net_area:numberOrNull(data.netArea),rooms:str(data.rooms,10)||null,bedrooms:numberOrNull(data.bedrooms),bathrooms:numberOrNull(data.bathrooms),building_age:numberOrNull(data.buildingAge),floor:numberOrNull(data.floor),total_floors:numberOrNull(data.totalFloors),heating:str(data.heating,50)||null,furnished:data.furnished?1:0,amenities:JSON.stringify(amenities),images:JSON.stringify(images),translations:JSON.stringify(translations),presentation:JSON.stringify(presentation),status,review_note:null,reviewed_by:null,reviewed_at:null,updated_at:updatedAt}});
+      await db.property_images.deleteMany({where:{property_id:id,object_key:{notIn:allImages.map(image=>image.slice(imagePrefix.length))}}});
+      for(let index=0;index<allImages.length;index++){const image=allImages[index],key=image.slice(imagePrefix.length);if(original.includes(image))await db.property_images.updateMany({where:{property_id:id,object_key:key},data:{sort_order:index}});else{const metadata=info[added.indexOf(image)]!;await db.property_images.create({data:{id:randomUUID(),property_id:id,storage_provider:"r2",bucket:metadata.bucket,object_key:key,content_type:metadata.contentType,byte_size:BigInt(metadata.size),checksum_sha256:metadata.checksum,sort_order:index,created_at:updatedAt}});}}
     });return {success:true,id,status,updatedAt};
   }
   @Delete(":id") async remove(@Param("id") id:string,@Req() request:AuthRequest){assertOrigin(request);const user=await this.auth.current(request);requireUser(user);if(!/^[a-f0-9-]{36}$/i.test(id))throw new NotFoundException("İlan bulunamadı.");const row=await this.prisma.listings.findUnique({where:{id}});if(!row)throw new NotFoundException("İlan bulunamadı.");if(row.owner_id!==user.id&&!this.auth.isAdmin(user))throw new ForbiddenException("Yetkiniz yok.");await this.prisma.listings.delete({where:{id}});return {success:true};}

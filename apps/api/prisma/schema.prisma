@@ -54,6 +54,8 @@ model favorites {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model listings {
+ presentation String @default("{}")
+ appointments appointments[]
   price_history price_history[]
   published_at String?
   @@index([status,published_at],map:"listings_published_at_idx")
@@ -198,6 +200,8 @@ model sessions {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
+ appointments_as_buyer appointments[] @relation("appointment_buyer")
+ appointments_as_seller appointments[] @relation("appointment_seller")
   listing_draft listing_drafts?
   seller_profile seller_profiles?
   saved_searches saved_searches[]
@@ -290,4 +294,24 @@ model admin_audit {
  summary String
  created_at String
  @@index([created_at(sort:Desc)],map:"admin_audit_time_idx")
+}
+
+model appointments {
+ id String @id @db.Uuid
+ listing_id String @db.Uuid
+ buyer_id String @db.Uuid
+ seller_id String @db.Uuid
+ slot_at String
+ message String
+ status String @default("requested")
+ stage String @default("new")
+ private_note String @default("")
+ version Int @default(1)
+ created_at String
+ updated_at String
+ listing listings @relation(fields:[listing_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ buyer users @relation("appointment_buyer",fields:[buyer_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ seller users @relation("appointment_seller",fields:[seller_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ @@index([buyer_id,created_at(sort:Desc)],map:"appointments_buyer_idx")
+ @@index([seller_id,created_at(sort:Desc)],map:"appointments_seller_idx")
 }

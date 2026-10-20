@@ -1,3 +1,4 @@
+import {AppointmentsController} from "./appointments.controller";
 import {SecurityController} from "./security.controller";
 import {DraftsController} from "./drafts.controller";
 import { DiscoveryController } from "./discovery.controller";
@@ -21,7 +22,7 @@ import { CompaniesController } from "./companies.controller";
 
 @Module({
   imports: [JwtModule.register({ secret: process.env.JWT_SECRET, signOptions: { issuer: "exxel-estate", audience: "exxel-estate-web" } })],
-  controllers: [SecurityController, DraftsController, ProfilesController, DiscoveryController, AccountController, ListingsController, MessagesController, MediaController, AdminController, LocationsController, FavoritesController, MineController, GoogleController, HealthController, CityCountsController, CompaniesController],
+  controllers: [AppointmentsController, SecurityController, DraftsController, ProfilesController, DiscoveryController, AccountController, ListingsController, MessagesController, MediaController, AdminController, LocationsController, FavoritesController, MineController, GoogleController, HealthController, CityCountsController, CompaniesController],
   providers: [PrismaService, AuthService, MediaService],
 })
 export class AppModule {}
