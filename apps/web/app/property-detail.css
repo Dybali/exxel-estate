@@ -7,3 +7,4 @@
 @media(max-width:700px){.property-detail-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0}.property-detail-main{display:contents}.property-detail-aside{grid-row:3;margin:22px 0 0}.property-key-facts{margin-bottom:0}.property-amenity-tags{margin-top:24px}}
 .property-gallery[data-count="1"]>.property-gallery-main,.property-gallery[data-count="2"]>.property-gallery-main{grid-row:1}
 .listing-actions-menu button:disabled{opacity:.45;cursor:not-allowed}
+.property-gallery img.is-small-image{object-fit:scale-down;transform:none}.property-gallery[data-small-cover="true"]{height:220px}.property-gallery[data-small-cover="true"] .property-gallery-main{background:#f0f3f1}.photo-quality-note{font-size:12px;line-height:1.6;color:#855314;background:#fff5e5;padding:10px;margin:0;border-bottom:1px solid #eddcc0}

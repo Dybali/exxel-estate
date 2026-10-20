@@ -1,5 +1,6 @@
 "use client";
 
+import {checkListingPhoto} from '@/lib/photo-quality';
 import {PresentationFields} from "./PropertyPresentation";
 import {PhotoManager} from "./PhotoManager";
 import { useEffect, useState } from "react";
@@ -59,7 +60,7 @@ export function ListingEditor({id}:{id:string}) {
     for(const file of Array.from(files).slice(0,target==='floorPlan'?1:30-images.length)){
       if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>8000000){setError("JPG, PNG veya WEBP; en fazla 8 MB.");continue;}
       const form=new FormData();form.append("file",file);
-      try{const response=await fetch("/api/media",{method:"POST",body:form});const data=await response.json() as {url?:string;error?:string};if(!response.ok||!data.url)throw new Error(data.error||"Fotoğraf yüklenemedi.");if(target==='floorPlan')setPresentation(old=>({...old,floorPlan:data.url!}));else setImages((old)=>[...old,data.url!]);}
+      try{if(target==="photos")await checkListingPhoto(file);const response=await fetch("/api/media",{method:"POST",body:form});const data=await response.json() as {url?:string;error?:string};if(!response.ok||!data.url)throw new Error(data.error||"Fotoğraf yüklenemedi.");if(target==='floorPlan')setPresentation(old=>({...old,floorPlan:data.url!}));else setImages((old)=>[...old,data.url!]);}
       catch(cause){setError(cause instanceof Error?cause.message:"Fotoğraf yüklenemedi.");}
     }
     setUploading(false);
