@@ -232,3 +232,8 @@
 .home-header .wordmark-24,.footer-brand .wordmark-24{color:#64716a}
 .home-header .brand-tagline,.footer-brand .brand-tagline{color:#365b49}
 .wordmark-estate,.home-header .wordmark-estate,.footer-brand .wordmark-estate{color:#00a651;font-weight:850}.wordmark-market,.home-header .wordmark-market,.footer-brand .wordmark-market{color:#000;font-weight:850}
+/* Keep the tagline readable on photography and on plain page headers. */
+.brand-tagline{font-size:12px;font-weight:700;line-height:1.35;color:#203e32;letter-spacing:.1px}
+.home-header .brand-tagline,.footer-brand .brand-tagline{display:block;color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 3px #0009}
+@media(max-width:700px){.brand-tagline,.home-header .brand-tagline,.footer-brand .brand-tagline{font-size:10.5px;letter-spacing:0}}
+@media(max-width:360px){.site-header .brand-tagline,.site-header.home-header .brand-tagline{display:block;font-size:10px;max-width:155px;white-space:normal;line-height:1.3}.site-header .brand-lockup{gap:3px}}
