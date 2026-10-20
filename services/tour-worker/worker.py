@@ -15,7 +15,7 @@ if urlparse(BASE).scheme!='https' and not (os.environ.get('CAPTURE_ALLOW_LOCAL')
 if len(TOKEN)<32:raise SystemExit('A shared secret of at least 32 characters is required')
 
 def api(path,method='POST',data=None,lease=None,raw=False):
-    headers={'Authorization':'Bearer '+TOKEN}
+    headers={'Authorization':'Bearer '+TOKEN,'User-Agent':'Estatemarket24-TourWorker/1.0','Accept':'application/json, image/jpeg'}
     if lease:headers['X-Capture-Lease']=lease
     if data is not None:
         if isinstance(data,bytes):headers['Content-Type']='image/jpeg'
