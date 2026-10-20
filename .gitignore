@@ -60,3 +60,5 @@ apps/web/.next/
 /.codex/
 /outputs/
 /work/
+__pycache__/
+*.pyc

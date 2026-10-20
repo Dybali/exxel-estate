@@ -8,7 +8,7 @@ for (const directory of ["app", "components", "lib", "data", "public", "hooks"])
   const target = resolve(web, directory);
   if (!target.startsWith(`${web}${sep}`)) throw new Error("Unsafe generated path");
   await rm(target, { recursive: true, force: true });
-  const excluded = new Set([join(root,"lib","server.ts"),join(root,"lib","neon-d1.ts"),join(root,"lib","external-r2.ts"),join(root,"lib","google-auth.ts"),join(root,"lib","neon-mail-auth.ts"),join(root,"lib","neon-identities.ts"),join(root,"lib","recovery-service.ts")]);
+  const excluded = new Set([join(root,"lib","tour-capture.ts"),join(root,"lib","server.ts"),join(root,"lib","neon-d1.ts"),join(root,"lib","external-r2.ts"),join(root,"lib","google-auth.ts"),join(root,"lib","neon-mail-auth.ts"),join(root,"lib","neon-identities.ts"),join(root,"lib","recovery-service.ts")]);
   await cp(join(root, directory), target, { recursive: true, filter: (source) => !source.startsWith(join(root, "app", "api")) && !excluded.has(source) });
 }
 await mkdir(join(web, "lib"), { recursive: true });

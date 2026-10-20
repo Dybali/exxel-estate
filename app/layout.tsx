@@ -13,6 +13,7 @@ import "./email-recovery.css";
 import "./listing-tools.css";
 import "./panoramas.css";
 import "./immersive-tour.css";
+import "./tour-capture.css";
 import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -40,6 +41,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-
-
