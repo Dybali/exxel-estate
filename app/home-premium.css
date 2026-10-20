@@ -224,3 +224,10 @@
   .market-home .market-hero-links span{width:100%;text-align:center}
   .home-header .brand-tagline{display:none}
 }
+
+/* Estatemarket24 brand colors. */
+.wordmark-estate,.home-header .wordmark-estate,.footer-brand .wordmark-estate{color:#267657}
+.wordmark-market,.home-header .wordmark-market,.footer-brand .wordmark-market{color:#111111}
+.home-header .brand-lockup,.footer-brand .brand-lockup{background:transparent;padding:0;border-radius:0}
+.home-header .wordmark-24,.footer-brand .wordmark-24{color:#64716a}
+.home-header .brand-tagline,.footer-brand .brand-tagline{color:#365b49}

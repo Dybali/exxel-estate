@@ -97,12 +97,15 @@ export function AuthForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await response.json() as { error?: string };
+      const data = await response.json() as { error?: string; user?: {email_verified?:number} };
       if (!response.ok) {
         setError(data.error || "İşlem tamamlanamadı.");
         return;
       }
-      window.location.assign(safeNext);
+      if (!data.user?.email_verified) {
+        const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify'})}).then(r=>r.ok).catch(()=>false);
+        window.location.assign('/eposta-dogrula'+(sent?'?sent=1':''));
+      } else window.location.assign(safeNext);
     } catch {
       setError("Bağlantı kurulamadı. Lütfen yeniden deneyin.");
     } finally {
@@ -201,6 +204,7 @@ export function AuthForm() {
                 </button>
               </div>
             </label>
+            {mode === "login" && <Link className="auth-forgot-link" href="/sifremi-unuttum">Şifremi unuttum</Link>}
             {mode === "register" && <p className="form-helper">{t("Emlakçı hesapları yönetici onayından sonra ilan verebilir.")}</p>}
             {error && <div className="form-error" role="alert">{t(error)}</div>}
             <button className="primary-button auth-submit" disabled={loading}>

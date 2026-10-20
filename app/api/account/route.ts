@@ -2,6 +2,7 @@ import { ensureProfiles, validProfileImage } from '@/lib/seller-profiles';
 import { headExternalImage } from '@/lib/external-r2';
 import { body, createSession, currentUser, db, error, isAdmin, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str, verifyPassword } from "@/lib/server";
 import { normalizeContactPhone } from "@/lib/phone";
+import {consumeRecoveryLimit,RecoveryError} from '@/lib/recovery-service';
 
 export async function GET(request:Request) {
   const user=await currentUser(request);
@@ -61,6 +62,7 @@ export async function POST(request:Request) {
   const password=typeof data.password==="string"?data.password:"";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length<10 || password.length>128) return error("Geçerli e-posta ve en az 10 karakterli şifre girin.");
   if (action==="register") {
+    try{await consumeRecoveryLimit(db(),await sha256('registration:'+ (request.headers.get('CF-Connecting-IP')||'local')),5);}catch(cause){if(cause instanceof RecoveryError)return error(cause.message,cause.status);throw cause;}
     const name=str(data.name,100), role=str(data.role,20);
     if (name.length<2 || !["buyer","individual","agent"].includes(role)) return error("Ad ve hesap türünü kontrol edin.");
     const existing=await db().prepare("SELECT id FROM users WHERE email=?").bind(email).first();
