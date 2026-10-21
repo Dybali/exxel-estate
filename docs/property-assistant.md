@@ -2,7 +2,7 @@
 
 ## Konum ve üyelik
 
-Sağ alttaki düğmeyle açılan 400 px genişliğinde sohbet penceresi; ayrıca `/asistan` sayfası bulunur. Ana sayfanın ortasında asistan bölümü veya fotoğraflı sonuç paneli yoktur. Her aramada gerçek toplam sayı ve aynı filtreleri koruyan ilan sayfası bağlantısı gösterilir. Sonuç sayfasına örnek ilanlar eklenmez; eşyalı olmayan kriteri de korunur. Yalnızca mevcut uygulama oturumuyla giriş yapmış üyeler sohbet gönderebilir. Sunucu üyeliği model, kota ve ilan erişiminden önce doğrular. Giriş bağlantısı kullanıcıyı ana sayfaya getirip sohbeti açar. Kapatma sohbeti silmez; yeni sohbet veya sayfadan ayrılma temizler.
+Sağ alttaki düğmeyle açılan masaüstünde 520 px, dar ekranlarda 420 px genişliğinde, beyaz ve turkuaz sohbet paneli; ayrıca `/asistan` sayfası bulunur. Ana sayfanın ortasında asistan bölümü veya fotoğraflı sonuç paneli yoktur. Her aramada gerçek toplam sayı ve aynı filtreleri koruyan ilan sayfası bağlantısı gösterilir. Sonuç sayfasına örnek ilanlar eklenmez; eşyalı olmayan kriteri de korunur. Yalnızca mevcut uygulama oturumuyla giriş yapmış üyeler sohbet gönderebilir. Sunucu üyeliği model, kota ve ilan erişiminden önce doğrular. Giriş bağlantısı kullanıcıyı ana sayfaya getirip sohbeti açar. Kapatma sohbeti silmez; yeni sohbet veya sayfadan ayrılma temizler.
 
 ## Gemini etkinleştirme
 
