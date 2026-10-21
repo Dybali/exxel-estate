@@ -1,5 +1,6 @@
 "use client";
 import {AppointmentsPanel} from "./Appointments";
+import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
 
 import { useEffect, useState } from "react";
@@ -72,6 +73,7 @@ export function Dashboard() {
     { id: "mesajlar", label: "Mesajlar", icon: Mail },
     {id:"randevular",label:"Randevularım",icon:CalendarDays},
     {id:"bildirimler",label:"Aramalarım ve bildirimler",icon:Bookmark},
+    {id:"bildirimlerim",label:"İlan bildirimlerim",icon:Mail},
     { id: "profil", label: "Profilim", icon: UserRound },
   ];
 
@@ -105,7 +107,7 @@ export function Dashboard() {
 
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {tab === "bildirimler" && <DiscoveryPanel/>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}
+        {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <DiscoveryPanel/>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}
         {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? "Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/><AccountSecurity/></>}
       </section>
     </div>

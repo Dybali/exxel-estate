@@ -1,8 +1,10 @@
+import {reportsDB} from '@/lib/reports-server';
 import { body, currentUser, db, error, isAdmin, now, ok, parseListing, sameOrigin, str } from "@/lib/server";
 
 export async function GET(request: Request) {
   const user = await currentUser(request);
-  if (!isAdmin(user)) return error("Yönetici yetkisi gerekli.", 403);
+  if (!user?.email_verified || !isAdmin(user)) return error("Yönetici yetkisi gerekli.", 403);
+  await reportsDB();
   if(new URL(request.url).searchParams.get('audit')==='1'){const entries=await db().prepare('SELECT id,actor_name,action,target_id,summary,created_at FROM admin_audit ORDER BY created_at DESC LIMIT 100').all();return ok({entries:entries.results},{headers:{'Cache-Control':'private, no-store'}});}
   const listingId = str(new URL(request.url).searchParams.get("listingId"), 80);
   if (listingId) {
@@ -32,19 +34,21 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return error("Geçersiz kaynak.", 403);
   const user = await currentUser(request);
-  if (!isAdmin(user)) return error("Yönetici yetkisi gerekli.", 403);
+  if (!user?.email_verified || !isAdmin(user)) return error("Yönetici yetkisi gerekli.", 403);
+  await reportsDB();
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Geçersiz istek."); }
   const audit=(action:string,target:string,summary:string)=>db().prepare('INSERT INTO admin_audit(id,actor_id,actor_name,action,target_id,summary,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),user!.id,user!.name,action,target,summary,now());
   const kind = str(data.kind, 20), id = str(data.id, 80), status = str(data.status, 20);
   if (kind === "listing" && ["published", "rejected", "pending"].includes(status)) {
+    await reportsDB();
     const note = str(data.note, 1000);
     if (status === "rejected" && note.length < 5) return error("Ret nedenini en az 5 karakterle yazın.");
     const current = await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{ status: string }>();
     if (!current) return error("İlan bulunamadı.", 404);
     if (current.status === status) return error("İlan zaten bu durumda.", 409);
     await db().batch([db().prepare("UPDATE listings SET status=?,review_note=?,reviewed_by=?,reviewed_at=?,updated_at=?,published_at=CASE WHEN ?='published' THEN COALESCE(published_at,?) ELSE published_at END WHERE id=?")
-      .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(),status,now(), id),audit("listing",id,status+(note?" · "+note:""))]);
+      .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(),status,now(), id),audit("listing",id,status+(note?" · "+note:"")),...(status==="published"?[db().prepare("UPDATE listing_moderation_holds SET active=0,released_at=? WHERE listing_id=?").bind(now(),id)]:[])]);
     return ok({ success: true, status });
   }
   if (kind === "agent" && ["approved", "rejected", "pending"].includes(status)) {

@@ -80,7 +80,7 @@ export function ListingEditor({id}:{id:string}) {
 
   if(loading)return <main className="form-page"><div className="container section">{t("İlan yükleniyor…")}</div></main>;
   if(!listing||!profile||listing.source!=="user"||listing.ownerId!==profile.id&&!profile.isAdmin)return <main className="form-page"><div className="container form-gate"><h1>{t("İlan düzenlenemiyor.")}</h1><p>{t("İlanı düzenlemek için ilan sahibi hesabınızla giriş yapın.")}</p><Link className="primary-button" href="/hesabim?tab=ilanlarim">{t("İlanlarıma dön")} <ArrowRight size={17}/></Link></div></main>;
-  const direct=profile.role==="agent"&&profile.agent_status==="approved"||profile.isAdmin;
+  const direct=(profile.role==="agent"&&profile.agent_status==="approved"||profile.isAdmin)&&!(listing.status==="pending"&&listing.reviewNote?.startsWith("Bildirim incelemesi:"));
   return <main className="form-page listing-editor-page">
     <div className="form-hero"><div className="container"><Link className="company-back" href="/hesabim?tab=ilanlarim"><ArrowLeft size={16}/> {t("İlanlarıma dön")}</Link><span className="eyebrow dark-eyebrow">ESTATEMARKET24 · İLAN YÖNETİMİ</span><h1>{t("İlanı düzenle")}</h1><p>{t("Değişiklikleri kaydettikten sonra ilan durumunu hesabınızdan takip edebilirsiniz.")}</p></div></div>
     <nav className="container listing-step-nav" aria-label="İlan düzenleme adımları"><a href="#edit-basics"><span>01</span>{t("Temel bilgiler")}</a><a href="#edit-location"><span>02</span>{t("Konum")}</a><a href="#edit-features"><span>03</span>{t("Özellikler")}</a><a href="#edit-images"><span>04</span>{t("Fotoğraflar")}</a></nav>

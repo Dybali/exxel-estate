@@ -11,6 +11,7 @@ export const db = () => {
   return database;
 };
 export const bucket = () => (env as SiteEnv).BUCKET;
+export async function publishedListingEntries(){const rows=await db().prepare("SELECT id,updated_at FROM listings WHERE status='published' ORDER BY updated_at DESC,id DESC LIMIT 10000").all<{id:string;updated_at:string}>();return rows.results.map(row=>({id:String(row.id),updatedAt:String(row.updated_at)}));}
 export const now = () => new Date().toISOString();
 export const error = (message:string, status=400) => Response.json({error:message},{status});
 export const ok = (data:unknown, init?:ResponseInit) => Response.json(data, init);
@@ -18,10 +19,15 @@ export function sameOrigin(request:Request) {
   const origin = request.headers.get("origin");
   return !origin || origin === new URL(request.url).origin;
 }
+export class RequestInputError extends Error {}
 export async function body(request:Request):Promise<Record<string,unknown>> {
-  if (Number(request.headers.get("content-length") || 0) > 100_000) throw new Error("İstek çok büyük.");
-  const input = await request.json();
-  if (!input || Array.isArray(input) || typeof input !== "object") throw new Error("Geçersiz istek.");
+  if (Number(request.headers.get("content-length") || 0) > 100_000) throw new RequestInputError("İstek çok büyük.");
+  const reader=request.body?.getReader();if(!reader)throw new RequestInputError('İstek içeriği gerekli.');
+  let size=0;const parts:Uint8Array[]=[];
+  while(true){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>100_000){await reader.cancel();throw new RequestInputError('İstek çok büyük.');}parts.push(part.value);}
+  const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.byteLength;}
+  let input:unknown;try{input=JSON.parse(new TextDecoder().decode(bytes));}catch{throw new RequestInputError('Geçerli JSON içeriği gerekli.');}
+  if (!input || Array.isArray(input) || typeof input !== "object") throw new RequestInputError("Geçersiz istek.");
   return input as Record<string,unknown>;
 }
 export const str = (value:unknown, max=500) => typeof value === "string" ? value.trim().slice(0,max) : "";

@@ -315,3 +315,45 @@ model appointments {
  @@index([buyer_id,created_at(sort:Desc)],map:"appointments_buyer_idx")
  @@index([seller_id,created_at(sort:Desc)],map:"appointments_seller_idx")
 }
+
+model listing_reports {
+ id String @id
+ listing_id String
+ reporter_id String
+ title_snapshot String
+ reason String
+ details String
+ state String @default("open")
+ admin_note String @default("")
+ resolution String @default("")
+ reviewer_id String?
+ created_at String
+ updated_at String
+ version Int @default(1)
+ last_action String @default("")
+ @@unique([listing_id,reporter_id])
+ @@index([state,created_at],map:"listing_reports_queue")
+ @@index([reporter_id,created_at],map:"listing_reports_owner")
+}
+model listing_report_events {
+ id String @id
+ report_id String
+ actor_id String
+ actor_name String
+ action String
+ note String
+ created_at String
+ @@index([report_id,created_at],map:"listing_report_events_report")
+}
+model listing_report_limits {
+ key String @id
+ count Int
+ window_started_at String
+}
+model listing_moderation_holds {
+ listing_id String @id
+ report_id String
+ active Int
+ created_at String
+ released_at String?
+}

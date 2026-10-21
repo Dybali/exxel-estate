@@ -1,0 +1,2 @@
+import Link from '@/components/SafeLink';
+export default function NotFound(){return <main className="site-state-page"><span>404 · SAYFA BULUNAMADI</span><h1>Aradığınız sayfa şu anda mevcut değil.</h1><p>İlan kaldırılmış, incelemeye alınmış veya bağlantı değişmiş olabilir. Güncel ilanlardan aramaya devam edebilirsiniz.</p><div><Link className="primary-button" href="/ilanlar">İlanları incele</Link><Link className="outline-button" href="/">Ana sayfaya dön</Link></div></main>;}
