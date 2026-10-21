@@ -30,7 +30,8 @@ function database(){const sql=new DatabaseSync(':memory:');sql.exec(readFileSync
 test('canonical locations, currencies and exact Turkish room counts are preserved',()=>{
  const f=core.canonicalFilters({...core.emptyFilters(),district:'bodrum',maxPrice:6000000,currency:'TRY',rooms:'2+1'});
  assert.equal(f.city,'Muğla');assert.equal(f.district,'Bodrum');assert.equal(f.maxPrice,6000000);assert.equal(f.rooms,'2+1');
- assert.throws(()=>core.canonicalFilters({...f,currency:null}),e=>e.code==='currency');
+ assert.equal(core.canonicalFilters({...f,currency:null}).currency,'TRY');
+ assert.equal(core.canonicalFilters({...f,currency:'EUR'}).currency,'EUR');
  assert.throws(()=>core.canonicalFilters({...f,minPrice:7000000}),e=>e.code==='range');
  assert.throws(()=>core.canonicalFilters({...f,city:'İstanbul'}),e=>e.code==='location');
  assert.throws(()=>core.canonicalFilters({...f,city:"' OR 1=1 --"}),e=>e.code==='location');
@@ -66,12 +67,24 @@ test('public DTO strips owner identity, review notes and arbitrary external imag
  const dto=service.publicAssistantListing({id:crypto.randomUUID(),title:'test',price:1,currency:'TRY',amenities:'[]',images:'["https://evil.test/x", "/api/media/listings/test.jpg"]',owner_id:'secret',review_note:'private',description:'private'});
  assert.equal(dto.ownerId,undefined);assert.equal(dto.reviewNote,undefined);assert.deepEqual(dto.images,['/api/media/listings/test.jpg']);assert.equal(dto.description,'');
 });
+
+test('one listing query returns the full dynamic total beyond the six displayed IDs',async()=>{
+ const db=database();let queries=0;
+ db.sql.exec('CREATE TABLE listings(id TEXT,title TEXT,purpose TEXT,property_type TEXT,price INTEGER,currency TEXT,city TEXT,district TEXT,gross_area INTEGER,net_area INTEGER,rooms TEXT,bedrooms INTEGER,bathrooms INTEGER,building_age INTEGER,furnished INTEGER,amenities TEXT,images TEXT,status TEXT,created_at TEXT)');
+ for(let i=0;i<27;i++)db.sql.prepare('INSERT INTO listings(id,title,price,currency,status,created_at) VALUES(?,?,?,?,?,?)').run(crypto.randomUUID(),'Home',1000,'TRY','published','2026-10-21');
+ const original=db.prepare.bind(db);db.prepare=q=>{queries++;return original(q);};
+ try{
+  const result=await service.findAssistantListings(db,core.emptyFilters());assert.equal(queries,1);assert.equal(result.total,27);assert.equal(result.listings.length,6);assert.equal(result.listings[0].assistant_total,undefined);
+  queries=0;const empty=await service.findAssistantListings(db,{...core.emptyFilters(),city:'Antalya'});assert.equal(queries,1);assert.equal(empty.total,0);assert.deepEqual(empty.listings,[]);
+  queries=0;await service.reserveAssistantUsage(db,'fast-member',400);assert.equal(queries,3);
+ }finally{db.sql.close();}
+});
 test('Gemini request is bounded, key is only in header, contact details are redacted',async()=>{
  const original=globalThis.fetch;let sent;
  globalThis.fetch=async(url,options)=>{sent={url,options};return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({intent:'search',language:'ar',reply:'بحث',filters:{...core.emptyFilters(),purpose:'satilik',maxPrice:6000000,currency:'TRY'},unverified:[]})}]}}],usageMetadata:{promptTokenCount:200,candidatesTokenCount:100}});};
  try{
   let usage;const plan=await provider.planSearch({GEMINI_API_KEY:'fixture-only'},core.chatInput.parse({message:'بحث me@example.test +905551112233',uiLanguage:'ar'}),async value=>{usage=value;});
-  assert.equal(plan.language,'ar');assert.equal(sent.url.includes('fixture-only'),false);assert.equal(sent.options.headers['x-goog-api-key'],'fixture-only');assert.equal(sent.options.redirect,'manual');assert.equal(sent.options.body.includes('me@example.test'),false);assert.equal(sent.options.body.includes('+905551112233'),false);assert.equal(JSON.parse(sent.options.body).generationConfig.maxOutputTokens,1600);assert.equal(usage.input,200);
+  assert.equal(plan.language,'ar');assert.equal(sent.url.includes('fixture-only'),false);assert.equal(sent.options.headers['x-goog-api-key'],'fixture-only');assert.equal(sent.options.redirect,'manual');assert.equal(sent.options.body.includes('me@example.test'),false);assert.equal(sent.options.body.includes('+905551112233'),false);assert.equal(JSON.parse(sent.options.body).generationConfig.maxOutputTokens,1600);assert.equal(JSON.parse(sent.options.body).generationConfig.thinkingConfig.thinkingLevel,'minimal');assert.equal(usage.input,200);
  }finally{globalThis.fetch=original;}
 });
 test('truncated model JSON and upstream rate limits fail honestly, without invented search results',async()=>{

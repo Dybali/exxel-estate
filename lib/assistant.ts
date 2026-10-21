@@ -45,7 +45,7 @@ export function canonicalFilters(input:unknown,requireCurrency=true):AssistantFi
     const match=f.city?matches.find(x=>x.city===f.city):matches.length===1?matches[0]:null;
     if(!match)throw new AssistantError('location');f.city=match.city;f.district=match.district;
   }
-  if(requireCurrency&&(f.minPrice!==null||f.maxPrice!==null)&&!f.currency)throw new AssistantError('currency');
+  if(requireCurrency&&(f.minPrice!==null||f.maxPrice!==null)&&!f.currency)f.currency='TRY';
   if(f.minPrice!==null&&f.maxPrice!==null&&f.minPrice>f.maxPrice||f.minArea!==null&&f.maxArea!==null&&f.minArea>f.maxArea)throw new AssistantError('range');
   if(f.amenities.some(x=>!AMENITIES.includes(x)))throw new AssistantError('amenities');
   f.amenities=[...new Set(f.amenities)];return f;

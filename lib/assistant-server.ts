@@ -6,8 +6,7 @@ export async function reserveAssistantUsage(database:AssistantDatabase,clientKey
   const day=time.toISOString().slice(0,10),hour=time.toISOString().slice(0,13);
   const keys=[{key:`assistant:member:${clientKey}:${hour}`,limit:20,cost:1},{key:`assistant:global:${day}`,limit:Math.min(2000,Math.max(2,dailyLimit)),cost:2}];
   for(const item of keys){
-    await database.prepare('INSERT INTO ai_usage_limits(key,requests,expires_at) VALUES(?,0,?) ON CONFLICT(key) DO NOTHING').bind(item.key,new Date(time.getTime()+3*86400000).toISOString()).run();
-    const row=await database.prepare('UPDATE ai_usage_limits SET requests=requests+? WHERE key=? AND requests+?<=? RETURNING requests').bind(item.cost,item.key,item.cost,item.limit).first<{requests:number}>();
+    const row=await database.prepare('INSERT INTO ai_usage_limits(key,requests,expires_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET requests=ai_usage_limits.requests+excluded.requests WHERE ai_usage_limits.requests+excluded.requests<=? RETURNING requests').bind(item.key,item.cost,new Date(time.getTime()+3*86400000).toISOString(),item.limit).first<{requests:number}>();
     if(!row)throw new AssistantError(item.cost===1?'rate_limit':'daily_limit',429);
   }
   // Only aggregate counters, never messages or identifying account data.
@@ -22,7 +21,6 @@ export function publicAssistantListing(row:Record<string,unknown>):Listing {
 export async function findAssistantListings(database:AssistantDatabase,filters:AssistantFilters,ids?:string[]) {
   // Details re-read the exact shown IDs, always checking published status again.
   const query=assistantQuery(ids?emptyFilters():filters,ids);
-  const count=await database.prepare(`SELECT count(*) AS n FROM listings l WHERE ${query.where}`).bind(...query.values).first<{n:number}>();
-  const rows=await database.prepare(`SELECT l.id,l.title,l.purpose,l.property_type,l.price,l.currency,l.city,l.district,l.gross_area,l.net_area,l.rooms,l.bedrooms,l.bathrooms,l.building_age,l.furnished,l.amenities,l.images FROM listings l WHERE ${query.where} ORDER BY ${query.order} LIMIT 6`).bind(...query.values).all<Record<string,unknown>>();
-  return {listings:rows.results.map(publicAssistantListing),total:Number(count?.n||0)};
+  const rows=await database.prepare(`SELECT COUNT(*) OVER() AS assistant_total,l.id,l.title,l.purpose,l.property_type,l.price,l.currency,l.city,l.district,l.gross_area,l.net_area,l.rooms,l.bedrooms,l.bathrooms,l.building_age,l.furnished,l.amenities,l.images FROM listings l WHERE ${query.where} ORDER BY ${query.order} LIMIT 6`).bind(...query.values).all<Record<string,unknown>>();
+  return {listings:rows.results.map(publicAssistantListing),total:Number(rows.results[0]?.assistant_total||0)};
 }
