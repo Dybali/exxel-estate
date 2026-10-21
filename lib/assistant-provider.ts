@@ -6,7 +6,7 @@ export type Usage={input:number;output:number};
 type GenerateResponse={candidates?:{finishReason?:string;content?:{parts?:{text?:string}[]}}[];usageMetadata?:{promptTokenCount?:number;candidatesTokenCount?:number;thoughtsTokenCount?:number}};
 export async function generateObject(settings:AISettings,instruction:string,input:unknown,schema:unknown,onUsage:(usage:Usage)=>Promise<void>) {
   if(!settings.GEMINI_API_KEY)throw new AssistantError('unavailable',503);
-  const model=settings.GEMINI_MODEL||'gemini-2.5-flash-lite';
+  const model=settings.GEMINI_MODEL||'gemini-3.5-flash-lite';
   if(!/^gemini-[a-z0-9.-]{1,70}$/.test(model))throw new AssistantError('unavailable',503);
   let response:Response;
   try{response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{

@@ -6,9 +6,9 @@ Ana sayfada hızlı bağlantıların altında `#ev-asistani` bölümü; ayrıca 
 
 ## Gemini etkinleştirme
 
-`GEMINI_API_KEY` sunucu sırrı native Sites ortam değişkenleri üzerinden tanımlanmalıdır. Anahtar tarayıcıya, kaynak koduna, URL'ye veya NEXT_PUBLIC değişkenine konulmaz. Önerilen başlangıç modeli `GEMINI_MODEL=gemini-2.5-flash-lite`; dış istekler sadece sabit Google endpoint'ine HTTPS üzerinden gider. Yönlendirme takip edilmez. API anahtarı henüz tanımlı değilse arayüz bağlantının etkin olmadığını söyler ve standart aramaya yönlendirir; sahte yapay zekâ yanıtı veya örnek sonuç üretmez.
+`GEMINI_API_KEY` sunucu sırrı native Sites ortam değişkenleri üzerinden tanımlanır. Anahtar tarayıcıya, kaynak koduna, URL'ye veya NEXT_PUBLIC değişkenine konulmaz. Model `GEMINI_MODEL=gemini-3.5-flash-lite`; dış istekler sadece sabit Google endpoint'ine HTTPS üzerinden gider. Yönlendirme takip edilmez. API anahtarı tanımlı değilse arayüz bağlantının etkin olmadığını söyler ve standart aramaya yönlendirir; sahte yapay zekâ yanıtı veya örnek sonuç üretmez. Gemini 2.5 Flash-Lite modeller listesinde görünmesine rağmen yeni hesapta generateContent için 404 verdi; gerçek çağrıdan gelen yönlendirme üzerine 3.5 Flash-Lite kullanıldı.
 
-Google AI Studio ilk kurulumundaki hizmet şartları/yaş beyanı hesap sahibi tarafından kabul edilmelidir. Henüz API anahtarı veya canlı Gemini testi tamamlanmadı. Ücretli Google aboneliği/billing açılmadı. Ücretsiz hizmetlerde veri kullanım koşulları ayrıca değerlendirilmelidir; testler yapay mesajlarla yapılır.
+Google AI Studio ilk kurulumundaki hizmet şartları/yaş beyanı hesap sahibi tarafından tamamlandı; API anahtarı Google tarafından doğrulandı ve native Sites'ta secret olarak tanımlandı. Ücretli Google aboneliği/billing açılmadı. Ücretsiz hizmetlerde veri kullanım koşulları ayrıca değerlendirilmelidir; pilotta yapay mesajlar kullanıldı. Yerel önizleme için anahtar sadece Git dışındaki `.dev.vars` içindedir.
 
 ## Arama ve veri
 
@@ -26,4 +26,4 @@ Kota, Site'ın mevcut D1 `DB` binding'inde `0019_faulty_blob.sql` migration'ıyl
 
 ## Doğrulama
 
-`node --test tests/assistant.test.mjs`: para birimi/konum, SQL parametreleri, yayın durumu, gizli alanlar, atomik kota, Gemini istek yapısı, maskelenen iletişim bilgileri, eksik model çıktısı ve sunucu üyelik kontrolü için 10 test. Bunlar yapay verilerle çalışır; gerçek modelin dil/arama kalitesini ölçen canlı pilot yerine geçmez. API anahtarı bağlandıktan sonra dört ana dilde gerçek sorgular, devam eden bütçe değişikliği ve bilinmeyen özellik soruları ayrıca doğrulanmalıdır.
+`node --test tests/assistant.test.mjs`: para birimi/konum, SQL parametreleri, yayın durumu, gizli alanlar, atomik kota, Gemini istek yapısı, maskelenen iletişim bilgileri, eksik model çıktısı ve sunucu üyelik kontrolü için 10 test. Tüm depo testleri: 53 geçti. Gerçek Gemini 3.5 Flash-Lite pilotunda Türkçe, İngilizce, Almanca ve Arapça aynı Bodrum/bahçeli villa/satılık/6 milyon TRY sorgusunu doğru filtrelere dönüştürdü (4/4, toplam 3472 giriş ve 787 çıkış tokenı). Girişsiz canlı POST 401 doğrulandı. Tam tarayıcı üye sohbeti ayrıca kontrol edilmelidir; gerçek kullanıcı parolası veya oturumu test için oluşturulmadı/değiştirilmedi.
