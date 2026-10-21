@@ -1,3 +1,4 @@
+import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {presentationFrom} from "@/lib/presentation";
 import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
 import { centers,mapBoundsSql,validBounds } from "@/lib/search-filters";
@@ -51,7 +52,12 @@ export async function POST(request:Request) {
   if(!user) return error("İlan vermek için giriş yapın.",401);
   if(!user.email_verified)return error('İlan vermek için önce e-posta adresinizi doğrulayın.',403);
   if(!["agent","individual","admin"].includes(user.role)) return error("İlan vermek için hesap türünüzü güncelleyin.",403);
-  if(user.role==="agent" && user.agent_status!=="approved" && !isAdmin(user)) return error("Emlakçı hesabınız henüz onaylanmadı.",403);
+  await officeDB();
+  if(user.role==='agent'&&!isAdmin(user)){
+    const verification=await db().prepare('SELECT state,company_snapshot FROM office_verifications WHERE user_id=?').bind(user.id).first<{state:string;company_snapshot:string}>();
+    if(!verification||verification.state==='rejected'||verification.company_snapshot!==user.company)return error('Önce ofis yetki belgenizi incelemeye gönderin.',403);
+    if(user.agent_status==='rejected'&&verification.state==='approved')return error('Emlakçı hesabınız yönetici tarafından durduruldu. Yöneticiyle iletişime geçin.',403);
+  }
   const quota=await db().prepare("SELECT count(*) AS n FROM listings WHERE owner_id=? AND status!='rejected'").bind(user.id).first<{n:number}>();
   if(user.role==="individual"&&Number(quota?.n||0)>=3)return error("Sunum sürümünde bireysel hesap başına en fazla 3 ilan eklenebilir. Paketler açıldığında limitler güncellenecek.",429);
   let data:Record<string,unknown>;
@@ -86,12 +92,15 @@ export async function POST(request:Request) {
     }
   }
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
-  const id=crypto.randomUUID(),createdAt=now(),status=user.role==="agent"&&user.agent_status==="approved"||isAdmin(user)?"published":"pending";
+  const id=crypto.randomUUID(),createdAt=now();
+  const status=isAdmin(user)||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
   const statements=[db().prepare("INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
     .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt)];
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
-  if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=?").bind(createdAt,id));
+  if(user.role==='agent'&&!isAdmin(user))statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));
+  if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=? AND status='published'").bind(createdAt,id));
   await db().batch(statements);
-  return ok({id,status},{status:201});
+  const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
+  return ok({id,status:saved?.status||'pending'},{status:201});
 }

@@ -13,6 +13,7 @@ import {DiscoveryPanel} from "./DiscoveryPanel";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { ManagedListings } from "@/components/ManagedListings";
 import { favoritesChanged } from "@/lib/favorites-client";
+import {OfficeVerification} from './OfficeVerification';
 import { SellerUpgrade } from "@/components/SellerUpgrade";
 import { MessagesInbox, type Conversation } from "@/components/MessagesInbox";
 
@@ -108,7 +109,7 @@ export function Dashboard() {
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
         {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <DiscoveryPanel/>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}
-        {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? "Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/><AccountSecurity/></>}
+        {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? "Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/>{user.role==='agent'&&<OfficeVerification/>}<AccountSecurity/></>}
       </section>
     </div>
   </main>;

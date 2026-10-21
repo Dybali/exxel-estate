@@ -15,6 +15,7 @@ import "./panoramas.css";
 import "./immersive-tour.css";
 import "./tour-capture.css";
 import "./reporting.css";
+import "./office-verification.css";
 import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";

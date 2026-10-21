@@ -357,3 +357,22 @@ model listing_moderation_holds {
  created_at String
  released_at String?
 }
+
+model office_verifications {
+ user_id String @id
+ document_id String @unique
+ document_number String
+ company_snapshot String
+ object_key String
+ content_type String
+ byte_size Int
+ state String @default("pending")
+ note String @default("")
+ version Int @default(1)
+ created_at String
+ updated_at String
+ reviewer_id String?
+ reviewed_at String?
+ last_action String @default("")
+ @@index([state,updated_at],map:"office_verifications_state")
+}

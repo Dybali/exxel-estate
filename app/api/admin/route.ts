@@ -1,3 +1,4 @@
+import {officeDB} from '@/lib/office-verification-server';
 import {reportsDB} from '@/lib/reports-server';
 import { body, currentUser, db, error, isAdmin, now, ok, parseListing, sameOrigin, str } from "@/lib/server";
 
@@ -46,6 +47,10 @@ export async function POST(request: Request) {
     if (status === "rejected" && note.length < 5) return error("Ret nedenini en az 5 karakterle yazın.");
     const current = await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{ status: string }>();
     if (!current) return error("İlan bulunamadı.", 404);
+    if(status==='published'){
+      await officeDB();const owner=await db().prepare('SELECT u.id,u.role,u.company FROM users u JOIN listings l ON l.owner_id=u.id WHERE l.id=?').bind(id).first<{id:string;role:string;company:string}>();
+      if(owner?.role==='agent'){const verification=await db().prepare("SELECT state FROM office_verifications WHERE user_id=? AND company_snapshot=?").bind(owner.id,owner.company||'').first<{state:string}>();if(verification?.state!=='approved')return error('İlanı yayımlamadan önce emlakçının ofis yetki belgesini onaylayın.',403);}
+    }
     if (current.status === status) return error("İlan zaten bu durumda.", 409);
     await db().batch([db().prepare("UPDATE listings SET status=?,review_note=?,reviewed_by=?,reviewed_at=?,updated_at=?,published_at=CASE WHEN ?='published' THEN COALESCE(published_at,?) ELSE published_at END WHERE id=?")
       .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(),status,now(), id),audit("listing",id,status+(note?" · "+note:"")),...(status==="published"?[db().prepare("UPDATE listing_moderation_holds SET active=0,released_at=? WHERE listing_id=?").bind(now(),id)]:[])]);
@@ -55,6 +60,8 @@ export async function POST(request: Request) {
     if(!/^[a-f0-9-]{36}$/i.test(id))return error("Geçersiz emlakçı.");
     const agent=await db().prepare("SELECT id FROM users WHERE id=? AND role='agent'").bind(id).first();if(!agent)return error("Emlakçı bulunamadı.",404);
     if (status === "approved") {
+      await officeDB();const verification=await db().prepare("SELECT state FROM office_verifications WHERE user_id=? AND company_snapshot=(SELECT company FROM users WHERE id=?)").bind(id,id).first<{state:string}>();
+      if(verification?.state!=='approved')return error('Önce Ofis yetki belgeleri bölümünden belgeyi inceleyip onaylayın.',403);
       const applicant = await db().prepare("SELECT company FROM users WHERE id=? AND role='agent'").bind(id).first<{ company: string | null }>();
       if (!applicant?.company?.trim()) return error("Emlakçı onayı için ofis veya şirket adı gerekli.");
     }

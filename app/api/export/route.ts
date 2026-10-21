@@ -1,3 +1,4 @@
+import {officeDB} from '@/lib/office-verification-server';
 import {reportsDB} from '@/lib/reports-server';
 import {ensureProfiles} from '@/lib/seller-profiles';
 import { ensureMessagingSchema, type ChatDatabase } from "@/lib/messaging-service";
@@ -7,10 +8,10 @@ export async function GET(request:Request) {
   const user=await currentUser(request);if(!user?.email_verified||!isAdmin(user))return error("Yönetici yetkisi gerekli.",403);
   await ensureMessagingSchema(db() as unknown as ChatDatabase);
   await ensureProfiles(db());
-  await reportsDB();
+  await reportsDB();await officeDB();
   const params=new URL(request.url).searchParams;
   const table=params.get("table");
-  const selections:Record<string,string>={moderationHolds:"SELECT * FROM listing_moderation_holds",listingReports:"SELECT * FROM listing_reports",reportEvents:"SELECT * FROM listing_report_events",appointments:"SELECT * FROM appointments",adminAudit:"SELECT * FROM admin_audit",listingDrafts:"SELECT * FROM listing_drafts",sellerProfiles:"SELECT * FROM seller_profiles",users:"SELECT id,email,email_verified,name,phone,whatsapp_enabled,avatar_url,role,agent_status,company,created_at FROM users",oauthAccounts:"SELECT provider,provider_user_id,user_id,created_at FROM oauth_accounts",agencies:"SELECT * FROM agencies",listings:"SELECT * FROM listings",propertyImages:"SELECT * FROM property_images",favorites:"SELECT * FROM favorites",messages:"SELECT * FROM messages",messageReceipts:"SELECT * FROM message_receipts",packages:"SELECT * FROM packages",purchases:"SELECT * FROM purchases",countrySettings:"SELECT * FROM country_settings",savedSearches:"SELECT * FROM saved_searches",discoveryPreferences:"SELECT * FROM discovery_preferences",priceHistory:"SELECT * FROM price_history"};
+  const selections:Record<string,string>={officeVerifications:"SELECT * FROM office_verifications",moderationHolds:"SELECT * FROM listing_moderation_holds",listingReports:"SELECT * FROM listing_reports",reportEvents:"SELECT * FROM listing_report_events",appointments:"SELECT * FROM appointments",adminAudit:"SELECT * FROM admin_audit",listingDrafts:"SELECT * FROM listing_drafts",sellerProfiles:"SELECT * FROM seller_profiles",users:"SELECT id,email,email_verified,name,phone,whatsapp_enabled,avatar_url,role,agent_status,company,created_at FROM users",oauthAccounts:"SELECT provider,provider_user_id,user_id,created_at FROM oauth_accounts",agencies:"SELECT * FROM agencies",listings:"SELECT * FROM listings",propertyImages:"SELECT * FROM property_images",favorites:"SELECT * FROM favorites",messages:"SELECT * FROM messages",messageReceipts:"SELECT * FROM message_receipts",packages:"SELECT * FROM packages",purchases:"SELECT * FROM purchases",countrySettings:"SELECT * FROM country_settings",savedSearches:"SELECT * FROM saved_searches",discoveryPreferences:"SELECT * FROM discovery_preferences",priceHistory:"SELECT * FROM price_history"};
   if(table){
     if(!selections[table])return error("Geçersiz tablo.");
     const offset=Math.max(0,Math.floor(Number(params.get("offset"))||0));
@@ -40,7 +41,8 @@ export async function GET(request:Request) {
     db().prepare("SELECT * FROM listing_report_events").all(),
     db().prepare("SELECT * FROM listing_moderation_holds").all()
   ]);
-  const payload={format:"exxel-estate-v2",exportedAt:new Date().toISOString(),users:users.results,oauthAccounts:oauthAccounts.results,agencies:agencies.results,listings:listings.results,propertyImages:propertyImages.results,favorites:favorites.results,messages:messages.results,messageReceipts:messageReceipts.results,packages:packages.results,purchases:purchases.results,countrySettings:countrySettings.results,savedSearches:savedSearches.results,discoveryPreferences:discoveryPreferences.results,priceHistory:priceHistory.results,sellerProfiles:sellerProfiles.results,listingDrafts:listingDrafts.results,adminAudit:adminAudit.results,appointments:appointments.results,listingReports:listingReports.results,reportEvents:reportEvents.results,moderationHolds:moderationHolds.results,demoListings:DEMO_LISTINGS};
+  const officeVerifications=await db().prepare("SELECT * FROM office_verifications").all();
+  const payload={officeVerifications:officeVerifications.results,format:"exxel-estate-v2",exportedAt:new Date().toISOString(),users:users.results,oauthAccounts:oauthAccounts.results,agencies:agencies.results,listings:listings.results,propertyImages:propertyImages.results,favorites:favorites.results,messages:messages.results,messageReceipts:messageReceipts.results,packages:packages.results,purchases:purchases.results,countrySettings:countrySettings.results,savedSearches:savedSearches.results,discoveryPreferences:discoveryPreferences.results,priceHistory:priceHistory.results,sellerProfiles:sellerProfiles.results,listingDrafts:listingDrafts.results,adminAudit:adminAudit.results,appointments:appointments.results,listingReports:listingReports.results,reportEvents:reportEvents.results,moderationHolds:moderationHolds.results,demoListings:DEMO_LISTINGS};
   return ok(payload,{headers:{"Content-Disposition":"attachment; filename=exxel-estate-export.json","Cache-Control":"no-store"}});
 }
 
