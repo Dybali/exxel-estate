@@ -20,6 +20,12 @@ function load(file,overrides={}){
  },module,module.exports);if(!Object.keys(overrides).length)cache.set(full,module.exports);return module.exports;
 }
 const core=load('lib/assistant.ts'),service=load('lib/assistant-server.ts'),provider=load('lib/assistant-provider.ts');
+test('result count and link label use the actual total, including more than six results',()=>{
+ const {assistantResultSummary,assistantResultLabel}=load('lib/assistant-copy.ts');
+ for(const total of [1,4,27,120]){assert.ok(assistantResultSummary('tr',total).includes(`${total} ilan buldum`));assert.ok(assistantResultLabel('tr',total).includes(String(total)));assert.ok(!assistantResultSummary('tr',total).includes('aşağıda'));}
+ const href=new URL(core.filterHref({...core.emptyFilters(),purpose:'kiralik',city:'Erzurum',currency:'EUR',maxPrice:1000,furnished:false}),'https://site.test');
+ for(const [key,value] of Object.entries({assistant:'1',purpose:'kiralik',city:'Erzurum',currency:'EUR',maxPrice:'1000',furnished:'0'}))assert.equal(href.searchParams.get(key),value);
+});
 function database(){const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(path.join(root,'drizzle/0019_faulty_blob.sql'),'utf8'));return {sql,prepare(query){return {values:[],bind(...values){this.values=values;return this;},async first(){return sql.prepare(query).get(...this.values)||null;},async all(){return {results:sql.prepare(query).all(...this.values)};},async run(){return sql.prepare(query).run(...this.values);}};}};}
 test('canonical locations, currencies and exact Turkish room counts are preserved',()=>{
  const f=core.canonicalFilters({...core.emptyFilters(),district:'bodrum',maxPrice:6000000,currency:'TRY',rooms:'2+1'});
@@ -104,4 +110,14 @@ test('signed-in member receives verified search data; cross-site requests cannot
  const response=await route.POST(new Request('https://site.test/api/assistant',{method:'POST',headers:{Origin:'https://site.test'},body:JSON.stringify({message:'Haus kaufen',language:'de'})}));
  assert.equal(response.status,200);const result=await response.json();assert.equal(result.total,1);assert.equal(result.searched,true);assert.equal(result.language,'de');assert.equal(calls,1);
  assert.equal((await(await route.GET(new Request('https://site.test/api/assistant'))).json()).available,true);
+});
+test('assistant result destination excludes demo listings and keeps unfurnished criteria',async()=>{
+ const queries=[];
+ const route=load('app/api/listings/route.ts',{
+  '@/lib/office-verification-server':{},'@/lib/presentation':{},'@/lib/external-r2':{},'@/lib/turkey-neighborhoods':{},
+  '@/lib/server':{ok:Response.json,error:(message,status=400)=>Response.json({error:message},{status}),db:()=>({prepare(query){queries.push(query);return {bind(){return this;},async first(){return {n:0};}};}})},
+ });
+ const result=await(await route.GET(new Request('https://site.test/api/listings?assistant=1&furnished=0'))).json();
+ assert.equal(result.total,0);assert.deepEqual(result.listings,[]);assert.ok(queries.some(q=>q.includes('l.furnished=0')));
+ const ordinary=await(await route.GET(new Request('https://site.test/api/listings'))).json();assert.ok(ordinary.total>0);
 });

@@ -75,7 +75,7 @@ export function Explorer() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
   const requestedOnce = useRef(false);
-  const query = useMemo(() => {const q=filterQuery(filters,sort);if(boundsFilter)q.set("bounds",boundsFilter);return q.toString();}, [filters, sort,boundsFilter]);
+  const query = useMemo(() => {const q=filterQuery(filters,sort);if(params.get('assistant')==='1'){q.set('assistant','1');if(!filters.furnished&&params.get('furnished')==='0')q.set('furnished','0');}if(boundsFilter)q.set("bounds",boundsFilter);return q.toString();}, [filters, sort,boundsFilter,params]);
 
   useEffect(() => {
     const controller = new AbortController();

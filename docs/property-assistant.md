@@ -2,7 +2,7 @@
 
 ## Konum ve üyelik
 
-Ana sayfada hızlı bağlantıların altında `#ev-asistani` bölümü; ayrıca `/asistan` sayfası bulunur. Diğer sayfalardaki “Asistanla ev bul” bağlantısı ana sayfadaki bölüme götürür. Yalnızca mevcut uygulama oturumuyla giriş yapmış üyeler sohbet gönderebilir. Sunucu `currentUser` doğrulamasını model, kota ve ilan erişiminden önce yapar; girişsiz POST 401, başka kaynaktan POST 403 verir. İstemcinin gönderdiği kullanıcı kimliğine güvenilmez. Giriş bağlantısı kullanıcıyı asistan bölümüne geri döndürür. Tüm mevcut hesap rolleri kullanabilir; yönetici olma şartı yoktur.
+Sağ alttaki düğmeyle açılan 400 px genişliğinde sohbet penceresi; ayrıca `/asistan` sayfası bulunur. Ana sayfanın ortasında asistan bölümü veya fotoğraflı sonuç paneli yoktur. Her aramada gerçek toplam sayı ve aynı filtreleri koruyan ilan sayfası bağlantısı gösterilir. Sonuç sayfasına örnek ilanlar eklenmez; eşyalı olmayan kriteri de korunur. Yalnızca mevcut uygulama oturumuyla giriş yapmış üyeler sohbet gönderebilir. Sunucu üyeliği model, kota ve ilan erişiminden önce doğrular. Giriş bağlantısı kullanıcıyı ana sayfaya getirip sohbeti açar. Kapatma sohbeti silmez; yeni sohbet veya sayfadan ayrılma temizler.
 
 ## Gemini etkinleştirme
 
@@ -26,4 +26,4 @@ Kota, Site'ın mevcut D1 `DB` binding'inde `0019_faulty_blob.sql` migration'ıyl
 
 ## Doğrulama
 
-`node --test tests/assistant.test.mjs`: para birimi/konum, SQL parametreleri, yayın durumu, gizli alanlar, atomik kota, Gemini istek yapısı, maskelenen iletişim bilgileri, eksik model çıktısı ve sunucu üyelik kontrolü için 10 test. Tüm depo testleri: 53 geçti. Gerçek Gemini 3.5 Flash-Lite pilotunda Türkçe, İngilizce, Almanca ve Arapça aynı Bodrum/bahçeli villa/satılık/6 milyon TRY sorgusunu doğru filtrelere dönüştürdü (4/4, toplam 3472 giriş ve 787 çıkış tokenı). Girişsiz canlı POST 401 doğrulandı. Tam tarayıcı üye sohbeti ayrıca kontrol edilmelidir; gerçek kullanıcı parolası veya oturumu test için oluşturulmadı/değiştirilmedi.
+`node --test tests/assistant.test.mjs`: para birimi/konum, SQL parametreleri, yayın durumu, gizli alanlar, atomik kota, Gemini istek yapısı, maskelenen iletişim bilgileri, eksik model çıktısı ve sunucu üyelik kontrolü ve dinamik sonuç sayısı/bağlantısı için 12 test. Tüm depo testleri: 55 geçti. Gerçek Gemini 3.5 Flash-Lite pilotunda Türkçe, İngilizce, Almanca ve Arapça aynı Bodrum/bahçeli villa/satılık/6 milyon TRY sorgusunu doğru filtrelere dönüştürdü (4/4, toplam 3472 giriş ve 787 çıkış tokenı). Girişsiz canlı POST 401 doğrulandı. Tam tarayıcı üye sohbeti ayrıca kontrol edilmelidir; gerçek kullanıcı parolası veya oturumu test için oluşturulmadı/değiştirilmedi.

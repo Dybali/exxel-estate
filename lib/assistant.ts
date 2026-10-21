@@ -59,10 +59,9 @@ export function assistantQuery(f:AssistantFilters,ids?:string[]) {
   return {where:where.join(' AND '),values,order};
 }
 export function filterHref(filters:AssistantFilters) {
-  const q=new URLSearchParams();for(const [key,value] of Object.entries(filters)){
+  const q=new URLSearchParams({assistant:'1'});for(const [key,value] of Object.entries(filters)){
     if(value===null||Array.isArray(value)&&!value.length||key==='sort'&&value==='newest')continue;
-    if(key==='furnished'&&value===false)continue;
-    q.set(key,Array.isArray(value)?value.join(','):typeof value==='boolean'?'1':String(value));
+    q.set(key,Array.isArray(value)?value.join(','):typeof value==='boolean'?(value?'1':'0'):String(value));
   }return '/ilanlar?'+q;
 }
 export function redactContact(text:string){return text.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,'[email removed]').replace(/\+\d[\d ()-]{8,}\d/g,'[phone removed]');}

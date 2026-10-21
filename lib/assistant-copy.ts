@@ -1,4 +1,12 @@
 import type {AssistantLanguage} from './assistant';
+export function assistantResultSummary(language:AssistantLanguage,total:number){
+ const n=total.toLocaleString(language);
+ return {tr:`Senin için ${n} ilan buldum. Bağlantıdan tüm sonuçları inceleyebilirsin.`,en:`I found ${n} listings for you. Open the link to see all results.`,de:`Ich habe ${n} Angebote für dich gefunden. Über den Link kannst du alle Ergebnisse ansehen.`,ar:`وجدت لك ${n} إعلاناً. اضغط على الرابط لعرض جميع النتائج.`,fr:`J’ai trouvé ${n} annonces pour vous. Ouvrez le lien pour voir les résultats.`,ru:`Для вас найдено ${n} объявлений. Откройте ссылку, чтобы посмотреть результаты.`}[language];
+}
+export function assistantResultLabel(language:AssistantLanguage,total:number){
+ const n=total.toLocaleString(language);
+ return {tr:`${n} ilanı görüntüle`,en:`View ${n} listings`,de:`${n} Angebote ansehen`,ar:`عرض ${n} إعلاناً`,fr:`Voir les ${n} annonces`,ru:`Посмотреть ${n} объявлений`}[language];
+}
 export const assistantMemberCopy:Record<AssistantLanguage,{badge:string;required:string;login:string}>={
  tr:{badge:'Üyelere özel',required:'Ev asistanını kullanmak için üye hesabınla giriş yap.',login:'Giriş yap / Üye ol'},
  en:{badge:'Members only',required:'Sign in to your member account to use the home assistant.',login:'Sign in / Register'},

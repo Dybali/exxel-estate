@@ -4,7 +4,6 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Link from "@/components/SafeLink";
 import { ArrowRight } from "lucide-react";
 import { HomeSearch } from "@/components/HomeSearch";
-import {EstateAssistant} from "@/components/EstateAssistant";
 import { ListingCard } from "@/components/ListingCard";
 import { DEMO_LISTINGS, type Listing } from "@/lib/listings";
 import { useLocale } from "@/lib/i18n";
@@ -57,7 +56,6 @@ export default function Home() {
       <Link href="/ilanlar?purpose=kiralik"><span className="shortcut-icon"><img src="/shortcuts/rent.webp" width={72} height={72} alt="" decoding="async"/></span><span><strong>{t("Kirala")}</strong><small>{t("Kiralık ev ve daireleri görün")}</small></span><ArrowRight size={18}/></Link>
       <Link href="/sirketler"><span className="shortcut-icon"><img src="/shortcuts/companies.webp" width={72} height={72} alt="" decoding="async"/></span><span><strong>{t("Şirketler")}</strong><small>{t("Ofis ve firmaların ilanlarını inceleyin")}</small></span><ArrowRight size={18}/></Link>
     </section>
-    <EstateAssistant embedded/>
     <section className="market-section container"><div className="market-section-head"><div><span className="market-overline">ESTATEMARKET24</span><h2>{t("Öne çıkan ilanlar")}</h2><p>{t("Satılık ve kiralık seçenekleri karşılaştırın.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm ilanlar")}<ArrowRight size={18}/></Link></div><div className="market-feature-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing}/>)}</div></section>
     <section ref={mapRef} className="market-section market-map-section"><div className="container"><div className="market-section-head"><div><span className="market-overline">81 {t("il")}</span><h2>{t("Haritadan ilan keşfedin")}</h2><p>{t("İl seçin; yayındaki ilan sayısını görün ve sonuçlara geçin.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm şehirler")}<ArrowRight size={18}/></Link></div>{mapVisible ? <Suspense fallback={<div className="city-map-layout"><div className="city-map-loading">{t("Harita yükleniyor...")}</div></div>}><CityMap/></Suspense> : <div className="city-map-layout"><div className="city-map-loading">{t("Harita yükleniyor...")}</div></div>}</div></section>
     <section ref={companiesRef} className="market-section container market-companies-section"><div className="market-section-head"><div><span className="market-overline">{t("İş ortakları")}</span><h2>{t("Emlak ofisleri ve inşaat firmaları")}</h2><p>{t("Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.")}</p></div><Link href="/sirketler" className="market-more">{t("Tüm şirketler")}<ArrowRight size={18}/></Link></div>{companiesVisible ? <Suspense fallback={<div className="company-preview"><p className="directory-state">{t("Şirketler yükleniyor...")}</p></div>}><CompanyDirectory preview/></Suspense> : <div className="company-preview"><p className="directory-state">{t("Şirketler yükleniyor...")}</p></div>}</section>

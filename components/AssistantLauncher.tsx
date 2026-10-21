@@ -1,13 +1,15 @@
 'use client';
-import {Sparkles} from 'lucide-react';
+import {Sparkles,X} from 'lucide-react';
 import {usePathname} from 'next/navigation';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {useLocale} from '@/lib/i18n';
 import {assistantCopy} from '@/lib/assistant-copy';
-import Link from './SafeLink';
+import {EstateAssistant} from './EstateAssistant';
 export function AssistantLauncher(){
- const path=usePathname(),{locale}=useLocale(),[sectionVisible,setSectionVisible]=useState(false);
- useEffect(()=>{if(path!=='/'){setSectionVisible(false);return;}const section=document.getElementById('ev-asistani');if(!section||!('IntersectionObserver' in window))return;const observer=new IntersectionObserver(([entry])=>setSectionVisible(entry.isIntersecting));observer.observe(section);return()=>observer.disconnect();},[path]);
- if(sectionVisible||path?.startsWith('/asistan')||path?.startsWith('/admin')||path?.startsWith('/yonetim')||path?.startsWith('/ilan-ver'))return null;
- return <Link className="assistant-launcher" href="/#ev-asistani"><Sparkles size={20}/><span>{assistantCopy[locale].launcher}</span><i/></Link>;
+ const path=usePathname(),{locale}=useLocale(),[open,setOpen]=useState(false),[mounted,setMounted]=useState(false),button=useRef<HTMLButtonElement>(null);
+ useEffect(()=>{if(new URLSearchParams(window.location.search).get('assistant')==='1'){setOpen(true);setMounted(true);}},[path]);
+ useEffect(()=>{if(!open)return;const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'){setOpen(false);button.current?.focus();}};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[open]);
+ if(path?.startsWith('/asistan')||path?.startsWith('/admin')||path?.startsWith('/yonetim')||path?.startsWith('/ilan-ver'))return null;
+ const close=()=>{setOpen(false);button.current?.focus();};
+ return <>{mounted&&<aside id="estate-assistant-dock" role="dialog" aria-modal="false" aria-label={assistantCopy[locale].launcher} className="assistant-dock" hidden={!open}><EstateAssistant compact onClose={close}/></aside>}<button ref={button} type="button" className="assistant-launcher" aria-controls="estate-assistant-dock" aria-expanded={open} onClick={()=>{setMounted(true);setOpen(!open);}}>{open?<X size={20}/>:<Sparkles size={20}/>}<span>{assistantCopy[locale].launcher}</span><i/></button></>;
 }

@@ -1,7 +1,7 @@
 import {env} from 'cloudflare:workers';
 import {body,currentUser,db,sameOrigin,sha256} from '@/lib/server';
 import {AssistantError,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
-import {assistantCopy} from '@/lib/assistant-copy';
+import {assistantCopy,assistantResultSummary} from '@/lib/assistant-copy';
 import {planSearch,explainListings,type AISettings} from '@/lib/assistant-provider';
 import {findAssistantListings,reserveAssistantUsage} from '@/lib/assistant-server';
 const settings=()=>env as unknown as AISettings;
@@ -30,7 +30,7 @@ export async function POST(request:Request) {
     if(!filters.purpose&&plan.intent==='search')return reply({...base,message:copy.welcome});
     if((plan.intent==='compare'||plan.intent==='details')&&!input.shownIds.length)return reply({...base,message:copy.showFirst});
     const result=await findAssistantListings(database,filters,plan.intent==='search'?undefined:input.shownIds);
-    const message=result.total===0?copy.none:plan.intent==='search'?copy.found.replace('{n}',String(result.total)).replace('{shown}',String(result.listings.length)):await explainListings(settings(),input,result.listings,language,recordUsage);
+    const message=result.total===0?copy.none:plan.intent==='search'?assistantResultSummary(language,result.total):await explainListings(settings(),input,result.listings,language,recordUsage);
     return reply({...base,...result,message,searched:true});
   }catch(cause){
     const code=cause instanceof AssistantError?cause.code:'provider';
