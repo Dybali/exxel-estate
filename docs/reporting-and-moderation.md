@@ -34,7 +34,7 @@ reviews from overwriting another administrator. Every successful report action
 adds a separate event. The hold and report resolution are in the same transaction.
 
 Holding sets a real listing to `pending` and records an active moderation hold.
-Owner edits and price changes retain `pending` and the review metadata while
+Edits to any non-published listing retain `pending` until explicit review. This target-row status guard also protects a concurrent edit waiting on a moderation update. Owner edits and price changes retain `pending` and the review metadata while
 the hold remains active, including a concurrent edit that started before the
 hold. Explicit publication through the verified administrator review endpoint
 releases the hold in the same transaction. Editing as an administrator does not
