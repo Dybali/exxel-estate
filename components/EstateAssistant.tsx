@@ -4,7 +4,7 @@ import {ArrowRight,Globe2,LoaderCircle,Plus,Send,Sparkles,X} from 'lucide-react'
 import Link from './SafeLink';
 import {useLocale,locales} from '@/lib/i18n';
 import {assistantCopy,assistantMemberCopy,assistantResultLabel} from '@/lib/assistant-copy';
-import {emptyFilters,type AssistantFilters,type AssistantLanguage} from '@/lib/assistant';
+import {assistantHistory,emptyFilters,type AssistantFilters,type AssistantLanguage} from '@/lib/assistant';
 import {type Listing} from '@/lib/listings';
 type Turn={role:'user'|'assistant';text:string;href?:string;resultLabel?:string;unverified?:string[]};
 type Answer={message:string;language:AssistantLanguage;filters:AssistantFilters;unverified:string[];listings:Listing[];total:number;href:string;searched?:boolean};
@@ -21,7 +21,7 @@ export function EstateAssistant({compact=false,onClose}:{compact?:boolean;onClos
   const message=text.trim();if(!message||busy||!available)return;
   const cancel=new AbortController();controller.current=cancel;setBusy(true);setError('');setPending(message);
   try{
-   const response=await fetch('/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,language:selected,uiLanguage:language,history:turns.slice(-8).map(m=>({...m,text:m.text.slice(0,1200)})),filters,shownIds:answer?.listings.map(l=>l.id)||[]}),signal:cancel.signal});
+   const response=await fetch('/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,language:selected,uiLanguage:language,history:assistantHistory(turns),filters,shownIds:answer?.listings.map(l=>l.id)||[]}),signal:cancel.signal});
    const data=await response.json() as Answer&{error?:string};
    if(!response.ok){if(response.status===401){setAuthenticated(false);setAvailable(false);throw Error(assistantMemberCopy[language].required);}const key=data.error as keyof typeof copy;throw Error(typeof copy[key]==='string'?String(copy[key]):copy.unavailable);}
    setTurns(previous=>[...previous,{role:'user',text:message},{role:'assistant',text:data.message,...(data.searched&&data.total>0?{href:data.href,resultLabel:assistantResultLabel(data.language,data.total)}:{}),unverified:data.unverified}].slice(-20) as Turn[]);setDraft('');setDetected(data.language);setFilters(data.filters);

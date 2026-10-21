@@ -25,6 +25,10 @@ export const chatInput=z.object({
   shownIds:z.array(z.string().uuid()).max(6).default([]),
 }).strict();
 export type ChatInput=z.infer<typeof chatInput>;
+// UI turns also hold result links and warnings; only conversation text belongs in API history.
+export function assistantHistory(turns:readonly {role:'user'|'assistant';text:string}[]):ChatInput['history'] {
+  return turns.slice(-8).map(({role,text})=>({role,text:text.slice(0,1200)}));
+}
 export const planSchema=z.object({
   intent:z.enum(['search','compare','details','clarify','chat']),language:z.enum(assistantLanguages),
   reply:z.string().max(1800),filters:filterSchema,
