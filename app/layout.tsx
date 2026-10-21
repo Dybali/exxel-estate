@@ -16,6 +16,8 @@ import "./immersive-tour.css";
 import "./tour-capture.css";
 import "./reporting.css";
 import "./office-verification.css";
+import "./assistant.css";
+import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -39,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><Footer/></LocaleProvider></body>
+      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><AssistantLauncher/><Footer/></LocaleProvider></body>
     </html>
   );
 }

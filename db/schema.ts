@@ -1,6 +1,12 @@
 import {sql} from "drizzle-orm";
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+// Aggregate assistant quotas in the Site D1 binding; no chat content is stored.
+export const aiUsageLimits=sqliteTable('ai_usage_limits',{
+  key:text('key').primaryKey(),requests:integer('requests').notNull().default(0),
+  inputTokens:integer('input_tokens').notNull().default(0),outputTokens:integer('output_tokens').notNull().default(0),expiresAt:text('expires_at').notNull(),
+},t=>[index('ai_usage_expiry_idx').on(t.expiresAt)]);
+
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull(),
