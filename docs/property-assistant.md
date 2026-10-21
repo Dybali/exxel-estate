@@ -12,7 +12,7 @@ Google AI Studio ilk kurulumundaki hizmet şartları/yaş beyanı hesap sahibi t
 
 ## Arama ve veri
 
-Gemini bir JSON şemasında kriter çıkarır; sunucu bunları yeniden doğrular. Yalnızca izin verilen sabit filtreler ve parametreli SQL kullanılır. İl/ilçe Türkiye kayıtlarıyla eşleştirilir; bütçe para birimi yazılmadığında önceki para birimi, o da yoksa TRY kullanılır; ayrıca para birimi sorulmaz. 2 yatak odası ile 2+1 oda düzeni ayrıdır. Bütçe kendiliğinden genişletilmez; para birimleri arasında dönüşüm yapılmaz. En fazla 6 sonuç ve toplam sayı döner.
+Gemini bir JSON şemasında kriter çıkarır; sunucu bunları yeniden doğrular. Yalnızca izin verilen sabit filtreler ve parametreli SQL kullanılır. İl/ilçe Türkiye kayıtlarıyla eşleştirilir; bütçe isteğe bağlıdır. Tutar verilmemişse para birimi sorulmaz ve fiyat filtresi uygulanmaz. Yalnızca tutar verilmiş ve para birimi mevcut/önceki konuşmada belirtilmemişse sorulur; otomatik TRY varsayılmaz. 2 yatak odası ile 2+1 oda düzeni ayrıdır. Bütçe kendiliğinden genişletilmez; para birimleri arasında dönüşüm yapılmaz. En fazla 6 sonuç ve toplam sayı döner.
 
 İlan kaynağı mevcut `db()` adaptörüdür: canlı DATABASE_URL varsa Neon, yerelde D1. Sadece `status='published'` olan gerçek kayıtlar sorgulanır. DEMO_LISTINGS hiçbir zaman asistan sonuçlarına eklenmez. Sahip iletişim bilgileri, kullanıcı kayıtları, mesajlar, inceleme notları veya özel belgeler modele gönderilmez. Karşılaştırma/güncel bilgi için son görülen ilanlar tekrar published filtresiyle okunur. Başlıklar ve konuşma talimat değil veri kabul edilir. Aidat, denize mesafe, deprem dayanımı gibi kayıtta olmayan bilgiler doğrulanmış gibi sunulmaz.
 
@@ -26,7 +26,7 @@ Kota, Site'ın mevcut D1 `DB` binding'inde `0019_faulty_blob.sql` migration'ıyl
 
 ## Doğrulama
 
-`node --test tests/assistant.test.mjs`: para birimi/konum, SQL parametreleri, yayın durumu, gizli alanlar, atomik kota, Gemini istek yapısı, maskelenen iletişim bilgileri, eksik model çıktısı ve sunucu üyelik kontrolü dinamik sonuç sayısı/bağlantısı, çok mesajlı konuşma ve tek sorguda toplam sonuç için 14 test. Gerçek Gemini 3.5 Flash-Lite pilotunda Türkçe, İngilizce, Almanca ve Arapça aynı Bodrum/bahçeli villa/satılık/6 milyon TRY sorgusunu doğru filtrelere dönüştürdü (4/4, toplam 3472 giriş ve 787 çıkış tokenı). Girişsiz canlı POST 401 doğrulandı. Tam tarayıcı üye sohbeti ayrıca kontrol edilmelidir; gerçek kullanıcı parolası veya oturumu test için oluşturulmadı/değiştirilmedi.
+`node --test tests/assistant.test.mjs`: para birimi/konum, SQL parametreleri, yayın durumu, gizli alanlar, atomik kota, Gemini istek yapısı, maskelenen iletişim bilgileri, eksik model çıktısı ve sunucu üyelik kontrolü dinamik sonuç sayısı/bağlantısı, çok mesajlı konuşma ve tek sorguda toplam sonuç için 15 test. Gerçek Gemini 3.5 Flash-Lite pilotunda Türkçe, İngilizce, Almanca ve Arapça aynı Bodrum/bahçeli villa/satılık/6 milyon TRY sorgusunu doğru filtrelere dönüştürdü (4/4, toplam 3472 giriş ve 787 çıkış tokenı). Girişsiz canlı POST 401 doğrulandı. Tam tarayıcı üye sohbeti ayrıca kontrol edilmelidir; gerçek kullanıcı parolası veya oturumu test için oluşturulmadı/değiştirilmedi.
 
 
 ## Yanıt süresi

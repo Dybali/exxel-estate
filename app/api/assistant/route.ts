@@ -24,9 +24,11 @@ export async function POST(request:Request) {
     const recordUsage=await reserveAssistantUsage(quotas,await sha256('assistant:'+settings().GEMINI_API_KEY+':'+client),Number(settings().AI_DAILY_CALL_LIMIT)||400);
     const plan=await planSearch(settings(),input,recordUsage);language=input.language==='auto'?plan.language:input.language;
     const copy=assistantCopy[language];
-    const filters=canonicalFilters(plan.filters,plan.intent!=='clarify'&&plan.intent!=='chat');
+    const filters=canonicalFilters(plan.filters,false);
     const base={language,filters,unverified:plan.unverified,listings:[],total:0,href:filterHref(filters)};
-    if(plan.intent==='clarify'||plan.intent==='chat')return reply({...base,message:plan.reply});
+    // Currency is needed only for an actual price constraint; keep clarification in the conversation.
+    if((filters.minPrice!==null||filters.maxPrice!==null)&&!filters.currency)return reply({...base,message:copy.currency});
+    if(plan.intent==='clarify'||plan.intent==='chat')return reply({...base,message:plan.intent==='clarify'&&!filters.purpose?copy.welcome:plan.reply});
     if(!filters.purpose&&plan.intent==='search')return reply({...base,message:copy.welcome});
     if((plan.intent==='compare'||plan.intent==='details')&&!input.shownIds.length)return reply({...base,message:copy.showFirst});
     const result=await findAssistantListings(database,filters,plan.intent==='search'?undefined:input.shownIds);
