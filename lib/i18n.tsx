@@ -616,6 +616,18 @@ const accountFeatureWords:Record<string,[string,string,string,string,string]>={
 };
 for(const [key,[de,fr,en,ar,ru]] of Object.entries(accountFeatureWords))words[key]={de,fr,en,ar,ru};
 
+Object.assign(words,{
+ "Fiyatlar":{de:'Preise',fr:'Tarifs',en:'Pricing',ar:'الأسعار',ru:'Цены'},
+ "Blog & Haberler":{de:'Blog & Nachrichten',fr:'Blog & Actualités',en:'Blog & News',ar:'المدونة والأخبار',ru:'Блог и новости'},
+ "Paketler ve fiyatlar":{de:'Pakete und Preise',fr:'Offres et tarifs',en:'Plans and pricing',ar:'الباقات والأسعار',ru:'Пакеты и цены'},
+ "Haberler":{de:'Nachrichten',fr:'Actualités',en:'News',ar:'أخبار',ru:'Новости'},
+ "Rehberler":{de:'Ratgeber',fr:'Guides',en:'Guides',ar:'أدلة',ru:'Руководства'},
+ "Emlak gündemi ve rehberler":{de:'Immobilien-News und Ratgeber',fr:'Actualités et guides immobiliers',en:'Property news and guides',ar:'أخبار وأدلة العقارات',ru:'Новости и советы о недвижимости'},
+ "Tüm yazılar":{de:'Alle Artikel',fr:'Tous les articles',en:'All articles',ar:'كل المقالات',ru:'Все статьи'},
+ "Yazılarda ara":{de:'Artikel durchsuchen',fr:'Rechercher un article',en:'Search articles',ar:'البحث في المقالات',ru:'Поиск статей'},
+ "Yazılarda ara…":{de:'Artikel durchsuchen…',fr:'Rechercher un article…',en:'Search articles…',ar:'ابحث في المقالات…',ru:'Поиск статей…'},
+ "yazı":{de:'Artikel',fr:'articles',en:'articles',ar:'مقالات',ru:'статей'},
+});
 for(const [key,[de,fr,en,ar,ru]] of Object.entries({...discoveryTranslations,...listingToolsTranslations}))words[key]={de,fr,en,ar,ru};
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({

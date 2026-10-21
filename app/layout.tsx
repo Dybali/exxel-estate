@@ -17,6 +17,7 @@ import "./tour-capture.css";
 import "./reporting.css";
 import "./office-verification.css";
 import "./assistant.css";
+import "./editorial.css";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";

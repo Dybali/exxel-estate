@@ -60,6 +60,8 @@ export function Header() {
     { href: "/ilanlar?purpose=kiralik", label: "Kiralık", active: false },
     { href: "/ilanlar", label: "İlanlar", active: path === "/ilanlar" },
     { href: "/sirketler", label: "Şirketler", active: path.startsWith("/sirketler") },
+    { href: "/paketler", label: "Fiyatlar", active: path === "/paketler" },
+    { href: "/blog", label: "Blog & Haberler", active: path.startsWith("/blog") },
   ];
   return <>
     <div className={isHome ? "topline home-topline" : "topline"}><div className="container top-inner"><span>{t("Türkiye'de gayrimenkul aramanın yeni adresi")}</span><div><details className="locale-switch" ref={languageMenu}><summary aria-label={`Dil / Language: ${currentLanguage.label}`}><Globe2 size={15} aria-hidden="true"/><span className="locale-hint">Dil / Language</span><img src={`/flags/${currentLanguage.flag}.svg`} alt="" width={20} height={15}/><strong>{currentLanguage.label}</strong><ChevronDown size={14} aria-hidden="true"/></summary><div className="locale-options">{locales.map((item) => <button type="button" key={item.code} lang={item.code} aria-label={`Dil: ${item.label}`} className={locale === item.code ? "active" : ""} aria-current={locale === item.code ? "true" : undefined} onClick={() => { setLocale(item.code); if (languageMenu.current) languageMenu.current.open = false; }}><img src={`/flags/${item.flag}.svg`} alt="" width={22} height={17}/><span>{item.label}</span></button>)}</div></details></div></div></div>
