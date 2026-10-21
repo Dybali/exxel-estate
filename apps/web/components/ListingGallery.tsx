@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Building2, ChevronLeft, ChevronRight, Images, X } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, Flag, Images, X } from "lucide-react";
+import {ReportListing} from './ReportListing';
 import { ListingActions } from "./ListingActions";
 import {PanoramaTour} from './PanoramaTour';
 import type {PanoramaScene} from '@/lib/panoramas';
 export function ListingGallery({ images, title, listingId,panoramas=[],floorPlan='' }: {images:string[];title:string;listingId?:string;panoramas?:PanoramaScene[];floorPlan?:string}) {
-  const [active,setActive]=useState<number|null>(null);const dialog=useRef<HTMLDialogElement>(null);const gallery=images.filter(Boolean);
+  const [active,setActive]=useState<number|null>(null),[reportOpen,setReportOpen]=useState(false);const reportButton=useRef<HTMLButtonElement>(null);const dialog=useRef<HTMLDialogElement>(null);const gallery=images.filter(Boolean);
   useEffect(()=>{const el=dialog.current;if(active===null||!el)return;el.showModal();const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{el.close();document.body.style.overflow=overflow;};},[active!==null]);
   const go=(direction:number)=>setActive(n=>n===null?0:(n+direction+gallery.length)%gallery.length);
   return <><div className="property-gallery" data-count={Math.min(gallery.length,5)}>
@@ -14,6 +15,8 @@ export function ListingGallery({ images, title, listingId,panoramas=[],floorPlan
     {gallery.length>0&&<button className="property-gallery-count" aria-label={`${gallery.length} fotoğrafı görüntüle`} onClick={()=>setActive(0)}><Images size={16}/><span>{gallery.length} fotoğrafı görüntüle</span></button>}
     {panoramas.length>0&&<PanoramaTour scenes={panoramas} floorPlan={floorPlan} compact/>}
   </div>
+  {listingId&&<div className="listing-report-bar"><span>Hatalı veya şüpheli bir ilan mı?</span><button ref={reportButton} type="button" onClick={()=>setReportOpen(true)}><Flag size={16} aria-hidden="true"/> İlanı bildir</button></div>}
+  {listingId&&reportOpen&&<ReportListing listingId={listingId} title={title} onClose={()=>{setReportOpen(false);requestAnimationFrame(()=>reportButton.current?.focus());}}/>}
   {active!==null&&gallery.length>0&&<dialog ref={dialog} className="property-lightbox" onCancel={()=>setActive(null)} onClick={e=>{if(e.target===e.currentTarget)setActive(null);}} onKeyDown={e=>{if(e.key==='ArrowRight'){e.preventDefault();go(1);}if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}}} aria-label="İlan fotoğrafları"><div className="property-lightbox-toolbar"><span>{active+1} / {gallery.length}</span><button autoFocus onClick={()=>setActive(null)} aria-label="Galeriyi kapat"><X size={25}/></button></div><div className="property-lightbox-image"><button disabled={gallery.length===1} onClick={()=>go(-1)} aria-label="Önceki fotoğraf"><ChevronLeft size={28}/></button><img src={gallery[active]} alt={`${title} — fotoğraf ${active+1}`}/><button disabled={gallery.length===1} onClick={()=>go(1)} aria-label="Sonraki fotoğraf"><ChevronRight size={28}/></button></div><p>{title}</p></dialog>}
   </>;
 }
