@@ -1,3 +1,4 @@
+import {publicListing} from '@/lib/listings';
 import {PropertyPresentation} from "@/components/PropertyPresentation";
 import Link from "@/components/SafeLink";
 import { notFound } from "next/navigation";
@@ -16,7 +17,7 @@ export async function generateMetadata({params}:{params:Promise<{id:string}>}):P
   return {title:`${listing.title} | estatemarket24`,description:listing.description.slice(0,155),openGraph:{title:listing.title,description:listing.description.slice(0,155),images:listing.images[0]?[listing.images[0]]:[]}};
 }
 export default async function Detail({params}:{params:Promise<{id:string}>}) {
-  const {id}=await params,listing=await listingById(id);
+  const {id}=await params,original=await listingById(id),listing=original?publicListing(original):null;
   if(!listing||listing.status&&listing.status!=='published'&&listing.source!=='demo')notFound();
   const map=listing.latitude!=null&&listing.longitude!=null?`https://www.openstreetmap.org/export/embed.html?bbox=${listing.longitude-.012}%2C${listing.latitude-.009}%2C${listing.longitude+.012}%2C${listing.latitude+.009}&layer=mapnik&marker=${listing.latitude}%2C${listing.longitude}`:null;
   const facts:[string,React.ReactNode][]=[['İlan türü',<T key="purpose" id={listing.purpose==='satilik'?'Satılık':'Kiralık'}/>],['Gayrimenkul tipi',<T key="type" id={typeLabel(listing.propertyType)}/>],['Brüt alan',`${listing.grossArea} m²`]];

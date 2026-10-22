@@ -1,7 +1,8 @@
+import {publicListing} from '@/lib/listings';
 import {ensureProfiles} from '@/lib/seller-profiles';
 import { db, error, ok, parseListing } from "@/lib/server";
-import { DEMO_COMPANIES } from "@/lib/demo-companies";
-import { DEMO_LISTINGS } from "@/lib/listings";
+import { PUBLIC_DEMO_COMPANIES as DEMO_COMPANIES } from "@/lib/demo-companies";
+import { PUBLIC_DEMO_LISTINGS } from "@/lib/listings";
 
 type CompanyRow = { id: string; owner_id: string; name: string; category: string; created_at: string; bio:string|null; avatar_url:string|null };
 
@@ -9,7 +10,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   if (!/^[a-f0-9-]{36}$/i.test(id)) return error("Şirket bulunamadı.", 404);
   const sample = DEMO_COMPANIES.find((company) => company.id === id);
-  if (sample) return ok({ company: sample, listings: DEMO_LISTINGS.filter((listing) => sample.listingIds?.includes(listing.id)), page: 1, pageSize: 24 }, { headers: { "Cache-Control": "public, max-age=300, s-maxage=600" } });
+  if (sample) return ok({ company: sample, listings: PUBLIC_DEMO_LISTINGS.filter((listing) => sample.listingIds?.includes(listing.id)), page: 1, pageSize: 24 }, { headers: { "Cache-Control": "public, max-age=300, s-maxage=600" } });
   const page = Math.min(1000, Math.max(1, Number(new URL(request.url).searchParams.get("page")) || 1));
   const pageSize = 24;
   await ensureProfiles(db());
@@ -19,7 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     db().prepare("SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.owner_id=? AND l.status='published' ORDER BY l.created_at DESC LIMIT ? OFFSET ?").bind(company.owner_id, pageSize, (page - 1) * pageSize).all<Record<string, unknown>>(),
     db().prepare("SELECT COUNT(*) AS listing_count, SUM(CASE WHEN purpose='satilik' THEN 1 ELSE 0 END) AS sale_count, SUM(CASE WHEN purpose='kiralik' THEN 1 ELSE 0 END) AS rent_count FROM listings WHERE owner_id=? AND status='published'").bind(company.owner_id).first<{ listing_count: number; sale_count: number | null; rent_count: number | null }>(),
   ]);
-  const listings = (rows.results || []).map(parseListing);
+  const listings = (rows.results || []).map(row=>publicListing(parseListing(row)));
   return ok({ company: { id: company.id, ownerId:company.owner_id,description:company.bio||"",avatarUrl:company.avatar_url,name: company.name, category: company.category, listingCount: Number(counts?.listing_count || 0), saleCount: Number(counts?.sale_count || 0), rentCount: Number(counts?.rent_count || 0) }, listings, page, pageSize }, {
     headers: { "Cache-Control": "no-store" },
   });

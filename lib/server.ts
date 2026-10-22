@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { DEMO_LISTINGS, type Listing } from "./listings";
+import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
 import { neonD1 } from "./neon-d1";
 
 type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string };
@@ -88,7 +88,7 @@ export function parseListing(row:Record<string,unknown>):Listing {
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {
-  const demo = DEMO_LISTINGS.find((item)=>item.id===id);
+  const demo = PUBLIC_DEMO_LISTINGS.find((item)=>item.id===id);
   if (demo) return demo;
   if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) return null;
   const row = await db().prepare("SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.id=?").bind(id).first<Record<string,unknown>>();

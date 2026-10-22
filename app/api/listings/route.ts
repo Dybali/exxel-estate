@@ -1,9 +1,10 @@
+import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
 import { centers,mapBoundsSql,validBounds } from "@/lib/search-filters";
-import { AMENITIES, DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
+import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
 import { validDistrict } from "@/lib/turkey-locations";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
@@ -26,7 +27,7 @@ export async function GET(request:Request) {
   const query=where.join(" AND ");
   const sort=q.get("sort");
   const order=sort==="priceAsc"?"l.price ASC,l.id ASC":sort==="priceDesc"?"l.price DESC,l.id ASC":sort==="area"?"l.gross_area DESC,l.id ASC":"l.featured DESC,l.created_at DESC";
-  const demo=(q.get('assistant')==='1'?[]:DEMO_LISTINGS).filter((l)=>{
+  const demo=(q.get('assistant')==='1'?[]:PUBLIC_DEMO_LISTINGS).filter((l)=>{
     for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["rooms","rooms"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
     for(const [param,field,compare] of [["minPrice","price","min"],["maxPrice","price","max"],["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
     if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
@@ -42,7 +43,7 @@ export async function GET(request:Request) {
   const realOffset=Math.min(ordered?Math.max(0,pageStart-demo.length):pageStart,realCount);
   const realLimit=Math.max(0,Math.min(ordered?pageStart+pageSize-realOffset:pageSize,realCount-realOffset));
   let real:Listing[]=[];
-  if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(parseListing)}
+  if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=ordered?[...real,...demo].sort((a,b)=>sort==="priceAsc"?a.price-b.price||a.id.localeCompare(b.id):sort==="priceDesc"?b.price-a.price||a.id.localeCompare(b.id):b.grossArea-a.grossArea||a.id.localeCompare(b.id)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
   return ok({listings:q.get("map")==="1"?listings.map(l=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province":"approximate",description:"",images:l.images.slice(0,1),translations:undefined})):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});

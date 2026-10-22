@@ -170,5 +170,5 @@ test('assistant result destination excludes demo listings and keeps unfurnished 
  });
  const result=await(await route.GET(new Request('https://site.test/api/listings?assistant=1&furnished=0'))).json();
  assert.equal(result.total,0);assert.deepEqual(result.listings,[]);assert.ok(queries.some(q=>q.includes('l.furnished=0')));
- const ordinary=await(await route.GET(new Request('https://site.test/api/listings'))).json();assert.ok(ordinary.total>0);
+ const ordinary=await(await route.GET(new Request('https://site.test/api/listings'))).json();assert.equal(ordinary.total,0);assert.deepEqual(ordinary.listings,[]);
 });

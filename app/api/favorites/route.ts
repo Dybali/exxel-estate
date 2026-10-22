@@ -1,4 +1,4 @@
-import { DEMO_LISTINGS } from "@/lib/listings";
+import { PUBLIC_DEMO_LISTINGS,publicListing } from "@/lib/listings";
 import { body, currentUser, db, error, listingById, now, ok, parseListing, sameOrigin, str } from "@/lib/server";
 
 export async function GET(request:Request) {
@@ -6,10 +6,10 @@ export async function GET(request:Request) {
   if(!user) return error("Giriş gerekli.",401);
   const rows=await db().prepare("SELECT listing_id FROM favorites WHERE user_id=? ORDER BY created_at DESC LIMIT 100").bind(user.id).all<{listing_id:string}>();
   const ids=(rows.results||[]).map((row)=>row.listing_id);
-  const demo=new Map(DEMO_LISTINGS.map((listing)=>[listing.id,listing]));
+  const demo=new Map(PUBLIC_DEMO_LISTINGS.map((listing)=>[listing.id,listing]));
   const realIds=ids.filter((id)=>!demo.has(id)&&/^[a-f0-9-]{36}$/i.test(id));
   const real=new Map<string,ReturnType<typeof parseListing>>();
-  if(realIds.length){const marks=realIds.map(()=>"?").join(",");const results=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.status='published' AND l.id IN (${marks})`).bind(...realIds).all<Record<string,unknown>>();for(const row of results.results||[])real.set(String(row.id),parseListing(row));}
+  if(realIds.length){const marks=realIds.map(()=>"?").join(",");const results=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.status='published' AND l.id IN (${marks})`).bind(...realIds).all<Record<string,unknown>>();for(const row of results.results||[])real.set(String(row.id),publicListing(parseListing(row)));}
   const listings=ids.map((id)=>demo.get(id)||real.get(id)).filter((item)=>Boolean(item));
   return ok({ids,listings},{headers:{"Cache-Control":"private, no-store"}});
 }

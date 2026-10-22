@@ -1,3 +1,4 @@
+import {publicListing} from '@/lib/listings';
 import {reportsDB} from '@/lib/reports-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
@@ -14,7 +15,8 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
     const user=await currentUser(request);
     if(!user || (user.id!==listing.ownerId&&!isAdmin(user))) return error("İlan bulunamadı.",404);
   }
-  return ok({listing},{headers:{"Cache-Control":"private, no-store"}});
+  const viewer=await currentUser(request);
+  return ok({listing:viewer&&(viewer.id===listing.ownerId||isAdmin(viewer))?listing:publicListing(listing)},{headers:{"Cache-Control":"private, no-store"}});
 }
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}) {

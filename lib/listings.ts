@@ -54,6 +54,9 @@ export const DEMO_LISTINGS: Listing[] = [
 ];
 
 export { CITIES } from "./turkey-locations";
+// Keep presentation fixtures in source/export, but never publish them at launch.
+export const PUBLIC_DEMO_LISTINGS: Listing[] = [];
+export function publicListing(listing:Listing):Listing {const {reviewNote,reviewedAt,...visible}=listing;return visible;}
 export const PROPERTY_TYPES: {value: PropertyType; label: string}[] = [
   {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"Ticari"}
 ];

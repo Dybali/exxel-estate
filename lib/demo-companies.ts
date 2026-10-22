@@ -13,3 +13,6 @@ export const DEMO_COMPANIES: Company[] = records.map((record) => ({
   rentCount: record.rentCount,
   sample: true,
 }));
+
+// Presentation fixtures remain archived in source, outside the public directory.
+export const PUBLIC_DEMO_COMPANIES: Company[] = [];

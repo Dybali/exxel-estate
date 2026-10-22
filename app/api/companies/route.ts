@@ -1,5 +1,5 @@
 import { db, ok } from "@/lib/server";
-import { DEMO_COMPANIES } from "@/lib/demo-companies";
+import { PUBLIC_DEMO_COMPANIES as DEMO_COMPANIES } from "@/lib/demo-companies";
 
 type CompanyRow = { id: string; name: string; category: string; listing_count: number; sale_count: number; rent_count: number };
 

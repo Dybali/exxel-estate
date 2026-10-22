@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { HomeSearch } from "@/components/HomeSearch";
 import {HomeEditorial} from '@/components/Editorial';
 import { ListingCard } from "@/components/ListingCard";
-import { DEMO_LISTINGS, type Listing } from "@/lib/listings";
+import { type Listing } from "@/lib/listings";
 import { useLocale } from "@/lib/i18n";
 
 const CityMap = lazy(() => import("@/components/CityMap").then((module) => ({ default: module.CityMap })));
@@ -32,7 +32,7 @@ export default function Home() {
   const { t } = useLocale();
   const [mapRef, mapVisible] = useNearViewport<HTMLElement>();
   const [companiesRef, companiesVisible] = useNearViewport<HTMLElement>();
-  const [listings, setListings] = useState<Listing[]>(DEMO_LISTINGS.slice(0, 4));
+  const [listings, setListings] = useState<Listing[]>([]);
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/listings?page=1", { signal: controller.signal })
@@ -40,7 +40,7 @@ export default function Home() {
       .then((data) => {
         if (!Array.isArray(data?.listings)) return;
         const featured = data.listings.filter((listing) => listing.featured && listing.images.length > 0);
-        setListings([...featured, ...DEMO_LISTINGS.filter((listing) => !featured.some((item) => item.id === listing.id))].slice(0, 4));
+        setListings([...featured, ...data.listings.filter((listing) => !featured.some((item) => item.id === listing.id))].slice(0, 4));
       })
       .catch(() => {});
     return () => controller.abort();

@@ -1,3 +1,4 @@
+import {publicListing} from '@/lib/listings';
 import {db,error,ok,parseListing} from '@/lib/server';
 import {ensureProfiles,profilePage} from '@/lib/seller-profiles';
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
@@ -8,5 +9,5 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
  const page=profilePage(new URL(request.url).searchParams.get('page')),pageSize=12;
  const [rows,counts]=await Promise.all([database.prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.owner_id=? AND l.status='published' ORDER BY l.created_at DESC,l.id DESC LIMIT ? OFFSET ?`).bind(id,pageSize,(page-1)*pageSize).all<Record<string,unknown>>(),database.prepare(`SELECT COUNT(*) AS total,SUM(CASE WHEN purpose='satilik' THEN 1 ELSE 0 END) AS sales,SUM(CASE WHEN purpose='kiralik' THEN 1 ELSE 0 END) AS rentals FROM listings WHERE owner_id=? AND status='published'`).bind(id).first<Record<string,unknown>>()]);
  const company=seller.role==='agent'?String(seller.agency_name||seller.company||''):null;
- return ok({profile:{id:seller.id,name:seller.name,company,role:seller.role,category:seller.category,agentApproved:seller.role==='agent'&&seller.agent_status==='approved'&&seller.agency_status==='approved',avatarUrl:seller.avatar_url||null,bio:seller.bio||'',memberSince:seller.created_at,listingCount:Number(counts?.total||0),saleCount:Number(counts?.sales||0),rentCount:Number(counts?.rentals||0)},listings:rows.results.map(parseListing),page,pageSize},{headers:{'Cache-Control':'no-store'}});
+ return ok({profile:{id:seller.id,name:seller.name,company,role:seller.role,category:seller.category,agentApproved:seller.role==='agent'&&seller.agent_status==='approved'&&seller.agency_status==='approved',avatarUrl:seller.avatar_url||null,bio:seller.bio||'',memberSince:seller.created_at,listingCount:Number(counts?.total||0),saleCount:Number(counts?.sales||0),rentCount:Number(counts?.rentals||0)},listings:rows.results.map(row=>publicListing(parseListing(row))),page,pageSize},{headers:{'Cache-Control':'no-store'}});
 }
