@@ -1,0 +1,527 @@
+{
+  "Emlak gündemi.": {
+    "de": "Aktuelles aus der Immobilienbranche.",
+    "fr": "Actualités immobilières.",
+    "en": "Property news.",
+    "ar": "أخبار العقارات.",
+    "ru": "Новости рынка недвижимости."
+  },
+  "Daha bilinçli seçimler.": {
+    "de": "Fundiertere Entscheidungen.",
+    "fr": "Des choix plus éclairés.",
+    "en": "Make more informed choices.",
+    "ar": "اختيارات أكثر وعيًا.",
+    "ru": "Более осознанный выбор."
+  },
+  "Resmî kaynaklardan sektör haberleri ve ev arayışınıza eşlik eden rehberler.": {
+    "de": "Branchennachrichten aus offiziellen Quellen und Ratgeber, die Sie bei Ihrer Immobiliensuche begleiten.",
+    "fr": "Des actualités du secteur issues de sources officielles et des guides pour vous accompagner dans votre recherche de logement.",
+    "en": "Industry news from official sources and guides to assist you in your property search.",
+    "ar": "أخبار القطاع من مصادر رسمية وأدلة ترشدك في بحثك عن منزل.",
+    "ru": "Новости отрасли из официальных источников и руководства, которые помогут вам в поиске жилья."
+  },
+  "Yazı kategorisi": {
+    "de": "Artikelkategorie",
+    "fr": "Catégorie d'article",
+    "en": "Article category",
+    "ar": "فئة المقال",
+    "ru": "Категория статьи"
+  },
+  "Aramanıza uygun yazı bulunamadı.": {
+    "de": "Es wurde kein Artikel gefunden, der Ihrer Suche entspricht.",
+    "fr": "Aucun article correspondant à votre recherche n'a été trouvé.",
+    "en": "No articles matching your search were found.",
+    "ar": "لم يتم العثور على مقالات مطابقة لبحثك.",
+    "ru": "Статьи, соответствующие вашему запросу, не найдены."
+  },
+  "Tüm yazıları göster": {
+    "de": "Alle Artikel anzeigen",
+    "fr": "Afficher tous les articles",
+    "en": "Show all articles",
+    "ar": "عرض جميع المقالات",
+    "ru": "Показать все статьи"
+  },
+  "Haberlerde kaynak ve veri dönemi belirtilir. Rehberler estatemarket24 için hazırlanmıştır.": {
+    "de": "In den Nachrichten werden die Quellen und der Datenzeitraum angegeben. Die Leitfäden wurden für estatemarket24 erstellt.",
+    "fr": "Les sources et la période de référence sont indiquées dans les actualités. Les guides ont été préparés pour estatemarket24.",
+    "en": "Sources and data periods are specified in the news articles. The guides have been prepared for estatemarket24.",
+    "ar": "يتم ذكر المصدر وفترة البيانات في الأخبار. وقد أُعدت الأدلة الخاصة بموقع estatemarket24.",
+    "ru": "В новостях указываются источники и период, к которому относятся данные. Справочники подготовлены для estatemarket24."
+  },
+  "Ana Sayfa / Fiyatlar": {
+    "de": "Startseite / Preise",
+    "fr": "Page d'accueil / Prix",
+    "en": "Home / Prices",
+    "ar": "الصفحة الرئيسية / الأسعار",
+    "ru": "Главная / Цены"
+  },
+  "PORTFÖYÜNÜZE YER AÇIN": {
+    "de": "MACHEN SIE PLATZ IN IHREM PORTFOLIO",
+    "fr": "FAITES DE LA PLACE DANS VOTRE PORTEFEUILLE",
+    "en": "MAKE ROOM IN YOUR PORTFOLIO",
+    "ar": "أفسحوا المجال لمحفظتكم",
+    "ru": "СДЕЛАЙТЕ МЕСТО В СВОЕМ ПОРТФЕЛЬЕ"
+  },
+  "Paketler &": {
+    "de": "Pakete &",
+    "fr": "Offres &",
+    "en": "Packages &",
+    "ar": "الباقات &",
+    "ru": "Пакеты &"
+  },
+  "fiyatlar.": {
+    "de": "Preise.",
+    "fr": "Prix.",
+    "en": "Prices.",
+    "ar": "الأسعار.",
+    "ru": "Цены."
+  },
+  "İlk ilanınızdan büyüyen emlak ofisinize, ihtiyacınıza uygun yayın seçenekleri.": {
+    "de": "Von Ihrer ersten Anzeige bis hin zu Ihrem wachsenden Immobilienbüro – wir bieten Ihnen auf Ihre Bedürfnisse zugeschnittene Veröffentlichungsoptionen.",
+    "fr": "De votre première annonce à votre agence immobilière en pleine expansion, des options de publication adaptées à vos besoins.",
+    "en": "From your first advert to your growing estate agency, we offer advertising options tailored to your needs.",
+    "ar": "خيارات نشر تناسب احتياجاتك، بدءًا من إعلانك الأول وصولاً إلى مكتبك العقاري المتنامي.",
+    "ru": "От вашего первого объявления до растущего агентства недвижимости — варианты публикации, соответствующие вашим потребностям."
+  },
+  "SİZE UYGUN SEÇENEK": {
+    "de": "DIE PASSENDE OPTION FÜR SIE",
+    "fr": "UNE OPTION QUI VOUS CONVIENT",
+    "en": "THE RIGHT OPTION FOR YOU",
+    "ar": "الخيار المناسب لك",
+    "ru": "ВАРИАНТ, ПОДХОДЯЩИЙ ИМЕННО ВАМ"
+  },
+  "Her portföye bir başlangıç.": {
+    "de": "Ein Einstieg für jedes Portfolio.",
+    "fr": "Un point de départ pour chaque portefeuille.",
+    "en": "A starting point for every portfolio.",
+    "ar": "بداية لكل محفظة استثمارية.",
+    "ru": "Начало для любого портфеля."
+  },
+  "Yayın seçeneklerini karşılaştırın, hesabınızdan ilanınızı hazırlamaya başlayın.": {
+    "de": "Vergleichen Sie die Veröffentlichungsoptionen und beginnen Sie mit der Erstellung Ihrer Anzeige über Ihr Konto.",
+    "fr": "Comparez les options de publication et commencez à créer votre annonce depuis votre compte.",
+    "en": "Compare publication options and start creating your listing from your account.",
+    "ar": "قارن بين خيارات النشر، وابدأ في إعداد إعلانك من حسابك.",
+    "ru": "Сравните варианты публикации и начните создавать объявление в личном кабинете."
+  },
+  "Paket hedef kitlesi": {
+    "de": "Zielgruppe des Pakets",
+    "fr": "Public cible du forfait",
+    "en": "Target audience for the package",
+    "ar": "الفئة المستهدفة",
+    "ru": "Целевая аудитория пакета"
+  },
+  "Tüm paketler": {
+    "de": "Alle Pakete",
+    "fr": "Toutes les offres",
+    "en": "All packages",
+    "ar": "جميع الباقات",
+    "ru": "Все пакеты"
+  },
+  "Örnek fiyatlandırma": {
+    "de": "Beispielhafte Preisangaben",
+    "fr": "Exemple de tarification",
+    "en": "Sample pricing",
+    "ar": "أمثلة على التسعير",
+    "ru": "Пример ценообразования"
+  },
+  "Gösterilen bedeller ve paket kapsamları sunum amaçlıdır. Online ödeme ve paket satın alma henüz aktif değildir.": {
+    "de": "Die angezeigten Preise und Paketumfänge dienen lediglich der Veranschaulichung. Online-Zahlungen und der Kauf von Paketen sind derzeit noch nicht möglich.",
+    "fr": "Les prix et le contenu des formules indiqués sont fournis à titre indicatif. Le paiement en ligne et l'achat de formules ne sont pas encore disponibles.",
+    "en": "The prices and package details shown are for illustrative purposes only. Online payment and package purchases are not yet available.",
+    "ar": "الأسعار ونطاقات الباقات المعروضة هي لأغراض العرض فقط. لم يتم تفعيل الدفع عبر الإنترنت وشراء الباقات بعد.",
+    "ru": "Указанные цены и состав пакетов приведены исключительно в ознакомительных целях. Онлайн-оплата и покупка пакетов пока не доступны."
+  },
+  "/ paket": {
+    "de": "/ Paket",
+    "fr": "/ forfait",
+    "en": "/ package",
+    "ar": "/ الباقة",
+    "ru": "/ пакет"
+  },
+  "Örnek paket bedeli": {
+    "de": "Beispielpreis für ein Paket",
+    "fr": "Exemple de prix d'un forfait",
+    "en": "Sample package price",
+    "ar": "مثال على تكلفة الحزمة",
+    "ru": "Примерная стоимость пакета"
+  },
+  "İlan hazırlamaya başla": {
+    "de": "Mit der Erstellung einer Anzeige beginnen",
+    "fr": "Commencer à rédiger une annonce",
+    "en": "Start creating a listing",
+    "ar": "ابدأ في إعداد الإعلان",
+    "ru": "Начать создание объявления"
+  },
+  "İlan sahipleri ve danışmanlarla üye hesabınız üzerinden mesajlaşın.": {
+    "de": "Kommunizieren Sie über Ihr Mitgliedskonto mit Anzeigeninhabern und Beratern.",
+    "fr": "Échangez des messages avec les annonceurs et les conseillers via votre compte membre.",
+    "en": "Message listing owners and estate agents via your member account.",
+    "ar": "تواصل مع مالكي الإعلانات والمستشارين عبر حسابك الخاص.",
+    "ru": "Общайтесь с авторами объявлений и консультантами через личный кабинет."
+  },
+  "Daha iyi bir sunum": {
+    "de": "Eine bessere Präsentation",
+    "fr": "Une meilleure présentation",
+    "en": "A better presentation",
+    "ar": "عرض أفضل",
+    "ru": "Более качественное представление"
+  },
+  "Fotoğraf galerisi ve 360° tur alanıyla gayrimenkulü daha yakından tanıtın.": {
+    "de": "Stellen Sie die Immobilie mit einer Fotogalerie und einem 360°-Rundgang näher vor.",
+    "fr": "Présentez le bien immobilier de plus près grâce à une galerie de photos et une visite à 360°.",
+    "en": "Showcase the property in more detail with a photo gallery and a 360° tour.",
+    "ar": "اعرض العقار عن قرب من خلال معرض الصور وجولة بزاوية 360 درجة.",
+    "ru": "Представьте объект недвижимости более подробно с помощью фотогалереи и 360°-тура."
+  },
+  "Kontrollü yayın": {
+    "de": "Geprüfte Veröffentlichung",
+    "fr": "Publication vérifiée",
+    "en": "Moderated publication",
+    "ar": "نشر خاضع للرقابة",
+    "ru": "Контролируемая публикация"
+  },
+  "İlanlar ve ofis bilgileri platformun inceleme süreçleriyle yönetilir.": {
+    "de": "Anzeigen und Angaben zu Maklerbüros werden im Rahmen der Prüfungsverfahren der Plattform verwaltet.",
+    "fr": "Les annonces et les informations relatives aux agences sont gérées conformément aux procédures de vérification de la plateforme.",
+    "en": "Listings and agency details are managed through the platform’s review processes.",
+    "ar": "تخضع الإعلانات ومعلومات المكاتب لعمليات المراجعة التي تجريها المنصة.",
+    "ru": "Объявления и информация об офисах контролируются в рамках процедур проверки платформы."
+  },
+  "AKLINIZDAKİ SORULAR": {
+    "de": "FRAGEN, DIE SIE SICH STELLEN",
+    "fr": "VOS QUESTIONS",
+    "en": "QUESTIONS YOU MAY HAVE",
+    "ar": "الأسئلة التي تدور في ذهنك",
+    "ru": "ВОПРОСЫ, КОТОРЫЕ ВАС ИНТЕРЕСУЮТ"
+  },
+  "Başlamadan önce.": {
+    "de": "Bevor wir beginnen.",
+    "fr": "Avant de commencer.",
+    "en": "Before we begin.",
+    "ar": "قبل البدء.",
+    "ru": "Прежде чем начать."
+  },
+  "Yayın ve paketlerle ilgili kısa yanıtlar.": {
+    "de": "Kurze Antworten zu Veröffentlichungen und Paketen.",
+    "fr": "Réponses succinctes concernant les publications et les offres.",
+    "en": "Brief answers regarding publications and packages.",
+    "ar": "إجابات موجزة حول المنشورات والحزم.",
+    "ru": "Краткие ответы по вопросам публикаций и пакетов."
+  },
+  "Bu paketleri hemen satın alabilir miyim?": {
+    "de": "Kann ich diese Pakete sofort kaufen?",
+    "fr": "Puis-je acheter ces forfaits immédiatement ?",
+    "en": "Can I purchase these packages straight away?",
+    "ar": "هل يمكنني شراء هذه الباقات على الفور؟",
+    "ru": "Могу ли я сразу приобрести эти пакеты?"
+  },
+  "Şu anda online ödeme ve paket satın alma açık değil. Bu sayfa örnek yayın seçeneklerini gösterir; herhangi bir ödeme alınmaz.": {
+    "de": "Derzeit sind Online-Zahlungen und der Kauf von Paketen nicht möglich. Diese Seite zeigt Beispielveröffentlichungen; es fallen keine Kosten an.",
+    "fr": "Les paiements en ligne et l'achat d'abonnements ne sont pas disponibles pour le moment. Cette page présente des exemples d'options de publication ; aucun paiement n'est prélevé.",
+    "en": "Online payments and package purchases are currently unavailable. This page displays sample publication options; no payment is taken.",
+    "ar": "الدفع عبر الإنترنت وشراء الباقات غير متاحين حاليًا. تعرض هذه الصفحة أمثلة على خيارات النشر؛ ولا يتم تحصيل أي مدفوعات.",
+    "ru": "В настоящее время онлайн-оплата и покупка пакетов недоступны. На этой странице представлены примеры вариантов публикации; оплата не взимается."
+  },
+  "İlanımı şimdi hazırlayabilir miyim?": {
+    "de": "Kann ich meine Anzeige jetzt erstellen?",
+    "fr": "Puis-je créer mon annonce dès maintenant ?",
+    "en": "Can I create my listing now?",
+    "ar": "هل يمكنني إعداد إعلاني الآن؟",
+    "ru": "Могу ли я создать объявление прямо сейчас?"
+  },
+  "Evet. Üye hesabınızla giriş yaparak ilan bilgilerinizi ve fotoğraflarınızı hazırlayabilirsiniz. Yayın durumu hesabınızın ve ilanın inceleme sürecine bağlıdır.": {
+    "de": "Ja. Sie können sich mit Ihrem Benutzerkonto anmelden und Ihre Anzeigeninformationen sowie Ihre Fotos vorbereiten. Der Veröffentlichungsstatus hängt vom Überprüfungsprozess Ihres Kontos und Ihrer Anzeige ab.",
+    "fr": "Oui. En vous connectant à votre compte, vous pouvez préparer les informations et les photos de votre annonce. La mise en ligne dépend de votre compte et du processus de validation de l'annonce.",
+    "en": "Yes. You can log in to your member account to prepare your listing details and photographs. The publication status depends on the review process for your account and the listing.",
+    "ar": "نعم. يمكنك تسجيل الدخول بحسابك الخاص لإعداد معلومات الإعلان وصورك. يعتمد حالة النشر على حسابك وعملية مراجعة الإعلان.",
+    "ru": "Да. Войдя в систему под своей учётной записью, вы можете подготовить информацию об объявлении и загрузить фотографии. Статус публикации зависит от вашей учётной записи и процесса проверки объявления."
+  },
+  "Örnek fiyatlara hangi vergiler dahil?": {
+    "de": "Welche Steuern sind in den Beispielpreisen enthalten?",
+    "fr": "Quelles taxes sont incluses dans les prix indiqués à titre d'exemple ?",
+    "en": "Which taxes are included in the example prices?",
+    "ar": "ما هي الضرائب المشمولة في الأسعار النموذجية؟",
+    "ru": "Какие налоги включены в примерные цены?"
+  },
+  "Henüz satışa açık bir fiyat teklifi bulunmuyor. Nihai fiyatlar, vergiler ve koşullar satış süreci etkinleştirilmeden önce ayrıca belirtilecek.": {
+    "de": "Es liegt noch kein öffentliches Preisangebot vor. Die endgültigen Preise, Steuern und Bedingungen werden vor Beginn des Verkaufsprozesses gesondert angegeben.",
+    "fr": "Il n'y a pas encore d'offre de prix disponible à la vente. Les prix définitifs, les taxes et les conditions seront précisés séparément avant le lancement du processus de vente.",
+    "en": "No price offer is currently available. Final prices, taxes and terms will be specified separately before the sales process is initiated.",
+    "ar": "لا يوجد حتى الآن عرض سعر متاح للبيع. سيتم تحديد الأسعار النهائية والضرائب والشروط بشكل منفصل قبل بدء عملية البيع.",
+    "ru": "На данный момент цена предложения ещё не объявлена. Окончательные цены, налоги и условия будут указаны отдельно до начала процесса продажи."
+  },
+  "Danışman ve ofis bilgileri nasıl inceleniyor?": {
+    "de": "Wie werden die Angaben zu Beratern und Büros überprüft?",
+    "fr": "Comment les informations relatives aux conseillers et aux agences sont-elles vérifiées ?",
+    "en": "How are agent and office details reviewed?",
+    "ar": "كيف يتم فحص معلومات المستشارين والمكاتب؟",
+    "ru": "Как проверяется информация о консультантах и офисах?"
+  },
+  "Emlak ofisi belgeleri yönetici incelemesine alınır. Ofis belge onayı, taşınmaz bazındaki resmî yetkilendirme gerekliliklerinin yerine geçmez.": {
+    "de": "Die Unterlagen des Immobilienbüros werden von der Plattformverwaltung geprüft. Diese Prüfung ersetzt nicht die für jede einzelne Immobilie erforderliche behördliche Autorisierung.",
+    "fr": "Les documents des agences immobilières sont soumis à l'examen d'un responsable. La validation des documents par l'agence ne remplace pas les exigences officielles d'autorisation propres à chaque bien immobilier.",
+    "en": "Estate agency documents are subject to managerial review. Approval of agency documents does not fulfil the official authorisation requirements for individual properties.",
+    "ar": "تخضع مستندات مكتب العقارات لمراجعة المسؤولين. ولا يُعتبر اعتماد المكتب للمستندات بديلاً عن متطلبات التفويض الرسمي الخاصة بالعقار المعني.",
+    "ru": "Документы агентства недвижимости передаются на рассмотрение руководителя. Утверждение документов агентством не заменяет собой официального разрешения, требуемого для конкретного объекта недвижимости."
+  },
+  "İlanınızı daha iyi anlatın.": {
+    "de": "Beschreiben Sie Ihre Anzeige anschaulicher.",
+    "fr": "Présentez mieux votre annonce.",
+    "en": "Describe your listing more effectively.",
+    "ar": "اعرض إعلانك بشكل أفضل.",
+    "ru": "Опишите своё объявление более подробно."
+  },
+  "Fotoğraf, ilan hazırlama ve sanal tur rehberlerini keşfedin.": {
+    "de": "Entdecken Sie Fotos, Anzeigenvorlagen und Anleitungen für virtuelle Rundgänge.",
+    "fr": "Découvrez les photos, les annonces immobilières et les guides de visites virtuelles.",
+    "en": "Discover photographs, property listing guides and virtual tour guides.",
+    "ar": "اكتشف الصور وإرشادات إعداد الإعلانات والجولات الافتراضية.",
+    "ru": "Ознакомьтесь с фотографиями, объявлениями и виртуальными турами."
+  },
+  "Rehberleri incele": {
+    "de": "Ratgeber ansehen",
+    "fr": "Consulter les guides",
+    "en": "Browse the guides",
+    "ar": "تصفح الأدلة",
+    "ru": "Посмотреть руководства"
+  },
+  "Gönderiliyor…": {
+    "de": "Wird gesendet…",
+    "fr": "En cours d'envoi…",
+    "en": "Sending…",
+    "ar": "جاري الإرسال…",
+    "ru": "Отправляется…"
+  },
+  "Reddet": {
+    "de": "Ablehnen",
+    "fr": "Refuser",
+    "en": "Reject",
+    "ar": "رفض",
+    "ru": "Отклонить"
+  },
+  "Yenile": {
+    "de": "Aktualisieren",
+    "fr": "Actualiser",
+    "en": "Refresh",
+    "ar": "تحديث",
+    "ru": "Обновить"
+  },
+  "Yükleniyor...": {
+    "de": "Wird geladen...",
+    "fr": "Chargement en cours...",
+    "en": "Loading...",
+    "ar": "جاري التحميل...",
+    "ru": "Загрузка..."
+  },
+  "İlan": {
+    "de": "Anzeige",
+    "fr": "Annonce",
+    "en": "Listing",
+    "ar": "إعلان",
+    "ru": "Объявление"
+  },
+  "Sektörden haberler, ev ararken işinize yarayacak fikirler.": {
+    "de": "Branchennachrichten und nützliche Tipps für die Immobiliensuche.",
+    "fr": "Actualités du secteur et conseils utiles pour votre recherche de logement.",
+    "en": "Industry news and tips to help you when looking for a home.",
+    "ar": "أخبار من القطاع، وأفكار مفيدة لك أثناء البحث عن منزل.",
+    "ru": "Новости отрасли и полезные советы для тех, кто ищет жилье."
+  },
+  "YAYIN SEÇENEKLERİ": {
+    "de": "VERÖFFENTLICHUNGSOPTIONEN",
+    "fr": "OPTIONS DE PUBLICATION",
+    "en": "PUBLICATION OPTIONS",
+    "ar": "خيارات النشر",
+    "ru": "ВАРИАНТЫ ПУБЛИКАЦИИ"
+  },
+  "Portföyünüz için doğru alan.": {
+    "de": "Der richtige Ort für Ihr Portfolio.",
+    "fr": "L'espace idéal pour votre portefeuille.",
+    "en": "The right location for your portfolio.",
+    "ar": "المكان المناسب لمحفظتك الاستثمارية.",
+    "ru": "Идеальное место для вашего портфеля."
+  },
+  "Bireysel ilanınızdan emlak ofisinize, size uygun yayın seçeneklerini inceleyin.": {
+    "de": "Von Ihrer privaten Anzeige bis hin zu Ihrer Immobilienagentur – entdecken Sie die für Sie passenden Veröffentlichungsoptionen.",
+    "fr": "De votre annonce personnelle à votre agence immobilière, découvrez les options de publication qui vous conviennent.",
+    "en": "From your personal advert to your estate agency, explore the advertising options that suit you.",
+    "ar": "من إعلانك الشخصي إلى مكتب العقارات الخاص بك، اطلع على خيارات النشر المناسبة لك.",
+    "ru": "От частных объявлений до объявлений риэлторских агентств — ознакомьтесь с вариантами публикации, подходящими именно вам."
+  },
+  "okuma": {
+    "de": "Lesezeit",
+    "fr": "de lecture",
+    "en": "read",
+    "ar": "للقراءة",
+    "ru": "чтения"
+  },
+  "RESMÎ KAYNAK": {
+    "de": "OFFIZIELLE QUELLE",
+    "fr": "SOURCE OFFICIELLE",
+    "en": "OFFICIAL SOURCE",
+    "ar": "مصدر رسمي",
+    "ru": "ОФИЦИАЛЬНЫЙ ИСТОЧНИК"
+  },
+  "Veri / yayın dönemi:": {
+    "de": "Daten-/Veröffentlichungszeitraum:",
+    "fr": "Période de référence / de publication :",
+    "en": "Data / publication period:",
+    "ar": "فترة البيانات / النشر:",
+    "ru": "Период сбора данных / публикации:"
+  },
+  "Kaynağı incele": {
+    "de": "Quelle einsehen",
+    "fr": "Consulter la source",
+    "en": "View source",
+    "ar": "راجع المصدر",
+    "ru": "Ознакомьтесь с источником"
+  },
+  "Bu yazı belirtilen dönemin resmî verilerinin editoryal özetidir.": {
+    "de": "Dieser Artikel ist eine redaktionelle Zusammenfassung der offiziellen Daten für den angegebenen Zeitraum.",
+    "fr": "Cet article est un résumé rédactionnel des données officielles relatives à la période mentionnée.",
+    "en": "This article is an editorial summary of the official data for the period specified.",
+    "ar": "هذا المقال هو ملخص تحريري للبيانات الرسمية للفترة المذكورة.",
+    "ru": "Данная статья представляет собой редакционное резюме официальных данных за указанный период."
+  },
+  "Bu rehber estatemarket24 için hazırlanmıştır.": {
+    "de": "Dieser Leitfaden wurde für estatemarket24 erstellt.",
+    "fr": "Ce guide a été rédigé pour estatemarket24.",
+    "en": "This guide has been prepared for estatemarket24.",
+    "ar": "تم إعداد هذا الدليل لصالح estatemarket24.",
+    "ru": "Данное руководство подготовлено для estatemarket24."
+  },
+  "BU YAZIDA": {
+    "de": "In diesem Text",
+    "fr": "Dans ce texte",
+    "en": "In this text",
+    "ar": "في هذا النص",
+    "ru": "В этой статье"
+  },
+  "Aradığınız evi keşfedin.": {
+    "de": "Entdecken Sie Ihr Traumhaus.",
+    "fr": "Découvrez la maison de vos rêves.",
+    "en": "Discover your dream home.",
+    "ar": "اكتشف المنزل الذي تبحث عنه.",
+    "ru": "Найдите дом своей мечты."
+  },
+  "Şehir, bütçe ve özelliklere göre ilanları inceleyin.": {
+    "de": "Durchsuchen Sie die Anzeigen nach Stadt, Budget und Merkmalen.",
+    "fr": "Parcourez les annonces par ville, budget et caractéristiques.",
+    "en": "Browse listings by city, budget and features.",
+    "ar": "تصفح الإعلانات حسب المدينة والميزانية والمواصفات.",
+    "ru": "Просмотрите объявления по городам, бюджету и характеристикам."
+  },
+  "İlanlara göz at": {
+    "de": "Anzeigen ansehen",
+    "fr": "Consulter les annonces",
+    "en": "Browse the listings",
+    "ar": "تصفح الإعلانات",
+    "ru": "Просмотреть объявления"
+  },
+  "Okumaya devam edin": {
+    "de": "Weiterlesen",
+    "fr": "Continuer la lecture",
+    "en": "Continue reading",
+    "ar": "تابع القراءة",
+    "ru": "Продолжить чтение"
+  },
+  "Türkiye'den dünyaya yaşam alanları.": {
+    "de": "Wohnräume aus der Türkei für die ganze Welt.",
+    "fr": "Des espaces de vie de Turquie pour le monde entier.",
+    "en": "Living spaces from Türkiye to the world.",
+    "ar": "مساحات معيشية من تركيا إلى العالم.",
+    "ru": "Жилые пространства из Турции для всего мира."
+  },
+  "Favorilerden kaldır": {
+    "de": "Aus den Favoriten entfernen",
+    "fr": "Supprimer des favoris",
+    "en": "Remove from favourites",
+    "ar": "إزالة من المفضلة",
+    "ru": "Удалить из избранного"
+  },
+  "İlanı paylaş": {
+    "de": "Anzeige teilen",
+    "fr": "Partager l'annonce",
+    "en": "Share the listing",
+    "ar": "مشاركة الإعلان",
+    "ru": "Поделиться объявлением"
+  },
+  "Diğer ilan işlemleri": {
+    "de": "Sonstige Anzeigenvorgänge",
+    "fr": "Autres opérations liées aux annonces",
+    "en": "Other listing procedures",
+    "ar": "إجراءات الإعلانات الأخرى",
+    "ru": "Другие операции с объявлениями"
+  },
+  "Favori güncellenemedi.": {
+    "de": "Die Favoriten konnten nicht aktualisiert werden.",
+    "fr": "Les favoris n'ont pas pu être mis à jour.",
+    "en": "Favourites could not be updated.",
+    "ar": "لم يتم تحديث «المفضلة».",
+    "ru": "Не удалось обновить избранное."
+  },
+  "Bireysel": {
+    "de": "Privatanbieter",
+    "fr": "Particulier",
+    "en": "Private owner",
+    "ar": "مالك فردي",
+    "ru": "Частный владелец"
+  },
+  "Kendi gayrimenkulünü yayınlamak isteyenler için.": {
+    "de": "Für alle, die ihre eigene Immobilie inserieren möchten.",
+    "fr": "Pour ceux qui souhaitent publier leur propre annonce immobilière.",
+    "en": "For those wishing to advertise their own property.",
+    "ar": "لمن يرغبون في نشر عقاراتهم الخاصة.",
+    "ru": "Для тех, кто хочет разместить объявление о своей недвижимости."
+  },
+  "İLK ADIM": {
+    "de": "ERSTER SCHRITT",
+    "fr": "PREMIÈRE ÉTAPE",
+    "en": "FIRST STEP",
+    "ar": "الخطوة الأولى",
+    "ru": "ПЕРВЫЙ ШАГ"
+  },
+  "Danışman": {
+    "de": "Makler",
+    "fr": "Agent immobilier",
+    "en": "Estate agent",
+    "ar": "وكيل عقاري",
+    "ru": "Риелтор"
+  },
+  "Portföyünü daha geniş bir kitleye sunmak isteyen danışmanlar için.": {
+    "de": "Für Makler, die ihr Portfolio einem breiteren Publikum präsentieren möchten.",
+    "fr": "Destiné aux conseillers souhaitant présenter leur portefeuille à un public plus large.",
+    "en": "For estate agents wishing to showcase their portfolio to a wider audience.",
+    "ar": "للمستشارين الراغبين في عرض محفظتهم أمام جمهور أوسع.",
+    "ru": "Для консультантов, желающих представить свой портфель более широкой аудитории."
+  },
+  "DANIŞMANLAR İÇİN": {
+    "de": "FÜR BERATER",
+    "fr": "POUR LES CONSEILLERS",
+    "en": "FOR ADVISERS",
+    "ar": "للمستشارين",
+    "ru": "ДЛЯ КОНСУЛЬТАНТОВ"
+  },
+  "Ofis": {
+    "de": "Büro",
+    "fr": "Bureau",
+    "en": "Office",
+    "ar": "مكتب",
+    "ru": "Офис"
+  },
+  "Birden fazla gayrimenkulü sunan emlak ofisleri için.": {
+    "de": "Für Immobilienbüros, die mehrere Immobilien anbieten.",
+    "fr": "Destiné aux agences immobilières proposant plusieurs biens.",
+    "en": "For estate agents offering multiple properties.",
+    "ar": "مخصص لمكاتب العقارات التي تعرض أكثر من عقار واحد.",
+    "ru": "Для агентств недвижимости, предлагающих несколько объектов."
+  },
+  "OFİS PORTFÖYÜ": {
+    "de": "BÜROPORTFOLIO",
+    "fr": "PORTEFEUILLE DE BUREAUX",
+    "en": "OFFICE PORTFOLIO",
+    "ar": "محفظة المكاتب",
+    "ru": "ПОРТФЕЛЬ ОФИСНОЙ НЕДВИЖИМОСТИ"
+  }
+}

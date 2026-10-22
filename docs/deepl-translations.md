@@ -2,6 +2,8 @@
 
 Public listing title/description and blog headline, excerpt, section headings and paragraphs are translated. Private messages, account records, documents, prices/locations stored as structured fields, and unpublished listings are excluded. Requests are constructed from server-owned content, never arbitrary client text.
 
+Public interface copy is bundled separately in the localization dictionary. `data/editorial-ui-translations.json` supplies 75 previously missing labels in all five languages, including the homepage pricing banner, blog controls, article navigation and pricing-page copy. Static UI labels do not call DeepL at runtime. Dates and reading times follow the selected locale through `Intl`; blog source names/periods use the durable content cache. Localization tests check literal UI keys and dynamic pricing labels for every supported target language.
+
 ## Setup
 
 Set `DEEPL_API_KEY` as a secret with the native Sites environment-variable tool; keep existing variables. A key ending in `:fx` uses the fixed DeepL API Free origin; other keys use the fixed Pro origin. Do not put keys in browser code, public variables, URLs, logs or source files. Deploy the same saved version again after setting runtime environment variables. For localhost only, use the ignored `.dev.vars` file.

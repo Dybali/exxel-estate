@@ -1,6 +1,7 @@
 "use client";
 import listingToolsTranslations from "@/data/listing-tools-translations.json";
 import discoveryTranslations from "@/data/discovery-translations.json";
+import editorialUITranslations from "@/data/editorial-ui-translations.json";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
@@ -629,6 +630,7 @@ Object.assign(words,{
  "yazı":{de:'Artikel',fr:'articles',en:'articles',ar:'مقالات',ru:'статей'},
 });
 for(const [key,[de,fr,en,ar,ru]] of Object.entries({...discoveryTranslations,...listingToolsTranslations}))words[key]={de,fr,en,ar,ru};
+Object.assign(words,editorialUITranslations);
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
