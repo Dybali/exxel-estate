@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   check:
-    if: inputs.mode == 'build-check' || vars.EM24_OPERATIONS_ENABLED == 'true'
+    if: github.event_name == 'workflow_dispatch' || vars.EM24_OPERATIONS_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
