@@ -1,4 +1,5 @@
 import handler from "vinext/server/fetch-handler";
+import { withResponseSecurity } from "../lib/response-security";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
@@ -23,6 +24,6 @@ export default {
         },
       };
     }
-    return runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
+    return runWithConnectorBinding(binding, async () => withResponseSecurity(await handler.fetch(request, env, ctx)));
   },
 };
