@@ -80,14 +80,16 @@ export async function POST(request:Request) {
   }
   if(action==="login") {
     const ip=request.headers.get("CF-Connecting-IP")||"local";
-    const limitKey=await sha256(`login:${email}:${ip}`),windowStart=new Date(Date.now()-15*60*1000).toISOString();
-    const attempts=await db().prepare("SELECT failures,window_started_at FROM auth_limits WHERE key=?").bind(limitKey).first<{failures:number;window_started_at:string}>();
-    if(attempts&&attempts.window_started_at>windowStart&&attempts.failures>=10)return error("Çok fazla giriş denemesi. 15 dakika sonra tekrar deneyin.",429);
+    const limitKey=await sha256(`login:${email}:${ip}`);
+    // Count before verification with atomic UPSERTs. A shared IP budget also
+    // bounds attempts spread over many e-mail addresses; successful logins do
+    // not reset this aggregate budget.
+    try{
+      await consumeRecoveryLimit(db(),await sha256(`login-ip:${ip}`),100);
+      await consumeRecoveryLimit(db(),limitKey,10);
+    }catch(cause){if(cause instanceof RecoveryError)return error(cause.message,cause.status);throw cause;}
     const row=await db().prepare("SELECT id,email,password_hash,email_verified,name,role,agent_status,phone,whatsapp_enabled,company FROM users WHERE email=?").bind(email).first<Record<string,unknown>>();
     if(!row || !(await verifyPassword(password,String(row.password_hash)))) {
-      const started=attempts&&attempts.window_started_at>windowStart?attempts.window_started_at:now();
-      const count=attempts&&attempts.window_started_at>windowStart?attempts.failures+1:1;
-      await db().prepare("INSERT INTO auth_limits(key,failures,window_started_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET failures=excluded.failures,window_started_at=excluded.window_started_at").bind(limitKey,count,started).run();
       return error("E-posta veya şifre hatalı.",401);
     }
     await db().prepare("DELETE FROM auth_limits WHERE key=?").bind(limitKey).run();
