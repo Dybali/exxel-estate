@@ -6,7 +6,7 @@ Public listing title/description and blog headline, excerpt, section headings an
 
 Set `DEEPL_API_KEY` as a secret with the native Sites environment-variable tool; keep existing variables. A key ending in `:fx` uses the fixed DeepL API Free origin; other keys use the fixed Pro origin. Do not put keys in browser code, public variables, URLs, logs or source files. Deploy the same saved version again after setting runtime environment variables. For localhost only, use the ignored `.dev.vars` file.
 
-No key is currently present. Provider activation and a real DeepL translation require the user's API account/key. No success claim is made for live translation before that check.
+The user activated the free Developer API account on 2026-10-22. `DEEPL_API_KEY` is configured as a Sites runtime secret (revision 10) and in ignored localhost configuration. Real provider requests succeeded for all five target languages. No key value is recorded in this document or tracked source.
 
 ## Storage and invalidation
 
@@ -26,7 +26,7 @@ Per-document leases prevent simultaneous duplicate work for a document/language.
 
 ## Verification
 
-66 repository tests passed, including 8 translation tests: cache hits, changed-field invalidation, duplicate concurrency, quota enforcement, upstream failure/cooldown, fixed provider hosts, missing-key behavior, admin authorization, published-only source resolution and public read-only behavior. Real API translation remains unverified until a key is supplied. No seeded/test translations are placed in production.
+66 repository tests passed, including 8 translation tests: cache hits, changed-field invalidation, duplicate concurrency, quota enforcement, upstream failure/cooldown, fixed provider hosts, missing-key behavior, admin authorization, published-only source resolution and public read-only behavior. Production build passed. An isolated live API check translated two sample fields into English, German, Arabic, French and Russian using the production translation/cache functions and an in-memory SQLite adapter. Every repeated request returned `cached` with zero additional provider calls (five calls total). This verifies provider credentials and application cache behavior; it is not an authenticated production admin end-to-end test. No sample translations were placed in production.
 
 DeepL text API: https://developers.deepl.com/api-reference/translate/request-translation
 Workers background tasks: https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil
