@@ -1,6 +1,7 @@
 import {env} from 'cloudflare:workers';
 import {body,currentUser,isAdmin,sameOrigin,db} from '@/lib/server';
 import {editorialArticles} from '@/lib/editorial';
+import {DEMO_LISTINGS} from '@/lib/listings';
 import {translationContent} from '@/lib/translation-content';
 import {prepareTranslations} from '@/lib/translation-cache';
 import {translationSettings} from '@/lib/translation-runtime';
@@ -11,7 +12,7 @@ export async function GET(request:Request){
  if(!await allowed(request))return reply({error:'Yönetici yetkisi gerekli.'},403);
  const settings=translationSettings();
  const rows=await db().prepare("SELECT id,title FROM listings WHERE status='published' ORDER BY updated_at DESC LIMIT 50").all<{id:string;title:string}>();
- return reply({configured:Boolean(settings.DEEPL_API_KEY),locales:translationLocales,documents:[...editorialArticles.map(a=>({kind:'blog',id:a.slug,title:a.title})),...rows.results.map(a=>({kind:'listing',id:a.id,title:a.title}))],dailyLimit:Number(settings.DEEPL_DAILY_CHAR_LIMIT)||50000,monthlyLimit:Number(settings.DEEPL_MONTHLY_CHAR_LIMIT)||300000});
+ return reply({configured:Boolean(settings.DEEPL_API_KEY),locales:translationLocales,documents:[...editorialArticles.map(a=>({kind:'blog',id:a.slug,title:a.title})),...rows.results.map(a=>({kind:'listing',id:a.id,title:a.title})),...DEMO_LISTINGS.map(a=>({kind:'listing',id:a.id,title:a.title}))],dailyLimit:settings.DEEPL_DAILY_CHAR_LIMIT===undefined?50000:Number(settings.DEEPL_DAILY_CHAR_LIMIT),monthlyLimit:settings.DEEPL_MONTHLY_CHAR_LIMIT===undefined?300000:Number(settings.DEEPL_MONTHLY_CHAR_LIMIT)});
 }
 export async function POST(request:Request){
  if(!sameOrigin(request)||request.headers.get('sec-fetch-site')==='cross-site')return reply({error:'Geçersiz kaynak.'},403);
