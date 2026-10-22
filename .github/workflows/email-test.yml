@@ -1,0 +1,37 @@
+name: estatemarket24 email delivery test
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-mail:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      ALERT_FROM: ${{ secrets.ALERT_FROM }}
+      ALERT_TO: aliikocr10@gmail.com
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify protected SMTP and send one clearly labelled test
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          npm install --no-audit --no-fund --ignore-scripts nodemailer@10.2.0
+          node --input-type=module <<'EM24_MAIL'
+          import nodemailer from 'nodemailer';
+          const e=process.env,port=Number(e.SMTP_PORT);
+          if(![465,587].includes(port)||!e.SMTP_HOST||!e.SMTP_USER||!e.SMTP_PASSWORD||!e.ALERT_FROM)throw Error('Protected SMTP configuration missing');
+          const t=nodemailer.createTransport({host:e.SMTP_HOST,port,secure:port===465,requireTLS:true,auth:{user:e.SMTP_USER,pass:e.SMTP_PASSWORD},tls:{rejectUnauthorized:true,minVersion:'TLSv1.2'},connectionTimeout:10000,greetingTimeout:10000,socketTimeout:20000});
+          try{
+            await t.verify();
+            const result=await t.sendMail({from:e.ALERT_FROM,to:e.ALERT_TO,subject:'[TEST] estatemarket24 bulut alarmi',text:'Bu bir kurulum testidir; sitede hata oldugu anlamina gelmez. GitHub Actions uzerinden sifreli SMTP baglantisi ve e-posta gonderimi denendi. Bu ileti sifre veya kullanici kaydi icermez.'});
+            if(!result.accepted?.includes(e.ALERT_TO))throw Error('Recipient not accepted');
+            console.log('SMTP verified; test accepted by provider. Inbox delivery needs recipient confirmation.');
+          }catch{console.error('Cloud email test failed; raw credential/provider diagnostics suppressed.');process.exitCode=1;}finally{t.close();}
+          EM24_MAIL
