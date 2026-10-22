@@ -19,6 +19,8 @@ import "./office-verification.css";
 import "./assistant.css";
 import "./editorial.css";
 import "./categories-statistics.css";
+import "./cookies-company.css";
+import {CookieConsentProvider} from "@/components/CookieConsent";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
 import { Header } from "@/components/Header";
@@ -43,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><AssistantLauncher/><Footer/></LocaleProvider></body>
+      <body><LocaleProvider><CookieConsentProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><AssistantLauncher/><Footer/></CookieConsentProvider></LocaleProvider></body>
     </html>
   );
 }

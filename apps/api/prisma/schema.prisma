@@ -376,3 +376,13 @@ model office_verifications {
  last_action String @default("")
  @@index([state,updated_at],map:"office_verifications_state")
 }
+
+model company_profiles {
+  user_id String @id
+  city String
+  website String @default("")
+  address String @default("")
+  description String @default("")
+  version Int @default(1)
+  updated_at String
+}

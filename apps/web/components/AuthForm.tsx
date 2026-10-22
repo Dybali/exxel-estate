@@ -7,7 +7,7 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 
 type Mode = "login" | "register";
-type Role = "buyer" | "individual" | "agent";
+type Role = "buyer" | "individual" | "agent" | "developer";
 
 const googleErrors: Record<string, string> = {
   unavailable: "Google ile giriş henüz yapılandırılmadı.",
@@ -54,11 +54,11 @@ function GoogleBlock({
   );
 }
 
-export function AuthForm() {
+export function AuthForm({corporate=false}:{corporate?:boolean}) {
   const { t } = useLocale();
   const params = useSearchParams();
-  const [mode, setMode] = useState<Mode>(params.get("role") ? "register" : "login");
-  const [role, setRole] = useState<Role>(params.get("role") === "agent" ? "agent" : "buyer");
+  const [mode, setMode] = useState<Mode>(corporate || params.get("role") ? "register" : "login");
+  const [role, setRole] = useState<Role>(corporate || params.get("role") === "developer" || params.get("companyCategory")==="developer" ? "developer" : params.get("role") === "agent" ? "agent" : "buyer");
   const [showPassword, setShowPassword] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,8 +73,8 @@ export function AuthForm() {
 
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/hesabim";
-  const googleRole = mode === "register" ? role : "buyer";
-  const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(safeNext)}`;
+  const googleRole = mode === "register" ? role==="developer"?"agent":role : "buyer";
+  const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(mode==="register"&&role==="developer"?"/hesabim?tab=profil&companyCategory=developer":safeNext)}`;
   const showBuyerGoogle = mode === "login" || role === "buyer";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -88,8 +88,8 @@ export function AuthForm() {
       password: form.get("password"),
       name: form.get("name"),
       company: form.get("company"),
-      companyCategory: form.get("companyCategory"),
-      role,
+      companyCategory: role==="developer"?"developer":"agency",
+      role:role==="developer"?"agent":role,
     };
     try {
       const response = await fetch("/api/account", {
@@ -105,7 +105,7 @@ export function AuthForm() {
       if (!data.user?.email_verified) {
         const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify'})}).then(r=>r.ok).catch(()=>false);
         window.location.assign('/eposta-dogrula'+(sent?'?sent=1':''));
-      } else window.location.assign(safeNext);
+      } else window.location.assign(role==="developer"?"/hesabim?tab=firma":safeNext);
     } catch {
       setError("Bağlantı kurulamadı. Lütfen yeniden deneyin.");
     } finally {
@@ -126,7 +126,7 @@ export function AuthForm() {
       <div className="auth-panel">
         <div className="auth-panel-inner">
           <span className="eyebrow dark-eyebrow">{t("HOŞ GELDİNİZ")}</span>
-          <h1>{t(mode === "login" ? "Tekrar merhaba." : "Aramıza katılın.")}</h1>
+          <h1>{t(mode === "login" ? "Tekrar merhaba." : role==="developer"?"İnşaat firması üyeliği":"Aramıza katılın.")}</h1>
           <p>
             {t(
               mode === "login"
@@ -170,15 +170,15 @@ export function AuthForm() {
                   <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
                     <option value="buyer">{t("İlan arıyorum")}</option>
                     <option value="individual">{t("Bireysel ilan vereceğim")}</option>
-                    <option value="agent">{t("Emlakçıyım")}</option>
+                    <option value="agent">{t("Emlakçıyım")}</option><option value="developer">{t("İnşaat firmasıyım")}</option>
                   </select>
                 </label>
-                {role === "agent" && (
+                {(role === "agent" || role === "developer") && (
                   <>
-                    <label>{t("Şirket türü")}<select name="companyCategory"><option value="agency">{t("Emlak ofisi")}</option><option value="developer">{t("İnşaat firması")}</option></select></label>
+                    <p className="corporate-hint">{t(role==="developer"?"Firmanız adına kayıt olun. E-posta doğrulamasından sonra firma bilgilerinizi ve başvuru belgenizi tamamlayın.":"Emlak ofisiniz adına kayıt olun.")}</p>
                     <label>
                       {t("Ofis / şirket adı")}
-                      <input name="company" required minLength={2} placeholder={t("Emlak ofisi adı")} autoComplete="organization" />
+                      <input name="company" required minLength={2} placeholder={t(role==="developer"?"İnşaat firması adı":"Emlak ofisi adı")} maxLength={120} autoComplete="organization" />
                     </label>
                   </>
                 )}
@@ -205,7 +205,7 @@ export function AuthForm() {
               </div>
             </label>
             {mode === "login" && <Link className="auth-forgot-link" href="/sifremi-unuttum">Şifremi unuttum</Link>}
-            {mode === "register" && <p className="form-helper">{t("Emlakçı hesapları yönetici onayından sonra ilan verebilir.")}</p>}
+            {mode === "register" && <p className="form-helper">{t("Şirket hesapları e-posta ve belge incelemesinden sonra etkinleştirilir.")}</p>}
             {error && <div className="form-error" role="alert">{t(error)}</div>}
             <button className="primary-button auth-submit" disabled={loading}>
               {t(loading ? "Lütfen bekleyin..." : mode === "login" ? "Giriş Yap" : "Hesap Oluştur")}
@@ -218,7 +218,7 @@ export function AuthForm() {
               enabled={googleEnabled}
               href={googleUrl}
               label={t("Google ile devam et")}
-              hint={t("Google ile kayıttan sonra ofis bilgilerinizi profilinizden tamamlayın.")}
+              hint={t(role==="developer"?"Google ile devam ettiğinizde hesabınızdan İnşaat firması seçerek şirket başvurunuzu tamamlayın.":"Google ile kayıttan sonra ofis bilgilerinizi profilinizden tamamlayın.")}
             />
           )}
 

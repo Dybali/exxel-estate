@@ -1,31 +1,27 @@
 "use client";
-
-import { useState, type FormEvent } from "react";
-import { Search } from "lucide-react";
-import { CITIES, PROPERTY_TYPES } from "@/lib/listings";
-import { useLocale } from "@/lib/i18n";
-
-export function HomeSearch() {
-  const { t } = useLocale();
-  const [purpose, setPurpose] = useState("satilik");
-  const [city, setCity] = useState("");
-  const [type, setType] = useState("");
-  const [rooms, setRooms] = useState("");
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const query = new URLSearchParams({ purpose });
-    if (city) query.set("city", city);
-    if (type) query.set("type", type);
-    if (rooms) query.set("rooms", rooms);
-    window.location.assign(`/ilanlar?${query}`);
-  };
-  return <form className="home-search" onSubmit={submit}>
-    <div className="home-search-tabs"><button type="button" className={purpose === "satilik" ? "active" : ""} onClick={() => setPurpose("satilik")}>{t("Satılık")}</button><button type="button" className={purpose === "kiralik" ? "active" : ""} onClick={() => setPurpose("kiralik")}>{t("Kiralık")}</button></div>
-    <div className="home-search-fields">
-      <label><span>{t("Şehir")}</span><select value={city} onChange={(e) => setCity(e.target.value)}><option value="">{t("Tüm şehirler")}</option>{CITIES.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label><span>{t("Gayrimenkul tipi")}</span><select value={type} onChange={(e) => setType(e.target.value)}><option value="">{t("Tüm tipler")}</option>{PROPERTY_TYPES.map((item) => <option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
-      <label><span>{t("Oda düzeni")}</span><select value={rooms} onChange={(e) => setRooms(e.target.value)}><option value="">{t("Tümü")}</option>{["1+0", "1+1", "2+1", "3+1", "4+1", "5+1", "6+1"].map((value) => <option key={value}>{value}</option>)}</select></label>
-      <button className="home-search-submit" type="submit"><Search size={19}/>{t("İlan ara")}</button>
-    </div>
-  </form>;
+import {useEffect,useState,type FormEvent} from 'react';
+import {Search,MapPin,House,Building2,LandPlot,Building,KeyRound,Hotel,SlidersHorizontal} from 'lucide-react';
+import {CITIES,PROPERTY_TYPES} from '@/lib/listings';
+import {PROPERTY_CATEGORIES,PURPOSES} from '@/lib/property-categories';
+import {districtsFor} from '@/lib/turkey-locations';
+import {useLocale} from '@/lib/i18n';
+const icons=[House,Building2,LandPlot,Building,KeyRound,Hotel];
+export function HomeSearch(){
+ const {t}=useLocale();const [category,setCategory]=useState('konut'),[purpose,setPurpose]=useState('satilik'),[type,setType]=useState(''),[city,setCity]=useState(''),[district,setDistrict]=useState(''),[neighborhood,setNeighborhood]=useState(''),[neighborhoods,setNeighborhoods]=useState<{id:number;name:string}[]>([]),[rooms,setRooms]=useState(''),[currency,setCurrency]=useState('TRY'),[minPrice,setMinPrice]=useState(''),[maxPrice,setMaxPrice]=useState(''),[extra,setExtra]=useState(false),[minArea,setMinArea]=useState(''),[maxArea,setMaxArea]=useState('');
+ const group=PROPERTY_CATEGORIES.find(item=>item.value===category)!;
+ useEffect(()=>{setNeighborhoods([]);if(!city||!district)return;const controller=new AbortController();fetch(`/api/locations?${new URLSearchParams({city,district})}`,{signal:controller.signal}).then(r=>r.ok?r.json():null).then(data=>setNeighborhoods((data as {neighborhoods?:{id:number;name:string}[]}|null)?.neighborhoods||[])).catch(()=>{});return()=>controller.abort();},[city,district]);
+ function open(map=false){const q=new URLSearchParams({category,purpose});for(const [key,value] of Object.entries({type,city,district,neighborhood,rooms,minPrice,maxPrice,minArea,maxArea}))if(value)q.set(key,value);if(minPrice||maxPrice)q.set('currency',currency);if(map)q.set('view','map');window.location.assign(`/ilanlar?${q}`);}
+ function submit(event:FormEvent){event.preventDefault();open();}
+ return <form className="home-search category-search" onSubmit={submit} aria-label={t('Gayrimenkul arama')}>
+ <div className="category-search-tabs" role="group" aria-label={t('Gayrimenkul kategorileri')}>{PROPERTY_CATEGORIES.map((item,index)=>{const Icon=icons[index];return <button key={item.value} type="button" aria-pressed={category===item.value} className={category===item.value?'active':''} onClick={()=>{setCategory(item.value);setType('');setRooms('');if(item.value==='devren')setPurpose('devren');else if(category==='devren')setPurpose('satilik');}}><Icon size={19}/><span>{t(item.label)}</span></button>;})}</div>
+ <div className="category-search-body"><div className="category-search-grid">
+ <label><span>{t('İlan türü')}</span><select value={purpose} disabled={category==='devren'} onChange={e=>setPurpose(e.target.value)}>{PURPOSES.map(item=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
+ <label><span>{t('Gayrimenkul tipi')}</span><select value={type} onChange={e=>setType(e.target.value)}><option value="">{t('Tümü')}</option>{PROPERTY_TYPES.filter(item=>(group.types as readonly string[]).includes(item.value)).map(item=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
+ <label><span>{t('İl')}</span><select value={city} onChange={e=>{setCity(e.target.value);setDistrict('');setNeighborhood('');}}><option value="">{t('Tüm şehirler')}</option>{CITIES.map(item=><option key={item}>{item}</option>)}</select></label>
+ <label><span>{t('İlçe')}</span><select value={district} disabled={!city} onChange={e=>{setDistrict(e.target.value);setNeighborhood('');}}><option value="">{t('Tüm ilçeler')}</option>{districtsFor(city).map(item=><option key={item}>{item}</option>)}</select></label>
+ <label><span>{t('Mahalle')}</span><select value={neighborhood} disabled={!district||!neighborhoods.length} onChange={e=>setNeighborhood(e.target.value)}><option value="">{t('Tüm mahalleler')}</option>{neighborhoods.map(item=><option key={item.id} value={item.name}>{item.name}</option>)}</select></label>
+ </div><div className="category-search-bottom"><label><span>{t('En az fiyat')}</span><input aria-label={t('En az fiyat')} type="number" min="0" max="999999999999" placeholder="0" value={minPrice} onChange={e=>setMinPrice(e.target.value)}/></label><label><span>{t('En çok fiyat')}</span><input aria-label={t('En çok fiyat')} type="number" min={minPrice||0} max="999999999999" placeholder={t('Sınırsız')} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)}/></label><label className="category-currency"><span>{t('Para birimi')}</span><select value={currency} onChange={e=>setCurrency(e.target.value)}>{['TRY','EUR','USD','GBP'].map(code=><option key={code} value={code}>{code==='TRY'?'TL':code}</option>)}</select></label><label><span>{t('Oda düzeni')}</span><select value={rooms} disabled={category==='arsa'} onChange={e=>setRooms(e.target.value)}><option value="">{t('Tümü')}</option>{['1+0','1+1','2+1','3+1','4+1','5+1','6+1'].map(item=><option key={item}>{item}</option>)}</select></label><button className="category-find" type="submit"><Search size={18}/>{t('Ara')}</button><button className="category-map" type="button" onClick={()=>{const form=document.querySelector<HTMLFormElement>('.category-search');if(form?.reportValidity())open(true);}}><MapPin size={17}/>{t('Haritada ara')}</button></div>
+ <div className="category-search-footer"><button type="button" aria-expanded={extra} onClick={()=>setExtra(!extra)}><SlidersHorizontal size={14}/>{t(extra?'Daha az seçenek':'Daha fazla seçenek')}</button><span>{t('Türkiye genelinde gayrimenkul arayın')}</span></div>
+ {extra&&<div className="category-extra"><label>{t('Min m²')}<input type="number" min="0" max="999999999999" value={minArea} onChange={e=>setMinArea(e.target.value)}/></label><label>{t('Max m²')}<input type="number" min={minArea||0} max="999999999999" value={maxArea} onChange={e=>setMaxArea(e.target.value)}/></label></div>}
+ </div></form>;
 }

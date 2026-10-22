@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {useSearchParams} from "next/navigation";
 import { useLocale } from "@/lib/i18n";
 
 import { ArrowRight } from "lucide-react";
@@ -13,10 +14,10 @@ type Account = {
 };
 
 export function SellerUpgrade({ user }: { user: Account }) {
-  const {t}=useLocale();
+  const {t}=useLocale();const params=useSearchParams();
   const [role, setRole] = useState<"individual" | "agent">(user.role === "buyer" ? "individual" : "agent");
   const [company, setCompany] = useState(user.company || "");
-  const [companyCategory, setCompanyCategory] = useState<"agency" | "developer">("agency");
+  const [companyCategory, setCompanyCategory] = useState<"agency" | "developer">(params.get("companyCategory")==="developer"?"developer":"agency");
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,7 +46,7 @@ export function SellerUpgrade({ user }: { user: Account }) {
       if (!response.ok) {
         setError(result.error || "Başvuru gönderilemedi.");
       } else {
-        window.location.assign("/hesabim?tab=profil");
+        window.location.assign(role==="agent"?"/hesabim?tab=firma":"/hesabim?tab=profil");
       }
     } catch {
       setError("Bağlantı kurulamadı. Yeniden deneyin.");
@@ -57,13 +58,13 @@ export function SellerUpgrade({ user }: { user: Account }) {
   return <div className="seller-upgrade">
     {canApply && <>
       <h3>{t("İlan vermeye başlayın")}</h3>
-      <p>{t("Bireysel mal sahibi olarak ilanınızı incelemeye gönderebilirsiniz. Emlakçı başvuruları yönetici onayı gerektirir.")}</p>
+      <p>{t("Bireysel mal sahibi olarak ilanınızı incelemeye gönderebilirsiniz. Emlak ofisi ve inşaat firması başvuruları yönetici onayı gerektirir.")}</p>
       <form onSubmit={submit}>
         <label>{t("Hesap türü")}<select value={role} onChange={(event) => setRole(event.target.value as "individual" | "agent")}>
           {user.role === "buyer" && <option value="individual">{t("Bireysel mal sahibiyim")}</option>}
           <option value="agent">{t("Emlakçıyım")}</option>
         </select></label>
-        {role === "agent" && <><label>{t("Şirket türü")}<select value={companyCategory} onChange={(event) => setCompanyCategory(event.target.value as "agency" | "developer")}><option value="agency">{t("Emlak ofisi")}</option><option value="developer">{t("İnşaat firması")}</option></select></label><label>{t("Ofis / şirket adı")}<input value={company} onChange={(event) => setCompany(event.target.value)} required minLength={2} maxLength={120} placeholder={t("Emlak ofisi adı")} /></label></>}
+        {role === "agent" && <><label>{t("Şirket türü")}<select value={companyCategory} onChange={(event) => setCompanyCategory(event.target.value as "agency" | "developer")}><option value="agency">{t("Emlak ofisi")}</option><option value="developer">{t("İnşaat firması")}</option></select></label><label>{t("Ofis / şirket adı")}<input value={company} onChange={(event) => setCompany(event.target.value)} required minLength={2} maxLength={120} placeholder={t(companyCategory==="developer"?"İnşaat firması adı":"Emlak ofisi adı")} /></label></>}
         <button className="primary-button" disabled={loading}>{t(loading ? "Gönderiliyor..." : "Başvuruyu gönder")}<ArrowRight size={16} /></button>
         {error && <div className="form-error" role="alert">{t(error)}</div>}
       </form>

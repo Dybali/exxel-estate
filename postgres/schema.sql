@@ -123,3 +123,6 @@ CREATE INDEX IF NOT EXISTS appointments_seller_idx ON appointments(seller_id,cre
 
 CREATE TABLE IF NOT EXISTS listing_view_daily (listing_id TEXT NOT NULL,day TEXT NOT NULL,visitor_hash TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(listing_id,day,visitor_hash));
 CREATE INDEX IF NOT EXISTS favorites_listing_stats_idx ON favorites(listing_id);
+
+-- Additive membership metadata. Authorization continues through agencies.owner_id.
+CREATE TABLE IF NOT EXISTS company_profiles(user_id TEXT PRIMARY KEY,city TEXT NOT NULL,website TEXT NOT NULL DEFAULT '',address TEXT NOT NULL DEFAULT '',description TEXT NOT NULL DEFAULT '',version INTEGER NOT NULL DEFAULT 1,updated_at TEXT NOT NULL);

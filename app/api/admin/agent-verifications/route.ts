@@ -6,7 +6,7 @@ export async function GET(request:Request){
  const user=await currentUser(request);if(!user?.email_verified||!isAdmin(user))return error('Yönetici yetkisi gerekli.',403);
  const database=await officeDB(),q=new URL(request.url).searchParams,state=q.get('state')||'pending',page=Math.floor(Math.max(1,Math.min(10000,Number(q.get('page'))||1)));
  if(!['pending','approved','rejected'].includes(state))return error('Geçersiz durum.');
- const rows=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS.split(',').map(x=>'v.'+x).join(',')},u.name,u.email,u.company,u.agent_status FROM office_verifications v JOIN users u ON CAST(u.id AS TEXT)=v.user_id WHERE v.state=? ORDER BY v.updated_at DESC LIMIT 25 OFFSET ?`).bind(state,(page-1)*25).all();
+ const rows=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS.split(',').map(x=>'v.'+x).join(',')},u.name,u.email,u.company,u.agent_status,a.category AS company_category FROM office_verifications v JOIN users u ON CAST(u.id AS TEXT)=v.user_id LEFT JOIN agencies a ON a.owner_id=u.id WHERE v.state=? ORDER BY v.updated_at DESC LIMIT 25 OFFSET ?`).bind(state,(page-1)*25).all();
  const count=await database.prepare('SELECT COUNT(*) AS n FROM office_verifications WHERE state=?').bind(state).first<{n:number}>();
  return ok({verifications:rows.results,total:Number(count?.n||0),page},{headers:{'Cache-Control':'private, no-store'}});
 }

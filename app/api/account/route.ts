@@ -2,12 +2,14 @@ import { ensureProfiles, validProfileImage } from '@/lib/seller-profiles';
 import { headExternalImage } from '@/lib/external-r2';
 import { body, createSession, currentUser, db, error, isAdmin, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str, verifyPassword } from "@/lib/server";
 import { normalizeContactPhone } from "@/lib/phone";
+import {companyCategory} from '@/lib/company-membership';
 import {consumeRecoveryLimit,RecoveryError} from '@/lib/recovery-service';
 
 export async function GET(request:Request) {
   const user=await currentUser(request);
   const database=db();let bio='';if(user){await ensureProfiles(database);bio=(await database.prepare('SELECT bio FROM seller_profiles WHERE user_id=?').bind(user.id).first<{bio:string}>())?.bio||'';}
-  return ok({user:user?{...user,bio,isAdmin:isAdmin(user)}:null},{headers:{"Cache-Control":"private, no-store"}});
+  const company= user?.role==='agent'?await database.prepare('SELECT category FROM agencies WHERE owner_id=?').bind(user.id).first<{category:string}>():null;
+  return ok({user:user?{...user,bio,companyCategory:company?.category||null,isAdmin:isAdmin(user)}:null},{headers:{"Cache-Control":"private, no-store"}});
 }
 
 export async function POST(request:Request) {
@@ -48,7 +50,7 @@ export async function POST(request:Request) {
     if(user.role==="agent" && user.agent_status==="approved") return error("Emlakçı hesabınız zaten onaylı.");
     if(user.role==="individual" && role==="individual") return error("Hesabınız zaten bireysel ilan veren türünde.");
     const company=str(data.company,120);
-    const category=data.companyCategory==="developer"?"developer":"agency";
+    let category;try{category=companyCategory(data.companyCategory);}catch(e){return error((e as Error).message);}
     if(role==="agent" && company.length<2) return error("Emlak ofisi veya şirket adını girin.");
     const statements=[db().prepare("UPDATE users SET role=?,agent_status=?,company=? WHERE id=?")
       .bind(role,role==="agent"?"pending":"none",role==="agent"?company:null,user.id)];
@@ -69,7 +71,8 @@ export async function POST(request:Request) {
     if(existing) return error("Bu e-posta ile kayıtlı bir hesap var.",409);
     const id=crypto.randomUUID();
     if(role==="agent" && str(data.company,120).length<2) return error("Emlak ofisi veya şirket adını girin.");
-    const company=str(data.company,120)||null,category=data.companyCategory==="developer"?"developer":"agency",createdAt=now();
+    let category;try{category=companyCategory(data.companyCategory);}catch(e){return error((e as Error).message);}
+    const company=role==="agent"?str(data.company,120):null,createdAt=now();
     const statements=[db().prepare("INSERT INTO users(id,email,password_hash,email_verified,name,role,agent_status,company,created_at) VALUES(?,?,?,?,?,?,?,?,?)")
       .bind(id,email,await passwordHash(password),0,name,role,role==="agent"?"pending":"none",company,createdAt)];
     if(role==="agent") statements.push(db().prepare("INSERT INTO agencies(id,owner_id,name,category,status,created_at) VALUES(?,?,?,?,?,?)")

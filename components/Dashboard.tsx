@@ -1,4 +1,5 @@
 "use client";
+import {CompanyAccount} from './CompanyAccount';
 import {AppointmentsPanel} from "./Appointments";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
@@ -17,7 +18,7 @@ import {OfficeVerification} from './OfficeVerification';
 import { SellerUpgrade } from "@/components/SellerUpgrade";
 import { MessagesInbox, type Conversation } from "@/components/MessagesInbox";
 
-type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; bio?:string; isAdmin?: boolean };
+type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; bio?:string; companyCategory?:string|null; isAdmin?: boolean };
 
 export function Dashboard() {
   const { t, locale } = useLocale();
@@ -76,6 +77,7 @@ export function Dashboard() {
     {id:"bildirimler",label:"Aramalarım ve bildirimler",icon:Bookmark},
     {id:"bildirimlerim",label:"İlan bildirimlerim",icon:Mail},
     { id: "profil", label: "Profilim", icon: UserRound },
+    ...(user.role==="agent"?[{id:"firma",label:"Firma bilgilerim",icon:LayoutDashboard}]:[]),
   ];
 
   return <main className="account-page">
@@ -109,7 +111,8 @@ export function Dashboard() {
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
         {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <DiscoveryPanel/>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}
-        {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? "Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/>{user.role==='agent'&&<OfficeVerification/>}<AccountSecurity/></>}
+        {tab === "firma" && user.role==='agent' && <CompanyAccount/>}
+        {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/>{user.role==='agent'&&<OfficeVerification/>}<AccountSecurity/></>}
       </section>
     </div>
   </main>;

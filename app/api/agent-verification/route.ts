@@ -13,12 +13,13 @@ export async function GET(request:Request){
   return new Response(file.body,{headers:{'Content-Type':record.content_type,'Content-Disposition':`attachment; filename="ofis-yetki-belgesi.${ext}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"sandbox; default-src 'none'",'Content-Length':String(file.size)}});
  }
  if(record)delete (record as Partial<typeof record>).object_key;
- return ok({verification:record},{headers:{'Cache-Control':'private, no-store'}});
+ const company=await database.prepare('SELECT category FROM agencies WHERE owner_id=?').bind(id).first<{category:string}>();
+ return ok({verification:record,companyCategory:company?.category||'agency'},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
  if(!sameOrigin(request))return error('Geçersiz kaynak.',403);
  const user=await currentUser(request);if(!user)return error('Giriş yapın.',401);
- if(!user.email_verified||user.role!=='agent')return error('E-postası doğrulanmış emlakçı hesabı gerekli.',403);
+ if(!user.email_verified||user.role!=='agent')return error('E-postası doğrulanmış şirket hesabı gerekli.',403);
  if(!user.company?.trim())return error('Önce profilinize ofis adını ekleyin.');
  const number=str(request.headers.get('X-Document-Number'),41);if(!/^[A-Za-z0-9/-]{3,40}$/.test(number))return error('Yetki belgesi numarasını girin (3–40 harf/rakam).');
  const database=await officeDB(),previous=await database.prepare('SELECT * FROM office_verifications WHERE user_id=?').bind(user.id).first<OfficeVerification&{object_key:string}>();

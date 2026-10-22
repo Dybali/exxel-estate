@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./market-refresh.css";
 import "./home-premium.css";
+import "./cookies-company.css";
+import {CookieConsentProvider} from "@/components/CookieConsent";
 import "./messaging.css";
 import "./property-detail.css";
 import "./interior-refresh.css";
@@ -39,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><LocaleProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><Footer/></LocaleProvider></body>
+      <body><LocaleProvider><CookieConsentProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><Footer/></CookieConsentProvider></LocaleProvider></body>
     </html>
   );
 }
