@@ -49,7 +49,7 @@ export default function Home() {
       <div className="market-hero-copy"><span className="market-kicker">ESTATEMARKET24 · TÜRKİYE</span><h1>{t("Türkiye'de satılık ve kiralık gayrimenkuller")}</h1><p>{t("Şehir, semt ve özelliklere göre arayın. Size uygun evi, arsayı veya iş yerini bulun.")}</p></div>
       <HomeSearch />
       <div className="market-hero-links"><span>{t("Popüler aramalar")}</span><Link href="/ilanlar?purpose=satilik&type=daire">{t("Satılık daire")}</Link><Link href="/ilanlar?purpose=kiralik&type=daire">{t("Kiralık daire")}</Link><Link href="/ilanlar?type=villa">{t("Villa")}</Link><Link href="/ilanlar?city=İstanbul">İstanbul</Link></div>
-      <span className="hero-photo-credit">{t("Fotoğraf")}: <a href="https://www.pexels.com/photo/modern-luxury-villa-with-infinity-pool-and-scenic-views-32226001/" target="_blank" rel="noreferrer">Ahmet ÇÖTÜR / Pexels</a> · Antalya</span>
+      <span className="hero-photo-credit">{t("Fotoğraf")}: <a href="https://www.pexels.com/photo/villa-with-a-scenic-view-of-the-sea-7902904/" target="_blank" rel="noreferrer">Vlada Karpovich / Pexels</a> · Antalya</span>
     </div></section>
     <section className="market-shortcuts container" aria-label={t("Hızlı bağlantılar")}>
       <Link href="/ilanlar?purpose=satilik"><span className="shortcut-icon"><img src="/shortcuts/buy.webp" width={72} height={72} alt="" decoding="async"/></span><span><strong>{t("Satın al")}</strong><small>{t("Satılık gayrimenkulleri keşfedin")}</small></span><ArrowRight size={18}/></Link>

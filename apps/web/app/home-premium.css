@@ -36,8 +36,8 @@
 
 .market-home .market-hero{
   min-height:615px;
-  background-image:linear-gradient(180deg,rgba(15,26,20,.72) 0%,rgba(15,25,20,.37) 27%,rgba(15,25,20,.52) 58%,rgba(15,25,20,.73) 100%),url('/antalya-villa.webp');
-  background-position:center,center 56%;
+  background-image:linear-gradient(180deg,rgba(15,26,20,.72) 0%,rgba(15,25,20,.37) 27%,rgba(15,25,20,.52) 58%,rgba(15,25,20,.73) 100%),url('/antalya-mediterranean.webp');
+  background-position:center,center 73%;
   background-size:cover;
   position:relative;
 }
@@ -193,7 +193,7 @@
   .home-header .estatemarket-wordmark{font-size:25px}
   .home-header .brand-tagline{font-size:8.5px}
   .market-home .market-hero,.market-home .market-hero-inner{min-height:665px}
-  .market-home .market-hero{background-position:center,52% center}
+  .market-home .market-hero{background-position:center,center 65%}
   .market-home .market-hero-inner{padding-top:126px;padding-bottom:59px;justify-content:center}
   .market-home .market-kicker{font-size:10px}
   .market-home .market-hero h1{font-size:clamp(32px,7.4vw,45px);line-height:1.12;margin:14px auto 11px}
