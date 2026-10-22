@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./market-refresh.css";
 import "./home-premium.css";
+import "./developer-showcase.css";
 import "./messaging.css";
 import "./property-detail.css";
 import "./interior-refresh.css";

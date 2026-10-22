@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./market-refresh.css";
 import "./home-premium.css";
+import "./developer-showcase.css";
 import "./cookies-company.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import "./messaging.css";

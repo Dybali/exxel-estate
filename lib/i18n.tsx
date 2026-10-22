@@ -1,4 +1,5 @@
 "use client";
+import {developerShowcaseWords} from "./developer-showcase-translations";
 import {privacyCompanyWords} from "./privacy-company-translations";
 import listingToolsTranslations from "@/data/listing-tools-translations.json";
 import discoveryTranslations from "@/data/discovery-translations.json";
@@ -633,7 +634,7 @@ Object.assign(words,{
 for(const [key,[de,fr,en,ar,ru]] of Object.entries({...discoveryTranslations,...listingToolsTranslations}))words[key]={de,fr,en,ar,ru};
 Object.assign(words,editorialUITranslations);
 
-for(const [key,[de,fr,en,ar,ru]] of Object.entries(privacyCompanyWords))words[key]={de,fr,en,ar,ru};
+for(const [key,[de,fr,en,ar,ru]] of Object.entries({...privacyCompanyWords,...developerShowcaseWords}))words[key]={de,fr,en,ar,ru};
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,

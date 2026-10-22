@@ -11,4 +11,8 @@ export type Company = {
   city?: string;
   description?: string;
   listingIds?: string[];
+  coverUrl?:string;
+  initials?:string;
+  project?:{name:string;description:string;features:string[];image:string};
+  photoCredit?:{label:string;url:string};
 };
