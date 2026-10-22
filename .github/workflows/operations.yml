@@ -980,7 +980,19 @@ jobs:
           test('configuration refuses pooler connections, missing private storage and same-bucket backup',()=>{const source=id=>({id,type:'s3',bucket:id,endpoint:'https://source.example',accessKeyId:'test',secretAccessKey:'test'}),base={databaseUrl:'postgresql://x:y@direct.example/db',pgBin:'/bin',outputRoot:'/backup',encryptionKey:randomBytes(32).toString('base64'),sources:[source('listing-media'),source('private-media')]};assert.equal(validateConfig(base).length,32);assert.throws(()=>validateConfig({...base,sources:base.sources.slice(0,1)}),/private-media/);assert.throws(()=>validateConfig({...base,databaseUrl:'postgresql://x:y@ep-test-pooler.example/db'}),/direct/);assert.throws(()=>validateConfig({...base,remote:base.sources[0]}),/source bucket/);});
           
           EM24_FILE_15
+      - name: Prepare Node for lightweight site monitoring
+        if: env.MODE == 'monitor'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run lightweight site monitor
+        if: env.MODE == 'monitor'
+        run: |
+          cd "$RUNNER_TEMP/em24-tools/operations/backup"
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          node cloud-runner.mjs monitor
       - name: Build isolated PostgreSQL 18 and Node 24 runner
+        if: env.MODE != 'monitor'
         run: docker build -t em24-operations -f "$RUNNER_TEMP/em24-tools/operations/backup/cloud.Dockerfile" "$RUNNER_TEMP/em24-tools/operations"
       - name: Test isolated image without production credentials
         if: env.MODE == 'build-check'
@@ -997,7 +1009,7 @@ jobs:
           done
           echo 'RESTORE_DATABASE_URL=postgresql://postgres:isolated-test-only@127.0.0.1:55432/em24_restore_monthly?sslmode=disable' >> "$GITHUB_ENV"
       - name: Run operational job
-        if: env.MODE != 'build-check'
+        if: env.MODE != 'build-check' && env.MODE != 'monitor'
         run: |
           docker run --rm --network host \
             -e BACKUP_DATABASE_URL -e BACKUP_ENCRYPTION_KEY -e BACKUP_SOURCE_TOKEN \
