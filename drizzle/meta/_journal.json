@@ -141,6 +141,13 @@
       "when": 1792578623077,
       "tag": "0019_faulty_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1792656530914,
+      "tag": "0020_glorious_mariko_yashida",
+      "breakpoints": true
     }
   ]
 }

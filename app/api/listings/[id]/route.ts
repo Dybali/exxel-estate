@@ -1,4 +1,5 @@
 import {reportsDB} from '@/lib/reports-server';
+import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
@@ -77,6 +78,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(Number(row.price)!==price||String(row.currency)!==currency||row.purpose!==purpose)statements.push(db().prepare("INSERT INTO price_history(id,listing_id,old_price,new_price,currency,purpose,changed_at) VALUES(?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,Number(row.currency===currency&&row.purpose===purpose?row.price:price),price,currency,purpose,updatedAt));
   await db().batch(statements);
   const actual=await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{status:string}>();
+  if(actual?.status==='published')scheduleListingTranslations(id);
   return ok({success:true,id,status:actual?.status||status,updatedAt},{headers:{"Cache-Control":"private, no-store"}});
 }
 export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}) {

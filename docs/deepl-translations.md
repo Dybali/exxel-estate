@@ -1,0 +1,32 @@
+# DeepL content translation
+
+Public listing title/description and blog headline, excerpt, section headings and paragraphs are translated. Private messages, account records, documents, prices/locations stored as structured fields, and unpublished listings are excluded. Requests are constructed from server-owned content, never arbitrary client text.
+
+## Setup
+
+Set `DEEPL_API_KEY` as a secret with the native Sites environment-variable tool; keep existing variables. A key ending in `:fx` uses the fixed DeepL API Free origin; other keys use the fixed Pro origin. Do not put keys in browser code, public variables, URLs, logs or source files. Deploy the same saved version again after setting runtime environment variables. For localhost only, use the ignored `.dev.vars` file.
+
+No key is currently present. Provider activation and a real DeepL translation require the user's API account/key. No success claim is made for live translation before that check.
+
+## Storage and invalidation
+
+Migration `0020_glorious_mariko_yashida.sql` adds three tables to the Site's **D1 DB binding**, not the Neon application database. Neon remains the authoritative listing store. D1 holds derived translated text, per-document generation leases, and aggregate character reservations. Source originals are not duplicated into this cache. Migration-owned tables are not created dynamically at request time.
+
+Cache keys hash provider/context version, target language and the exact source segment. Unchanged paragraphs/headings are reused after edits. Readers resolve current published source and compute fresh hashes. Partial/stale machine translations are not served as complete. The browser also verifies the source-document revision; locale changes cannot replace new text with a late response in the old language. Manual listing translations take priority and are never overwritten.
+
+Translation cache data should be included in D1 backup coverage if preserving it is important. It is independently reconstructible from original Neon records/blog sources and the provider, subject to quota and translation cost. It is not part of a Neon-only SQL dump.
+
+## Generation and operation
+
+Publishing/approving/updating a published listing schedules at most five target-language jobs through Workers `waitUntil`, without blocking publication. Existing/manual fields are skipped. Timeout is 18 seconds per provider call, with no automatic retry. The execution window is best-effort: interrupted/failed jobs can be prepared again from the admin panel. Blog source edits are detected automatically by the hash; the admin prepares updated blog translations using the same panel. There is no automatic retry scheduler.
+
+The verified-admin panel offers published listings (latest 50) and blog content with language selection. `/api/admin/translations` authorizes before any provider call. `/api/translations` is a public **cache reader only** and cannot generate translations. If unavailable, original content is shown with a notice. Credentials and provider error bodies are not exposed.
+
+Per-document leases prevent simultaneous duplicate work for a document/language. Default application reservation limits are 50,000 characters/day and 300,000/month (UTC); `DEEPL_DAILY_CHAR_LIMIT` and `DEEPL_MONTHLY_CHAR_LIMIT` can adjust them. Reservations count Unicode code points and are not refunded after ambiguous failures. These limits do not account for calls from other apps using the same DeepL account. Provider billing/quota remains authoritative. Cross-document segments prepared concurrently may both be translated; subsequent reads reuse the saved cache.
+
+## Verification
+
+66 repository tests passed, including 8 translation tests: cache hits, changed-field invalidation, duplicate concurrency, quota enforcement, upstream failure/cooldown, fixed provider hosts, missing-key behavior, admin authorization, published-only source resolution and public read-only behavior. Real API translation remains unverified until a key is supplied. No seeded/test translations are placed in production.
+
+DeepL text API: https://developers.deepl.com/api-reference/translate/request-translation
+Workers background tasks: https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil

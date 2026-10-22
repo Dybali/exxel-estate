@@ -6,9 +6,11 @@ import { formatPrice,formatUnitPrice, type Listing, typeLabel } from "@/lib/list
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { favoriteIds, favoritesChanged } from "@/lib/favorites-client";
+import {useContentTranslation} from './ContentTranslation';
 export function ListingCard({listing}: {listing:Listing}) {
   const {locale,t}=useLocale();
-  const title=locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title;
+  const translated=useContentTranslation('listing',listing.id,{title:listing.title,description:listing.description});
+  const title=locale==="tr"?listing.title:listing.translations?.[locale]?.title||translated.fields.title||listing.title;
   const [favorite,setFavorite]=useState(false);
   const [favoriteBusy,setFavoriteBusy]=useState(false),[favoriteError,setFavoriteError]=useState("");
   const [imageError,setImageError]=useState(false);

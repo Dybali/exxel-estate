@@ -1,6 +1,11 @@
 import {sql} from "drizzle-orm";
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
+// Derived public-content translations live in the Site's durable D1 cache.
+export const contentTranslations=sqliteTable('content_translations',{key:text('key').primaryKey(),translatedText:text('translated_text').notNull(),detectedLanguage:text('detected_language'),createdAt:text('created_at').notNull()});
+export const translationLeases=sqliteTable('translation_leases',{key:text('key').primaryKey(),token:text('token').notNull(),leaseUntil:integer('lease_until').notNull(),lastError:text('last_error')});
+export const translationUsage=sqliteTable('translation_usage',{key:text('key').primaryKey(),characters:integer('characters').notNull().default(0)});
+
 // Aggregate assistant quotas in the Site D1 binding; no chat content is stored.
 export const aiUsageLimits=sqliteTable('ai_usage_limits',{
   key:text('key').primaryKey(),requests:integer('requests').notNull().default(0),

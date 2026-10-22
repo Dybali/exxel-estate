@@ -1,4 +1,5 @@
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
+import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
 import { centers,mapBoundsSql,validBounds } from "@/lib/search-filters";
@@ -103,5 +104,6 @@ export async function POST(request:Request) {
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=? AND status='published'").bind(createdAt,id));
   await db().batch(statements);
   const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
+  if(saved?.status==='published')scheduleListingTranslations(id);
   return ok({id,status:saved?.status||'pending'},{status:201});
 }
