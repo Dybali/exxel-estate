@@ -1,11 +1,13 @@
+import {categoryFilter} from "./property-categories";
 import {priceCurrency} from "./price-filters";
 import provinceCenters from "@/data/province-centers.json";
 // Shared validation for saved searches, alerts and map queries.
-export const searchFields = {purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency"};
+export const searchFields = {purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency",neighborhood:"neighborhood"};
 export const searchRanges = [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const;
 export function cleanSearch(input: string) {
   if(input.length>3000) throw new Error("Arama çok uzun.");
   const source=new URLSearchParams(input), result=new URLSearchParams();
+  const category=source.get("category");if(category&&category.length<30)result.set("category",category);
   for(const key of Object.keys(searchFields)) { const value=source.get(key); if(value&&value.length<80)result.set(key,value); }
   for(const [key] of searchRanges){const value=source.get(key);if(value&&/^\d{1,12}$/.test(value))result.set(key,value);}
   if(source.get("furnished")==="1")result.set("furnished","1");
@@ -21,6 +23,7 @@ export function validBounds(value:string):number[]|null {
 }
 export function searchSql(query:string) {
   const q=new URLSearchParams(cleanSearch(query)),where=["l.status='published'"],values:(string|number)[]=[];
+  const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
   for(const [key,column] of Object.entries(searchFields)){const value=q.get(key);if(value){where.push(`l.${column}=?`);values.push(value);}}
   for(const [key,column,op] of searchRanges){const value=q.get(key);if(value){where.push(`l.${column}${op}?`);values.push(Number(value));}}
   if(q.get("furnished")==="1")where.push("l.furnished=1");

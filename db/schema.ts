@@ -193,3 +193,6 @@ export const adminAudit = sqliteTable("admin_audit", {id:text("id").primaryKey()
 export const appointments = sqliteTable("appointments", {
  id:text("id").primaryKey(),listingId:text("listing_id").notNull().references(()=>listings.id,{onDelete:"cascade"}),buyerId:text("buyer_id").notNull().references(()=>users.id,{onDelete:"cascade"}),sellerId:text("seller_id").notNull().references(()=>users.id,{onDelete:"cascade"}),slotAt:text("slot_at").notNull(),message:text("message").notNull(),status:text("status").notNull().default("requested"),stage:text("stage").notNull().default("new"),privateNote:text("private_note").notNull().default(""),version:integer("version").notNull().default(1),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull()
 },t=>[uniqueIndex("appointments_active_unique").on(t.buyerId,t.listingId).where(sql`${t.status} IN ('requested','confirmed')`),index("appointments_buyer_idx").on(t.buyerId,t.createdAt),index("appointments_seller_idx").on(t.sellerId,t.createdAt)]);
+
+// Daily deduplication stores no IP address, contact detail or message content.
+export const listingViewDaily=sqliteTable('listing_view_daily',{listingId:text('listing_id').notNull(),day:text('day').notNull(),visitorHash:text('visitor_hash').notNull(),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.listingId,t.day,t.visitorHash]})]);

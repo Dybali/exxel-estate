@@ -35,7 +35,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const value=(key:string,column:string,max:number)=>Object.hasOwn(data,key)?str(data[key],max):str(row[column],max);
   const title=value("title","title",150),description=value("description","description",5000),purpose=value("purpose","purpose",20),propertyType=value("propertyType","property_type",30),currency=value("currency","currency",3).toUpperCase(),city=value("city","city",70),district=value("district","district",70);
   const price=Object.hasOwn(data,"price")?num(data.price):Number(row.price),grossArea=Object.hasOwn(data,"grossArea")?num(data.grossArea):Number(row.gross_area);
-  if(title.length<12||description.length<30||!["satilik","kiralik"].includes(purpose)||!PROPERTY_TYPES.some((item)=>item.value===propertyType)||!["TRY","EUR","USD","GBP"].includes(currency)||!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(grossArea)||grossArea<=0)return error("İlanın zorunlu alanlarını kontrol edin.");
+  if(title.length<12||description.length<30||!["satilik","kiralik","gunluk","devren"].includes(purpose)||!PROPERTY_TYPES.some((item)=>item.value===propertyType)||!["TRY","EUR","USD","GBP"].includes(currency)||!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(grossArea)||grossArea<=0)return error("İlanın zorunlu alanlarını kontrol edin.");
   if(!validDistrict(city,district))return error("Geçerli bir il ve ilçe seçin.");
   const locationChanged=Object.hasOwn(data,"city")||Object.hasOwn(data,"district")||Object.hasOwn(data,"neighborhoodId");
   const neighborhoodId=locationChanged?num(data.neighborhoodId??row.neighborhood_id):Number(row.neighborhood_id);

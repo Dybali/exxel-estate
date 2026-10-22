@@ -37,7 +37,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS agencies_owner_unique ON agencies(owner_id);
 CREATE TABLE IF NOT EXISTS listings (
   id uuid PRIMARY KEY, owner_id uuid NOT NULL REFERENCES users(id), agency_id uuid REFERENCES agencies(id),
   title text NOT NULL, description text NOT NULL,
-  purpose text NOT NULL CHECK (purpose IN ('satilik','kiralik')),
+  purpose text NOT NULL CHECK (purpose IN ('satilik','kiralik','gunluk','devren')),
   property_type text NOT NULL, price bigint NOT NULL CHECK (price>0),
   currency text NOT NULL DEFAULT 'TRY', city text NOT NULL, district text NOT NULL,
   neighborhood text, neighborhood_id integer, postal_code text,
@@ -120,3 +120,6 @@ CREATE TABLE IF NOT EXISTS appointments (id uuid PRIMARY KEY,listing_id uuid NOT
 CREATE UNIQUE INDEX IF NOT EXISTS appointments_active_unique ON appointments(buyer_id,listing_id) WHERE status IN ('requested','confirmed');
 CREATE INDEX IF NOT EXISTS appointments_buyer_idx ON appointments(buyer_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS appointments_seller_idx ON appointments(seller_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS listing_view_daily (listing_id TEXT NOT NULL,day TEXT NOT NULL,visitor_hash TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(listing_id,day,visitor_hash));
+CREATE INDEX IF NOT EXISTS favorites_listing_stats_idx ON favorites(listing_id);

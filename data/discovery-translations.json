@@ -271,5 +271,201 @@
     "listings are shown at province level; precise locations were not shared.",
     "إعلانات معروضة على مستوى المحافظة؛ لم تتم مشاركة الموقع الدقيق.",
     "объявлений показаны на уровне провинции; точное место не указано."
+  ],
+  "Konut": [
+    "Wohnen",
+    "Logement",
+    "Residential",
+    "سكني",
+    "Жильё"
+  ],
+  "İş yeri": [
+    "Gewerbe",
+    "Local commercial",
+    "Commercial",
+    "تجاري",
+    "Коммерческая"
+  ],
+  "Bina": [
+    "Gebäude",
+    "Immeuble",
+    "Building",
+    "مبنى",
+    "Здание"
+  ],
+  "Devremülk": [
+    "Teilzeiteigentum",
+    "Multipropriété",
+    "Timeshare",
+    "ملكية مشتركة زمنية",
+    "Таймшер"
+  ],
+  "Turistik tesis": [
+    "Touristische Anlage",
+    "Établissement touristique",
+    "Tourist facility",
+    "منشأة سياحية",
+    "Туристический объект"
+  ],
+  "Turistik günlük kiralık": [
+    "Ferienvermietung pro Tag",
+    "Location touristique à la journée",
+    "Daily holiday rental",
+    "إيجار سياحي يومي",
+    "Посуточная туристическая аренда"
+  ],
+  "Devren satılık": [
+    "Verkauf mit Übernahme",
+    "Vente avec reprise",
+    "Sale with transfer",
+    "للبيع بالتنازل",
+    "Продажа с переуступкой"
+  ],
+  "Gayrimenkul arama": [
+    "Immobiliensuche",
+    "Recherche immobilière",
+    "Property search",
+    "البحث عن عقار",
+    "Поиск недвижимости"
+  ],
+  "Gayrimenkul kategorileri": [
+    "Immobilienkategorien",
+    "Catégories de biens",
+    "Property categories",
+    "فئات العقارات",
+    "Категории недвижимости"
+  ],
+  "İl": [
+    "Provinz",
+    "Province",
+    "Province",
+    "الولاية",
+    "Провинция"
+  ],
+  "En az fiyat": [
+    "Mindestpreis",
+    "Prix minimum",
+    "Minimum price",
+    "الحد الأدنى للسعر",
+    "Минимальная цена"
+  ],
+  "En çok fiyat": [
+    "Höchstpreis",
+    "Prix maximum",
+    "Maximum price",
+    "الحد الأقصى للسعر",
+    "Максимальная цена"
+  ],
+  "Sınırsız": [
+    "Unbegrenzt",
+    "Sans limite",
+    "No limit",
+    "بلا حد",
+    "Без ограничений"
+  ],
+  "Ara": [
+    "Suchen",
+    "Rechercher",
+    "Search",
+    "بحث",
+    "Найти"
+  ],
+  "Haritada ara": [
+    "Auf der Karte suchen",
+    "Rechercher sur la carte",
+    "Search on map",
+    "البحث على الخريطة",
+    "Поиск на карте"
+  ],
+  "Daha az seçenek": [
+    "Weniger Optionen",
+    "Moins d’options",
+    "Fewer options",
+    "خيارات أقل",
+    "Меньше параметров"
+  ],
+  "Daha fazla seçenek": [
+    "Weitere Optionen",
+    "Plus d’options",
+    "More options",
+    "خيارات إضافية",
+    "Больше параметров"
+  ],
+  "Türkiye genelinde gayrimenkul arayın": [
+    "Immobilien in der ganzen Türkei suchen",
+    "Recherchez des biens dans toute la Turquie",
+    "Search properties across Türkiye",
+    "ابحث عن عقارات في جميع أنحاء تركيا",
+    "Ищите недвижимость по всей Турции"
+  ],
+  "İlan istatistikleri": [
+    "Anzeigenstatistik",
+    "Statistiques de l’annonce",
+    "Listing statistics",
+    "إحصاءات الإعلان",
+    "Статистика объявления"
+  ],
+  "Görüntülenme": [
+    "Aufrufe",
+    "Vues",
+    "Views",
+    "المشاهدات",
+    "Просмотры"
+  ],
+  "Favoriye eklenme": [
+    "Aktuelle Favoriten",
+    "Favoris actuels",
+    "Current favorites",
+    "المفضلة الحالية",
+    "В избранном"
+  ],
+  "Gelen mesaj": [
+    "Eingegangene Nachrichten",
+    "Messages reçus",
+    "Incoming messages",
+    "الرسائل الواردة",
+    "Входящие сообщения"
+  ],
+  "Yenile": [
+    "Aktualisieren",
+    "Actualiser",
+    "Refresh",
+    "تحديث",
+    "Обновить"
+  ],
+  "Yenileniyor...": [
+    "Wird aktualisiert…",
+    "Actualisation…",
+    "Refreshing…",
+    "جارٍ التحديث…",
+    "Обновление…"
+  ],
+  "İstatistikler yenilenemedi.": [
+    "Statistik konnte nicht aktualisiert werden.",
+    "Impossible d’actualiser les statistiques.",
+    "Could not refresh statistics.",
+    "تعذر تحديث الإحصاءات.",
+    "Не удалось обновить статистику."
+  ],
+  "/ gün": [
+    "/ Tag",
+    "/ jour",
+    "/ day",
+    "/ يوم",
+    "/ день"
+  ],
+  "Görüntülenmeler bu güncellemeden itibaren kaydedilir. Aynı ziyaretçi aynı gün bir kez sayılır; kendi ziyaretleriniz sayılmaz.": [
+    "Aufrufe werden ab diesem Update erfasst. Derselbe Besucher zählt einmal pro Tag; eigene Aufrufe zählen nicht.",
+    "Les vues sont comptées à partir de cette mise à jour. Un visiteur compte une fois par jour ; vos propres visites sont exclues.",
+    "Views are recorded from this update onward. Each visitor counts once per day; your own visits are excluded.",
+    "تُسجل المشاهدات بدءًا من هذا التحديث. يُحتسب الزائر مرة واحدة يوميًا، ولا تُحتسب زياراتك الخاصة.",
+    "Просмотры учитываются с этого обновления. Один посетитель учитывается раз в день; ваши посещения не учитываются."
+  ],
+  "Tüm mahalleler": [
+    "Alle Ortsteile",
+    "Tous les quartiers",
+    "All neighborhoods",
+    "جميع الأحياء",
+    "Все кварталы"
   ]
 }

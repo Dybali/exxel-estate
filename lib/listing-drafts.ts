@@ -14,7 +14,7 @@ export function validateDraft(input:unknown,userId:string):DraftPayload {
  for(const [key,value] of Object.entries(data.fields)){if(!fieldNames.has(key)||typeof value!=="string"||value.length>(key==='panoramas'?20000:key.startsWith('description')?5000:['floorPlan','videoUrl','tourUrl'].includes(key)?500:150))throw new DraftError('Taslak alanlarını kontrol edin.');fields[key]=value;}
  if(fields.panoramas){try{validatePanoramas(fields.panoramas,userId);}catch(cause){throw new DraftError((cause as Error).message);}}
  if(fields.currency&&!['TRY','EUR','USD','GBP'].includes(fields.currency))throw new DraftError('Geçersiz para birimi.');
- if(fields.purpose&&!['satilik','kiralik'].includes(fields.purpose))throw new DraftError('Taslak bilgileri geçersiz.');
+ if(fields.purpose&&!['satilik','kiralik','gunluk','devren'].includes(fields.purpose))throw new DraftError('Taslak bilgileri geçersiz.');
  const prefix=`/api/media/listings/${userId}/`;
  if(data.images.length>30||data.images.some(url=>typeof url!=="string"||!url.startsWith(prefix)||!/^[-a-f0-9]+\.(jpg|png|webp)$/.test(url.slice(prefix.length)))||new Set(data.images).size!==data.images.length)throw new DraftError('Taslak fotoğraflarını kontrol edin.');
  if(data.amenities.length>20||data.amenities.some(value=>typeof value!=="string"||value.length>50))throw new DraftError('Taslak özelliklerini kontrol edin.');

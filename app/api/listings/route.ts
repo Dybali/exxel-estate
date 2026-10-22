@@ -1,3 +1,4 @@
+import {categoryFilter} from "@/lib/property-categories";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
@@ -15,7 +16,8 @@ export async function GET(request:Request) {
   try{const currency=priceCurrency(q);if(currency)q.set("currency",currency);}catch{return error("Geçersiz para birimi.");}
   const page=Math.min(1000,Math.max(1,Number(q.get("page"))||1)),pageSize=q.get("map")==="1"?500:12;
   const where=["l.status='published'"],values:(string|number)[]=[];
-  const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency"};
+  const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
+  const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency",neighborhood:"neighborhood"};
   for(const [param,column] of Object.entries(equals)){const v=q.get(param);if(v&&v.length<80){where.push(`l.${column}=?`);values.push(v)}}
   for(const [param,column,op] of [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const){const v=q.get(param);if(v&&/^\d{1,12}$/.test(v)){where.push(`l.${column}${op}?`);values.push(Number(v))}}
   if(q.get("furnished")==="1")where.push("l.furnished=1");
@@ -69,7 +71,7 @@ export async function POST(request:Request) {
   const neighborhoodId=num(data.neighborhoodId),neighborhood=findNeighborhood(city,district,neighborhoodId);
   const price=num(data.price),grossArea=num(data.grossArea);
   if(!(CURRENCIES as readonly string[]).includes(str(data.currency,3)||"TRY"))return error("Geçersiz para birimi.");
-  if(title.length<12 || description.length<30 || !["satilik","kiralik"].includes(purpose) || !PROPERTY_TYPES.some((p)=>p.value===propertyType) || !city || !district || !Number.isInteger(price) || price<=0 || !Number.isInteger(grossArea) || grossArea<=0) return error("Zorunlu ilan alanlarını doldurun.");
+  if(title.length<12 || description.length<30 || !["satilik","kiralik","gunluk","devren"].includes(purpose) || !PROPERTY_TYPES.some((p)=>p.value===propertyType) || !city || !district || !Number.isInteger(price) || price<=0 || !Number.isInteger(grossArea) || grossArea<=0) return error("Zorunlu ilan alanlarını doldurun.");
   if(!validDistrict(city,district) || !neighborhood) return error("Geçerli bir il, ilçe ve mahalle seçin.");
   const amenities=Array.isArray(data.amenities)?data.amenities.filter((x):x is string=>typeof x==="string"&&AMENITIES.includes(x)).slice(0,20):[];
   const images=Array.isArray(data.images)?data.images.filter((x):x is string=>typeof x==="string"&&x.startsWith("/api/media/")).slice(0,30):[];

@@ -1,6 +1,7 @@
-export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" | "ticari";
-export type Purpose = "satilik" | "kiralik";
+export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" | "ticari" | "bina" | "devremulk" | "turistik";
+export type Purpose = "satilik" | "kiralik" | "gunluk" | "devren";
 export type Listing = {
+  statistics?: {views:number;favorites:number;messages:number};
   presentation?:import("./presentation").Presentation;
   id: string; title: string; description: string; purpose: Purpose; propertyType: PropertyType;
   price: number; currency: string; city: string; district: string; neighborhood?: string; neighborhoodId?: number; postalCode?: string;
@@ -58,7 +59,7 @@ export { CITIES } from "./turkey-locations";
 export const PUBLIC_DEMO_LISTINGS: Listing[] = [];
 export function publicListing(listing:Listing):Listing {const {reviewNote,reviewedAt,...visible}=listing;return visible;}
 export const PROPERTY_TYPES: {value: PropertyType; label: string}[] = [
-  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"Ticari"}
+  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"İş yeri"},{value:"bina",label:"Bina"},{value:"devremulk",label:"Devremülk"},{value:"turistik",label:"Turistik tesis"}
 ];
 export const AMENITIES = ["Deniz manzarası","Boğaz manzarası","Havuz","Özel havuz","Bahçe","Teras","Balkon","Otopark","Asansör","Güvenlik","Eşyalı","Şömine"];
 export const formatPrice = (value:number, currency="TRY", locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,maximumFractionDigits:0}).format(value);

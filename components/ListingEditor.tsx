@@ -1,5 +1,6 @@
 "use client";
 
+import {PURPOSES,purposeLabel,pricePeriod} from "@/lib/property-categories";
 import {checkListingPhoto} from '@/lib/photo-quality';
 import {PresentationFields} from "./PropertyPresentation";
 import {PhotoManager} from "./PhotoManager";
@@ -86,7 +87,7 @@ export function ListingEditor({id}:{id:string}) {
     <nav className="container listing-step-nav" aria-label="İlan düzenleme adımları"><a href="#edit-basics"><span>01</span>{t("Temel bilgiler")}</a><a href="#edit-location"><span>02</span>{t("Konum")}</a><a href="#edit-features"><span>03</span>{t("Özellikler")}</a><a href="#edit-images"><span>04</span>{t("Fotoğraflar")}</a></nav>
     <div className="container form-layout"><form onSubmit={submit} className="property-form">
       <section id="edit-basics"><span className="form-section-no">01</span><h2>{t("Temel bilgiler")}</h2><p>{t("Başlık, açıklama ve fiyatı güncelleyin.")}</p><div className="form-grid">
-        <label>{t("İlan türü")}<select name="purpose" defaultValue={listing.purpose}><option value="satilik">{t("Satılık")}</option><option value="kiralik">{t("Kiralık")}</option></select></label>
+        <label>{t("İlan türü")}<select name="purpose" defaultValue={listing.purpose}>{PURPOSES.map(item=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
         <label>{t("Gayrimenkul tipi")}<select name="propertyType" defaultValue={listing.propertyType}>{PROPERTY_TYPES.map((item)=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
         <label className="span-2">{t("İlan başlığı")}<input name="title" required minLength={12} maxLength={150} defaultValue={listing.title}/></label>
         <label className="span-2">{t("Açıklama")}<textarea name="description" required minLength={30} maxLength={5000} rows={6} defaultValue={listing.description}/></label>
