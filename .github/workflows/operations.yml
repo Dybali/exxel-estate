@@ -74,7 +74,7 @@ jobs:
           const base='https://exxel-estate.blue-grape-8839.chatgpt.site',checks=[];
           async function check(name,run){const start=Date.now();try{const details=await run();checks.push({name,passed:true,milliseconds:Date.now()-start,...details});}catch(e){checks.push({name,passed:false,milliseconds:Date.now()-start,error:e.message});}}
           function ensure(value,message){if(!value)throw Error(message);}
-          async function get(path){return fetch(base+path,{redirect:'manual',headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(20000)});}
+          async function get(path){for(let attempt=0;attempt<3;attempt++){try{const response=await fetch(base+path,{redirect:'manual',headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(20000)});if(![429,500,502,503,504].includes(response.status)||attempt===2)return response;await response.body?.cancel();}catch(error){if(attempt===2)throw error;}await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));}}
           let first;
           for(const path of ['/','/giris','/ilanlar'])await check('public-page '+path,async()=>{const r=await get(path);ensure(r.status===200,'Expected HTTP 200');ensure(r.headers.get('x-content-type-options')==='nosniff','Missing MIME hardening');ensure(r.headers.get('referrer-policy')==='strict-origin-when-cross-origin','Missing referrer policy');await r.body?.cancel();return {status:r.status};});
           await check('published-listings-and-private-note-isolation',async()=>{const r=await get('/api/listings?page=1');ensure(r.status===200,'Listing API unavailable');const data=await r.json();ensure(Array.isArray(data.listings)&&Number.isInteger(data.total),'Invalid listing response');ensure(data.listings.every(x=>!Object.hasOwn(x,'reviewNote')&&!Object.hasOwn(x,'reviewedAt')&&!String(x.id).startsWith('ex-')),'Private review fields or demo listings exposed');first=data.listings[0];return {publishedTotal:data.total};});
@@ -885,10 +885,11 @@ jobs:
           import {randomBytes} from 'node:crypto';
           const mode=process.argv[2]||'backup';
           let phase='configuration';
+          async function retryRead(url,options){for(let attempt=0;attempt<3;attempt++){try{const response=await fetch(url,{...options,signal:AbortSignal.timeout(20000)});if(![429,500,502,503,504].includes(response.status)||attempt===2)return response;await response.body?.cancel();}catch(error){if(attempt===2)throw error;}await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));}}
           try{
            if(!['backup','restore-test','monitor','diagnose-monitor'].includes(mode))throw Error('Unknown cloud command');
            if(mode!=='diagnose-monitor')smtpSettings();
-           const c=cloudConfig();const remote=mode==='diagnose-monitor'?null:storage(c.remote),prefix=c.remote.prefix;
+           const c=cloudConfig();const remote=storage(c.remote),prefix=c.remote.prefix;
            try{
             if(mode==='backup'){
              const runPrefix=prefix+'/runs/'+randomBytes(16).toString('hex'),active={...c,remote:{...c.remote,prefix:runPrefix}};
@@ -904,11 +905,12 @@ jobs:
              phase='public-site-preflight';
              try{await promisify(execFile)(process.execPath,[fileURLToPath(new URL('../launch-preflight.mjs',import.meta.url))],{timeout:300000,maxBuffer:100000});}catch(error){try{const result=JSON.parse(await fs.readFile(new URL('../launch-preflight-result.json',import.meta.url),'utf8'));console.error(JSON.stringify({phase,failedChecks:result.checks.filter(check=>!check.passed).map(check=>check.name)}));}catch{}throw error;}
              phase='protected-operations-endpoint';
-             const operationsUrl=new URL(c.sources[0].endpoint);operationsUrl.searchParams.set('mode','operations');const response=await fetch(operationsUrl,{headers:{Authorization:'Bearer '+c.sources[0].token},redirect:'manual',signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error('Usage endpoint HTTP '+response.status);const report=await response.json();
+             const operationsUrl=new URL(c.sources[0].endpoint);operationsUrl.searchParams.set('mode','operations');const response=await retryRead(operationsUrl,{headers:{Authorization:'Bearer '+c.sources[0].token},redirect:'manual'});if(!response.ok)throw Error('Usage endpoint HTTP '+response.status);const report=await response.json();
              if(typeof report.usageWarning!=='boolean'||typeof report.usageExceeded!=='boolean'||typeof report.serviceWarning!=='boolean'||report.advisoryOnly!==true)throw Error('Invalid advisory monitoring response');
              const number=n=>Number.isFinite(Number(n))?String(Number(n)):'unknown';
              process.env.ALERT_DETAILS=['Kullanim uyarilari hizmeti durdurmaz. Bunlar fatura tutari degildir.','Gemini gunluk rezervasyon: '+number(report.gemini?.day?.used)+' / '+number(report.gemini?.day?.limit),'Gemini aylik rezervasyon: '+number(report.gemini?.month?.used)+' / '+number(report.gemini?.month?.limit),'DeepL aylik uygulama karakteri: '+number(report.deepl?.month?.used)+' / '+number(report.deepl?.month?.limit),...(report.deepl?.provider?.available?['DeepL saglayici karakteri: '+number(report.deepl.provider.used)+' / '+number(report.deepl.provider.limit)]:['DeepL saglayici kotasi okunamadi.'])].join(String.fromCharCode(10));
              phase='alert-state';
+             if(mode==='diagnose-monitor'){for(const kind of ['usage','usage-limit','service','monitor']){let size=0,payload='';try{for await(const part of await remote.get(prefix+'/control/alerts/'+kind+'.json')){size+=part.length;if(size>10000)throw Error('Invalid alert state');payload+=Buffer.from(part).toString('utf8');}JSON.parse(payload);}catch(error){if(!['NoSuchKey','NotFound'].includes(error.name)&&error.$metadata?.httpStatusCode!==404)throw error;}}}
              if(mode==='monitor'){await recordAlert(remote,c,'usage',!report.usageWarning);await recordAlert(remote,c,'usage-limit',!report.usageExceeded);await recordAlert(remote,c,'service',!report.serviceWarning);}
              console.log(JSON.stringify({mode,state:'passed'}));
             }
