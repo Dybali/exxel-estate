@@ -16,6 +16,7 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "İlçe, mahalle veya anahtar kelime": {de:"Bezirk, Viertel oder Suchbegriff",en:"District, neighbourhood or keyword",fr:"Quartier ou mot-clé",ar:"المنطقة أو الحي أو كلمة البحث",ru:"Район, квартал или ключевое слово"},
   "Türkiye'de gayrimenkul aramanın yeni adresi": {de:"Ihr neuer Ort für Immobilien in der Türkei",fr:"Votre nouvelle adresse immobilière en Turquie",en:"Your new destination for property in Türkiye",ar:"وجهتك الجديدة للعقارات في تركيا",ru:"Ваш новый адрес поиска недвижимости в Турции"},
   "Türkiye'de evinizi bulun.": {de:"Finden Sie Ihr Zuhause in der Türkei.",fr:"Trouvez votre logement en Turquie.",en:"Find your home in Türkiye.",ar:"اعثر على منزلك في تركيا.",ru:"Найдите свой дом в Турции."},
   "Satılık ve kiralık daire, ev, villa ve arsaları tek yerde karşılaştırın.": {de:"Vergleichen Sie Wohnungen, Häuser, Villen und Grundstücke zum Kauf oder zur Miete.",fr:"Comparez appartements, maisons, villas et terrains à vendre ou à louer.",en:"Compare apartments, houses, villas and land for sale or rent in one place.",ar:"قارن الشقق والمنازل والفلل والأراضي للبيع أو الإيجار في مكان واحد.",ru:"Сравнивайте квартиры, дома, виллы и участки для покупки или аренды."},

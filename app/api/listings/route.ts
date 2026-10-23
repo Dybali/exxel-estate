@@ -1,3 +1,4 @@
+import {textSearchSql,matchesSearchText} from '@/lib/text-search';
 import {nextIndividualSubmission} from '@/lib/listing-policy';
 import {categoryFilter,categoryMatches} from "@/lib/property-categories";
 import {publicListing} from '@/lib/listings';
@@ -18,6 +19,7 @@ export async function GET(request:Request) {
   const page=Math.min(1000,Math.max(1,Number(q.get("page"))||1)),pageSize=q.get("map")==="1"?500:12;
   const where=["l.status='published'"],values:(string|number)[]=[];
   const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
+  const textFilter=textSearchSql(q.get("q")||"");if(textFilter.where){where.push(textFilter.where);values.push(...textFilter.values);}
   const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency",neighborhood:"neighborhood"};
   for(const [param,column] of Object.entries(equals)){const v=q.get(param);if(v&&v.length<80){where.push(`l.${column}=?`);values.push(v)}}
   for(const [param,column,op] of [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const){const v=q.get(param);if(v&&/^\d{1,12}$/.test(v)){where.push(`l.${column}${op}?`);values.push(Number(v))}}
@@ -31,6 +33,7 @@ export async function GET(request:Request) {
   const sort=q.get("sort");
   const order=sort==="priceAsc"?"l.price ASC,l.id ASC":sort==="priceDesc"?"l.price DESC,l.id ASC":sort==="area"?"l.gross_area DESC,l.id ASC":"l.featured DESC,l.created_at DESC";
   const demo=(q.get('assistant')==='1'?[]:PUBLIC_DEMO_LISTINGS).filter((l)=>{
+    if(!matchesSearchText(q.get("q")||"",l))return false;
     if(!categoryMatches(q.get('category')||'',l))return false;
     if(q.get("neighborhood")&&l.neighborhood!==q.get("neighborhood"))return false;
     for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["rooms","rooms"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}

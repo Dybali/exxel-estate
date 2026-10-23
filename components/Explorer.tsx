@@ -14,13 +14,13 @@ import {PROPERTY_CATEGORIES,PURPOSES,purposeLabel} from "@/lib/property-categori
 import { ListingCard } from "./ListingCard";
 
 type Filters = {
-  category:string; neighborhood:string; currency:string; purpose: string; city: string; district: string; type: string;
+  q:string; category:string; neighborhood:string; currency:string; purpose: string; city: string; district: string; type: string;
   minPrice: string; maxPrice: string; minArea: string; maxArea: string;
   rooms: string; bedrooms: string; bathrooms: string; furnished: boolean;
   amenities: string[];
 };
 const emptyFilters: Filters = {
-  category:"", neighborhood:"", currency:"", purpose: "", city: "", district: "", type: "", minPrice: "", maxPrice: "",
+  q:"", category:"", neighborhood:"", currency:"", purpose: "", city: "", district: "", type: "", minPrice: "", maxPrice: "",
   minArea: "", maxArea: "", rooms: "", bedrooms: "", bathrooms: "",
   furnished: false, amenities: [],
 };
@@ -28,7 +28,7 @@ const filterKeys = Object.keys(emptyFilters) as (keyof Filters)[];
 
 function readFilters(params: { get: (key: string) => string | null }): Filters {
   return {
-    category:params.get("category")||"",neighborhood:params.get("neighborhood")||"",
+    q:(params.get("q")||"").slice(0,160),category:params.get("category")||"",neighborhood:params.get("neighborhood")||"",
     currency:(()=>{try{return priceCurrency(params);}catch{return "";}})(),
     purpose: params.get("purpose") || "", city: params.get("city") || "",
     district: params.get("district") || "", type: params.get("type") || "",
@@ -155,7 +155,7 @@ export function Explorer() {
       <aside className={`filters ${mobileFilters ? "filters-open" : ""}`}>
         <div className="filter-head"><strong>{t("Filtreler")}</strong><button type="button" onClick={reset}><RotateCcw size={14}/>{t("Temizle")}</button><button type="button" className="filter-close" onClick={() => setMobileFilters(false)} aria-label={t("Filtreleri kapat")}><X size={20}/></button></div>
         <div className="filter-block"><h3>{t("İlan türü")}</h3><Field label={t('İlan türü')}><select value={filters.purpose} onChange={e=>set('purpose',e.target.value)}><option value="">{t('Tümü')}</option>{PURPOSES.map(item=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></Field><Field label={t('Gayrimenkul kategorileri')}><select value={filters.category} onChange={e=>{setFilters(old=>({...old,category:e.target.value,type:''}));setPage(1);}}><option value="">{t('Tümü')}</option>{PROPERTY_CATEGORIES.map(item=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></Field></div>
-        <div className="filter-block"><h3>{t("Konum")}</h3><Field label={t("Şehir")}><select value={filters.city} onChange={(event) => { setFilters((old) => ({ ...old, city: event.target.value, district: "",neighborhood:"" })); setBoundsFilter("");setPage(1); }}><option value="">{t("Tüm şehirler")}</option>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></Field><Field label={t("İlçe")}><select value={filters.district} onChange={(event) => set("district", event.target.value)} disabled={!filters.city}><option value="">{t("Tüm ilçeler")}</option>{districtsFor(filters.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></Field></div>
+        <div className="filter-block"><Field label={t("İlan ara")}><input type="search" maxLength={160} value={filters.q} onChange={event=>set("q",event.target.value)} placeholder={t("İlçe, mahalle veya anahtar kelime")}/></Field></div><div className="filter-block"><h3>{t("Konum")}</h3><Field label={t("Şehir")}><select value={filters.city} onChange={(event) => { setFilters((old) => ({ ...old, city: event.target.value, district: "",neighborhood:"" })); setBoundsFilter("");setPage(1); }}><option value="">{t("Tüm şehirler")}</option>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></Field><Field label={t("İlçe")}><select value={filters.district} onChange={(event) => set("district", event.target.value)} disabled={!filters.city}><option value="">{t("Tüm ilçeler")}</option>{districtsFor(filters.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></Field></div>
         <div className="filter-block"><h3>{t("Gayrimenkul türü")}</h3><Field label={t("Kategori")}><select value={filters.type} onChange={(event) => set("type", event.target.value)}><option value="">{t("Tüm kategoriler")}</option>{PROPERTY_TYPES.map((item) => <option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></Field></div>
         <div className="filter-block"><h3>{t("Fiyat aralığı")}</h3><Field label={t("Para birimi")}><select value={filters.currency} onChange={event=>set("currency",event.target.value)}><option value="">{t("Tüm para birimleri")}</option>{CURRENCIES.map(code=><option key={code}>{code}</option>)}</select></Field><p className="currency-note">{t("Fiyat filtresi ve sıralaması seçili para birimine uygulanır. Döviz çevrimi yapılmaz.")}</p><div className="filter-pair"><Field label={`${t("En az")} ${filters.currency||"TRY"}`}><input type="number" min="0" placeholder="Min" value={filters.minPrice} onChange={(event) => set("minPrice", event.target.value)}/></Field><Field label={`${t("En çok")} ${filters.currency||"TRY"}`}><input type="number" min="0" placeholder="Max" value={filters.maxPrice} onChange={(event) => set("maxPrice", event.target.value)}/></Field></div></div>
         <div className="filter-block"><h3>{t("Alan ve oda")}</h3><div className="filter-pair"><Field label={t("Min m²")}><input type="number" min="0" placeholder="m²" value={filters.minArea} onChange={(event) => set("minArea", event.target.value)}/></Field><Field label={t("Max m²")}><input type="number" min="0" placeholder="m²" value={filters.maxArea} onChange={(event) => set("maxArea", event.target.value)}/></Field></div><Field label={t("Oda düzeni")}><select value={filters.rooms} onChange={(event) => set("rooms", event.target.value)}><option value="">{t("Tümü")}</option>{["1+0", "1+1", "2+1", "3+1", "4+1", "5+1", "6+1"].map((room) => <option key={room}>{room}</option>)}</select></Field><div className="filter-pair"><Field label={t("En az yatak odası")}><select value={filters.bedrooms} onChange={(event) => set("bedrooms", event.target.value)}><option value="">{t("Fark etmez")}</option>{[1, 2, 3, 4, 5].map((count) => <option key={count}>{count}</option>)}</select></Field><Field label={t("En az banyo")}><select value={filters.bathrooms} onChange={(event) => set("bathrooms", event.target.value)}><option value="">{t("Fark etmez")}</option>{[1, 2, 3, 4].map((count) => <option key={count}>{count}</option>)}</select></Field></div></div>
