@@ -1,3 +1,4 @@
+import {recordOperation} from '@/lib/operations';
 import {env} from 'cloudflare:workers';
 import {translationContent} from '@/lib/translation-content';
 import {readTranslations,prepareTranslations} from '@/lib/translation-cache';
@@ -16,7 +17,7 @@ export async function POST(request:Request){
   const result=Object.keys(doc.fields).length?await prepareTranslations(env.DB as never,translationSettings(),doc,locale):{status:'cached',fields:{}};
   const pending=result.status==='pending';
   return Response.json({locale,revision:await translationHash(JSON.stringify(content.document.fields)),status:pending?'pending':'ready',fields:pending?content.manual:{...result.fields,...content.manual},machine:!pending&&Object.keys(result.fields).length>0},{status:pending?202:200,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
- }catch(e){return Response.json({error:e instanceof TranslationError?e.code:'translation_unavailable'},{status:e instanceof TranslationError?e.status:503,headers:{'Cache-Control':'no-store'}});}
+ }catch(e){await recordOperation(env.DB as never,'deepl',String(e instanceof TranslationError?e.status:503)).catch(()=>{});return Response.json({error:e instanceof TranslationError?e.code:'translation_unavailable'},{status:e instanceof TranslationError?e.status:503,headers:{'Cache-Control':'no-store'}});}
 }
 export async function GET(request:Request){
  const q=new URL(request.url).searchParams,kind=q.get('kind')||'',id=q.get('id')||'',locale=q.get('locale') as TranslationLocale;

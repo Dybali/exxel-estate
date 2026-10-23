@@ -1,3 +1,4 @@
+import {recordOperation} from '../lib/operations';
 import handler from "vinext/server/fetch-handler";
 import { withResponseSecurity } from "../lib/response-security";
 import { runWithConnectorBinding } from "../lib/connector-context";
@@ -24,6 +25,6 @@ export default {
         },
       };
     }
-    return runWithConnectorBinding(binding, async () => withResponseSecurity(await handler.fetch(request, env, ctx)));
+    return runWithConnectorBinding(binding, async () => {try{const response=await handler.fetch(request,env,ctx);if(response.status>=500)ctx.waitUntil(recordOperation(env.DB as never,'http',String(response.status)).catch(()=>{}));return withResponseSecurity(response);}catch(error){ctx.waitUntil(recordOperation(env.DB as never,'http','500').catch(()=>{}));throw error;}});
   },
 };

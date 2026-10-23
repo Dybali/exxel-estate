@@ -1,17 +1,22 @@
+import {ensureMonth} from './operations';
 import { AssistantError, assistantQuery, emptyFilters, type AssistantFilters } from './assistant';
 import type { Listing } from './listings';
 type Value=string|number;
 export interface AssistantDatabase {prepare(query:string):{bind(...values:Value[]):{first<T=Record<string,unknown>>():Promise<T|null>;all<T=Record<string,unknown>>():Promise<{results:T[]}>;run():Promise<unknown>}}}
 export async function reserveAssistantUsage(database:AssistantDatabase,clientKey:string,dailyLimit=400,time=new Date()) {
+  const month=await ensureMonth(database as never,time).catch(()=>null);
   const day=time.toISOString().slice(0,10),hour=time.toISOString().slice(0,13);
   const keys=[{key:`assistant:member:${clientKey}:${hour}`,limit:20,cost:1},{key:`assistant:global:${day}`,limit:Math.min(2000,Math.max(2,dailyLimit)),cost:2}];
   for(const item of keys){
-    const row=await database.prepare('INSERT INTO ai_usage_limits(key,requests,expires_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET requests=ai_usage_limits.requests+excluded.requests WHERE ai_usage_limits.requests+excluded.requests<=? RETURNING requests').bind(item.key,item.cost,new Date(time.getTime()+3*86400000).toISOString(),item.limit).first<{requests:number}>();
-    if(!row)throw new AssistantError(item.cost===1?'rate_limit':'daily_limit',429);
+    const guard=item.cost===1?' WHERE ai_usage_limits.requests+excluded.requests<=?':'';
+    const statement=database.prepare('INSERT INTO ai_usage_limits(key,requests,expires_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET requests=ai_usage_limits.requests+excluded.requests'+guard+' RETURNING requests');
+    const args:Value[]=[item.key,item.cost,new Date(time.getTime()+3*86400000).toISOString()];if(item.cost===1)args.push(item.limit);
+    const row=await statement.bind(...args).first<{requests:number}>();if(!row)throw new AssistantError('rate_limit',429);
   }
+  if(month)await database.prepare('UPDATE ai_monthly_usage SET requests=requests+2 WHERE month=?').bind(month).run().catch(()=>{});
   // Only aggregate counters, never messages or identifying account data.
   await database.prepare('DELETE FROM ai_usage_limits WHERE expires_at<?').bind(time.toISOString()).run();
-  return async(usage:{input:number;output:number})=>{await database.prepare('UPDATE ai_usage_limits SET input_tokens=input_tokens+?,output_tokens=output_tokens+? WHERE key=?').bind(Math.max(0,Math.ceil(usage.input)),Math.max(0,Math.ceil(usage.output)),`assistant:global:${day}`).run();};
+  return async(usage:{input:number;output:number})=>{if(month)await database.prepare('UPDATE ai_monthly_usage SET input_tokens=input_tokens+?,output_tokens=output_tokens+? WHERE month=?').bind(Math.max(0,Math.ceil(usage.input)),Math.max(0,Math.ceil(usage.output)),month).run().catch(()=>{});await database.prepare('UPDATE ai_usage_limits SET input_tokens=input_tokens+?,output_tokens=output_tokens+? WHERE key=?').bind(Math.max(0,Math.ceil(usage.input)),Math.max(0,Math.ceil(usage.output)),`assistant:global:${day}`).run();};
 }
 export function publicAssistantListing(row:Record<string,unknown>):Listing {
   const array=(v:unknown)=>{try{const data=JSON.parse(String(v||'[]'));return Array.isArray(data)?data.filter((x):x is string=>typeof x==='string'):[];}catch{return [];}};

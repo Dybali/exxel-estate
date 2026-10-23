@@ -1,3 +1,4 @@
+import {recordOperation} from '@/lib/operations';
 import {env} from 'cloudflare:workers';
 import {body,currentUser,db,sameOrigin,sha256} from '@/lib/server';
 import {AssistantError,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
@@ -36,6 +37,7 @@ export async function POST(request:Request) {
     return reply({...base,...result,message,searched:true});
   }catch(cause){
     const code=cause instanceof AssistantError?cause.code:'provider';
+    const status=cause instanceof AssistantError?cause.status:503;if(status>=500||status===429)await recordOperation(env.DB as never,'gemini',String(status)).catch(()=>{});
     return reply({error:code,message:assistantCopy[language][code as keyof typeof assistantCopy.tr]||assistantCopy[language].provider},cause instanceof AssistantError?cause.status:503);
   }
 }

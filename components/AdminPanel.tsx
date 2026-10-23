@@ -1,4 +1,5 @@
 "use client";
+import {AdminOperations} from "./AdminOperations";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
@@ -69,6 +70,7 @@ export function AdminPanel() {
       <div className="admin-section-head"><div><span className="eyebrow dark-eyebrow">EMLAKÇILAR</span><h2>Hesap onayları</h2></div></div>
       <div className="admin-table-wrap"><table><thead><tr><th>Ad / ofis</th><th>E-posta</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>{agents.length ? agents.map((agent) => <tr key={agent.id}><td>{agent.name}{agent.company && <small>{agent.company}</small>}</td><td>{agent.email}</td><td>{agent.agent_status}</td><td><a className="admin-review-link" href="#admin-office-verifications">Yetki belgesini incele →</a><button type="button" onClick={() => updateAgent(agent.id, "rejected")}><X size={15}/> Reddet</button><button className="admin-contact-link" onClick={() => contact(agent)}>Mesaj yaz</button></td></tr>) : <tr><td colSpan={4}>Henüz emlakçı başvurusu yok.</td></tr>}</tbody></table></div>
       {error && <p className="form-error" role="alert">{error}</p>}
+      <AdminOperations/>
       <AdminOfficeVerifications onReviewed={reload}/>
       <AdminReports/>
       <AdminTranslations/>

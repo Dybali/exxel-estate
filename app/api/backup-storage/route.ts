@@ -1,3 +1,4 @@
+import {operationsReport} from '@/lib/operations-runtime';
 import {env} from 'cloudflare:workers';
 import {AwsClient} from 'aws4fetch';
 import {bucket,sha256} from '@/lib/server';
@@ -11,6 +12,7 @@ export async function GET(request:Request){
  const settings=env as unknown as Settings,token=settings.BACKUP_READ_TOKEN||'',provided=request.headers.get('authorization')?.replace(/^Bearer /,'')||'';
  if(token.length<48||provided.length>256)return json({error:'Backup authorization required'},401);
  const a=await sha256(token),b=await sha256(provided);let diff=0;for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);if(diff)return json({error:'Backup authorization required'},401);
+ if(new URL(request.url).searchParams.get('mode')==='operations'){try{return json(await operationsReport());}catch{return json({error:'Monitoring unavailable'},503);}}
  const q=new URL(request.url).searchParams,source=q.get('source'),mode=q.get('mode')||'list',key=q.get('key')||'',cursor=q.get('cursor');
  if(!['listing-media','private-media'].includes(source||'')||!['list','head','get'].includes(mode))return json({error:'Invalid backup request'},400);
  if(mode!=='list'&&(!key||key.length>1024||key.includes('\0')||key.split('/').some(p=>p==='.'||p==='..')))return json({error:'Invalid object key'},400);

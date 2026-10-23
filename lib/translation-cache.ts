@@ -18,9 +18,8 @@ export async function prepareTranslations(database:Database,settings:Translation
   const missing=[...new Map(cached.segments.filter(s=>!Object.hasOwn(cached.fields,s.field)).map(s=>[s.key,s])).values()];
   const characters=missing.reduce((n,s)=>n+Array.from(s.text).length,0),stamp=new Date().toISOString();
   for(const [key,cap] of [['day:'+stamp.slice(0,10),limit(settings.DEEPL_DAILY_CHAR_LIMIT,50000,500000)],['month:'+stamp.slice(0,7),limit(settings.DEEPL_MONTHLY_CHAR_LIMIT,300000,5000000)]] as const){
-   // Never refund reservations: a timeout may already have been billed upstream.
-   if(characters>cap)throw new TranslationError('character_limit',429);
-   const row=await database.prepare('INSERT INTO translation_usage(key,characters) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET characters=translation_usage.characters+excluded.characters WHERE translation_usage.characters+excluded.characters<=? RETURNING characters').bind(key,characters,cap).first();if(!row)throw new TranslationError('character_limit',429);
+   // These counters are advisory only. Provider/account limits still apply.
+   await database.prepare('INSERT INTO translation_usage(key,characters) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET characters=translation_usage.characters+excluded.characters').bind(key,characters).run();
   }
   const translated=await translateDeepL(settings,locale,missing.map(s=>s.text));
   await database.batch(missing.map((s,i)=>database.prepare('INSERT INTO content_translations(key,translated_text,detected_language,created_at) VALUES(?,?,?,?) ON CONFLICT(key) DO NOTHING').bind(s.key,translated[i].text,translated[i].language,stamp)));
