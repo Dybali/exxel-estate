@@ -49,7 +49,7 @@ export function Header() {
     return () => { control.abort(); clearInterval(timer); window.removeEventListener("messages:changed", refresh); };
   }, [user?.id]);
   useEffect(()=>{if(!user?.id){setDiscoveryUnread(0);return;}let active=true;
-    const refresh=()=>{if(document.hidden)return;fetch("/api/discovery",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(data=>{if(active&&data)setDiscoveryUnread(data.unread||0);}).catch(()=>{});};refresh();const timer=setInterval(refresh,60000);window.addEventListener("salesorrent:discovery-changed",refresh);return()=>{active=false;clearInterval(timer);window.removeEventListener("salesorrent:discovery-changed",refresh);};
+    const refresh=()=>{if(document.hidden)return;fetch("/api/discovery",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(data=>{if(active&&data)setDiscoveryUnread(data.unread||0);}).catch(()=>{});};refresh();const timer=setInterval(refresh,60000);window.addEventListener("salesorrent:discovery-changed",refresh);window.addEventListener("focus",refresh);return()=>{active=false;clearInterval(timer);window.removeEventListener("salesorrent:discovery-changed",refresh);window.removeEventListener("focus",refresh);};
   },[user?.id]);
   const currentLanguage = locales.find((item) => item.code === locale) || locales[0];
   const loginNext = path && path !== "/giris" ? path : "/hesabim";

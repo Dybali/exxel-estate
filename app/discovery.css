@@ -9,3 +9,5 @@
 
 @media(max-width:850px){.map-panel{height:680px;min-height:680px}.property-map-shell{min-height:680px}.property-map-canvas{min-height:400px}}
 .comparison-page~.compare-tray{display:none}.comparison-table thead img{height:180px;aspect-ratio:auto}.listing-actions .compare-choice button{background:#fff;border-radius:5px;box-shadow:0 2px 10px #14291b16;white-space:nowrap}@media(max-width:700px){.comparison-table thead img{height:140px}}
+
+.discovery-alert.price-up>svg{color:#b95f16}.discovery-alert.price-up small{color:#a84d10}.discovery-alert.price-down>svg{color:#07836c}.discovery-alert.price-down small{color:#08715e}

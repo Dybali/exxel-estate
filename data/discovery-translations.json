@@ -467,5 +467,26 @@
     "All neighborhoods",
     "جميع الأحياء",
     "Все кварталы"
+  ],
+  "Aramalarınız hesabınıza kaydedilir. Yeni ilanları ve favorilerinizdeki fiyat artış ve düşüşlerini buradan takip edin.": [
+    "Ihre Suchen werden gespeichert. Verfolgen Sie neue Angebote sowie Preiserhöhungen und Preissenkungen Ihrer Favoriten.",
+    "Vos recherches sont enregistrées. Suivez les nouvelles annonces et les hausses et baisses de prix de vos favoris.",
+    "Your searches are saved. Follow new listings and price increases or decreases for your favorites.",
+    "تُحفظ عمليات بحثك. تابع الإعلانات الجديدة وارتفاعات وانخفاضات أسعار المفضلة.",
+    "Ваши поиски сохранены. Следите за новыми объявлениями и ростом или снижением цен в избранном."
+  ],
+  "Favorilerim için fiyat değişikliği bildirimleri": [
+    "Preisänderungen meiner Favoriten melden",
+    "Notifications de changement de prix des favoris",
+    "Price change alerts for my favorites",
+    "إشعارات تغير أسعار المفضلة",
+    "Уведомления об изменении цен в избранном"
+  ],
+  "Fiyat arttı": [
+    "Preis gestiegen",
+    "Prix en hausse",
+    "Price increased",
+    "ارتفع السعر",
+    "Цена выросла"
   ]
 }

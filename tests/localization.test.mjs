@@ -6,7 +6,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),require=createRequire(import.meta.url);
-function load(file,extra=''){const m={exports:{}};new Function('require','module','exports',ts.transpile(fs.readFileSync(path.join(root,file),'utf8')+extra,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}))(name=>name.startsWith('@/')?JSON.parse(fs.readFileSync(path.join(root,name.slice(2)),'utf8')):require(name),m,m.exports);return m.exports;}
+function load(file,extra=''){const m={exports:{}};new Function('require','module','exports',ts.transpile(fs.readFileSync(path.join(root,file),'utf8')+extra,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}))(name=>{if(name.startsWith('@/'))return name.endsWith('.json')?JSON.parse(fs.readFileSync(path.join(root,name.slice(2)),'utf8')):load(name.slice(2)+'.ts');if(name.startsWith('./'))return load(path.join(path.dirname(file),name)+'.ts');return require(name);},m,m.exports);return m.exports;}
 const dictionary=load('lib/i18n.tsx','\nexport const dictionary=words;').dictionary;
 const locales=['de','fr','en','ar','ru'];
 function check(key){if(/^ESTATEMARKET24/.test(key))return;for(const locale of locales)assert.ok(dictionary[key]?.[locale]?.trim(),`Missing ${locale}: ${key}`);}
@@ -23,3 +23,5 @@ test('editorial dates and reading time follow locale; translated sources retain 
  assert.equal(editorialDate('2026-10-16','de'),'16. Oktober 2026');assert.match(editorialDate('2026-10-16','en'),/October/);assert.equal(editorialReadTime('3 dk','de'),'3 Min.');
  const original=editorialArticles[0];assert.ok(editorialFields(original)['source.name']);const localized=localizedArticle(original,{'source.name':'Source name','source.date':'October 2026'});assert.equal(localized.source.name,'Source name');assert.equal(localized.source.date,'October 2026');assert.equal(localized.source.url,original.source.url);
 });
+
+test('cookie inventory has all five translations for every dynamically rendered label',()=>{const {cookiePolicyWords}=load('lib/cookie-policy-translations.ts');for(const [key,values] of Object.entries(cookiePolicyWords)){assert.equal(values.length,5,key);for(const value of values)assert.ok(value.trim()&&value!==key,key);}for(const key of ['Zorunlu','İstatistik','Yerel depolama','Dil tercihi','Güvenli üye oturumu','30 gün','10 dakika','180 gün','Siz silene kadar'])check(key);});

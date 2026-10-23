@@ -31,6 +31,7 @@ export async function GET(request:Request) {
   const order=sort==="priceAsc"?"l.price ASC,l.id ASC":sort==="priceDesc"?"l.price DESC,l.id ASC":sort==="area"?"l.gross_area DESC,l.id ASC":"l.featured DESC,l.created_at DESC";
   const demo=(q.get('assistant')==='1'?[]:PUBLIC_DEMO_LISTINGS).filter((l)=>{
     if(!categoryMatches(q.get('category')||'',l))return false;
+    if(q.get("neighborhood")&&l.neighborhood!==q.get("neighborhood"))return false;
     for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["rooms","rooms"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
     for(const [param,field,compare] of [["minPrice","price","min"],["maxPrice","price","max"],["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
     if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
