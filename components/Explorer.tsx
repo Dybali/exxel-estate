@@ -28,9 +28,9 @@ const filterKeys = Object.keys(emptyFilters) as (keyof Filters)[];
 
 function readFilters(params: { get: (key: string) => string | null }): Filters {
   return {
-    q:(params.get("q")||"").slice(0,160),category:params.get("category")||"",neighborhood:params.get("neighborhood")||"",
+    q:(params.get("q")||"").slice(0,160),category:params.get("category")==="devren"?"":params.get("category")||"",neighborhood:params.get("neighborhood")||"",
     currency:(()=>{try{return priceCurrency(params);}catch{return "";}})(),
-    purpose: params.get("purpose") || "", city: params.get("city") || "",
+    purpose: params.get("category")==="devren"?"devren":params.get("purpose") || "", city: params.get("city") || "",
     district: params.get("district") || "", type: params.get("type") || "",
     minPrice: params.get("minPrice") || "", maxPrice: params.get("maxPrice") || "",
     minArea: params.get("minArea") || "", maxArea: params.get("maxArea") || "",

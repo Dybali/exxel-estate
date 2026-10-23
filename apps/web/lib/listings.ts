@@ -1,4 +1,4 @@
-export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" | "ticari";
+export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" | "ticari" | "devremulk";
 export type Purpose = "satilik" | "kiralik";
 export type Listing = {
   presentation?:import("./presentation").Presentation;
@@ -55,7 +55,7 @@ export const DEMO_LISTINGS: Listing[] = [
 
 export { CITIES } from "./turkey-locations";
 export const PROPERTY_TYPES: {value: PropertyType; label: string}[] = [
-  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"Ticari"}
+  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"Ticari"},{value:"devremulk",label:"Devre mülk"}
 ];
 export const AMENITIES = ["Deniz manzarası","Boğaz manzarası","Havuz","Özel havuz","Bahçe","Teras","Balkon","Otopark","Asansör","Güvenlik","Eşyalı","Şömine"];
 export const formatPrice = (value:number, currency="TRY", locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,maximumFractionDigits:0}).format(value);

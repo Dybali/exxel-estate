@@ -18,6 +18,7 @@ test('dynamic pricing labels and features have complete language coverage',()=>{
  const source=ts.createSourceFile('pricing',fs.readFileSync(path.join(root,'app/paketler/page.tsx'),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  const visit=n=>{if(ts.isPropertyAssignment(n)&&['name','description','tag','audience'].includes(n.name.getText(source))&&ts.isStringLiteral(n.initializer))check(n.initializer.text);if(ts.isPropertyAssignment(n)&&n.name.getText(source)==='features'&&ts.isArrayLiteralExpression(n.initializer))for(const v of n.initializer.elements)if(ts.isStringLiteral(v))check(v.text);ts.forEachChild(n,visit);};visit(source);
 });
+test('timeshare has a familiar label in every supported language',()=>{check('Devre mülk');assert.equal(dictionary['Devre mülk'].de,'Timesharing');assert.equal(dictionary['Devre mülk'].fr,'Multipropriété');assert.equal(dictionary['Devre mülk'].en,'Timeshare');assert.equal(dictionary['Devre mülk'].ru,'Таймшер');});
 test('editorial dates and reading time follow locale; translated sources retain URLs',()=>{
  const {editorialDate,editorialReadTime,editorialFields,localizedArticle,editorialArticles}=load('lib/editorial.ts');
  assert.equal(editorialDate('2026-10-16','de'),'16. Oktober 2026');assert.match(editorialDate('2026-10-16','en'),/October/);assert.equal(editorialReadTime('3 dk','de'),'3 Min.');

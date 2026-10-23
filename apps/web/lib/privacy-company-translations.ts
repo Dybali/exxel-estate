@@ -1,5 +1,5 @@
 export const privacyCompanyWords:Record<string,[string,string,string,string,string]>={
- 'Devren mülk':['Übernahmeobjekte','Biens à reprendre','Business transfer','عقارات للتنازل','Уступка бизнеса'],
+ 'Devre mülk':['Timesharing','Multipropriété','Timeshare','الملكية بنظام المشاركة الزمنية','Таймшер'],
  'Çerez tercihleri':['Cookie-Einstellungen','Préférences des cookies','Cookie preferences','تفضيلات ملفات الارتباط','Настройки файлов cookie'],
  'Çerez politikası':['Cookie-Richtlinie','Politique de cookies','Cookie policy','سياسة ملفات الارتباط','Политика файлов cookie'],
  'Gizliliğiniz, sizin seçiminiz.':['Ihre Privatsphäre, Ihre Entscheidung.','Votre confidentialité, votre choix.','Your privacy, your choice.','خصوصيتك، خيارك.','Ваша конфиденциальность — ваш выбор.'],

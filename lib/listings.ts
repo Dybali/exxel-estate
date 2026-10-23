@@ -75,16 +75,16 @@ export const PUBLIC_DEMO_LISTINGS:Listing[]=[
  sample('bina-01','Örnek · Satılık müstakil bina','bina','satilik',24500000,'İstanbul','Beşiktaş',680,house),
  sample('bina-02','Örnek · Komple kiralık bina','bina','kiralik',180000,'Ankara','Çankaya',950,office),
  sample('bina-03','Örnek · Bahçeli küçük apartman','bina','satilik',16800000,'Bursa','Nilüfer',540,house),
- sample('devremulk-01','Örnek · Tatil bölgesinde devremülk','devremulk','satilik',650000,'Antalya','Alanya',65,villa,'1+1'),
- sample('devremulk-02','Örnek · Aileler için devremülk seçeneği','devremulk','satilik',850000,'Muğla','Fethiye',90,house,'2+1'),
- sample('devremulk-03','Örnek · Devren satılık tatil payı','devremulk','devren',490000,'İzmir','Çeşme',55,villa,'1+1'),
+ sample('devremulk-01','Örnek · Tatil bölgesinde devre mülk','devremulk','satilik',650000,'Antalya','Alanya',65,villa,'1+1'),
+ sample('devremulk-02','Örnek · Aileler için devre mülk seçeneği','devremulk','satilik',850000,'Muğla','Fethiye',90,house,'2+1'),
+ sample('devremulk-03','Örnek · Çeşme’de devre mülk kullanım hakkı','devremulk','satilik',490000,'İzmir','Çeşme',55,villa,'1+1'),
  sample('turistik-01','Örnek · Satılık butik konaklama tesisi','turistik','satilik',48000000,'Muğla','Bodrum',1400,villa),
  sample('turistik-02','Örnek · Kiralık turistik tesis','turistik','kiralik',220000,'Antalya','Kemer',1100,villa),
  sample('turistik-03','Örnek · Günlük konaklama seçeneği','turistik','gunluk',3800,'İzmir','Çeşme',45,house,'1+0')
 ];
 export function publicListing(listing:Listing):Listing {const {reviewNote,reviewedAt,...visible}=listing;return visible;}
 export const PROPERTY_TYPES: {value: PropertyType; label: string}[] = [
-  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"İş yeri"},{value:"bina",label:"Bina"},{value:"devremulk",label:"Devremülk"},{value:"turistik",label:"Turistik tesis"}
+  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"İş yeri"},{value:"bina",label:"Bina"},{value:"devremulk",label:"Devre mülk"},{value:"turistik",label:"Turistik tesis"}
 ];
 export const AMENITIES = ["Deniz manzarası","Boğaz manzarası","Havuz","Özel havuz","Bahçe","Teras","Balkon","Otopark","Asansör","Güvenlik","Eşyalı","Şömine"];
 export const formatPrice = (value:number, currency="TRY", locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,maximumFractionDigits:0}).format(value);

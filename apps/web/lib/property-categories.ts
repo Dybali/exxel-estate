@@ -1,7 +1,7 @@
 export const PROPERTY_CATEGORIES = [
  {value:"konut",label:"Konut",types:["daire","villa","mustakil","rezidans"]},
  {value:"isyeri",label:"İş yeri",types:["ticari"]},{value:"arsa",label:"Arsa",types:["arsa"]},
- {value:"bina",label:"Bina",types:["bina"]},{value:"devren",label:"Devren mülk",types:["daire","villa","mustakil","rezidans","arsa","ticari","bina","turistik"]},{value:"turistik",label:"Turistik tesis",types:["turistik"]}
+ {value:"bina",label:"Bina",types:["bina"]},{value:"devremulk",label:"Devre mülk",types:["devremulk"]},{value:"turistik",label:"Turistik tesis",types:["turistik"]}
 ] as const;
 export const PURPOSES=[{value:"satilik",label:"Satılık"},{value:"kiralik",label:"Kiralık"},{value:"gunluk",label:"Turistik günlük kiralık"},{value:"devren",label:"Devren satılık"}] as const;
 export const purposeLabel=(value:string)=>PURPOSES.find(item=>item.value===value)?.label||value;
