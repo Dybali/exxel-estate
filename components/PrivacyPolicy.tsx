@@ -20,12 +20,24 @@ const sections=[
     "text": "Veritabanı için Neon, barındırma ve dosyalar için Cloudflare tabanlı altyapı kullanılır. estateAİ arama mesajları yanıt üretmek için Google Gemini’ye; çevirilecek ilan metinleri DeepL’e iletilir. İlan ve profilinizde yayımladığınız bilgiler ziyaretçilerce görülebilir; gönderdiğiniz mesajlar alıcısına iletilir. Harici video sağlayıcıları yalnızca ilgili izinden sonra yüklenir."
   },
   {
+    "title": "Teknik kayıtlar ve Google ile giriş",
+    "text": "Siteye erişimde IP adresi, istek zamanı ve tarayıcıya ilişkin teknik bilgiler barındırma, güvenlik ve hata incelemesi için işlenebilir. Google ile giriş seçilirse Google kimlik doğrulama akışı kullanılır; Google hesabınızdan alınan kimlik ve e-posta bilgileri hesabınızla eşleştirilir. Google ile giriş isteğe bağlıdır."
+  },
+  {
+    "title": "Türkiye’den erişim ve uluslararası aktarımlar",
+    "text": "Türkiye’deki yetkili geliştirme ve destek ekibi canlı kullanıcı verilerine erişebilir. Avrupa Ekonomik Alanı dışından bu erişimin hukuki niteliği, ekibin statüsü ve veri akışına göre değerlendirilir. Erişim yetkileri ve uygulanacak aktarım güvenceleri veri sorumlusu tarafından belirlenmelidir; yürürlükte olduğu doğrulanmamış bir yeterlilik kararı veya standart sözleşme maddesi bulunduğu ileri sürülmez. Diğer hizmet sağlayıcıların uluslararası veri akışları hakkında bilgi için bize başvurabilirsiniz."
+  },
+  {
+    "title": "Planlanan ödemeler ve faturalama",
+    "text": "Ücretli ilan paketleri ve çevrimiçi ödeme şu anda etkin değildir; bu sitede kart veya ödeme işlemi verisi alınmaz. Ödeme açılmadan önce seçilen ödeme sağlayıcısı, fatura ve işlem verilerinin kapsamı, amaçları, hukuki dayanakları, saklama süreleri ve olası uluslararası aktarımları burada açıklanacaktır."
+  },
+  {
     "title": "Harita ve harici bağlantılar",
     "text": "Harita görünümü açıldığında tarayıcınız OpenStreetMap sunucularından harita parçalarını ister; IP adresiniz ve teknik istek bilgileri sağlayıcıya ulaşabilir. WhatsApp bağlantısını seçerseniz WhatsApp hizmetine yönlendirilirsiniz. Bu harici hizmetlerin kendi gizlilik politikaları geçerlidir."
   },
   {
     "title": "Saklama ve silme",
-    "text": "Saklama gereksinimi; hizmetin devamı, talebin sonuçlandırılması, yasal yükümlülükler, güvenlik ve uyuşmazlıkların çözümüne göre değerlendirilir. E-posta talepleri için otomatik üç aylık silme taahhüdü verilmez. Yedek kopyalar, ayrı yedek saklama döngüsüne tabi olabilir. Çerezlerin belirli süreleri Çerez Politikası’nda açıklanır."
+    "text": "Hesap ve ilan verileri hizmetin sunulması için gerekli olduğu sürece; mesajlar ve başvurular talebin yönetimi, olası uyuşmazlıklar veya yasal yükümlülükler gerektirdiği sürece; doğrulama belgeleri yetki incelemesi ve ilgili yükümlülükler için gerekli olduğu sürece değerlendirilir. E-posta talepleri için otomatik üç aylık silme taahhüdü verilmez. Yedek kopyalar ayrı bir saklama döngüsüne tabi olabilir. Oturum çerezi 30 gün, Google giriş akışı 10 dakika, tercih kaydı 180 gün ve isteğe bağlı görüntüleme çerezi 30 gün sürer; ayrıntılar Çerez Politikası’ndadır. Diğer kayıtlar için sayısal saklama süreleri veri sorumlusu tarafından ayrıca kesinleştirilecektir."
   },
   {
     "title": "Haklarınız",

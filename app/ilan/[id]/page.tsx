@@ -12,6 +12,7 @@ import { ContactCard } from "@/components/ContactCard";
 import { T, Money } from "@/lib/i18n";
 import { ListingGallery } from "@/components/ListingGallery";
 import { PropertyText } from "@/components/PropertyText";
+import { ExternalMap } from "@/components/ExternalMap";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params, listing=await listingById(id);
@@ -34,7 +35,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     <section className="property-section"><h2><T id="İlan açıklaması"/></h2><p className="property-description"><PropertyText listing={listing} field="description"/></p>{listing.source==='demo'&&<p className="property-example-note"><T id="Bu ilan patron sunumu için hazırlanmış örnek içeriktir. Konum, fiyat ve fotoğraflar gerçek bir satış teklifini temsil etmez."/></p>}</section>
     {listing.amenities.length>0&&<section className="property-section"><h2><T id="Öne çıkan imkânlar"/></h2><div className="property-amenities">{listing.amenities.map(a=><span key={a}><Check size={16}/><T id={a}/></span>)}</div></section>}
     <PropertyPresentation value={listing.presentation}/>
-    {map&&<section className="property-section"><h2><T id="Konum"/></h2><div className="property-location-map"><iframe title={`${listing.district} haritası`} src={map} loading="lazy"/></div><p className="property-map-note"><MapPin size={14}/><T id="Haritadaki nokta yaklaşık konumu gösterir."/></p></section>}
+    {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={`${listing.district} haritası`} src={map}/><p className="property-map-note"><MapPin size={14}/><T id="Haritadaki nokta yaklaşık konumu gösterir."/></p></section>}
     </article><aside className="property-detail-aside"><ContactCard listing={listing}/></aside></div>
     <div className="property-detail-back"><Link href="/ilanlar"><ArrowLeft size={16}/><T id="Tüm ilanlara dön"/></Link></div>
   </div></main>;
