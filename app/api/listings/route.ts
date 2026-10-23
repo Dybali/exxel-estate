@@ -1,3 +1,4 @@
+import {nextIndividualSubmission} from '@/lib/listing-policy';
 import {categoryFilter,categoryMatches} from "@/lib/property-categories";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
@@ -65,8 +66,7 @@ export async function POST(request:Request) {
     if(!verification||verification.state==='rejected'||verification.company_snapshot!==user.company)return error('Önce ofis yetki belgenizi incelemeye gönderin.',403);
     if(user.agent_status==='rejected'&&verification.state==='approved')return error('Emlakçı hesabınız yönetici tarafından durduruldu. Yöneticiyle iletişime geçin.',403);
   }
-  const quota=await db().prepare("SELECT count(*) AS n FROM listings WHERE owner_id=? AND status!='rejected'").bind(user.id).first<{n:number}>();
-  if(user.role==="individual"&&Number(quota?.n||0)>=3)return error("Sunum sürümünde bireysel hesap başına en fazla 3 ilan eklenebilir. Paketler açıldığında limitler güncellenecek.",429);
+  if(user.role==='individual'&&!isAdmin(user)){const quota=await db().prepare('SELECT last_submitted_at FROM individual_listing_quota WHERE user_id=?').bind(user.id).first<{last_submitted_at:string}>();if(quota&&Date.parse(nextIndividualSubmission(String(quota.last_submitted_at)))>Date.now())return error('Bireysel üyeler 3 takvim ayında bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);}
   let data:Record<string,unknown>;
   try {data=await body(request);} catch{return error("İlan bilgilerini kontrol edin.");}
   const title=str(data.title,150),description=str(data.description,5000),purpose=str(data.purpose,20),propertyType=str(data.propertyType,20),city=str(data.city,70),district=str(data.district,70);
@@ -107,7 +107,7 @@ export async function POST(request:Request) {
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
   if(user.role==='agent'&&!isAdmin(user))statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=? AND status='published'").bind(createdAt,id));
-  await db().batch(statements);
+  try{await db().batch(statements);}catch(cause){if(String((cause as Error).message).includes('individual_listing_quota'))return error('Bireysel üyeler 3 takvim ayında bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);throw cause;}
   const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
   if(saved?.status==='published')scheduleListingTranslations(id);
   return ok({id,status:saved?.status||'pending'},{status:201});

@@ -8,7 +8,7 @@ export type Listing = {
   latitude?: number; longitude?: number; locationPrecision?:"province"|"approximate"; grossArea: number; netArea?: number;
   rooms?: string; bedrooms?: number; bathrooms?: number; buildingAge?: number;
   floor?: number; totalFloors?: number; heating?: string; furnished?: boolean;
-  amenities: string[]; images: string[]; featured?: boolean; status?: string;
+  amenities: string[]; images: string[]; featured?: boolean; status?: string; expiresAt?: string;
   reviewNote?: string; reviewedAt?: string;
   translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "ru", { title: string; description: string }>>;
   ownerName?: string; ownerId?: string; createdAt?: string; updatedAt?: string; source?: "demo" | "user";

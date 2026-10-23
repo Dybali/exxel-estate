@@ -10,10 +10,10 @@ const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const admin={id:id(1),admin:true}, member={id:id(2),admin:false}, agent={id:id(3),admin:false}, stranger={id:id(4),admin:false}, buyer={id:id(5),admin:false};
 const support=`admin:${admin.id}:${member.id}`;
 function setup(){
- const raw=new DatabaseSync(':memory:'); raw.exec(`PRAGMA foreign_keys=ON; CREATE TABLE users(id uuid PRIMARY KEY,name text,email text,role text,agent_status text,company text); CREATE TABLE listings(id uuid PRIMARY KEY,owner_id uuid,title text,status text); CREATE TABLE messages(id uuid PRIMARY KEY,listing_id text NOT NULL,sender_id uuid NOT NULL REFERENCES users(id),recipient_id uuid REFERENCES users(id),body text,created_at text);`);
+ const raw=new DatabaseSync(':memory:'); raw.exec(`PRAGMA foreign_keys=ON; CREATE TABLE users(id uuid PRIMARY KEY,name text,email text,role text,agent_status text,company text); CREATE TABLE listings(id uuid PRIMARY KEY,owner_id uuid,title text,status text,expires_at text); CREATE TABLE messages(id uuid PRIMARY KEY,listing_id text NOT NULL,sender_id uuid NOT NULL REFERENCES users(id),recipient_id uuid REFERENCES users(id),body text,created_at text);`);
  for(const [n,role] of [[1,'admin'],[2,'individual'],[3,'agent'],[4,'buyer'],[5,'buyer']])raw.prepare('INSERT INTO users(id,name,email,role,agent_status,company) VALUES(?,?,?,?,?,?)').run(id(n),`User ${n}`,`user${n}@test.invalid`,role,'approved',n===3?'Aegean Office':null);
  raw.exec('ALTER TABLE users ADD COLUMN whatsapp_enabled integer NOT NULL DEFAULT 0; ALTER TABLE users ADD COLUMN phone text;');
- raw.prepare('INSERT INTO listings VALUES(?,?,?,?)').run(id(100),member.id,'İzmir villa','published');
+ raw.prepare('INSERT INTO listings(id,owner_id,title,status) VALUES(?,?,?,?)').run(id(100),member.id,'İzmir villa','published');
  const db={prepare(sql){let values=[];const s={bind(...v){values=v;return s;},async all(){return {results:raw.prepare(sql).all(...values)};},async first(){return raw.prepare(sql).get(...values)||null;},async run(){return raw.prepare(sql).run(...values);}};return s;}};
  return {db,raw};
 }
@@ -33,3 +33,5 @@ test('history cursor paginates without losing or exposing messages',async()=>{co
 test('sender rate limits apply across support and listing messages',async()=>{const {db}=setup();for(let n=0;n<10;n++)await send(db,admin,{message:`Mesaj ${n}`});await denied(()=>send(db,admin),429);});
 test('length, recipient, self-contact and SQL injection input are rejected safely',async()=>{const {db}=setup();await denied(()=>send(db,admin,{message:'x'.repeat(2001)}),400);await denied(()=>send(db,admin,{peerId:admin.id}),400);await denied(()=>send(db,admin,{peerId:"' OR 1=1 --"}),400);await denied(()=>send(db,admin,{peerId:id(999)}),404);});
 
+
+test('expiry blocks new inquiries while preserving an existing conversation',async()=>{const {db,raw}=setup();await send(db,buyer,{listingId:id(100),peerId:member.id});raw.prepare('UPDATE listings SET expires_at=? WHERE id=?').run('2020-01-01T00:00:00.000Z',id(100));await denied(()=>send(db,stranger,{listingId:id(100),peerId:member.id}));await send(db,buyer,{listingId:id(100),peerId:member.id,message:'Önceki görüşmemize devam edelim.'});});

@@ -1,3 +1,4 @@
+import {listingExpired} from '@/lib/listing-policy';
 import {publicListing} from '@/lib/listings';
 import {reportsDB} from '@/lib/reports-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
@@ -28,6 +29,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const row=await db().prepare("SELECT * FROM listings WHERE id=?").bind(id).first<Record<string,unknown>>();
   if(!row) return error("İlan bulunamadı.",404);
   if(row.owner_id!==user.id&&!isAdmin(user)) return error("Bu ilanı düzenleme yetkiniz yok.",403);
+  if(listingExpired(row.expires_at)&&!isAdmin(user))return error('Bu ilanın 20 günlük yayın süresi doldu. Yeni ilan hakkınızı hesabınızdan kontrol edin.',409);
   let data:Record<string,unknown>;
   try{data=await body(request);}catch{return error("İlan bilgilerini kontrol edin.");}
   const expected=str(data.expectedUpdatedAt,40);

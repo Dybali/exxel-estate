@@ -1,3 +1,4 @@
+import {activePublicationQuery} from './listing-policy';
 import { neon } from "@neondatabase/serverless";
 
 type BoundValue = string | number | boolean | null;
@@ -6,7 +7,7 @@ type BoundValue = string | number | boolean | null;
 // while the original D1 database remains available for the migration window.
 function pgQuery(source: string) {
   let index = 0;
-  return source
+  return activePublicationQuery(source)
     .replace(/INSERT\s+OR\s+IGNORE\s+INTO/i, "INSERT INTO")
     .replace(/json_each\(l\.amenities\)/g, "jsonb_array_elements_text(l.amenities::jsonb)")
     .replace(/\?/g, () => `$${++index}`)

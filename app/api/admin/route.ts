@@ -1,3 +1,4 @@
+import {listingExpired} from '@/lib/listing-policy';
 import {officeDB} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {reportsDB} from '@/lib/reports-server';
@@ -46,8 +47,9 @@ export async function POST(request: Request) {
     await reportsDB();
     const note = str(data.note, 1000);
     if (status === "rejected" && note.length < 5) return error("Ret nedenini en az 5 karakterle yazın.");
-    const current = await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{ status: string }>();
+    const current = await db().prepare("SELECT status,expires_at FROM listings WHERE id=?").bind(id).first<{ status: string; expires_at?:string }>();
     if (!current) return error("İlan bulunamadı.", 404);
+    if(status==='published'&&listingExpired(current.expires_at))return error('Bu ilanın 20 günlük yayın süresi doldu. Yeni ilan hakkınızı hesabınızdan kontrol edin.',409);
     if(status==='published'){
       await officeDB();const owner=await db().prepare('SELECT u.id,u.role,u.company FROM users u JOIN listings l ON l.owner_id=u.id WHERE l.id=?').bind(id).first<{id:string;role:string;company:string}>();
       if(owner?.role==='agent'){const verification=await db().prepare("SELECT state FROM office_verifications WHERE user_id=? AND company_snapshot=?").bind(owner.id,owner.company||'').first<{state:string}>();if(verification?.state!=='approved')return error('İlanı yayımlamadan önce emlakçının ofis yetki belgesini onaylayın.',403);}

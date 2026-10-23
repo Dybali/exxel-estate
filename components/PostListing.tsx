@@ -1,4 +1,5 @@
 "use client";
+import {IndividualPolicyNotice} from "./IndividualPolicyNotice";
 import {PURPOSES,purposeLabel,pricePeriod} from "@/lib/property-categories";
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import Link from '@/components/SafeLink';
@@ -52,7 +53,7 @@ export function PostListing(){
  const needsOffice=user.role==='agent'&&!user.isAdmin;
  const officeReady=!needsOffice||officeLoaded&&!!office&&office.state!=='rejected';
  const direct=user.role==='agent'&&user.agent_status==='approved'&&office?.state==='approved'||user.isAdmin||user.role==='admin';
- return <main className="form-page"><div className="form-hero"><div className="container"><span className="eyebrow dark-eyebrow">{t('İlan Ver')}</span><h1>{t('Gayrimenkulünüzü')} <em>{t('tanıtın.')}</em></h1><p>{t('Doğru ayrıntılar, doğru alıcıyla buluşmanın ilk adımıdır.')}</p></div></div><nav className="container listing-step-nav" aria-label={t('İlan Ver')}>{['Temel bilgiler','Konum','Özellikler','Fotoğraflar'].map((label,i)=><a key={label} href={`#listing-${i}`}><span>0{i+1}</span>{t(label)}</a>)}</nav><div className="container">{needsOffice&&<OfficeVerification onChange={officeChanged}/>}</div><div className="container form-layout"><form onSubmit={submit} className="property-form">
+ return <main className="form-page"><div className="form-hero"><div className="container"><span className="eyebrow dark-eyebrow">{t('İlan Ver')}</span><h1>{t('Gayrimenkulünüzü')} <em>{t('tanıtın.')}</em></h1><p>{t('Doğru ayrıntılar, doğru alıcıyla buluşmanın ilk adımıdır.')}</p></div></div><nav className="container listing-step-nav" aria-label={t('İlan Ver')}>{['Temel bilgiler','Konum','Özellikler','Fotoğraflar'].map((label,i)=><a key={label} href={`#listing-${i}`}><span>0{i+1}</span>{t(label)}</a>)}</nav><div className="container">{needsOffice&&<OfficeVerification onChange={officeChanged}/>}</div><div className="container form-layout"><form onSubmit={submit} className="property-form">{user.role==="individual"&&!user.isAdmin&&<IndividualPolicyNotice/>}
  <div className="draft-toolbar"><div><Save size={19}/><span role="status" aria-live="polite">{t(saving?'Kaydediliyor...':dirty.current?'Kaydedilmemiş değişiklikler':draftMessage||'Taslağınız otomatik kaydedilir.')}</span></div><div><button type="button" disabled={saving||sending||conflict} onClick={()=>{stopped.current=false;setRetry(n=>n+1);void saveDraft();}}>{t('Taslağı kaydet')}</button><button type="button" disabled={saving||sending||conflict} onClick={discard}>{t('Taslağı sil')}</button><button type="button" onClick={()=>setPreview(true)}><Eye size={16}/>{t('Önizleme')}</button></div></div>
  {conflict&&<div className="form-error" role="alert">{t('Taslak başka bir sekmede değişti. Sayfayı yenileyin.')} <button type="button" onClick={()=>location.reload()}>{t('Yeniden yükle')}</button></div>}
  <fieldset className="listing-form-fields" disabled={sending||conflict}>

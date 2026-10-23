@@ -117,12 +117,12 @@ export async function chatPost(database: ChatDatabase, actor: ChatActor, data: R
       recipientId = peerId;
     }
   } else {
-    const listing = await database.prepare("SELECT owner_id,status FROM listings WHERE CAST(id AS TEXT)=?").bind(listingId).first<{ owner_id: string; status: string }>();
+    const listing = await database.prepare("SELECT owner_id,status,expires_at FROM listings WHERE CAST(id AS TEXT)=?").bind(listingId).first<{ owner_id: string; status: string; expires_at?:string }>();
     if (!listing) throw new ChatError("İlan bulunamadı.", 404);
     const existing = await database.prepare("SELECT id FROM messages WHERE listing_id=? AND ((sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?)) LIMIT 1", [1,2,3,4]).bind(listingId, actor.id, peerId, peerId, actor.id).first();
     if (listing.owner_id === actor.id) {
       if (!existing) throw new ChatError("Bu üyeyle ilan görüşmeniz bulunamadı.", 403);
-    } else if (peerId !== listing.owner_id || (listing.status !== "published" && !existing && !actor.admin)) throw new ChatError("Bu ilan için görüşme seçimi geçersiz.", 403);
+    } else if (peerId !== listing.owner_id || ((listing.status !== "published" || Boolean(listing.expires_at&&Date.parse(listing.expires_at)<=Date.now())) && !existing && !actor.admin)) throw new ChatError("Bu ilan için görüşme seçimi geçersiz.", 403);
     recipientId = peerId;
   }
   const suppliedId = text(data.requestId).toLowerCase();

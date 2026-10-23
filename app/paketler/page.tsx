@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from '@/components/SafeLink';
 import { ArrowRight, Check, Home, UserRound, Building2, ShieldCheck, MessageSquare, View } from 'lucide-react';
 const packages = [
-    { name: 'Başlangıç', audience: 'Bireysel', Icon: Home, price: '490', description: 'Kendi gayrimenkulünü yayınlamak isteyenler için.', features: ['1 ilan hakkı', '30 gün yayın süresi', 'Standart listeleme', 'Mesaj kutusu'], tag: 'İLK ADIM' },
+    { name: 'Başlangıç', audience: 'Bireysel', Icon: Home, price: '490', description: 'Kendi gayrimenkulünü yayınlamak isteyenler için.', features: ['3 takvim ayında 1 ilan hakkı', '20 gün yayın süresi', 'Standart listeleme', 'Mesaj kutusu'], tag: 'İLK ADIM' },
     { name: 'Profesyonel', audience: 'Danışman', Icon: UserRound, price: '1.490', description: 'Portföyünü daha geniş bir kitleye sunmak isteyen danışmanlar için.', features: ['5 ilan hakkı', '60 gün yayın süresi', 'Öne çıkarma hakkı', 'Mesaj kutusu', 'Temel istatistikler'], tag: 'DANIŞMANLAR İÇİN' },
     { name: 'Prestij', audience: 'Ofis', Icon: Building2, price: '3.990', description: 'Birden fazla gayrimenkulü sunan emlak ofisleri için.', features: ['20 ilan hakkı', '90 gün yayın süresi', 'Vitrin alanı', 'Öne çıkarma hakkı', 'Gelişmiş istatistikler'], tag: 'OFİS PORTFÖYÜ' }
 ];
