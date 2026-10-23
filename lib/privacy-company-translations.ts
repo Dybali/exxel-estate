@@ -1,6 +1,8 @@
+import {privacyPolicyWords} from './privacy-policy-translations';
 import {cookiePolicyWords} from './cookie-policy-translations';
 export const privacyCompanyWords:Record<string,[string,string,string,string,string]>={
  ...cookiePolicyWords,
+ ...privacyPolicyWords,
  'Devren mülk':['Übernahmeobjekte','Biens à reprendre','Business transfer','عقارات للتنازل','Уступка бизнеса'],
  'Çerez tercihleri':['Cookie-Einstellungen','Préférences des cookies','Cookie preferences','تفضيلات ملفات الارتباط','Настройки файлов cookie'],
  'Çerez politikası':['Cookie-Richtlinie','Politique de cookies','Cookie policy','سياسة ملفات الارتباط','Политика файлов cookie'],
