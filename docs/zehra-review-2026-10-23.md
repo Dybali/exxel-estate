@@ -23,9 +23,34 @@ Bu belge Zehra'nın ilettiği metindeki maddeleri mevcut kaynak ve çalışan si
 
 Kaynak: `README.md`, `app/api`, `lib/server.ts`, `lib/external-r2.ts`, `apps/api`, `apps/web`.
 
+### Zehra'ya verilecek kesin teknik envanter
+
+- **Canlı sürüm:** React 19 + TypeScript 5.9 arayüzü; Vinext 1 beta / Vite 8 derlemesi; Cloudflare Sites/Workers üzerinde `app/` sayfaları ve `app/api/` API rotaları. Node.js 22.13+ geliştirme ve derleme gereksinimi.
+- **Veri ve medya:** Neon PostgreSQL ana veri deposu (`@neondatabase/serverless`, sürümlü SQL migrasyonları); ilan fotoğrafları Cloudflare R2. Geçiş için eski D1/R2 bağları korunuyor. `drizzle-orm` bağımlılığı mevcut, ancak canlı veri katmanını tek başına Prisma veya Drizzle olarak tanımlamamak gerekir.
+- **Ayrı dağıtım için hazırlanan kod:** `apps/web` Next.js 16, `apps/api` NestJS 11 + Prisma 6. Bu ikilinin canlı uygulamayla işlev eşitliği ve Mittwald dağıtımı tamamlanmadı.
+- **Sürüm kontrolü:** Git kullanılıyor. Canlı Sites kaynağı ve `https://github.com/Dybali/exxel-estate.git` adlı **özel** GitHub deposu ayrı uzak depolar. 23.10.2026'da GitHub'daki beş operasyon iş akışı commit'i, 51 Sites kaynak commit'iyle çakışmadan birleştirildi; yeni birleşik kaynak `main` dalına gönderiliyor. Canlı dağıtımın otomatik olarak GitHub'dan yapılmadığı ayrıca belirtilmeli.
+- **Henüz yok / doğrulanacak:** Mittwald üzerinde çalışan Node uygulaması ve bu sunucu için üretim CI/CD süreci yok. GitHub'da zamanlanmış izleme/yedekleme iş akışı ve korunan gizli değişkenler var; `EM24_OPERATIONS_ENABLED=true`. Ancak 23.10.2026 tarihli son saatlik izleme çalışması başarısız. Neon/R2 için başarılı, düzenli bağımsız yedek ve geri yükleme tatbikatının kanıtı bu incelemede doğrulanmadı. Salt-okunur R2 yedek okuma uç noktası tek başına yedek anlamına gelmez.
+
+### Sunucu sorumlulukları için önerilen çalışma tablosu
+
+Bu tablo sözleşme hükmü değil; Zehra ve Sayın Aydın'ın onaylayacağı öneridir. Mittwald, [Managed Dedicated Server M](https://www.mittwald.de/dedicated-server) ürününde yönetilen altyapı, proje yedekleri ve Node.js/özel uygulama çalıştırma olanağı listeliyor. [Mittwald güvenlik güncellemesi açıklaması](https://www.mittwald.de/faq/tools-cms/sicherheit/automatische-updates-und-patches), bazı yazılım sürüm güncellemelerinin varsayılan olarak kapalı olabileceğini söylüyor. Gerçek proje ayarları ve satın alma sözleşmesi ayrıca doğrulanmalı.
+
+| İş | Önerilen sorumlu | Bugünkü durum / teslim ölçütü |
+| --- | --- | --- |
+| Donanım, temel işletim sistemi ve yönetilen altyapı yamaları | Mittwald; Zehra doğrular | Hizmet kapsamı ve destek yolu sözleşmede doğrulanacak. |
+| mStudio projesi, üç alan adı ve üç e-posta adresi, DNS ve TLS | Zehra; değişiklik için Aydın kararı | Zehra projeyi oluşturdu; mevcut ayarlar korunuyor. DNS veya yayın geçişi yapılmadı. |
+| Proje erişimleri, MFA, yetki gözden geçirme | Zehra ve Aydın; uygulama rolleri geliştirici | Kişiye özel erişim ve en az yetki listesi çıkarılacak; ortak hesap kullanılmayacak. |
+| Node.js uygulaması, bağımlılık yamaları, API güvenliği ve sürüm dağıtımı | Geliştirici; yayına alma Zehra ile koordine | Canlı Sites sürümü çalışıyor; Mittwald dağıtımı yapılmadı. Önce staging, derleme, test ve geri alma planı. |
+| Mittwald proje dosyası/yerel veritabanı yedeklerinin kapsamı ve saklama süresi | Mittwald hizmeti; Zehra doğrular | [Mittwald yedek açıklamasında](https://www.mittwald.de/faq/administration/faq/backup-einspielen-lassen) web sunucusu ve MySQL belirtilir; kapsam ve süre proje ekranından doğrulanacak. |
+| **Neon PostgreSQL ve Cloudflare R2 bağımsız yedekleri** | Geliştirici tasarlar ve işletir; Aydın hedef/erişim politikasını onaylar | Dış hizmetler Mittwald proje yedeğine dahil varsayılmayacak. GitHub'da zamanlanmış iş akışı mevcut; şifreli yedeklerin ve geri yükleme denemesinin gerçekten başarıyla tamamlandığı ayrıca doğrulanmalı. |
+| Site sağlığı, API hataları, yedek başarısızlığı ve kapasite uyarıları | Geliştirici uygulama alarmları; Zehra altyapı uyarıları | Uyarı alıcısı, eşik ve ilk müdahale süresi yazılı belirlenecek. |
+| Olay yönetimi ve kurtarma | Zehra + geliştirici; iş kararı Aydın | İletişim zinciri, geri alma ve Neon/R2 geri yükleme prosedürü staging ortamında denenip kaydedilecek. |
+
+**Zehra/Aydın ile tek görüşmede netleştirilecekler:** (1) mStudio'da seçili ürün ve sözleşme kapsamı; (2) Mittwald projesine kimlerin hangi rolle erişeceği; (3) alan adlarından hangisinin yeni siteye bağlanacağı ve ne zaman; (4) yedeklerin saklama süresi, bağımsız hedefi ve geri yükleme hedef süresi; (5) uyarıları kimin alacağı. Şifreler veya erişim anahtarları e-postaya yazılmamalı.
+
 ## Sayın Aydın / Zehra ile netleştirilecek kararlar
 
-1. Metinde satın alınan ürün **Yönetilen Özel Sunucu M** olarak anılıyor. Daha önce konuşulan **Managed vServer M** ile aynı ürün olup olmadığı mStudio sözleşmesinden doğrulanmalı. Zehra projeyi ve üç alan adıyla üç e-posta adresini zaten oluşturmuş; yeni proje açılmamalı.
+1. Zehra satın alınan ürünü **Yönetilen Özel Sunucu M** olarak bildirdi; Mittwald bunu **Managed Dedicated Server M** adıyla listeliyor. Daha önce konuşulan **Managed vServer M** farklı bir ürün adı. Satın alınan tam paket mStudio sözleşmesinden doğrulanmalı. Zehra projeyi ve üç alan adıyla üç e-posta adresini zaten oluşturmuş; yeni proje açılmamalı.
 2. Sunucuya dağıtım, alan adlarının hedefini değiştirme ve DNS işlemleri sunucu yöneticisiyle koordine edilmeli. Şu aşamada Mittwald'da değişiklik yapılmadı.
 3. Sağlayıcı / ekip sorumlulukları yazılı belirlenmeli: altyapı ve platform yama yönetimi; uygulama bağımlılıkları; erişimler; Neon/R2 ayrı yedekleri; geri yükleme denemeleri; gözlem ve uyarılar. Mittwald yönetilen planın tam hizmet kapsamı sözleşmeden doğrulanmalı.
 4. Sitede `/impressum` künyesi ve `/gizlilik-politikasi` sayfası, footer bağlantılarıyla **zaten yayında**. Kullanıcı, künye için `eXXelmedia GmbH & Co. KG`, Dornacherstraße 3, D-85622 Feldkirchen, +49 89 250 076 16, faks +49 89 248 879 55, `info@exxelmedia.de`, Münih ticaret sicili HRA 105867 ve KDV kimliği DE309567893 bilgilerini verdi; bunlar mevcut sayfayla eşleşiyor. Kullanıcı ayrıca yetkili olarak yazan Eyup Aydin adını doğru ve Sayın Aydın tarafından onaylı olarak teyit etti. Gizlilik metninin hukuki kapsamı ve fiilî veri akışları yine ayrıca gözden geçirilmeli.
@@ -37,7 +62,7 @@ Kaynak: `README.md`, `app/api`, `lib/server.ts`, `lib/external-r2.ts`, `apps/api
 
 Merhaba Zehra Hanım,
 
-Değerlendirmeniz için teşekkür ederiz. Geliştirme tarafında TypeScript/React tabanlı, bugün Cloudflare Sites üzerinde çalışan bir uygulama kullanıyoruz. Ana ilan ve hesap verileri Neon PostgreSQL'de, ilan fotoğrafları Cloudflare R2'de tutuluyor. Git ile sürüm kontrolü yapıyoruz; GitHub uzak depomuz mevcut. Next.js ve NestJS tabanlı bağımsız dağıtım için ayrıca kaynak hazırlanıyor, ancak bu sürümde tüm canlı API işlevlerinin eşitliği henüz tamamlanmadı.
+Değerlendirmeniz için teşekkür ederiz. Canlı uygulamamız React/TypeScript, Vinext ve Cloudflare Sites/Workers üzerinde çalışıyor; arayüz ve API rotaları aynı depoda. Ana ilan ve hesap verileri Neon PostgreSQL'de, ilan fotoğrafları Cloudflare R2'de tutuluyor. Node.js 22 ile derliyoruz ve Git kullanıyoruz. Kaynaklar özel GitHub depomuzda tutuluyor; canlı Sites dağıtımı henüz GitHub tabanlı otomatik yayın değil. GitHub'daki operasyon iş akışlarıyla güncel site kaynağını birleştirdik. Next.js ve NestJS/Prisma tabanlı bağımsız dağıtım için ayrıca kod hazırlanıyor, ancak tüm canlı API işlevlerinin eşitliği ve Mittwald yayını henüz tamamlanmadı.
 
 İşaret ettiğiniz harici font ve görselleri kontrol ettik: Inter fontları yerel dosyalardan yükleniyor; sitede referans verilen 18 Unsplash görselinin yerel kopyalarını hazırladık. Almanca ve diğer dillerde ilan iletişimi ile hesap alanlarındaki eksik arayüz çevirilerini tamamladık. Serbest metin ilan içeriklerinde çeviri yoksa orijinal dilin gösterilebildiğini ayrıca belirtmek isteriz.
 
