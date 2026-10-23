@@ -4,7 +4,7 @@ on:
     inputs:
       mode:
         type: choice
-        options: [build-check, monitor, backup, restore-test]
+        options: [build-check, monitor, diagnose-monitor, backup, restore-test]
         default: build-check
   schedule:
     - cron: '17 2 * * *'
@@ -884,10 +884,11 @@ jobs:
           import {execFile} from 'node:child_process';import {promisify} from 'node:util';import {fileURLToPath} from 'node:url';
           import {randomBytes} from 'node:crypto';
           const mode=process.argv[2]||'backup';
+          let phase='configuration';
           try{
-           if(!['backup','restore-test','monitor'].includes(mode))throw Error('Unknown cloud command');
-           smtpSettings();
-           const c=cloudConfig();const remote=storage(c.remote),prefix=c.remote.prefix;
+           if(!['backup','restore-test','monitor','diagnose-monitor'].includes(mode))throw Error('Unknown cloud command');
+           if(mode!=='diagnose-monitor')smtpSettings();
+           const c=cloudConfig();const remote=mode==='diagnose-monitor'?null:storage(c.remote),prefix=c.remote.prefix;
            try{
             if(mode==='backup'){
              const runPrefix=prefix+'/runs/'+randomBytes(16).toString('hex'),active={...c,remote:{...c.remote,prefix:runPrefix}};
@@ -899,19 +900,24 @@ jobs:
              const target=isolatedRestoreTarget(process.env.RESTORE_DATABASE_URL);let text='',bytes=0;for await(const part of await remote.get(prefix+'/control/latest-sql.json')){bytes+=part.length;if(bytes>10000)throw Error('Invalid latest marker');text+=Buffer.from(part).toString('utf8');}const pointer=JSON.parse(text),id=safeId(pointer.id),root=path.join(c.outputRoot,'download-'+Date.now());
              if(typeof pointer.prefix!=='string'||!pointer.prefix.startsWith(prefix+'/runs/')||!/^[a-f0-9]{32}$/.test(pointer.prefix.slice((prefix+'/runs/').length)))throw Error('Unsafe remote run prefix');
              const restored=await fetchRemoteSet({...c,remote:{...c.remote,prefix:pointer.prefix}},id,root);const result=await restoreTest(restored,id,target,path.join(root,'restored-media'));console.log(JSON.stringify(result));
-            }else if(mode==='monitor'){
-             await promisify(execFile)(process.execPath,[fileURLToPath(new URL('../launch-preflight.mjs',import.meta.url))],{timeout:300000,maxBuffer:100000});
-             const operationsUrl=new URL(c.sources[0].endpoint);operationsUrl.searchParams.set('mode','operations');const response=await fetch(operationsUrl,{headers:{Authorization:'Bearer '+c.sources[0].token},redirect:'manual',signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error('Usage monitoring unavailable');const report=await response.json();
+            }else if(mode==='monitor'||mode==='diagnose-monitor'){
+             phase='public-site-preflight';
+             try{await promisify(execFile)(process.execPath,[fileURLToPath(new URL('../launch-preflight.mjs',import.meta.url))],{timeout:300000,maxBuffer:100000});}catch(error){try{const result=JSON.parse(await fs.readFile(new URL('../launch-preflight-result.json',import.meta.url),'utf8'));console.error(JSON.stringify({phase,failedChecks:result.checks.filter(check=>!check.passed).map(check=>check.name)}));}catch{}throw error;}
+             phase='protected-operations-endpoint';
+             const operationsUrl=new URL(c.sources[0].endpoint);operationsUrl.searchParams.set('mode','operations');const response=await fetch(operationsUrl,{headers:{Authorization:'Bearer '+c.sources[0].token},redirect:'manual',signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error('Usage endpoint HTTP '+response.status);const report=await response.json();
              if(typeof report.usageWarning!=='boolean'||typeof report.usageExceeded!=='boolean'||typeof report.serviceWarning!=='boolean'||report.advisoryOnly!==true)throw Error('Invalid advisory monitoring response');
              const number=n=>Number.isFinite(Number(n))?String(Number(n)):'unknown';
              process.env.ALERT_DETAILS=['Kullanim uyarilari hizmeti durdurmaz. Bunlar fatura tutari degildir.','Gemini gunluk rezervasyon: '+number(report.gemini?.day?.used)+' / '+number(report.gemini?.day?.limit),'Gemini aylik rezervasyon: '+number(report.gemini?.month?.used)+' / '+number(report.gemini?.month?.limit),'DeepL aylik uygulama karakteri: '+number(report.deepl?.month?.used)+' / '+number(report.deepl?.month?.limit),...(report.deepl?.provider?.available?['DeepL saglayici karakteri: '+number(report.deepl.provider.used)+' / '+number(report.deepl.provider.limit)]:['DeepL saglayici kotasi okunamadi.'])].join(String.fromCharCode(10));
-             await recordAlert(remote,c,'usage',!report.usageWarning);await recordAlert(remote,c,'usage-limit',!report.usageExceeded);await recordAlert(remote,c,'service',!report.serviceWarning);
+             phase='alert-state';
+             if(mode==='monitor'){await recordAlert(remote,c,'usage',!report.usageWarning);await recordAlert(remote,c,'usage-limit',!report.usageExceeded);await recordAlert(remote,c,'service',!report.serviceWarning);}
              console.log(JSON.stringify({mode,state:'passed'}));
             }
-            await recordAlert(remote,c,mode,true);
-           }finally{remote.close();}
-          }catch{
-           try{const c=cloudConfig(),remote=storage(c.remote);try{await recordAlert(remote,c,mode,false);}finally{remote.close();}}catch{console.error('Alert delivery unavailable; check protected SMTP/storage configuration.');}
+            if(mode!=='diagnose-monitor'){phase='alert-state';await recordAlert(remote,c,mode,true);}
+           }finally{remote?.close();}
+          }catch(error){
+           if(mode!=='diagnose-monitor'){try{const c=cloudConfig(),remote=storage(c.remote);try{await recordAlert(remote,c,mode,false);}finally{remote.close();}}catch{console.error('Alert delivery unavailable; check protected SMTP/storage configuration.');}}
+           const status=/^Usage endpoint HTTP (\d{3})$/.exec(String(error?.message||''));
+           console.error(JSON.stringify({mode,state:'failed',phase,...(status?{httpStatus:Number(status[1])}:{})}));
            console.error('Operational job failed. Raw connection errors and credentials are suppressed. Inspect protected runner status.');process.exitCode=1;
           }
           EM24_FILE_10
@@ -985,18 +991,18 @@ jobs:
           
           EM24_FILE_15
       - name: Prepare Node for lightweight site monitoring
-        if: env.MODE == 'monitor'
+        if: env.MODE == 'monitor' || env.MODE == 'diagnose-monitor'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
       - name: Run lightweight site monitor
-        if: env.MODE == 'monitor'
+        if: env.MODE == 'monitor' || env.MODE == 'diagnose-monitor'
         run: |
           cd "$RUNNER_TEMP/em24-tools/operations/backup"
           npm ci --omit=dev --ignore-scripts --no-audit --no-fund
-          node cloud-runner.mjs monitor
+          node cloud-runner.mjs "$MODE"
       - name: Build isolated PostgreSQL 18 and Node 24 runner
-        if: env.MODE != 'monitor'
+        if: env.MODE != 'monitor' && env.MODE != 'diagnose-monitor'
         run: docker build -t em24-operations -f "$RUNNER_TEMP/em24-tools/operations/backup/cloud.Dockerfile" "$RUNNER_TEMP/em24-tools/operations"
       - name: Test isolated image without production credentials
         if: env.MODE == 'build-check'
@@ -1013,7 +1019,7 @@ jobs:
           done
           echo 'RESTORE_DATABASE_URL=postgresql://postgres:isolated-test-only@127.0.0.1:55432/em24_restore_monthly?sslmode=disable' >> "$GITHUB_ENV"
       - name: Run operational job
-        if: env.MODE != 'build-check' && env.MODE != 'monitor'
+        if: env.MODE != 'build-check' && env.MODE != 'monitor' && env.MODE != 'diagnose-monitor'
         run: |
           docker run --rm --network host \
             -e BACKUP_DATABASE_URL -e BACKUP_ENCRYPTION_KEY -e BACKUP_SOURCE_TOKEN \
