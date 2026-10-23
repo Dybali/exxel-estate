@@ -15,19 +15,7 @@ export function ListingCard({listing}: {listing:Listing}) {
   const [favorite,setFavorite]=useState(false);
   const [favoriteBusy,setFavoriteBusy]=useState(false),[favoriteError,setFavoriteError]=useState("");
   const [imageError,setImageError]=useState(false);
-  const cover = (() => {
-    const source = listing.images[0];
-    if (!source || listing.source !== "demo") return source;
-    try {
-      const url = new URL(source);
-      if (url.hostname !== "images.unsplash.com") return source;
-      url.searchParams.set("w", "680");
-      url.searchParams.set("q", "74");
-      url.searchParams.set("fit", "crop");
-      url.searchParams.set("auto", "format");
-      return url.toString();
-    } catch { return source; }
-  })();
+  const cover = listing.images[0];
   useEffect(()=>setImageError(false),[listing.id]);
   useEffect(()=>{let active=true;const sync=()=>{favoriteIds().then((ids)=>{if(active)setFavorite(ids.includes(listing.id));});};sync();window.addEventListener("salesorrent:favorites-changed",sync);return()=>{active=false;window.removeEventListener("salesorrent:favorites-changed",sync);};},[listing.id]);
   async function toggle(){if(favoriteBusy)return;setFavoriteBusy(true);setFavoriteError("");try{const r=await fetch(favorite?`/api/favorites?id=${encodeURIComponent(listing.id)}`:"/api/favorites",{method:favorite?"DELETE":"POST",headers:favorite?undefined:{"Content-Type":"application/json"},body:favorite?undefined:JSON.stringify({id:listing.id})});if(r.status===401){window.location.href=`/giris?next=${encodeURIComponent(window.location.pathname+window.location.search)}`;return;}if(!r.ok)throw new Error("Favori güncellenemedi.");setFavorite(!favorite);favoritesChanged();}catch{setFavoriteError(t("Favori güncellenemedi."));}finally{setFavoriteBusy(false);}}

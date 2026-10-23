@@ -20,6 +20,10 @@ const sections=[
     "text": "Veritabanı için Neon, barındırma ve dosyalar için Cloudflare tabanlı altyapı kullanılır. estateAİ arama mesajları yanıt üretmek için Google Gemini’ye; çevirilecek ilan metinleri DeepL’e iletilir. İlan ve profilinizde yayımladığınız bilgiler ziyaretçilerce görülebilir; gönderdiğiniz mesajlar alıcısına iletilir. Harici video sağlayıcıları yalnızca ilgili izinden sonra yüklenir."
   },
   {
+    "title": "Harita ve harici bağlantılar",
+    "text": "Harita görünümü açıldığında tarayıcınız OpenStreetMap sunucularından harita parçalarını ister; IP adresiniz ve teknik istek bilgileri sağlayıcıya ulaşabilir. WhatsApp bağlantısını seçerseniz WhatsApp hizmetine yönlendirilirsiniz. Bu harici hizmetlerin kendi gizlilik politikaları geçerlidir."
+  },
+  {
     "title": "Saklama ve silme",
     "text": "Saklama gereksinimi; hizmetin devamı, talebin sonuçlandırılması, yasal yükümlülükler, güvenlik ve uyuşmazlıkların çözümüne göre değerlendirilir. E-posta talepleri için otomatik üç aylık silme taahhüdü verilmez. Yedek kopyalar, ayrı yedek saklama döngüsüne tabi olabilir. Çerezlerin belirli süreleri Çerez Politikası’nda açıklanır."
   },

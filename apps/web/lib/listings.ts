@@ -13,7 +13,7 @@ export type Listing = {
   ownerName?: string; ownerId?: string; createdAt?: string; updatedAt?: string; source?: "demo" | "user";
 };
 
-const photo = (id: string, width = 1200) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=82`;
+const photo = (id: string, _width = 1200) => `/editorial/${id}.webp`;
 export const DEMO_LISTINGS: Listing[] = [
   {
     id: "ex-1001", title: "Boğaz'a açılan zamansız bir yaşam", description: "Bebek'in kalbinde, Boğaz ışığını tüm odalarına taşıyan seçkin bir yaşam alanı. Doğal taş ve ahşap dokular, geniş salon ve sakin bir teras. Fotoğraflar ve bilgiler sunum amaçlı örnektir.", purpose: "satilik", propertyType: "daire", price: 42500000, currency: "TRY", city: "İstanbul", district: "Beşiktaş", neighborhood: "Bebek", latitude: 41.077, longitude: 29.043, grossArea: 215, netArea: 185, rooms: "3+1", bedrooms: 3, bathrooms: 2, buildingAge: 4, floor: 4, totalFloors: 6, heating: "Yerden ısıtma", furnished: false, amenities: ["Boğaz manzarası", "Teras", "Otopark", "Asansör", "Güvenlik"], images: [photo("photo-1600607687939-ce8a6c25118c"), photo("photo-1600210492486-724fe5c67fb0"), photo("photo-1600566753086-00f18fb6b3ea")], featured: true, ownerName: "estatemarket24", source: "demo"
