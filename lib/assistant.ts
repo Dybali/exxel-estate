@@ -5,9 +5,9 @@ import { CITIES, DISTRICTS } from './turkey-locations';
 export const assistantLanguages=['tr','en','de','ar','fr','ru'] as const;
 export type AssistantLanguage=typeof assistantLanguages[number];
 export const filterSchema=z.object({
-  purpose:z.enum(['satilik','kiralik']).nullable().default(null),
+  purpose:z.enum(['satilik','kiralik','gunluk','devren']).nullable().default(null),
   city:z.string().max(70).nullable().default(null), district:z.string().max(70).nullable().default(null),
-  type:z.enum(['daire','villa','mustakil','rezidans','arsa','ticari']).nullable().default(null),
+  type:z.enum(['daire','villa','mustakil','rezidans','arsa','ticari','bina','devremulk','turistik']).nullable().default(null),
   currency:z.enum(['TRY','EUR','USD','GBP']).nullable().default(null),
   minPrice:z.number().int().min(0).max(999999999999).nullable().default(null),maxPrice:z.number().int().min(0).max(999999999999).nullable().default(null),
   minArea:z.number().int().min(0).max(1000000).nullable().default(null),maxArea:z.number().int().min(0).max(1000000).nullable().default(null),
@@ -70,7 +70,7 @@ export function filterHref(filters:AssistantFilters) {
 }
 export function redactContact(text:string){return text.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,'[email removed]').replace(/\+\d[\d ()-]{8,}\d/g,'[phone removed]');}
 export const filterDeclaration={type:'OBJECT',properties:{
-  purpose:{type:'STRING',enum:['satilik','kiralik'],nullable:true},city:{type:'STRING',nullable:true},district:{type:'STRING',nullable:true},type:{type:'STRING',enum:PROPERTY_TYPES.map(x=>x.value),nullable:true},
+  purpose:{type:'STRING',enum:['satilik','kiralik','gunluk','devren'],nullable:true},city:{type:'STRING',nullable:true},district:{type:'STRING',nullable:true},type:{type:'STRING',enum:PROPERTY_TYPES.map(x=>x.value),nullable:true},
   currency:{type:'STRING',enum:['TRY','EUR','USD','GBP'],nullable:true},
   ...Object.fromEntries(['minPrice','maxPrice','minArea','maxArea','bedrooms'].map(x=>[x,{type:'INTEGER',nullable:true}])),
   rooms:{type:'STRING',nullable:true},amenities:{type:'ARRAY',items:{type:'STRING',enum:AMENITIES}},furnished:{type:'BOOLEAN',nullable:true},sort:{type:'STRING',enum:['newest','priceAsc','priceDesc','area']},

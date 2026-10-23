@@ -21,6 +21,7 @@ import "./assistant.css";
 import "./editorial.css";
 import "./categories-statistics.css";
 import "./cookies-company.css";
+import "./launch-polish.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
