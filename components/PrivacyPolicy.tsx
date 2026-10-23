@@ -1,4 +1,5 @@
 'use client';
+import {CompanyIdentity} from './CompanyIdentity';
 import Link from '@/components/SafeLink';
 import {useLocale} from '@/lib/i18n';
 const sections=[
@@ -27,4 +28,4 @@ const sections=[
     "text": "Uygulanabilir mevzuat ve koşulları kapsamında verileriniz hakkında bilgi ve erişim, düzeltme, silme, işlemeyi kısıtlama ve uygulanabildiğinde taşınabilirlik talep edebilirsiniz. Rızanızı geri alabilir ve meşru menfaate dayalı işlemeye itiraz edebilirsiniz. Yetkili denetim makamına şikâyet hakkınız saklıdır. Başvurunuzu info@exxelmedia.de adresine gönderin; kimliğinizi güvenli şekilde doğrulamak için ek bilgi istenebilir."
   }
 ];
-export function PrivacyPolicy(){const {t,locale}=useLocale();return <main className="container cookie-policy"><header className="cookie-policy-header"><span className="market-overline">ESTATEMARKET24 · {t('Güncelleme')}: {new Intl.DateTimeFormat(locale,{dateStyle:'long',timeZone:'UTC'}).format(new Date('2026-10-23T12:00:00Z'))}</span><h1>{t('Gizlilik politikası')}</h1><h2>{t('Veri sorumlusu ve iletişim')}</h2><p><strong>exxelmedia</strong><br/><a href="mailto:info@exxelmedia.de">info@exxelmedia.de</a></p></header>{sections.map((s,i)=><section key={s.title}><h2>{i+1}. {t(s.title)}</h2><p>{t(s.text)}</p></section>)}<section><h2>{t('Çerez politikası')}</h2><Link href="/cerez-politikasi">{t('Çerez politikası')}</Link></section></main>;}
+export function PrivacyPolicy(){const {t,locale}=useLocale();return <main className="container cookie-policy"><header className="cookie-policy-header"><span className="market-overline">ESTATEMARKET24 · {t('Güncelleme')}: {new Intl.DateTimeFormat(locale,{dateStyle:'long',timeZone:'UTC'}).format(new Date('2026-10-23T12:00:00Z'))}</span><h1>{t('Gizlilik politikası')}</h1><h2>{t('Veri sorumlusu ve iletişim')}</h2><CompanyIdentity/></header>{sections.map((s,i)=><section key={s.title}><h2>{i+1}. {t(s.title)}</h2><p>{t(s.text)}</p></section>)}<section><h2>{t('Çerez politikası')}</h2><Link href="/cerez-politikasi">{t('Çerez politikası')}</Link></section></main>;}
