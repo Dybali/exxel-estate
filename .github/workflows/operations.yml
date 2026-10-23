@@ -900,7 +900,13 @@ jobs:
              if(typeof pointer.prefix!=='string'||!pointer.prefix.startsWith(prefix+'/runs/')||!/^[a-f0-9]{32}$/.test(pointer.prefix.slice((prefix+'/runs/').length)))throw Error('Unsafe remote run prefix');
              const restored=await fetchRemoteSet({...c,remote:{...c.remote,prefix:pointer.prefix}},id,root);const result=await restoreTest(restored,id,target,path.join(root,'restored-media'));console.log(JSON.stringify(result));
             }else if(mode==='monitor'){
-             await promisify(execFile)(process.execPath,[fileURLToPath(new URL('../launch-preflight.mjs',import.meta.url))],{timeout:300000,maxBuffer:100000});console.log(JSON.stringify({mode,state:'passed'}));
+             await promisify(execFile)(process.execPath,[fileURLToPath(new URL('../launch-preflight.mjs',import.meta.url))],{timeout:300000,maxBuffer:100000});
+             const operationsUrl=new URL(c.sources[0].endpoint);operationsUrl.searchParams.set('mode','operations');const response=await fetch(operationsUrl,{headers:{Authorization:'Bearer '+c.sources[0].token},redirect:'manual',signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error('Usage monitoring unavailable');const report=await response.json();
+             if(typeof report.usageWarning!=='boolean'||typeof report.usageExceeded!=='boolean'||typeof report.serviceWarning!=='boolean'||report.advisoryOnly!==true)throw Error('Invalid advisory monitoring response');
+             const number=n=>Number.isFinite(Number(n))?String(Number(n)):'unknown';
+             process.env.ALERT_DETAILS=['Kullanim uyarilari hizmeti durdurmaz. Bunlar fatura tutari degildir.','Gemini gunluk rezervasyon: '+number(report.gemini?.day?.used)+' / '+number(report.gemini?.day?.limit),'Gemini aylik rezervasyon: '+number(report.gemini?.month?.used)+' / '+number(report.gemini?.month?.limit),'DeepL aylik uygulama karakteri: '+number(report.deepl?.month?.used)+' / '+number(report.deepl?.month?.limit),...(report.deepl?.provider?.available?['DeepL saglayici karakteri: '+number(report.deepl.provider.used)+' / '+number(report.deepl.provider.limit)]:['DeepL saglayici kotasi okunamadi.'])].join(String.fromCharCode(10));
+             await recordAlert(remote,c,'usage',!report.usageWarning);await recordAlert(remote,c,'usage-limit',!report.usageExceeded);await recordAlert(remote,c,'service',!report.serviceWarning);
+             console.log(JSON.stringify({mode,state:'passed'}));
             }
             await recordAlert(remote,c,mode,true);
            }finally{remote.close();}
@@ -908,13 +914,12 @@ jobs:
            try{const c=cloudConfig(),remote=storage(c.remote);try{await recordAlert(remote,c,mode,false);}finally{remote.close();}}catch{console.error('Alert delivery unavailable; check protected SMTP/storage configuration.');}
            console.error('Operational job failed. Raw connection errors and credentials are suppressed. Inspect protected runner status.');process.exitCode=1;
           }
-          
           EM24_FILE_10
           mkdir -p "$RUNNER_TEMP/em24-tools/operations/backup"
           cat > "$RUNNER_TEMP/em24-tools/operations/backup/operational-alert.mjs" <<'EM24_FILE_11'
           import nodemailer from 'nodemailer';
           import fs from 'node:fs/promises';import path from 'node:path';
-          const kinds=new Set(['backup','restore-test','monitor']);
+          const kinds=new Set(['backup','restore-test','monitor','usage','usage-limit','service']);
           export function smtpSettings(env=process.env){
            const mailbox=value=>typeof value==='string'&&/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(value)&&!/[\r\n]/.test(value);
            if(!mailbox(env.ALERT_TO)||!mailbox(env.ALERT_FROM)||!env.SMTP_HOST||!env.SMTP_USER||!env.SMTP_PASSWORD)throw Error('SMTP sender, recipient and credentials are required');
@@ -923,7 +928,7 @@ jobs:
           }
           export async function sendAlert(kind,healthy,env=process.env){
            if(!kinds.has(kind))throw Error('Unknown alert kind');const transport=nodemailer.createTransport(smtpSettings(env));
-           try{await transport.sendMail({from:env.ALERT_FROM,to:env.ALERT_TO,subject:`estatemarket24: ${kind} ${healthy?'yeniden calisiyor':'kontrolu basarisiz'}`,text:`estatemarket24 operasyon kontrolu\nGorev: ${kind}\nDurum: ${healthy?'Duzeldi':'Basarisiz'}\nZaman: ${new Date().toISOString()}\nKorunan calistirici kaydini inceleyin. Bu e-posta sifre, baglanti bilgisi veya kullanici verisi icermez.`});}finally{transport.close();}
+           try{await transport.sendMail({from:env.ALERT_FROM,to:env.ALERT_TO,subject:`estatemarket24: ${kind} ${healthy?'normal duruma dondu':['usage','usage-limit'].includes(kind)?'kullanim esigi asildi - hizmet acik':'kontrol uyarisi'}`,text:`estatemarket24 operasyon kontrolu\nGorev: ${kind}\nDurum: ${healthy?'Duzeldi':'Basarisiz'}\nZaman: ${new Date().toISOString()}\nKorunan calistirici kaydini inceleyin. Bu e-posta sifre, baglanti bilgisi veya kullanici verisi icermez.\n${String(env.ALERT_DETAILS||'').slice(0,2500)}`});}finally{transport.close();}
           }
           export function alertTransition(previous,kind,healthy,at=new Date()){
            if(!kinds.has(kind))throw Error('Unknown alert kind');const failures=healthy?0:(previous?.failures||0)+1,threshold=kind==='monitor'?2:1;
@@ -936,7 +941,6 @@ jobs:
            const result=alertTransition(previous,kind,healthy);if(result.notify)await send(kind,healthy);
            const file=path.join(config.outputRoot,'alert-'+kind+'.json');await fs.mkdir(config.outputRoot,{recursive:true});await fs.writeFile(file,JSON.stringify(result.state),{mode:0o600});await remote.putFile(key,file,{ContentType:'application/json'});return result;
           }
-          
           EM24_FILE_11
           mkdir -p "$RUNNER_TEMP/em24-tools/operations/backup"
           cat > "$RUNNER_TEMP/em24-tools/operations/backup/cloud.Dockerfile" <<'EM24_FILE_12'
