@@ -37,13 +37,14 @@
 
 .market-home .market-hero{
   min-height:615px;
-  background-image:linear-gradient(180deg,rgba(12,25,36,.62) 0%,rgba(12,25,36,.28) 27%,rgba(12,25,36,.46) 58%,rgba(12,25,36,.67) 100%),url('/villa-sunset.webp');
-  background-position:center,center 56%;
-  background-size:cover;
+  background:none;
   position:relative;
 }
+.market-home .market-hero-media{position:absolute;inset:0;overflow:hidden}
+.market-home .market-hero-media img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 56%}
+.market-home .market-hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(12,25,36,.62) 0%,rgba(12,25,36,.28) 27%,rgba(12,25,36,.46) 58%,rgba(12,25,36,.67) 100%);pointer-events:none}
 .market-home .market-hero-inner{
-  position:relative;min-height:615px;
+  position:relative;z-index:2;min-height:615px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding-top:150px;padding-bottom:72px;
 }
@@ -194,7 +195,7 @@
   .home-header .estatemarket-wordmark{font-size:25px}
   .home-header .brand-tagline{font-size:8.5px}
   .market-home .market-hero,.market-home .market-hero-inner{min-height:665px}
-  .market-home .market-hero{background-position:center,center 65%}
+  .market-home .market-hero-media img{object-position:center 65%}
   .market-home .market-hero-inner{padding-top:126px;padding-bottom:59px;justify-content:center}
   .market-home .market-kicker{font-size:10px}
   .market-home .market-hero h1{font-size:clamp(32px,7.4vw,45px);line-height:1.12;margin:14px auto 11px}

@@ -47,7 +47,9 @@ export default function Home() {
     return () => controller.abort();
   }, []);
   return <main className="market-home">
-    <section className="market-hero"><div className="container market-hero-inner">
+    <section className="market-hero">
+      <div className="market-hero-media" aria-hidden="true"><img src="/villa-sunset-1920.webp" srcSet="/villa-sunset-720.webp 720w, /villa-sunset-1280.webp 1280w, /villa-sunset-1920.webp 1920w" sizes="100vw" width={2400} height={1601} alt="" loading="eager" fetchPriority="high" decoding="async"/></div>
+      <div className="container market-hero-inner">
       <div className="market-hero-copy"><span className="market-kicker">ESTATEMARKET24 · TÜRKİYE</span><h1>{t("Türkiye'de satılık ve kiralık gayrimenkuller")}</h1><p>{t("Şehir, semt ve özelliklere göre arayın. Size uygun evi, arsayı veya iş yerini bulun.")}</p></div>
       <HomeSearch />
       <div className="market-hero-links"><span>{t("Popüler aramalar")}</span><Link href="/ilanlar?purpose=satilik&type=daire">{t("Satılık daire")}</Link><Link href="/ilanlar?purpose=kiralik&type=daire">{t("Kiralık daire")}</Link><Link href="/ilanlar?type=villa">{t("Villa")}</Link><Link href="/ilanlar?city=İstanbul">İstanbul</Link></div>
