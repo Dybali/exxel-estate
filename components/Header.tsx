@@ -1,5 +1,6 @@
 "use client";
 import { Brand } from "@/components/Brand";
+import { ExchangeRates } from "@/components/ExchangeRates";
 
 
 import Link from "@/components/SafeLink";
@@ -69,7 +70,7 @@ export function Header() {
     <header className={isHome ? "site-header home-header" : "site-header"}><div className="container header-inner"><Link href="/" className="brand" aria-label="estatemarket24 — Your gateway to Turkish real estate — ana sayfa"><Brand/></Link>
       <nav id="main-navigation" className={menu ? "main-nav open" : "main-nav"}>{links.map((link) => <Link key={link.href} className={link.active ? "active" : ""} href={link.href} onClick={() => setMenu(false)}>{t(link.label)}</Link>)}<Link className="main-messages-link" href={user ? "/hesabim?tab=mesajlar" : `/giris?next=${encodeURIComponent("/hesabim?tab=mesajlar")}`} onClick={() => setMenu(false)}><Mail size={16}/><span>{t("Mesajlarım")}</span>{unreadMessages > 0 && <b className="message-count">{unreadMessages > 99 ? "99+" : unreadMessages}</b>}</Link></nav>
       <div className="header-actions">{user&&<Link className="discovery-bell" href="/hesabim?tab=bildirimler" aria-label={`${t("Bildirimler")}: ${discoveryUnread}`}><Bell size={20}/>{discoveryUnread>0&&<b>{discoveryUnread>99?"99+":discoveryUnread}</b>}</Link>}{user && <Link className="header-messages-link mobile-inbox-link" href="/hesabim?tab=mesajlar" aria-label={`Mesajlarım${unreadMessages ? `, ${unreadMessages} okunmamış` : ""}`}><Mail size={20}/>{unreadMessages > 0 && <span>{unreadMessages > 99 ? "99+" : unreadMessages}</span>}</Link>}<Link className="icon-link desktop-only" href="/hesabim?tab=favoriler" aria-label={t("Favoriler")}><Heart size={20}/></Link><Link className="account-link" href={loginHref}><UserRound size={18}/><span>{user ? user.name.split(" ")[0] : t("Giriş Yap")}</span></Link><Link className="header-post" href="/ilan-ver">{t("İlan Ver")} <ArrowRight size={17}/></Link><button className="mobile-menu" onClick={() => setMenu(!menu)} aria-label={t("Menü")} aria-expanded={menu} aria-controls="main-navigation">{menu ? <X size={25}/> : <Menu size={25}/>}</button></div>
-    </div></header>
+    </div>{isHome && <div className="container home-header-exchange"><ExchangeRates /></div>}</header>
   </>;
 }
 
