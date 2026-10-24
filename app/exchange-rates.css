@@ -1,0 +1,11 @@
+.market-home .home-fx-card{position:absolute;left:0;bottom:27px;width:305px;min-height:112px;padding:13px 16px 12px;border:1px solid #ffffff9c;border-radius:8px;background:#fffefaed;box-shadow:0 8px 27px #091a1660;color:#20362d;backdrop-filter:blur(8px);z-index:1}
+.market-home .home-fx-heading,.market-home .home-fx-rates>div{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.market-home .home-fx-heading{margin-bottom:8px;font-size:11px;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.market-home .home-fx-source{font-size:10px;letter-spacing:.08em;color:#527767}
+.market-home .home-fx-rates{display:grid;gap:3px}
+.market-home .home-fx-rates>div{font-size:11px;color:#596d60}
+.market-home .home-fx-rates strong{color:#143d30;font-size:14px;font-weight:780;font-variant-numeric:tabular-nums}
+.market-home .home-fx-card p{font-size:10px;line-height:1.4;color:#617367;margin:7px 0 3px}
+.market-home .home-fx-card a{text-decoration:underline;text-underline-offset:2px}
+.market-home .home-fx-card small{display:block;font-size:9px;line-height:1.35;color:#7a867d}
+@media(max-width:700px){.market-home .home-fx-card{position:relative;left:auto;bottom:auto;align-self:stretch;width:100%;min-height:0;margin-top:16px;padding:11px 13px}.market-home .home-fx-rates{grid-template-columns:1fr 1fr;gap:14px}.market-home .home-fx-rates>div{display:block}.market-home .home-fx-rates strong{display:block;margin-top:3px;font-size:13px}.market-home .hero-photo-credit{position:relative;right:auto;bottom:auto;align-self:flex-end;margin-top:12px}}
