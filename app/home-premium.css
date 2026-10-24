@@ -2,7 +2,7 @@
 .estatemarket-wordmark,
 .brand-tagline{font-family:Inter,Arial,sans-serif}
 .wordmark-estate{color:#202b24}
-.wordmark-24{color:#69756e}
+.wordmark-24{color:#354b3c;font-weight:850}
 .wordmark-market{color:#267657}
 .footer-brand .wordmark-estate{color:#f1f5f7}
 .footer-brand .wordmark-24{color:#a8b5b0}
@@ -230,7 +230,8 @@
 .wordmark-estate,.home-header .wordmark-estate,.footer-brand .wordmark-estate{color:#267657}
 .wordmark-market,.home-header .wordmark-market,.footer-brand .wordmark-market{color:#9b601f}
 .home-header .brand-lockup,.footer-brand .brand-lockup{background:transparent;padding:0;border-radius:0}
-.home-header .wordmark-24,.footer-brand .wordmark-24{color:#64716a}
+.home-header .wordmark-24{color:#f7faf5;font-weight:850;text-shadow:0 1px 5px #0009}
+.footer-brand .wordmark-24{color:#e7f0e9;font-weight:850}
 .home-header .brand-tagline,.footer-brand .brand-tagline{color:#365b49}
 .wordmark-estate,.home-header .wordmark-estate,.footer-brand .wordmark-estate{color:#00a651;font-weight:850}.wordmark-market{color:#9b601f;font-weight:850}.home-header .wordmark-market,.footer-brand .wordmark-market{color:#e8bb75;font-weight:850;text-shadow:0 1px 3px #0006}
 /* Keep the tagline readable on photography and on plain page headers. */
