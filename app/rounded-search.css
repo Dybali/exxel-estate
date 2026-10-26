@@ -11,7 +11,10 @@
   padding: 10px;
   border-bottom: 1px solid #e5eded;
   background: #f5f8f8;
+  scrollbar-width: none;
 }
+
+.category-search-tabs::-webkit-scrollbar { display: none; }
 
 .category-search-tabs button {
   min-height: 44px;
@@ -87,7 +90,7 @@
 
 @media (max-width: 900px) {
   .category-search-tabs { gap: 5px; }
-  .category-search-tabs button { min-width: 130px; }
+  .category-search-tabs button { min-width: 106px; font-size: 12px; }
 }
 
 @media (max-width: 700px) {
