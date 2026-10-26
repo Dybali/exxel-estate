@@ -1,0 +1,49 @@
+/* Phone usability: readable controls, safe floating actions and narrow layouts. */
+@media (max-width: 700px) {
+  html { -webkit-text-size-adjust: 100%; }
+
+  /* iOS zooms the page when a focused form control uses text smaller than 16px. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.email-recovery-otp),
+  select,
+  textarea { font-size: 16px !important; }
+
+  .email-recovery-card .email-recovery-otp { font-size: 26px !important; }
+  .category-search-grid > label,
+  .category-search-bottom > label,
+  .explore-quick-search > label,
+  .form-grid > label { min-width: 0; }
+
+  .category-search-tabs { scroll-snap-type: x proximity; overscroll-behavior-inline: contain; }
+  .category-search-tabs button { scroll-snap-align: start; }
+
+  .category-find,
+  .category-map,
+  .explore-quick-filter,
+  .filter-mobile-button,
+  .mobile-apply { min-height: 44px; }
+
+  .compare-tray {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: calc(100% - 24px);
+    max-width: 420px;
+    flex-wrap: wrap;
+    justify-content: center;
+    white-space: normal;
+    gap: 8px 12px;
+  }
+  .compare-tray > svg { flex-shrink: 0; }
+  .compare-tray > a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .compare-tray > button { width: 44px; height: 44px; flex-shrink: 0; }
+}
+
+@media (max-width: 380px) {
+  .container { width: calc(100% - 24px); }
+  .market-home .market-hero h1 { font-size: clamp(27px, 8vw, 32px); }
+  .compact-search .category-search-grid,
+  .compact-search .category-search-bottom { grid-template-columns: minmax(0, 1fr); }
+  .compact-search .category-search-grid > label,
+  .compact-search .category-search-bottom > * { grid-column: auto; }
+  .category-find,
+  .category-map { width: 100%; }
+  .admin-stats { grid-template-columns: 1fr; }
+}
