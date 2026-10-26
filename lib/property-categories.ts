@@ -1,5 +1,5 @@
 export const PROPERTY_CATEGORIES = [
- {value:"konut",label:"Konut",types:["daire","villa","mustakil","rezidans"]},
+ {value:"konut",label:"Konut",types:["daire","rezidans","mustakil","villa","ciftlik-evi","kosk-konak","yali","yali-dairesi","yazlik","kooperatif"]},
  {value:"isyeri",label:"İş yeri",types:["ticari"]},{value:"arsa",label:"Arsa",types:["arsa"]},
  {value:"bina",label:"Bina",types:["bina"]},{value:"devremulk",label:"Devre mülk",types:["devremulk"]},{value:"turistik",label:"Turistik tesis",types:["turistik"]}
 ] as const;

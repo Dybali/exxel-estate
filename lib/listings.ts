@@ -1,4 +1,4 @@
-export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "arsa" | "ticari" | "bina" | "devremulk" | "turistik";
+export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "ciftlik-evi" | "kosk-konak" | "yali" | "yali-dairesi" | "yazlik" | "kooperatif" | "arsa" | "ticari" | "bina" | "devremulk" | "turistik";
 export type Purpose = "satilik" | "kiralik" | "gunluk" | "devren";
 export type Listing = {
   statistics?: {views:number;favorites:number;messages:number};
@@ -84,7 +84,9 @@ export const PUBLIC_DEMO_LISTINGS:Listing[]=[
 ];
 export function publicListing(listing:Listing):Listing {const {reviewNote,reviewedAt,...visible}=listing;return visible;}
 export const PROPERTY_TYPES: {value: PropertyType; label: string}[] = [
-  {value:"daire",label:"Daire"},{value:"villa",label:"Villa"},{value:"mustakil",label:"Müstakil Ev"},{value:"rezidans",label:"Rezidans"},{value:"arsa",label:"Arsa"},{value:"ticari",label:"İş yeri"},{value:"bina",label:"Bina"},{value:"devremulk",label:"Devre mülk"},{value:"turistik",label:"Turistik tesis"}
+  {value:"daire",label:"Daire"},{value:"rezidans",label:"Rezidans"},{value:"mustakil",label:"Müstakil Ev"},{value:"villa",label:"Villa"},
+  {value:"ciftlik-evi",label:"Çiftlik Evi"},{value:"kosk-konak",label:"Köşk & Konak"},{value:"yali",label:"Yalı"},{value:"yali-dairesi",label:"Yalı Dairesi"},{value:"yazlik",label:"Yazlık"},{value:"kooperatif",label:"Kooperatif"},
+  {value:"arsa",label:"Arsa"},{value:"ticari",label:"İş yeri"},{value:"bina",label:"Bina"},{value:"devremulk",label:"Devre mülk"},{value:"turistik",label:"Turistik tesis"}
 ];
 export const AMENITIES = ["Deniz manzarası","Boğaz manzarası","Havuz","Özel havuz","Bahçe","Teras","Balkon","Otopark","Asansör","Güvenlik","Eşyalı","Şömine"];
 export const formatPrice = (value:number, currency="TRY", locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,maximumFractionDigits:0}).format(value);
