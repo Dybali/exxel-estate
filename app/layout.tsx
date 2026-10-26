@@ -23,6 +23,7 @@ import "./categories-statistics.css";
 import "./cookies-company.css";
 import "./launch-polish.css";
 import "./exchange-rates.css";
+import "./rounded-search.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
