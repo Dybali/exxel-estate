@@ -1,4 +1,5 @@
 import {body,currentUser,db,error,isAdmin,now,ok,sameOrigin,str} from '@/lib/server';
+import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
 import {agentPlanDB} from '@/lib/agent-plan';
 import {officeDB} from '@/lib/office-verification-server';
 
@@ -17,6 +18,7 @@ export async function POST(request:Request){
  if(!sameOrigin(request))return error('Geçersiz kaynak.',403);
  const admin=await currentUser(request);
  if(!admin?.email_verified||!isAdmin(admin))return error('Yönetici yetkisi gerekli.',403);
+ if(!AGENT_PLANS_ENABLED)return error('Fiyatlar belirlenene kadar paket işlemleri kapalıdır. Emlakçılar paket olmadan ilan verebilir.',409);
  await agentPlanDB();await officeDB();
  let input:Record<string,unknown>;try{input=await body(request);}catch{return error('Geçersiz istek.');}
  const action=str(input.action,20),userId=str(input.userId,80),grantId=str(input.grantId,80);

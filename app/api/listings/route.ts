@@ -9,6 +9,7 @@ import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
 import { centers,mapBoundsSql,validBounds } from "@/lib/search-filters";
 import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
+import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
 import {agentPlanAccess,agentInsertGuard} from '@/lib/agent-plan';
 import { validDistrict } from "@/lib/turkey-locations";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
@@ -62,14 +63,14 @@ export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request);
   if(!user) return error("İlan vermek için giriş yapın.",401);
-  if(!user.email_verified)return error('İlan vermek için önce e-posta adresinizi doğrulayın.',403);
+  if(!user.email_verified&&user.role!=='agent')return error('İlan vermek için önce e-posta adresinizi doğrulayın.',403);
   if(!["agent","individual","admin"].includes(user.role)) return error("İlan vermek için hesap türünüzü güncelleyin.",403);
   await officeDB();
   if(user.role==='agent'&&!isAdmin(user)){
     const verification=await db().prepare('SELECT state,company_snapshot FROM office_verifications WHERE user_id=?').bind(user.id).first<{state:string;company_snapshot:string}>();
     if(!verification||verification.state==='rejected'||verification.company_snapshot!==user.company)return error('Önce ofis yetki belgenizi incelemeye gönderin.',403);
     if(user.agent_status==='rejected'&&verification.state==='approved')return error('Emlakçı hesabınız yönetici tarafından durduruldu. Yöneticiyle iletişime geçin.',403);
-    const access=await agentPlanAccess(user.id);if(!access.allowed)return error(access.reason||'Aktif paket gerekli.',403);
+    if(AGENT_PLANS_ENABLED){const access=await agentPlanAccess(user.id);if(!access.allowed)return error(access.reason||'Aktif paket gerekli.',403);}
   }
   if(user.role==='individual'&&!isAdmin(user)){const quota=await db().prepare('SELECT last_submitted_at FROM individual_listing_quota WHERE user_id=?').bind(user.id).first<{last_submitted_at:string}>();if(quota&&Date.parse(nextIndividualSubmission(String(quota.last_submitted_at)))>Date.now())return error('Bireysel üyeler 3 takvim ayında bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);}
   let data:Record<string,unknown>;
@@ -80,6 +81,8 @@ export async function POST(request:Request) {
   if(!(CURRENCIES as readonly string[]).includes(str(data.currency,3)||"TRY"))return error("Geçersiz para birimi.");
   if(title.length<12 || description.length<30 || !["satilik","kiralik","gunluk","devren"].includes(purpose) || !PROPERTY_TYPES.some((p)=>p.value===propertyType) || !city || !district || !Number.isInteger(price) || price<=0 || !Number.isInteger(grossArea) || grossArea<=0) return error("Zorunlu ilan alanlarını doldurun.");
   if(!validDistrict(city,district) || !neighborhood) return error("Geçerli bir il, ilçe ve mahalle seçin.");
+  if(data.netArea!==''&&data.netArea!=null&&(!Number.isSafeInteger(num(data.netArea))||num(data.netArea)<=0||num(data.netArea)>grossArea))return error('Net alan pozitif olmalı ve brüt alandan büyük olmamalıdır.');
+  if(propertyType==='villa'&&(!num(data.netArea)||!num(data.plotArea)||data.gardenArea==null||data.gardenArea===''))return error('Villa için net, arsa ve bahçe alanını girin. Bahçe yoksa 0 yazın.');
   const amenities=Array.isArray(data.amenities)?data.amenities.filter((x):x is string=>typeof x==="string"&&AMENITIES.includes(x)).slice(0,20):[];
   const images=Array.isArray(data.images)?data.images.filter((x):x is string=>typeof x==="string"&&x.startsWith("/api/media/")).slice(0,30):[];
   if(images.length===0) return error("En az bir fotoğraf yükleyin.");
@@ -106,10 +109,10 @@ export async function POST(request:Request) {
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
   const status=isAdmin(user)||user.role==='individual'||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
-  const agentGuard=user.role==='agent'&&!isAdmin(user);
+  const agentGuard=AGENT_PLANS_ENABLED&&user.role==='agent'&&!isAdmin(user);
   const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at) "+(agentGuard?`SELECT ${Array(33).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(33).fill('?').join(',')})`);
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
-    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,...(agentGuard?[user.id,createdAt,createdAt]:[]))];
+    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,...(agentGuard?[user.id,createdAt,createdAt]:[]))];
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
   if(user.role==='agent'&&!isAdmin(user))statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));

@@ -11,6 +11,7 @@ import {AdminOfficeVerifications} from './AdminOfficeVerifications';
 import {AdminAudit} from "./AdminAudit";
 import { CountrySettings } from "./CountrySettings";
 import {AdminTranslations} from './AdminTranslations';
+import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
 import {AdminPlanGrants} from './AdminPlanGrants';
 
 type UserRow = { id: string; name: string; email: string; role: string; agent_status: string; company?: string };
@@ -86,7 +87,7 @@ export function AdminPanel() {
       {error && <p className="form-error" role="alert">{error}</p>}
       <AdminOperations/>
       <AdminOfficeVerifications onReviewed={reload}/>
-      <AdminPlanGrants agents={agents}/>
+      {AGENT_PLANS_ENABLED?<AdminPlanGrants agents={agents}/>:<section className="admin-section"><h2>Paket zorunluluğu kapalı</h2><p>Fiyatlar belirlenene kadar emlakçılar paket almadan ilan verebilir. Ofis belgesi ve hesap için bir kez yönetici onayı yeterlidir.</p></section>}
       <AdminReports/>
       <AdminTranslations/>
       <AdminMessages recipient={recipient} onUnreadChange={setUnread}/>

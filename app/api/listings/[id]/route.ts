@@ -1,3 +1,4 @@
+import {officePublicationAllowed} from '@/lib/office-verification-server';
 import {listingExpired} from '@/lib/listing-policy';
 import {publicListing} from '@/lib/listings';
 import {reportsDB} from '@/lib/reports-server';
@@ -24,7 +25,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request),{id}=await params;
   if(!user) return error("Giriş gerekli.",401);
-  if(!user.email_verified)return error('İlan düzenlemek için önce e-posta adresinizi doğrulayın.',403);
+  if(!user.email_verified&&user.role!=='agent')return error('İlan düzenlemek için önce e-posta adresinizi doğrulayın.',403);
   if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))return error("İlan bulunamadı.",404);
   const row=await db().prepare("SELECT * FROM listings WHERE id=?").bind(id).first<Record<string,unknown>>();
   if(!row) return error("İlan bulunamadı.",404);
@@ -50,10 +51,12 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
     return Number.isSafeInteger(parsed)&&parsed>=0?parsed:NaN;
   };
   const optionalFields=[optionalNumber("netArea","net_area"),optionalNumber("bedrooms","bedrooms"),optionalNumber("bathrooms","bathrooms"),optionalNumber("buildingAge","building_age"),optionalNumber("floor","floor"),optionalNumber("totalFloors","total_floors")];
+  if(optionalFields[0]!=null&&(optionalFields[0]<=0||optionalFields[0]>grossArea))return error('Net alan pozitif olmalı ve brüt alandan büyük olmamalıdır.');
   if(optionalFields.some((item)=>Number.isNaN(item)))return error("Sayısal özellikleri kontrol edin.");
   const amenities=Object.hasOwn(data,"amenities")?Array.isArray(data.amenities)?data.amenities.filter((item):item is string=>typeof item==="string"&&AMENITIES.includes(item)).slice(0,20):null:JSON.parse(String(row.amenities||"[]")) as string[];
   if(!amenities)return error("Özellikleri kontrol edin.");
   let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
+  if(propertyType==='villa'&&(!optionalFields[0]||!presentation.plotArea||presentation.gardenArea==null))return error('Villa için net, arsa ve bahçe alanını girin. Bahçe yoksa 0 yazın.');
   const originalImages=JSON.parse(String(row.images||"[]")) as string[];
   const images=Object.hasOwn(data,"images")?Array.isArray(data.images)?data.images.filter((item):item is string=>typeof item==="string"&&item.startsWith("/api/media/")).slice(0,30):null:originalImages;
   if(!images||images.length<1||images.length>30||new Set(images).size!==images.length)return error("En az bir benzersiz fotoğraf ekleyin.");
@@ -72,7 +75,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const cleanTranslations:Record<string,{title:string;description:string}>={};
   for(const locale of ["de","fr","en","ar","ru"]){const entry=(translations as Record<string,unknown>)[locale];if(!entry)continue;if(typeof entry!=="object"||Array.isArray(entry))return error("Çevirileri kontrol edin.");const item=entry as Record<string,unknown>,translatedTitle=str(item.title,150),translatedDescription=str(item.description,5000);if(!translatedTitle&&!translatedDescription)continue;if(translatedTitle.length<12||translatedDescription.length<30)return error("Çeviri başlığı ve açıklaması eksiksiz olmalıdır.");cleanTranslations[locale]={title:translatedTitle,description:translatedDescription};}
   await reportsDB();
-  const status=user.role==="agent"&&user.agent_status==="approved"||isAdmin(user)?"published":"pending";
+  const status=user.role==='agent'&&await officePublicationAllowed(user.id)||isAdmin(user)?"published":"pending";
   const updatedAt=now();
   const statements=[db().prepare("UPDATE listings SET title=?,description=?,purpose=?,property_type=?,price=?,currency=?,city=?,district=?,neighborhood=?,neighborhood_id=?,postal_code=?,gross_area=?,net_area=?,rooms=?,bedrooms=?,bathrooms=?,building_age=?,floor=?,total_floors=?,heating=?,furnished=?,amenities=?,images=?,translations=?,presentation=?,status=CASE WHEN listings.status<>'published' OR EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN 'pending' ELSE ? END,review_note=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN review_note ELSE NULL END,reviewed_by=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_by ELSE NULL END,reviewed_at=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_at ELSE NULL END,updated_at=? WHERE id=?")
     .bind(title,description,purpose,propertyType,price,currency,city,district,neighborhood?.name??row.neighborhood??null,neighborhood?.id??row.neighborhood_id??null,neighborhood?.postalCode??row.postal_code??null,grossArea,...optionalFields.slice(0,1),value("rooms","rooms",10)||null,...optionalFields.slice(1),value("heating","heating",50)||null,Object.hasOwn(data,"furnished")?data.furnished?1:0:Number(row.furnished)||0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(cleanTranslations),JSON.stringify(presentation),status,updatedAt,id)];
