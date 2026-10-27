@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS agent_plan_grants (
 CREATE INDEX IF NOT EXISTS agent_plan_grants_user_idx ON agent_plan_grants(user_id,ends_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS agent_plan_grants_one_active_idx ON agent_plan_grants(user_id) WHERE revoked_at IS NULL;
 CREATE TABLE IF NOT EXISTS agent_plan_rollout (id integer PRIMARY KEY CHECK (id=1), activated_at text NOT NULL);
-INSERT INTO agent_plan_rollout(id,activated_at) VALUES(1,to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')) ON CONFLICT(id) DO NOTHING;
+INSERT INTO agent_plan_rollout(id,activated_at) VALUES(1,'2026-10-27T07:56:43.609Z') ON CONFLICT(id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS country_settings (
   country_code text PRIMARY KEY, locale text NOT NULL, legal_text text NOT NULL DEFAULT '',
   payment_provider text, enabled integer NOT NULL DEFAULT 0
