@@ -1,4 +1,6 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
+
 
 import {PURPOSES,purposeLabel,pricePeriod} from "@/lib/property-categories";
 import {checkListingPhoto} from '@/lib/photo-quality';
@@ -49,7 +51,7 @@ export function ListingEditor({id}:{id:string}) {
     if(!city||!district){setNeighborhoods([]);return;}
     const controller=new AbortController();
     fetch(`/api/locations?city=${encodeURIComponent(city)}&district=${encodeURIComponent(district)}`,{signal:controller.signal})
-      .then(async response=>response.ok?response.json():{neighborhoods:[]})
+      .then(async response=>response.ok?apiJson<{neighborhoods?:Neighborhood[]}>(response):{neighborhoods:[]})
       .then((data:{neighborhoods?:Neighborhood[]})=>{if(!controller.signal.aborted)setNeighborhoods(data.neighborhoods||[]);})
       .catch(()=>{if(!controller.signal.aborted)setNeighborhoods([]);});
     return()=>controller.abort();

@@ -1,4 +1,6 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
+
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "@/components/SafeLink";
@@ -106,7 +108,7 @@ export function Explorer() {
     window.history.replaceState(window.history.state, "", `/ilanlar${next ? `?${next}` : ""}`);
   }, [query, map]);
   useEffect(() => {
-    const refresh=()=>fetch("/api/discovery",{cache:"no-store"}).then(r=>r.ok?r.json():{searches:[]}).then(data=>setSaved(data.searches||[])).catch(()=>{});
+    const refresh=()=>fetch("/api/discovery",{cache:"no-store"}).then(r=>r.ok?apiJson<{searches?:SavedSearch[]}>(r):{searches:[]}).then(data=>setSaved(data.searches||[])).catch(()=>{});
     refresh();window.addEventListener("salesorrent:discovery-changed",refresh);return()=>window.removeEventListener("salesorrent:discovery-changed",refresh);
   }, []);
   useEffect(() => {

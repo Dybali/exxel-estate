@@ -1,4 +1,5 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -97,7 +98,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await response.json() as { error?: string; user?: {email_verified?:number;role?:string} };
+      const data = await apiJson(response) as { error?: string; user?: {email_verified?:number;role?:string} };
       if (!response.ok) {
         setError(data.error || "İşlem tamamlanamadı.");
         return;

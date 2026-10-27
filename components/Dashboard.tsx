@@ -1,4 +1,6 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
+
 import {IndividualPolicyNotice} from "./IndividualPolicyNotice";
 import {CompanyAccount} from './CompanyAccount';
 import {AppointmentsPanel} from "./Appointments";
@@ -47,7 +49,7 @@ export function Dashboard() {
     }).catch(() => setLoading(false));
   }, []);
 
-  useEffect(()=>{const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(response=>response.json()).then((data:{user?:User})=>setUser(data.user||null)).catch(()=>{});window.addEventListener("salesorrent:profile-changed",refresh);return()=>window.removeEventListener("salesorrent:profile-changed",refresh);},[]);
+  useEffect(()=>{const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(response=>apiJson<{user?:User}>(response)).then((data:{user?:User})=>setUser(data.user||null)).catch(()=>{});window.addEventListener("salesorrent:profile-changed",refresh);return()=>window.removeEventListener("salesorrent:profile-changed",refresh);},[]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -56,7 +58,7 @@ export function Dashboard() {
     }
   }, [loading, user]);
 
-  useEffect(()=>{if(tab!=="ilanlarim"&&tab!=="genel")return;const controller=new AbortController();fetch('/api/listing-draft',{cache:'no-store',signal:controller.signal}).then(r=>r.ok?r.json():{draft:null}).then(data=>{if(!controller.signal.aborted)setDraft(data.draft||null);}).catch(()=>{});return()=>controller.abort();},[tab]);
+  useEffect(()=>{if(tab!=="ilanlarim"&&tab!=="genel")return;const controller=new AbortController();fetch('/api/listing-draft',{cache:'no-store',signal:controller.signal}).then(r=>r.ok?apiJson<{draft?:import('@/lib/listing-drafts').DraftRecord|null}>(r):{draft:null}).then(data=>{if(!controller.signal.aborted)setDraft(data.draft||null);}).catch(()=>{});return()=>controller.abort();},[tab]);
   async function logout() {
     await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) });
     window.location.assign("/");

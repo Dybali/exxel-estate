@@ -5,7 +5,7 @@ export type DraftRecord = {payload:DraftPayload;version:number;updatedAt:string}
 type Value=string|number|null;
 export interface DraftDatabase {prepare(query:string):{bind(...values:Value[]):{first<T>():Promise<T|null>}}}
 export class DraftError extends Error {constructor(message:string,public status=400){super(message);}}
-const fieldNames=new Set(['panoramas','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','grossArea','netArea','gardenArea','plotArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','ru'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
+const fieldNames=new Set(['submissionId','panoramas','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','grossArea','netArea','gardenArea','plotArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','ru'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
 export function validateDraft(input:unknown,userId:string):DraftPayload {
  if(!input||typeof input!=="object"||Array.isArray(input))throw new DraftError('Taslak bilgileri geçersiz.');
  const data=input as Record<string,unknown>;

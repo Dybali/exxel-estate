@@ -4,7 +4,7 @@ export type DiscoveryFeed={searches:SavedSearch[];alerts:DiscoveryAlert[];unread
 export async function discoveryAction(data:Record<string,unknown>,notify=true){
  const response=await fetch("/api/discovery",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
  if(response.status===401){window.location.assign(`/giris?next=${encodeURIComponent(window.location.pathname+window.location.search)}`);throw new Error("Giriş gerekli.");}
- const result=await response.json();if(!response.ok)throw new Error(result.error||result.message||"İşlem tamamlanamadı.");
+ const result=await response.json() as {error?:string;message?:string;[key:string]:unknown};if(!response.ok)throw new Error(result.error||result.message||"İşlem tamamlanamadı.");
  if(notify)window.dispatchEvent(new Event("salesorrent:discovery-changed"));return result;
 }
 

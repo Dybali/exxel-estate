@@ -1,4 +1,6 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
+
 import { Brand } from "@/components/Brand";
 import { ExchangeRates } from "@/components/ExchangeRates";
 
@@ -50,7 +52,7 @@ export function Header() {
     return () => { control.abort(); clearInterval(timer); window.removeEventListener("messages:changed", refresh); };
   }, [user?.id]);
   useEffect(()=>{if(!user?.id){setDiscoveryUnread(0);return;}let active=true,sequence=0;
-    const refresh=()=>{if(document.hidden)return;const ticket=++sequence;fetch('/api/discovery',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{if(active&&ticket===sequence&&data)setDiscoveryUnread(data.unread||0);}).catch(()=>{});};
+    const refresh=()=>{if(document.hidden)return;const ticket=++sequence;fetch('/api/discovery',{cache:'no-store'}).then(r=>r.ok?apiJson<{unread?:number}>(r):null).then(data=>{if(active&&ticket===sequence&&data)setDiscoveryUnread(data.unread||0);}).catch(()=>{});};
     const read=()=>{if(!active)return;setDiscoveryUnread(0);refresh();};refresh();const timer=setInterval(refresh,60000);window.addEventListener('salesorrent:discovery-changed',refresh);window.addEventListener('salesorrent:discovery-read',read);window.addEventListener('focus',refresh);return()=>{active=false;sequence++;clearInterval(timer);window.removeEventListener('salesorrent:discovery-changed',refresh);window.removeEventListener('salesorrent:discovery-read',read);window.removeEventListener('focus',refresh);};
   },[user?.id]);
   const currentLanguage = locales.find((item) => item.code === locale) || locales[0];

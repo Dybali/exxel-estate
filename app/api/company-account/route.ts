@@ -12,7 +12,7 @@ export async function GET(request:Request){
 }
 export async function POST(request:Request){
   if(!sameOrigin(request))return error('Geçersiz kaynak.',403);
-  const user=await currentUser(request);if(!user)return error('Giriş yapın.',401);if(user.role!=='agent'||!user.email_verified)return error('E-postası doğrulanmış şirket hesabı gerekli.',403);
+  const user=await currentUser(request);if(!user)return error('Giriş yapın.',401);if(user.role!=='agent')return error('Şirket hesabı gerekli.',403);
   let data:Record<string,unknown>;try{data=await body(request);}catch{return error('Geçersiz istek.');}
   const city=str(data.city,80),address=str(data.address,501),description=str(data.description,2001),version=Number(data.version);
   if(!CITIES.includes(city)||address.length>500||description.length>2000||!Number.isSafeInteger(version)||version<0)return error('Şehir ve firma bilgilerini kontrol edin.');

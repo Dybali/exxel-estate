@@ -1,3 +1,4 @@
+import {publicationD1} from './d1-publication';
 import {listingExpired} from './listing-policy';
 import { env } from "cloudflare:workers";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
@@ -9,7 +10,7 @@ export const db = () => {
   if (settings.DATABASE_URL) return neonD1(settings.DATABASE_URL) as unknown as D1Database;
   const database = settings.DB;
   if (!database) throw new Error("Database binding unavailable");
-  return database;
+  return publicationD1(database);
 };
 export const bucket = () => (env as SiteEnv).BUCKET;
 export async function publishedListingEntries(){const rows=await db().prepare("SELECT id,updated_at FROM listings WHERE status='published' ORDER BY updated_at DESC,id DESC LIMIT 10000").all<{id:string;updated_at:string}>();return rows.results.map(row=>({id:String(row.id),updatedAt:String(row.updated_at)}));}
