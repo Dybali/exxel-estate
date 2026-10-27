@@ -11,6 +11,7 @@ import {AdminOfficeVerifications} from './AdminOfficeVerifications';
 import {AdminAudit} from "./AdminAudit";
 import { CountrySettings } from "./CountrySettings";
 import {AdminTranslations} from './AdminTranslations';
+import {AdminPlanGrants} from './AdminPlanGrants';
 
 type UserRow = { id: string; name: string; email: string; role: string; agent_status: string; company?: string };
 type ListingRow = { id: string; title: string; city: string; district: string; owner_name: string; owner_id: string; price: number; status: string; created_at: string };
@@ -72,6 +73,7 @@ export function AdminPanel() {
       {error && <p className="form-error" role="alert">{error}</p>}
       <AdminOperations/>
       <AdminOfficeVerifications onReviewed={reload}/>
+      <AdminPlanGrants agents={agents}/>
       <AdminReports/>
       <AdminTranslations/>
       <AdminMessages recipient={recipient} onUnreadChange={setUnread}/>
