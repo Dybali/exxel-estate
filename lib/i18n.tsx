@@ -19,6 +19,7 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "Bireysel ilanınız doğrudan yayımlanır.": {de:"Ihre private Anzeige wird direkt veröffentlicht.",fr:"Votre annonce de particulier est publiée directement.",en:"Your private listing is published immediately.",ar:"يُنشر إعلانك الفردي مباشرة.",ru:"Ваше частное объявление публикуется сразу."},
   "İlan bildirimlerim": {de:"Meine Anzeigenmeldungen",fr:"Mes signalements d’annonces",en:"My listing reports",ar:"بلاغاتي عن الإعلانات",ru:"Мои жалобы на объявления"},
   "İlçe, mahalle veya anahtar kelime": {de:"Bezirk, Viertel oder Suchbegriff",en:"District, neighbourhood or keyword",fr:"Quartier ou mot-clé",ar:"المنطقة أو الحي أو كلمة البحث",ru:"Район, квартал или ключевое слово"},
   "Türkiye'de gayrimenkul aramanın yeni adresi": {de:"Ihr neuer Ort für Immobilien in der Türkei",fr:"Votre nouvelle adresse immobilière en Turquie",en:"Your new destination for property in Türkiye",ar:"وجهتك الجديدة للعقارات في تركيا",ru:"Ваш новый адрес поиска недвижимости в Турции"},

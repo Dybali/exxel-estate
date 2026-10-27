@@ -105,7 +105,7 @@ export async function POST(request:Request) {
   }
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
-  const status=isAdmin(user)||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
+  const status=isAdmin(user)||user.role==='individual'||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
   const agentGuard=user.role==='agent'&&!isAdmin(user);
   const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at) "+(agentGuard?`SELECT ${Array(33).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(33).fill('?').join(',')})`);
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
