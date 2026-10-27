@@ -26,6 +26,8 @@ export function AdminPanel() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [agentBusy, setAgentBusy] = useState<string | null>(null);
+  const [agentMessage, setAgentMessage] = useState("");
 
   const reload = useCallback(async () => {
     try {
@@ -43,15 +45,25 @@ export function AdminPanel() {
   useEffect(() => { reload(); }, [reload]);
 
   async function updateAgent(id: string, status: string) {
+    if (agentBusy) return;
+    setAgentBusy(id);
     setError("");
-    const response = await fetch("/api/admin", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "agent", id, status }),
-    });
-    if (response.ok) await reload();
-    else {
-      const result = await response.json() as { error?: string };
-      setError(result.error || "İşlem tamamlanamadı.");
+    setAgentMessage("");
+    try {
+      const response = await fetch("/api/admin", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "agent", id, status }),
+      });
+      if (!response.ok) {
+        const result = await response.json() as { error?: string };
+        throw new Error(result.error || "İşlem tamamlanamadı.");
+      }
+      await reload();
+      setAgentMessage(status === "approved" ? "Emlakçı hesabı onaylandı." : "Emlakçı hesabı reddedildi.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "İşlem tamamlanamadı.");
+    } finally {
+      setAgentBusy(null);
     }
   }
 
@@ -69,7 +81,8 @@ export function AdminPanel() {
       <div className="admin-table-wrap"><table><thead><tr><th>İlan</th><th>Konum</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>{data.listings.length ? data.listings.map((listing) => <tr key={listing.id}><td>{listing.title}<small>{listing.owner_name}</small></td><td>{listing.district}, {listing.city}</td><td>{listing.status === "published" ? "Yayında" : listing.status === "pending" ? "Bekliyor" : "Reddedildi"}</td><td><Link href={`/yonetim/ilan/${listing.id}`} className="admin-review-link">İncele →</Link><button className="admin-contact-link" onClick={() => contact({ id: listing.owner_id, name: listing.owner_name, context: listing.title })}>Mesaj yaz</button></td></tr>) : <tr><td colSpan={4}>Henüz gerçek ilan yok. Örnek ilanlar katalogda görünüyor.</td></tr>}</tbody></table></div>
       {pageCount > 1 && <div className="admin-pagination"><button type="button" onClick={() => setPage((old) => Math.max(1, old - 1))} disabled={page <= 1}>Önceki</button><span>Sayfa {page} / {pageCount}</span><button type="button" onClick={() => setPage((old) => Math.min(pageCount, old + 1))} disabled={page >= pageCount}>Sonraki</button></div>}
       <div className="admin-section-head"><div><span className="eyebrow dark-eyebrow">EMLAKÇILAR</span><h2>Hesap onayları</h2></div></div>
-      <div className="admin-table-wrap"><table><thead><tr><th>Ad / ofis</th><th>E-posta</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>{agents.length ? agents.map((agent) => <tr key={agent.id}><td>{agent.name}{agent.company && <small>{agent.company}</small>}</td><td>{agent.email}</td><td>{agent.agent_status}</td><td><a className="admin-review-link" href="#admin-office-verifications">Yetki belgesini incele →</a><button type="button" onClick={() => updateAgent(agent.id, "rejected")}><X size={15}/> Reddet</button><button className="admin-contact-link" onClick={() => contact(agent)}>Mesaj yaz</button></td></tr>) : <tr><td colSpan={4}>Henüz emlakçı başvurusu yok.</td></tr>}</tbody></table></div>
+      <div className="admin-table-wrap"><table><thead><tr><th>Ad / ofis</th><th>E-posta</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>{agents.length ? agents.map((agent) => <tr key={agent.id}><td>{agent.name}{agent.company && <small>{agent.company}</small>}</td><td>{agent.email}</td><td>{agent.agent_status === "approved" ? "Onaylandı" : agent.agent_status === "rejected" ? "Reddedildi" : "Onay bekliyor"}</td><td><a className="admin-review-link" href="#admin-office-verifications">Yetki belgesini incele →</a>{agent.agent_status !== "approved" && <button type="button" disabled={!!agentBusy} onClick={() => updateAgent(agent.id, "approved")}><Check size={15}/> Onayla</button>}{agent.agent_status !== "rejected" && <button type="button" disabled={!!agentBusy} onClick={() => updateAgent(agent.id, "rejected")}><X size={15}/> Reddet</button>}<button className="admin-contact-link" onClick={() => contact(agent)}>Mesaj yaz</button></td></tr>) : <tr><td colSpan={4}>Henüz emlakçı başvurusu yok.</td></tr>}</tbody></table></div>
+      {agentMessage && <p role="status" className="office-success">{agentMessage}</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
       <AdminOperations/>
       <AdminOfficeVerifications onReviewed={reload}/>
