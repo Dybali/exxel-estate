@@ -1,0 +1,20 @@
+"use client";
+import {useEffect,useState} from "react";
+import Link from "@/components/SafeLink";
+import {Bell,Bookmark,TrendingDown,Trash2} from "lucide-react";
+import {useLocale} from "@/lib/i18n";
+import {formatPrice} from "@/lib/listings";
+import {discoveryAction,type DiscoveryFeed} from "@/lib/discovery-client";
+export function DiscoveryPanel(){
+ const {t,locale}=useLocale();const [feed,setFeed]=useState<DiscoveryFeed|null>(null),[error,setError]=useState(""),[busy,setBusy]=useState(false);
+ useEffect(()=>{let active=true;const refresh=()=>fetch("/api/discovery",{cache:"no-store"}).then(async r=>{if(!r.ok)throw Error(t("Bildirimler yüklenemedi."));return r.json();}).then(data=>{if(active){setFeed(data);setError("");}}).catch(e=>{if(active)setError(e.message);});refresh();window.addEventListener("salesorrent:discovery-changed",refresh);const timer=setInterval(()=>{if(!document.hidden)refresh();},60000);return()=>{active=false;clearInterval(timer);window.removeEventListener("salesorrent:discovery-changed",refresh);};},[t]);
+ const action=async(data:Record<string,unknown>)=>{setBusy(true);setError("");try{await discoveryAction(data);}catch(e){setError(e instanceof Error?e.message:t("İşlem tamamlanamadı."));}finally{setBusy(false);}};
+ return <div className="discovery-panel"><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("SİZE ÖZEL")}</span><h2>{t("Aramalarım ve bildirimler")}</h2></div><Bell size={24}/></div><p className="discovery-intro">{t("Aramalarınız hesabınıza kaydedilir. Yeni ilanları ve favorilerinizdeki fiyat düşüşlerini buradan takip edin.")}</p>{error&&<p role="alert" className="discovery-error">{error}</p>}{!feed&&!error&&<p>{t("Yükleniyor...")}</p>}{feed&&<>
+ <div className="discovery-section-head"><h3>{t("Bildirimler")} <span>{feed.unread}</span></h3><button disabled={busy||!feed.unread} onClick={()=>action({action:"read",checkedAt:feed.checkedAt})}>{t("Tümünü okundu işaretle")}</button></div>
+ <label className="discovery-preference"><input type="checkbox" checked={feed.priceEnabled} disabled={busy} onChange={e=>action({action:"price_preference",enabled:e.target.checked})}/><span>{t("Favorilerim için fiyat düşüşü bildirimleri")}</span></label>
+ <div className="discovery-alert-list">{feed.alerts.length?feed.alerts.map(item=><Link href={item.href} className="discovery-alert" key={item.id}>{item.kind==="price"?<TrendingDown size={21}/>:<Bookmark size={21}/>}<div><small>{t(item.kind==="price"?"Fiyat düştü":"Aramanıza uygun yeni ilanlar")}</small><strong>{item.name}</strong>{item.kind==="price"?<p><del>{formatPrice(item.oldPrice!,item.currency,locale)}</del> → <b>{formatPrice(item.newPrice!,item.currency,locale)}</b></p>:<p>{item.count} {t("yeni ilan")}</p>}<time>{new Date(item.createdAt).toLocaleString(locale)}</time></div><span>→</span></Link>):<div className="discovery-empty"><Bell size={26}/><p>{t("Şu anda yeni bildiriminiz yok.")}</p></div>}</div>
+ <div className="discovery-section-head"><h3>{t("Kayıtlı aramalarım")} <span>{feed.searches.length}/10</span></h3><Link href="/ilanlar">{t("Yeni arama oluştur")} →</Link></div>
+ <div className="discovery-saved-list">{feed.searches.length?feed.searches.map(item=><article key={item.id}><Link href={`/ilanlar?${item.query}`}><Bookmark size={18}/><strong>{item.name}</strong></Link><label><input type="checkbox" checked={item.enabled} disabled={busy} onChange={e=>action({action:"toggle",id:item.id,enabled:e.target.checked})}/>{t("Bildirim al")}</label><button disabled={busy} onClick={()=>action({action:"delete",id:item.id})} aria-label={`${item.name} · ${t("Kaydı sil")}`}><Trash2 size={17}/></button></article>):<p>{t("İlan aramasında ‘Aramayı kaydet’ düğmesini kullanın.")}</p>}</div>
+ <p className="discovery-footnote">{t("Bildirimler site içinde gösterilir; hesabınıza giriş yaptığınızda güncellenir. Örnek ilanlar bildirim üretmez.")}</p>
+ </>}</div>;
+}

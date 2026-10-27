@@ -1,0 +1,12 @@
+.git
+**/node_modules
+.dev.vars*
+.env*
+!.env.example
+.wrangler
+.sites-runtime
+dist
+work
+outputs
+**/__pycache__
+**/*.pyc

@@ -1,0 +1,14 @@
+/* Homepage currency strip stays above the page while scrolling. */
+.home-fixed-exchange{position:fixed;inset:0 0 auto;z-index:120;height:44px;background:#fff;border-bottom:1px solid #e3e9e7;box-shadow:0 2px 8px #17252b0a;color:#20282d}
+.home-fixed-exchange>.container{height:100%;display:flex;align-items:center;justify-content:center}
+.home-fixed-exchange .home-fx-card{display:flex;align-items:center;justify-content:center;min-height:36px;max-width:100%;padding:6px 0;background:#fff;color:#20282d;border:0;box-shadow:none}
+.home-fixed-exchange .home-fx-rates{gap:0}
+.home-fixed-exchange .home-fx-rates span{color:#596660;font-size:11px}
+.home-fixed-exchange .home-fx-rates strong{color:#20282d;font-size:14px}
+.home-fixed-exchange .home-fx-rates>div+div{border-left-color:#dfe6e3;margin-left:18px;padding-left:18px}
+.home-fixed-exchange .home-fx-status{color:#596660;font-size:12px}
+.home-topline{top:44px}
+.site-header.home-header{top:79px}
+.market-home .market-hero-inner{padding-top:219px}
+@media(max-width:1350px){.market-home .market-hero-inner{padding-top:281px}}
+@media(max-width:410px){.market-home .market-hero-inner{padding-top:291px}.home-fixed-exchange .home-fx-rates strong{font-size:12px}.home-fixed-exchange .home-fx-rates>div+div{margin-left:12px;padding-left:12px}}

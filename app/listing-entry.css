@@ -1,0 +1,20 @@
+/* Keep listing creation available at every breakpoint, including signed-in headers. */
+.compact-post-row,.main-nav .nav-post-listing{display:none}
+@media(max-width:1350px){
+  .site-header,.site-header.home-header{height:auto}
+  .site-header .header-inner{height:86px}
+  .site-header.home-header .header-inner{height:82px}
+  .site-header .compact-post-row{display:block;padding-bottom:8px}
+  .compact-post-listing{display:flex;align-items:center;justify-content:center;gap:12px;min-height:44px;padding:10px 16px;border-radius:6px;background:#35ead8;color:#17252b;font-size:14px;font-weight:800;text-align:center;overflow-wrap:anywhere}
+  .compact-post-listing:hover{background:#67f1e3}
+  .compact-post-listing:focus-visible{outline:3px solid #147f75;outline-offset:3px}
+  .site-header .header-post{display:none}
+  .site-header .main-nav{top:100%}
+  .main-nav.open .nav-post-listing{display:flex;align-items:center;gap:12px;font-weight:800}
+  .market-home .market-hero-inner{padding-top:237px}
+}
+@media(max-width:700px){
+  .site-header .header-inner{height:64px}
+  .site-header.home-header .header-inner{height:69px}
+}
+@media(max-width:410px){.market-home .market-hero-inner{padding-top:247px}}

@@ -1,0 +1,26 @@
+[
+  {
+    "id":"d2000000-0000-4000-8000-000000000001",
+    "name":"Akdeniz Atlas Yapı","initials":"AA","city":"Antalya","category":"developer","sample":true,
+    "description":"Akdeniz yaşamından ilham alan örnek inşaat firması profili.",
+    "coverUrl":"/developers/antalya.webp","listingCount":0,"saleCount":0,"rentCount":0,"listingIds":[],
+    "project":{"name":"Bahçe Yaşam Villaları","description":"Doğaya açılan, ferah bir yaşam.","features":["Villa konsepti","Bahçe ve açık alanlar"],"image":"/developers/antalya.webp"},
+    "photoCredit":{"label":"Ahmet ÇÖTÜR / Pexels","url":"https://www.pexels.com/photo/modern-luxury-villa-with-infinity-pool-and-scenic-views-32226001/"}
+  },
+  {
+    "id":"d2000000-0000-4000-8000-000000000002",
+    "name":"Ege Form Yapı","initials":"EF","city":"İzmir","category":"developer","sample":true,
+    "description":"Şehir yaşamına odaklanan örnek inşaat firması profili.",
+    "coverUrl":"/developers/izmir.webp","listingCount":0,"saleCount":0,"rentCount":0,"listingIds":[],
+    "project":{"name":"Ege Teras Evleri","description":"Şehrin ritmine uyum sağlayan modern çizgiler.","features":["Konut konsepti","Geniş teraslar"],"image":"/developers/izmir.webp"},
+    "photoCredit":{"label":"Doğan Alpaslan Demir / Pexels","url":"https://www.pexels.com/photo/a-close-up-of-a-modern-apartment-building-27459248/"}
+  },
+  {
+    "id":"d2000000-0000-4000-8000-000000000003",
+    "name":"Marmara Kent Proje","initials":"MK","city":"İstanbul","category":"developer","sample":true,
+    "description":"Yeni yaşam alanlarını tanıtan örnek proje geliştirme firması.",
+    "coverUrl":"/developers/istanbul.webp","listingCount":0,"saleCount":0,"rentCount":0,"listingIds":[],
+    "project":{"name":"Kent Panorama","description":"Kentin içinde, size ait bir yaşam alanı.","features":["Rezidans konsepti","Kent yaşamı"],"image":"/developers/istanbul.webp"},
+    "photoCredit":{"label":"Crab Lens / Pexels","url":"https://www.pexels.com/photo/a-view-of-an-apartment-building-11948631/"}
+  }
+]

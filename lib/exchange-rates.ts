@@ -1,0 +1,29 @@
+export const ECB_DAILY_XML = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
+
+export type ExchangeRates = {
+  date: string;
+  eurTry: number;
+  usdTry: number;
+  eurUsd: number;
+  source: 'ECB';
+};
+
+export function parseEcbDaily(xml: string, at = Date.now()): ExchangeRates {
+  if (xml.length > 100_000) throw new Error('Unexpected exchange-rate response size');
+  const date = /<Cube\s+time=['"](\d{4}-\d{2}-\d{2})['"]/.exec(xml)?.[1];
+  const timestamp = date ? Date.parse(`${date}T00:00:00Z`) : NaN;
+  if (!Number.isFinite(timestamp) || timestamp > at + 86_400_000 || at - timestamp > 7 * 86_400_000) {
+    throw new Error('Exchange-rate date unavailable');
+  }
+  const values = new Map<string, number>();
+  for (const match of xml.matchAll(/<Cube\b([^>]*\bcurrency=['"][A-Z]{3}['"][^>]*)\/?\s*>/g)) {
+    const currency = /\bcurrency=['"]([A-Z]{3})['"]/.exec(match[1])?.[1];
+    const value = /\brate=['"]([0-9]+(?:\.[0-9]+)?)['"]/.exec(match[1])?.[1];
+    if (currency && value) values.set(currency, Number(value));
+  }
+  const eurTry = values.get('TRY'), eurUsd = values.get('USD');
+  if (!eurTry || !eurUsd || !Number.isFinite(eurTry) || !Number.isFinite(eurUsd) || eurTry <= 0 || eurUsd <= 0) {
+    throw new Error('Required exchange rates unavailable');
+  }
+  return {date: date!, eurTry, usdTry: eurTry / eurUsd, eurUsd, source: 'ECB'};
+}

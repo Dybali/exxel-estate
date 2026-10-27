@@ -1,0 +1,36 @@
+import {companyProfileDB} from "@/lib/company-profile-server";
+import { db, ok } from "@/lib/server";
+import { PUBLIC_DEMO_COMPANIES as DEMO_COMPANIES } from "@/lib/demo-companies";
+
+type CompanyRow = { id: string; name: string; category: string; listing_count: number; sale_count: number; rent_count: number;city:string|null;description:string|null };
+
+export async function GET(request: Request) {
+  await companyProfileDB();
+  const params = new URL(request.url).searchParams;
+  const category = params.get("category");
+  const page = Math.min(1000, Math.max(1, Number(params.get("page")) || 1));
+  const where = category === "agency" || category === "developer" ? " AND a.category=?" : "";
+  const values = where ? [category!] : [];
+  const demo = DEMO_COMPANIES.filter((company) => !category || category === company.category);
+  const pageStart = (page - 1) * 24;
+  const demoPage = demo.slice(pageStart, pageStart + 24);
+  const realOffset = Math.max(0, pageStart - demo.length);
+  const realLimit = 24 - demoPage.length;
+  const query = `SELECT a.id, a.name, a.category, p.city, p.description,
+      COUNT(l.id) AS listing_count,
+      SUM(CASE WHEN l.purpose='satilik' THEN 1 ELSE 0 END) AS sale_count,
+      SUM(CASE WHEN l.purpose='kiralik' THEN 1 ELSE 0 END) AS rent_count
+    FROM agencies a JOIN users u ON u.id=a.owner_id
+    LEFT JOIN company_profiles p ON p.user_id=CAST(u.id AS TEXT)
+    LEFT JOIN listings l ON l.owner_id=a.owner_id AND l.status='published'
+    WHERE a.status='approved' AND u.role='agent' AND u.agent_status='approved'${where}
+    GROUP BY a.id, a.name, a.category, p.city, p.description
+    ORDER BY listing_count DESC, a.name ASC LIMIT ? OFFSET ?`;
+  const [rows, total] = await Promise.all([
+    db().prepare(query).bind(...values, realLimit, realOffset).all<CompanyRow>(),
+    db().prepare(`SELECT COUNT(*) AS count FROM agencies a JOIN users u ON u.id=a.owner_id WHERE a.status='approved' AND u.role='agent' AND u.agent_status='approved'${where}`).bind(...values).first<{ count: number }>(),
+  ]);
+  return ok({ companies: [...demoPage, ...(rows.results || []).map((row:CompanyRow) => ({ id: row.id, name: row.name, category: row.category, city:row.city||undefined,description:row.description||undefined,listingCount: Number(row.listing_count), saleCount: Number(row.sale_count), rentCount: Number(row.rent_count) }))], total: demo.length + Number(total?.count || 0), page, pageSize: 24 }, {
+    headers: { "Cache-Control": "public, max-age=30, s-maxage=120" },
+  });
+}

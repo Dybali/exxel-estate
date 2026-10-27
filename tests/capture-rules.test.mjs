@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
+const code=ts.transpile(readFileSync(new URL('../lib/capture-rules.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022});
+const {captureInput,jpegSize}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+test('capture rejects excessive jobs, unknown field of view and missing room labels',()=>{for(const x of [{name:'',count:18},{name:'Salon',count:2},{name:'Salon',count:41},{name:'Salon',count:12.5},{name:'Salon',count:18,hfov:0},{name:'Salon',count:18,hfov:Infinity}])assert.throws(()=>captureInput(x));assert.deepEqual(captureInput({name:' Salon ',count:18,hfov:65}),{name:'Salon',count:18,hfov:65});});
+const jpeg=(w,h)=>Uint8Array.from([255,216,255,192,0,17,8,h>>8,h&255,w>>8,w&255,3,1,17,0,2,17,0,3,17,0,255,217]);
+test('capture checks JPEG signature, truncation and decoded pixel bounds',()=>{assert.deepEqual(jpegSize(jpeg(1600,1200)),{width:1600,height:1200});for(const x of [jpeg(10000,10000),jpeg(100,100),jpeg(1600,1200).slice(0,10),new Uint8Array(30)])assert.throws(()=>jpegSize(x));});

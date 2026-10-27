@@ -1,0 +1,388 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admin_setup {
+  id           String @id
+  user_id      String @db.Uuid
+  completed_at String
+  users        users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model agencies {
+  id         String     @id @db.Uuid
+  owner_id   String     @unique(map: "agencies_owner_unique") @db.Uuid
+  name       String
+  category   String     @default("agency")
+  phone      String?
+  email      String?
+  status     String     @default("pending")
+  created_at String
+  users      users      @relation(fields: [owner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  listings   listings[]
+
+  @@index([owner_id], map: "agencies_owner_idx")
+}
+
+model auth_limits {
+  key               String @id
+  failures          Int    @default(0)
+  window_started_at String
+}
+
+model country_settings {
+  country_code     String  @id
+  locale           String
+  legal_text       String  @default("")
+  payment_provider String?
+  enabled          Int     @default(0)
+}
+
+model favorites {
+  user_id    String @db.Uuid
+  listing_id String
+  created_at String
+  users      users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, listing_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model listings {
+ presentation String @default("{}")
+ appointments appointments[]
+  price_history price_history[]
+  published_at String?
+  @@index([status,published_at],map:"listings_published_at_idx")
+  id                                String            @id @db.Uuid
+  owner_id                          String            @db.Uuid
+  agency_id                         String?           @db.Uuid
+  title                             String
+  description                       String
+  purpose                           String
+  property_type                     String
+  price                             BigInt
+  currency                          String            @default("TRY")
+  city                              String
+  district                          String
+  neighborhood                      String?
+  neighborhood_id                   Int?
+  postal_code                       String?
+  latitude                          Float?
+  longitude                         Float?
+  gross_area                        Int
+  net_area                          Int?
+  rooms                             String?
+  bedrooms                          Int?
+  bathrooms                         Int?
+  building_age                      Int?
+  floor                             Int?
+  total_floors                      Int?
+  heating                           String?
+  furnished                         Int               @default(0)
+  amenities                         String            @default("[]")
+  images                            String            @default("[]")
+  translations                      String            @default("{}")
+  status                            String            @default("pending")
+  review_note                       String?
+  reviewed_by                       String?           @db.Uuid
+  reviewed_at                       String?
+  featured                          Int               @default(0)
+  created_at                        String
+  updated_at                        String
+  agencies                          agencies?         @relation(fields: [agency_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_listings_owner_idTousers    users             @relation("listings_owner_idTousers", fields: [owner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_listings_reviewed_byTousers users?            @relation("listings_reviewed_byTousers", fields: [reviewed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  property_images                   property_images[]
+
+  @@index([status, city, district], map: "listings_location_idx")
+  @@index([owner_id], map: "listings_owner_idx")
+  @@index([status, created_at(sort: Desc)], map: "listings_recent_idx")
+  @@index([status, purpose, property_type, city, price], map: "listings_search_idx")
+}
+
+model messages {
+  message_receipts message_receipts[]
+  id                                 String  @id @db.Uuid
+  listing_id                         String
+  sender_id                          String  @db.Uuid
+  recipient_id                       String? @db.Uuid
+  body                               String
+  created_at                         String
+  users_messages_recipient_idTousers users?  @relation("messages_recipient_idTousers", fields: [recipient_id], references: [id], onUpdate: NoAction)
+  users_messages_sender_idTousers    users   @relation("messages_sender_idTousers", fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([recipient_id, created_at(sort: Desc)], map: "messages_recipient_idx")
+  @@index([sender_id, created_at(sort: Desc)], map: "messages_sender_idx")
+  @@index([listing_id, sender_id, recipient_id, created_at(sort: Desc)], map: "messages_thread_idx")
+}
+
+model oauth_accounts {
+  provider         String
+  provider_user_id String
+  user_id          String @db.Uuid
+  created_at       String
+  users            users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([provider, provider_user_id])
+  @@unique([user_id, provider])
+}
+
+model oauth_flows {
+  state_hash    String  @id
+  code_verifier String
+  role          String
+  next_path     String
+  link_user_id  String? @db.Uuid
+  expires_at    String
+
+  @@index([expires_at], map: "oauth_flows_expiry_idx")
+}
+
+model packages {
+  id            String      @id
+  name          String
+  listing_limit Int
+  duration_days Int
+  featured_days Int         @default(0)
+  price         BigInt
+  currency      String      @default("TRY")
+  active        Int         @default(1)
+  purchases     purchases[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model property_images {
+  id               String   @id @db.Uuid
+  property_id      String   @db.Uuid
+  storage_provider String   @default("r2")
+  bucket           String
+  object_key       String   @unique
+  content_type     String
+  byte_size        BigInt
+  checksum_sha256  String?
+  sort_order       Int
+  created_at       String
+  listings         listings @relation(fields: [property_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([property_id, sort_order], map: "property_images_property_idx")
+}
+
+model purchases {
+  id           String   @id @db.Uuid
+  user_id      String   @db.Uuid
+  package_id   String
+  status       String   @default("pending")
+  provider_ref String?
+  created_at   String
+  packages     packages @relation(fields: [package_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model schema_migrations {
+  version    String   @id
+  applied_at DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model sessions {
+  token_hash String @id
+  user_id    String @db.Uuid
+  expires_at String
+  users      users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "sessions_user_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+ appointments_as_buyer appointments[] @relation("appointment_buyer")
+ appointments_as_seller appointments[] @relation("appointment_seller")
+  listing_draft listing_drafts?
+  seller_profile seller_profiles?
+  saved_searches saved_searches[]
+  discovery_preferences discovery_preferences?
+  message_receipts message_receipts[]
+  id                                    String           @id @db.Uuid
+  email                                 String           @unique
+  password_hash                         String
+  email_verified                        Int              @default(0)
+  name                                  String
+  phone                                 String?
+  whatsapp_enabled                      Int              @default(0)
+  role                                  String           @default("buyer")
+  agent_status                          String           @default("none")
+  company                               String?
+  avatar_url                            String?
+  created_at                            String
+  admin_setup                           admin_setup[]
+  agencies                              agencies?
+  favorites                             favorites[]
+  listings_listings_owner_idTousers     listings[]       @relation("listings_owner_idTousers")
+  listings_listings_reviewed_byTousers  listings[]       @relation("listings_reviewed_byTousers")
+  messages_messages_recipient_idTousers messages[]       @relation("messages_recipient_idTousers")
+  messages_messages_sender_idTousers    messages[]       @relation("messages_sender_idTousers")
+  oauth_accounts                        oauth_accounts[]
+  purchases                             purchases[]
+  sessions                              sessions[]
+}
+
+model message_receipts {
+  message_id String @db.Uuid
+  user_id String @db.Uuid
+  read_at String
+  message messages @relation(fields: [message_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@id([message_id, user_id])
+}
+
+model saved_searches {
+ user users @relation(fields:[user_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ id String @id @db.Uuid
+ user_id String @db.Uuid
+ name String
+ query String
+ enabled Int @default(1)
+ created_at String
+ seen_at String
+ @@unique([user_id,query])
+ @@index([user_id],map:"saved_searches_user_idx")
+}
+model discovery_preferences {
+ user users @relation(fields:[user_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ user_id String @id @db.Uuid
+ price_seen_at String
+ price_enabled Int @default(1)
+}
+model price_history {
+ listing listings @relation(fields:[listing_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ id String @id @db.Uuid
+ listing_id String @db.Uuid
+ old_price BigInt
+ new_price BigInt
+ currency String
+ purpose String
+ changed_at String
+ @@index([listing_id,changed_at],map:"price_history_listing_idx")
+}
+
+model seller_profiles {
+ user_id String @id @db.Uuid
+ bio String @default("")
+ updated_at String
+ users users @relation(fields:[user_id],references:[id],onDelete:Cascade)
+}
+
+model listing_drafts {
+  user_id String @id @db.Uuid
+  payload String
+  version Int @default(1)
+  updated_at String
+  users users @relation(fields:[user_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+}
+
+model admin_audit {
+ id String @id @db.Uuid
+ actor_id String @db.Uuid
+ actor_name String
+ action String
+ target_id String
+ summary String
+ created_at String
+ @@index([created_at(sort:Desc)],map:"admin_audit_time_idx")
+}
+
+model appointments {
+ id String @id @db.Uuid
+ listing_id String @db.Uuid
+ buyer_id String @db.Uuid
+ seller_id String @db.Uuid
+ slot_at String
+ message String
+ status String @default("requested")
+ stage String @default("new")
+ private_note String @default("")
+ version Int @default(1)
+ created_at String
+ updated_at String
+ listing listings @relation(fields:[listing_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ buyer users @relation("appointment_buyer",fields:[buyer_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ seller users @relation("appointment_seller",fields:[seller_id],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ @@index([buyer_id,created_at(sort:Desc)],map:"appointments_buyer_idx")
+ @@index([seller_id,created_at(sort:Desc)],map:"appointments_seller_idx")
+}
+
+model listing_reports {
+ id String @id
+ listing_id String
+ reporter_id String
+ title_snapshot String
+ reason String
+ details String
+ state String @default("open")
+ admin_note String @default("")
+ resolution String @default("")
+ reviewer_id String?
+ created_at String
+ updated_at String
+ version Int @default(1)
+ last_action String @default("")
+ @@unique([listing_id,reporter_id])
+ @@index([state,created_at],map:"listing_reports_queue")
+ @@index([reporter_id,created_at],map:"listing_reports_owner")
+}
+model listing_report_events {
+ id String @id
+ report_id String
+ actor_id String
+ actor_name String
+ action String
+ note String
+ created_at String
+ @@index([report_id,created_at],map:"listing_report_events_report")
+}
+model listing_report_limits {
+ key String @id
+ count Int
+ window_started_at String
+}
+model listing_moderation_holds {
+ listing_id String @id
+ report_id String
+ active Int
+ created_at String
+ released_at String?
+}
+
+model office_verifications {
+ user_id String @id
+ document_id String @unique
+ document_number String
+ company_snapshot String
+ object_key String
+ content_type String
+ byte_size Int
+ state String @default("pending")
+ note String @default("")
+ version Int @default(1)
+ created_at String
+ updated_at String
+ reviewer_id String?
+ reviewed_at String?
+ last_action String @default("")
+ @@index([state,updated_at],map:"office_verifications_state")
+}
+
+model company_profiles {
+  user_id String @id
+  city String
+  website String @default("")
+  address String @default("")
+  description String @default("")
+  version Int @default(1)
+  updated_at String
+}

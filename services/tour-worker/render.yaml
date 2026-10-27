@@ -1,0 +1,14 @@
+# Apply this Blueprint independently of the existing Nest API service.
+services:
+  - type: worker
+    name: estatemarket24-tour-worker
+    runtime: docker
+    region: frankfurt
+    plan: standard
+    dockerfilePath: ./services/tour-worker/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: CAPTURE_SITE_URL
+        value: https://exxel-estate.blue-grape-8839.chatgpt.site
+      - key: CAPTURE_WORKER_TOKEN
+        sync: false

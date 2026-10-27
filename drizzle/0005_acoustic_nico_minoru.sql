@@ -1,0 +1,1 @@
+ALTER TABLE `listings` ADD `translations` text DEFAULT '{}' NOT NULL;

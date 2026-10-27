@@ -1,0 +1,3 @@
+const key="salesorrent:compare";
+export function compareIds():string[]{try{const value=JSON.parse(localStorage.getItem(key)||"[]");return Array.isArray(value)?[...new Set(value.filter((id):id is string=>typeof id==="string"&&/^(?:ex-\d{4}|[a-f0-9-]{36})$/i.test(id)))].slice(0,4):[];}catch{return [];}}
+export function toggleCompare(id:string){const ids=compareIds();if(!ids.includes(id)&&ids.length>=4)throw Error("En fazla 4 ilan karşılaştırabilirsiniz.");const next=ids.includes(id)?ids.filter(value=>value!==id):[...ids,id];localStorage.setItem(key,JSON.stringify(next));window.dispatchEvent(new Event("salesorrent:compare-changed"));}

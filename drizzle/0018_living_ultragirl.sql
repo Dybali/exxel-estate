@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `appointments_active_unique` ON `appointments` (`buyer_id`,`listing_id`) WHERE "appointments"."status" IN ('requested','confirmed');

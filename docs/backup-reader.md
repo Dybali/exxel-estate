@@ -1,0 +1,9 @@
+# Read-only backup storage gateway
+
+`GET /api/backup-storage` supports authenticated inventory, metadata and conditional streaming reads for the existing external R2 listing bucket and the internal Sites BUCKET (office documents, capture inputs/results and legacy objects). It never exports database credentials and offers no write/delete operation.
+
+The independent 64-character `BACKUP_READ_TOKEN` secret authorizes this reader. It is not an admin cookie, capture-worker token or user credential. The owner backup runner stores it in Windows DPAPI-encrypted configuration; never publish it, log it, put it in URLs or grant it to visitors. Rotating it requires updating the protected backup configuration and deploying the corresponding runtime secret. Missing/incorrect tokens return 401, unsafe source/mode/key values return 400, incomplete upstream inventories fail rather than silently omitting objects. All responses are private/no-store. Downloads are binary attachments.
+
+Source identifiers are `listing-media` and `private-media`; modes are `list` (500 items per page, cursor), `head` (JSON metadata), and `get` (binary, If-Match supported). Object names and HTTP/custom metadata are retained. A token has read access to all files in these two project buckets, including private documents; treat it as a sensitive backup credential.
+
+The host-side PostgreSQL 18 backup/restore runner is in the owner's task workspace `operations/backup`, outside the website runtime. Backup scheduling and external storage are not supplied by this endpoint. Deployment of the reader alone does not mean a database backup exists or daily jobs are running. The owner must configure the direct Neon connection, verify a successful coherent backup/restore and attach independent remote storage before enabling production schedules.
