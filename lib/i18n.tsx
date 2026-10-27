@@ -19,6 +19,9 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "Şirket hakkında": {de:"Über das Unternehmen",fr:"À propos de l’entreprise",en:"About the company",ar:"عن الشركة",ru:"О компании"},
+  "Bu şirket henüz tanıtım yazısı eklemedi.": {de:"Dieses Unternehmen hat noch keine Beschreibung hinzugefügt.",fr:"Cette entreprise n’a pas encore ajouté de présentation.",en:"This company has not added a description yet.",ar:"لم تضف هذه الشركة نبذة تعريفية بعد.",ru:"Компания пока не добавила описание."},
+  "Şirket profilini görüntüle": {de:"Unternehmensprofil ansehen",fr:"Voir le profil de l’entreprise",en:"View company profile",ar:"عرض ملف الشركة",ru:"Посмотреть профиль компании"},
   "Kayıt Ol": {de:"Registrieren",fr:"S’inscrire",en:"Sign up",ar:"إنشاء حساب",ru:"Регистрация"},
   "Bireysel ilanınız doğrudan yayımlanır.": {de:"Ihre private Anzeige wird direkt veröffentlicht.",fr:"Votre annonce de particulier est publiée directement.",en:"Your private listing is published immediately.",ar:"يُنشر إعلانك الفردي مباشرة.",ru:"Ваше частное объявление публикуется сразу."},
   "İlan bildirimlerim": {de:"Meine Anzeigenmeldungen",fr:"Mes signalements d’annonces",en:"My listing reports",ar:"بلاغاتي عن الإعلانات",ru:"Мои жалобы на объявления"},

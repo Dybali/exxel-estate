@@ -28,6 +28,7 @@ import "./mobile-ux.css";
 import "./brand-refresh.css";
 import "./listing-entry.css";
 import "./fixed-exchange.css";
+import "./company-directory-list.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
