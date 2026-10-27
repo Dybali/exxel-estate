@@ -18,3 +18,11 @@
   .site-header.home-header .header-inner{height:69px}
 }
 @media(max-width:410px){.market-home .market-hero-inner{padding-top:247px}}
+/* Separate sign-in and registration links on the home page. */
+.home-account-guest{display:flex;align-items:center;gap:7px;color:#fff;flex-shrink:0}
+.home-account-guest>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.15}
+.home-account-guest a{color:#fff;font-size:12px;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px #0009}
+.home-account-guest a:last-child{color:#80f2e3;text-decoration:underline;text-underline-offset:2px}
+.home-account-guest a:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media(max-width:700px){.home-account-guest{gap:4px}.home-account-guest svg{width:16px}.home-account-guest a{font-size:11px}.site-header.home-header .header-inner{gap:5px}.home-header .header-actions{gap:5px}}
+@media(max-width:380px){.home-header .estatemarket-wordmark{font-size:21px}.home-header .brand-tagline{font-size:8px;max-width:165px}.home-account-guest svg{display:none}}

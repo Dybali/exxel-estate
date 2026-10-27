@@ -57,7 +57,7 @@ function GoogleBlock({
 export function AuthForm({corporate=false}:{corporate?:boolean}) {
   const { t } = useLocale();
   const params = useSearchParams();
-  const [mode, setMode] = useState<Mode>(corporate || params.get("role") ? "register" : "login");
+  const [mode, setMode] = useState<Mode>(corporate || params.get("role") || params.get("mode") === "register" ? "register" : "login");
   const [role, setRole] = useState<Role>(corporate || params.get("role") === "developer" || params.get("companyCategory")==="developer" ? "developer" : params.get("role") === "agent" ? "agent" : "buyer");
   const [showPassword, setShowPassword] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
