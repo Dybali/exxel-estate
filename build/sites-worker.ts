@@ -7,6 +7,7 @@ import { LOCALE_HEADER, PATH_HEADER } from "../lib/request-headers";
 import { db } from "../lib/server";
 import { siteUrl } from "../lib/site-url";
 import { sendDailyDigests, type NotificationDatabase } from "../lib/email-notifications";
+import { expirePromotions, type OrderDatabase } from "../lib/orders";
 import type { EmailSettings } from "../lib/email";
 
 // Pass ?lang and the path to server components so pages render in the requested language.
@@ -21,6 +22,7 @@ function withRequestContext(request: Request) {
 export default {
   // Daily email digest (cron in wrangler.jsonc). Does nothing until Resend is configured.
   async scheduled(_controller: ScheduledController, env: Cloudflare.Env, ctx: ExecutionContext) {
+    ctx.waitUntil(expirePromotions(db() as unknown as OrderDatabase).catch((cause) => console.error("promotion_expiry_failed", String(cause))));
     ctx.waitUntil(sendDailyDigests(db() as unknown as NotificationDatabase, { ...(env as unknown as EmailSettings), SITE_URL: siteUrl() }).catch((cause) => console.error("daily_digest_failed", String(cause))));
   },
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {

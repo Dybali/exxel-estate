@@ -1,8 +1,8 @@
 'use client';
 import {usePathname,useSearchParams} from 'next/navigation';
 import {useState} from 'react';import Link from './SafeLink';
-import {LayoutDashboard,Users,Building2,MessageSquare,Flag,Activity,Settings,History,LogOut,ArrowUpRight,Menu,X,ShieldCheck} from 'lucide-react';
-const items=[['overview','Genel bakış',LayoutDashboard],['applications','Başvurular',Users],['listings','İlanlar',Building2],['messages','Mesajlar',MessageSquare],['reports','Bildirimler',Flag],['health','Sistem durumu',Activity],['settings','Ayarlar',Settings],['audit','İşlem geçmişi',History]] as const;
+import {LayoutDashboard,Users,Building2,MessageSquare,Flag,Activity,Settings,History,LogOut,ArrowUpRight,Menu,X,ShieldCheck,Receipt} from 'lucide-react';
+const items=[['overview','Genel bakış',LayoutDashboard],['applications','Başvurular',Users],['listings','İlanlar',Building2],['messages','Mesajlar',MessageSquare],['reports','Bildirimler',Flag],['orders','Siparişler',Receipt],['health','Sistem durumu',Activity],['settings','Ayarlar',Settings],['audit','İşlem geçmişi',History]] as const;
 export function AdminShell({children}:{children:React.ReactNode}){
  const path=usePathname(),params=useSearchParams(),[open,setOpen]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  if(path==='/yonetim/giris'||path==='/yonetim/kurulum')return <>{children}</>;
