@@ -13,7 +13,9 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "test": "node --test tests/*.test.mjs",
-    "verify": "node scripts/verify-release.mjs"
+    "verify": "node scripts/verify-release.mjs",
+    "deploy": "node scripts/run-framework.mjs build && node node_modules/wrangler/bin/wrangler.js deploy",
+    "db:migrate:remote": "node node_modules/wrangler/bin/wrangler.js d1 migrations apply exxel-estate-db --remote"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

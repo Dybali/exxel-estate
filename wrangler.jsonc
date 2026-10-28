@@ -1,0 +1,31 @@
+// Exxel Estate Worker on the owner's own Cloudflare account.
+// Secrets (DATABASE_URL, R2_*, GEMINI_API_KEY, ...) are set with
+// `npx wrangler secret put NAME`, never in this file. See docs/cloudflare-deploy.md.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "exxel-estate",
+  "main": "./build/sites-worker.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // Operations counters, translation cache and fallback storage. Listings,
+  // users and messages stay in Neon (DATABASE_URL).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "exxel-estate-db",
+      // Replace with the id printed by `npx wrangler d1 create exxel-estate-db`.
+      "database_id": "00000000-0000-4000-8000-000000000000",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  // Private files: office documents, tour captures and legacy images.
+  // Public listing photos stay in the EU bucket reached through R2_* secrets.
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "exxel-estate-private",
+      "jurisdiction": "eu"
+    }
+  ]
+}

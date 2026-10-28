@@ -6,7 +6,8 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 
 - Proje ChatGPT Sites üzerinde geliştirildi; commit mesajları otomatik ("Update Site source").
 - Güncel çalışma `estatemarket24-guncel-2026-10-28` branch'inde. `main` ile **ortak geçmişi yok** (bağımsız iki kopya), birleştirme yapma.
-- Canlı site hâlâ ChatGPT Sites'ta (`.openai/hosting.json`). `apps/web` (Vercel) + `apps/api` (NestJS/Render) planlanmış ama yarım kalmış bir geçiş.
+- Hedef barındırma: sahibinin kendi Cloudflare hesabında Worker (`wrangler.jsonc`, adımlar [docs/cloudflare-deploy.md](docs/cloudflare-deploy.md)). Sites'a özel kod (ChatGPT girişi, connector'lar, `.openai/hosting.json`) kaldırıldı. Eski Sites yayını geçiş bitene kadar açık.
+- `apps/web` (Vercel) + `apps/api` (NestJS/Render) eski, yarım kalmış bir geçiş planıdır; kullanılmıyor.
 
 ## Yapı
 
@@ -23,6 +24,7 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Geliştirme sunucusu: `npm run dev` (port 5173)
 - Tam doğrulama: `npm run verify`: testler (`tests/*.test.mjs`, `node --test`), `tsc -p tsconfig.site.json`, production build. Değişiklikten sonra mutlaka çalıştır.
 - Sadece testler: `npm test`
+- Yayın: `npm run deploy` (build + `wrangler deploy`); D1 migrasyonları: `npm run db:migrate:remote`
 - Windows'ta yeniden build almadan önce açık Worker süreçlerini durdur (`dist/` kilitlenebilir).
 
 ## Kurallar
