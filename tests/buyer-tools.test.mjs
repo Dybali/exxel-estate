@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import ts from 'typescript';
+const m={exports:{}};new Function('require','module','exports',ts.transpile(fs.readFileSync(new URL('../lib/buyer-tools.ts',import.meta.url),'utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}))(()=>({}),m,m.exports);
+const {monthlyPayment,loanSummary,median,distanceMeters,nearbyCategory,summarizeNearby}=m.exports;
+test('annuity payment matches the standard formula',()=>{assert.ok(Math.abs(monthlyPayment(1000000,2.5,120)-26361.79)<0.5);assert.equal(monthlyPayment(1200,0,12),100);assert.equal(monthlyPayment(0,2,12),0);});
+test('loan summary clamps the down payment and totals interest',()=>{const s=loanSummary(1000000,30,0,10);assert.equal(s.down,300000);assert.equal(s.principal,700000);assert.equal(s.monthly,70000);assert.equal(s.interest,0);assert.equal(loanSummary(100,150,1,12).principal,0);});
+test('median handles odd, even and empty lists',()=>{assert.equal(median([3,1,2]),2);assert.equal(median([4,1,2,3]),2.5);assert.equal(median([]),null);});
+test('distance is about 111 km per degree of latitude',()=>{assert.ok(Math.abs(distanceMeters(41,29,42,29)-111195)<50);});
+test('OpenStreetMap tags map to categories and the nearest named place is kept',()=>{assert.equal(nearbyCategory({amenity:'school'}),'education');assert.equal(nearbyCategory({highway:'bus_stop'}),'transport');assert.equal(nearbyCategory({shop:'bakery'}),null);
+ const s=summarizeNearby(41,29,[{lat:41.001,lon:29,tags:{amenity:'school',name:'Far'}},{lat:41.0005,lon:29,tags:{amenity:'school',name:'Near'}},{center:{lat:41.002,lon:29},tags:{shop:'supermarket'}}]);
+ assert.equal(s.education.count,2);assert.equal(s.education.nearest.name,'Near');assert.equal(s.shopping.count,1);assert.equal(s.shopping.nearest,null);assert.equal(s.beach.count,0);});
