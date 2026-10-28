@@ -19,6 +19,8 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "Onaylı şirket profili": {de:"Bestätigtes Unternehmensprofil",fr:"Profil d’entreprise approuvé",en:"Approved company profile",ar:"ملف شركة معتمد",ru:"Одобренный профиль компании"},
+  "Şirket portföyü": {de:"Unternehmensportfolio",fr:"Portefeuille de l’entreprise",en:"Company portfolio",ar:"محفظة الشركة",ru:"Портфолио компании"},
   "Tüm ilanlarınızın toplamı": {de:"Gesamtübersicht Ihrer Anzeigen",fr:"Total de vos annonces",en:"Totals across your listings",ar:"إجمالي إعلاناتك",ru:"Итого по вашим объявлениям"},
   "Yayın tarihi": {de:"Veröffentlichung",fr:"Date de publication",en:"Published",ar:"تاريخ النشر",ru:"Дата публикации"},
   "Son güncelleme": {de:"Zuletzt aktualisiert",fr:"Dernière mise à jour",en:"Last updated",ar:"آخر تحديث",ru:"Обновлено"},

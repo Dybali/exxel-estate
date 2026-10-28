@@ -31,6 +31,7 @@ import "./fixed-exchange.css";
 import "./company-directory-list.css";
 import "./foreign-buyer-guide.css";
 import "./admin-workspace.css";
+import "./company-portfolio.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
