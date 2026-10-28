@@ -12,3 +12,15 @@
 .market-home .market-hero-inner{padding-top:219px}
 @media(max-width:1350px){.market-home .market-hero-inner{padding-top:281px}}
 @media(max-width:410px){.market-home .market-hero-inner{padding-top:291px}.home-fixed-exchange .home-fx-rates strong{font-size:12px}.home-fixed-exchange .home-fx-rates>div+div{margin-left:12px;padding-left:12px}}
+/* Seamless marquee; pause on interaction and respect reduced-motion settings. */
+.home-fixed-exchange>.container{width:100%;max-width:none;padding:0}
+.home-fixed-exchange .home-fx-card{width:100%;min-width:0;padding:0;overflow:hidden}
+.home-fx-viewport{width:100%;overflow:hidden;direction:ltr}
+.home-fx-track{display:flex;width:max-content;min-width:200%;animation:fx-scroll 32s linear infinite}
+.home-fixed-exchange .home-fx-rates{display:flex;justify-content:space-around;flex:0 0 50%;min-width:0;gap:0}
+.home-fixed-exchange .home-fx-rates>div{padding:0 24px;min-height:44px;align-items:center}
+.home-fixed-exchange .home-fx-rates>div+div{margin:0;border-left:1px solid #dfe6e3;padding-left:24px}
+.home-fixed-exchange .home-fx-source strong{font-size:11px;font-weight:600;color:#596660}
+.home-fx-viewport:hover .home-fx-track,.home-fx-viewport:focus .home-fx-track,.home-fx-viewport:focus-within .home-fx-track{animation-play-state:paused}
+@keyframes fx-scroll{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.home-fx-viewport{overflow-x:auto}.home-fx-track{animation:none;min-width:100%}.home-fx-rates[aria-hidden="true"]{display:none}}
