@@ -8,6 +8,8 @@
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  "workers_dev": true,
+  "preview_urls": false,
   // Operations counters, translation cache and fallback storage. Listings,
   // users and messages stay in Neon (DATABASE_URL).
   "d1_databases": [

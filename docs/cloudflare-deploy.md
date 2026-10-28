@@ -99,6 +99,7 @@ Geçişten hemen önce Neon panelinden bir **branch (anlık kopya)** oluşturulu
 3. Özel dosya betiği son kez çalıştırılır.
 4. Alan adı değiştiği için kullanıcılar bir kez yeniden giriş yapar; hesapları ve şifreleri aynıdır.
 5. Her şey çalışınca ChatGPT Sites yayını kapatılır.
+6. Sites kapandıktan sonra Neon'da `neondb_owner` şifresi sıfırlanır (Roles → Reset password) ve yeni adres `npx.cmd wrangler secret put DATABASE_URL` ile girilir. Eski şifre geçiş sırasında paylaşıldığı için bu adım atlanmamalıdır.
 
 ## Geri alma
 
