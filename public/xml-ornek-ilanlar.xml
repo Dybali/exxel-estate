@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- estatemarket24 toplu ilan aktarma örneği. Biçim: docs/xml-import.md -->
+<listings version="1">
+  <listing ref="OFIS-2026-001">
+    <title>Bornova'da metroya yakın 3+1 daire</title>
+    <description>Beşyol Mahallesi'nde, metro istasyonuna yürüme mesafesinde, güney cepheli ve yeni tadilatlı 3+1 daire. Site içinde otopark ve asansör bulunur.</description>
+    <purpose>satilik</purpose>
+    <type>daire</type>
+    <price currency="TRY">6450000</price>
+    <city>İzmir</city>
+    <district>Bornova</district>
+    <neighborhood postalCode="35040">Beşyol</neighborhood>
+    <grossArea>135</grossArea>
+    <netArea>118</netArea>
+    <rooms>3+1</rooms>
+    <bedrooms>3</bedrooms>
+    <bathrooms>2</bathrooms>
+    <buildingAge>8</buildingAge>
+    <floor>3</floor>
+    <totalFloors>6</totalFloors>
+    <heating>Kombi</heating>
+    <furnished>0</furnished>
+    <amenities>
+      <amenity>Asansör</amenity>
+      <amenity>Otopark</amenity>
+      <amenity>Balkon</amenity>
+    </amenities>
+    <images>
+      <image>https://ornek-emlak.example/foto/ofis-2026-001-1.jpg</image>
+      <image>https://ornek-emlak.example/foto/ofis-2026-001-2.jpg</image>
+    </images>
+    <translations>
+      <translation lang="en">
+        <title>3-bedroom flat near the metro in Bornova</title>
+        <description>South-facing, newly renovated 3-bedroom flat in Beşyol, walking distance to the metro, with parking and a lift.</description>
+      </translation>
+      <translation lang="fa">
+        <title>آپارتمان سه‌خوابه نزدیک مترو در بورنوا</title>
+        <description>آپارتمان سه‌خوابهٔ رو به جنوب و تازه بازسازی‌شده در بشیول، در فاصلهٔ پیاده تا مترو، با پارکینگ و آسانسور.</description>
+      </translation>
+    </translations>
+  </listing>
+</listings>
