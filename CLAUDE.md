@@ -15,7 +15,11 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Kök uygulama: Next.js 16 / React 19, Cloudflare Workers üzerinde `vinext` ile derlenir. Sayfalar `app/`, API'ler `app/api/`, bileşenler `components/`, iş mantığı `lib/`.
 - Veri: Neon PostgreSQL (asıl depo), Cloudflare R2 (fotoğraflar). `lib/neon-d1.ts` eski D1 arayüzünü Neon'a bağlar.
 - Migrasyonlar iki yerde tutulur ve senkron kalmalı: `postgres/migrations/` (Neon) ve `drizzle/` (D1/SQLite). `.sql` dosyaları LF satır sonu ister (`.gitattributes`).
-- Çeviriler `lib/i18n.tsx` ve `lib/*-translations.ts` dosyalarında; Farsça ayrıca `data/fa-translations.json` içinde (Türkçe metin → Farsça). Yeni metin eklerken 7 dilin hepsini doldur; `tests/localization.test.mjs` eksikleri yakalar. Arapça ve Farsça sağdan sola (`isRtl`).
+- Çeviri sözlüğü `lib/i18n-dictionary.ts` (sunucu ve tarayıcı ortak; `lib/i18n.tsx` sadece React tarafı). Eski metinler `lib/*-translations.ts` ve `data/*.json`, Farsça `data/fa-translations.json`; **yeni metinler `lib/portal-translations.ts`** içine 6 dilin hepsiyle eklenir. `tests/localization.test.mjs` eksikleri yakalar. Arapça ve Farsça sağdan sola (`isRtl`).
+- Dil SEO'su: `?lang=xx` sunucuda işlenir (`build/sites-worker.ts` → `lib/request-context.ts`); sayfa başlıkları `lib/seo-copy.ts`, kanonik/hreflang kök layout'ta. Adresler `SITE_URL` (wrangler vars) ile üretilir.
+- Yeni tablolar ilk kullanımda `CREATE TABLE IF NOT EXISTS` ile oluşur (ör. `lib/leads.ts`, `lib/orders.ts`, `lib/email-notifications.ts`); sorgular hem PostgreSQL hem SQLite'ta çalışmalı, testler `node:sqlite` ile yazılır.
+- Worker cron'ları (`wrangler.jsonc`): saat başı :07 sağlık kontrolü, 06:00 UTC öne çıkarma bitişi ve e-posta özeti.
+- Özellik belgeleri: `docs/xml-import.md`, `docs/email-notifications.md`, `docs/payments.md`, `docs/backups-monitoring.md`, `docs/cloudflare-deploy.md`.
 - `lib/messaging-service.ts` birebir `apps/api/src/shared/` altına kopyalanır; birini değiştirirsen diğerini de güncelle.
 - `apps/` ayrı bir workspace'tir ve kök doğrulamaya dahil değildir.
 
