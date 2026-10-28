@@ -8,7 +8,7 @@ import {officeDB,officePublicationAllowed} from '@/lib/office-verification-serve
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
-import { centers,mapBoundsSql,validBounds } from "@/lib/search-filters";
+import { areaBounds,centers,listingInArea,mapBoundsSql,validArea,validBounds } from "@/lib/search-filters";
 import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
 import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
@@ -33,6 +33,8 @@ export async function GET(request:Request) {
   for(const a of chosen){where.push("EXISTS (SELECT 1 FROM json_each(l.amenities) WHERE value=?)");values.push(a)}
   const bounds=validBounds(q.get("bounds")||"");
   if(bounds){const spatial=mapBoundsSql(bounds);where.push(spatial.where);values.push(...spatial.values);}
+  const area=validArea(q.get("area")||"");
+  if(area){const spatial=mapBoundsSql(areaBounds(area));where.push(spatial.where);values.push(...spatial.values);}
   const query=where.join(" AND ");
   const sort=q.get("sort");
   const order=sort==="priceAsc"?"l.price ASC,l.id ASC":sort==="priceDesc"?"l.price DESC,l.id ASC":sort==="area"?"l.gross_area DESC,l.id ASC":"l.featured DESC,l.created_at DESC";
@@ -43,10 +45,19 @@ export async function GET(request:Request) {
     for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["rooms","rooms"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
     for(const [param,field,compare] of [["minPrice","price","min"],["maxPrice","price","max"],["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
     if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
+    if(area&&!listingInArea(l,area))return false;
     if(q.get("furnished")==="1"&&!l.furnished)return false;
     if(chosen.some((a)=>!l.amenities.includes(a)))return false;
     return true;
   }).sort((a,b)=>sort==="priceAsc"?a.price-b.price:sort==="priceDesc"?b.price-a.price:sort==="area"?b.grossArea-a.grossArea:Number(Boolean(b.featured))-Number(Boolean(a.featured)));
+  const mapRow=(l:Listing)=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province" as const:"approximate" as const,description:"",images:l.images.slice(0,1),translations:undefined});
+  if(area){
+    // The bounding box narrows the query in SQL; the polygon test runs here, so results are paged in memory.
+    const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT 500`).bind(...values).all<Record<string,unknown>>();
+    const inside=[...(rows.results||[]).map(row=>publicListing(parseListing(row))).filter(l=>listingInArea(l,area)),...demo];
+    const pageRows=inside.slice((page-1)*pageSize,page*pageSize);
+    return ok({listings:q.get("map")==="1"?pageRows.map(mapRow):pageRows,total:inside.length,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+  }
   const count=await db().prepare(`SELECT count(*) AS n FROM listings l WHERE ${query}`).bind(...values).first<{n:number}>();
   const realCount=Number(count?.n||0);
   const pageStart=(page-1)*pageSize;
@@ -58,7 +69,7 @@ export async function GET(request:Request) {
   if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=ordered?[...real,...demo].sort((a,b)=>sort==="priceAsc"?a.price-b.price||a.id.localeCompare(b.id):sort==="priceDesc"?b.price-a.price||a.id.localeCompare(b.id):b.grossArea-a.grossArea||a.id.localeCompare(b.id)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
-  return ok({listings:q.get("map")==="1"?listings.map(l=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province":"approximate",description:"",images:l.images.slice(0,1),translations:undefined})):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+  return ok({listings:q.get("map")==="1"?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
 }
 
 export async function POST(request:Request) {
