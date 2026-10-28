@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     FROM agencies a JOIN users u ON u.id=a.owner_id
     LEFT JOIN company_profiles p ON p.user_id=CAST(u.id AS TEXT)
     LEFT JOIN seller_profiles s ON s.user_id=u.id
-    LEFT JOIN listings l ON l.owner_id=a.owner_id AND l.status='published'
+    LEFT JOIN listings l ON ((l.owner_id=a.owner_id AND l.agency_id IS NULL) OR l.agency_id=a.id) AND l.status='published'
     WHERE a.status='approved' AND u.role='agent' AND u.agent_status='approved'${where}
     GROUP BY a.id, a.name, a.category, p.city, p.description, s.bio, u.avatar_url
     ORDER BY listing_count DESC, a.name ASC LIMIT ? OFFSET ?`;

@@ -19,6 +19,10 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "Öne çıkanlar": {de:"Highlights",fr:"À la une",en:"Featured",ar:"المميزة",ru:"Избранное"},
+  "Ekibimiz": {de:"Unser Team",fr:"Notre équipe",en:"Our team",ar:"فريقنا",ru:"Наша команда"},
+  "Bu şirket henüz ekip üyesi eklemedi.": {de:"Dieses Unternehmen hat noch keine Teammitglieder hinzugefügt.",fr:"Cette entreprise n’a pas encore ajouté de membres.",en:"This company has not added team members yet.",ar:"لم تضف الشركة أعضاء للفريق بعد.",ru:"Компания пока не добавила участников команды."},
+  "Henüz öne çıkan ilan yok.": {de:"Noch keine hervorgehobenen Anzeigen.",fr:"Aucune annonce à la une pour le moment.",en:"No featured listings yet.",ar:"لا توجد إعلانات مميزة بعد.",ru:"Пока нет избранных объявлений."},
   "Onaylı şirket profili": {de:"Bestätigtes Unternehmensprofil",fr:"Profil d’entreprise approuvé",en:"Approved company profile",ar:"ملف شركة معتمد",ru:"Одобренный профиль компании"},
   "Şirket portföyü": {de:"Unternehmensportfolio",fr:"Portefeuille de l’entreprise",en:"Company portfolio",ar:"محفظة الشركة",ru:"Портфолио компании"},
   "Tüm ilanlarınızın toplamı": {de:"Gesamtübersicht Ihrer Anzeigen",fr:"Total de vos annonces",en:"Totals across your listings",ar:"إجمالي إعلاناتك",ru:"Итого по вашим объявлениям"},

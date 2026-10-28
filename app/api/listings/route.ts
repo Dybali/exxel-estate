@@ -1,3 +1,4 @@
+import {activeTeamCompany} from '@/lib/company-team-server';
 import {submissionTicket,submittedListing,submissionStatement,SubmissionError} from '@/lib/listing-submissions';
 import {textSearchSql,matchesSearchText} from '@/lib/text-search';
 import {nextIndividualSubmission} from '@/lib/listing-policy';
@@ -65,9 +66,10 @@ export async function POST(request:Request) {
   const user=await currentUser(request);
   if(!user) return error("İlan vermek için giriş yapın.",401);
   if(!user.email_verified)return error('İlan vermek için önce e-posta adresinizi doğrulayın.',403);
-  if(!["agent","individual","admin"].includes(user.role)) return error("İlan vermek için hesap türünüzü güncelleyin.",403);
+  const team=await activeTeamCompany(user.id);
+  if(!team && !["agent","individual","admin"].includes(user.role)) return error("İlan vermek için hesap türünüzü güncelleyin.",403);
   await officeDB();
-  if(user.role==='agent'&&!isAdmin(user)){
+  if(user.role==='agent'&&!isAdmin(user)&&!team){
     const verification=await db().prepare('SELECT state,company_snapshot FROM office_verifications WHERE user_id=?').bind(user.id).first<{state:string;company_snapshot:string}>();
     if(!verification||verification.state==='rejected'||verification.company_snapshot!==user.company)return error('Önce ofis yetki belgenizi incelemeye gönderin.',403);
     if(user.agent_status==='rejected'&&verification.state==='approved')return error('Emlakçı hesabınız yönetici tarafından durduruldu. Yöneticiyle iletişime geçin.',403);
@@ -76,7 +78,7 @@ export async function POST(request:Request) {
   let data:Record<string,unknown>;
   try {data=await body(request);} catch{return error("İlan bilgilerini kontrol edin.");}
   let ticket;try{ticket=await submissionTicket(db(),user.id,data);if(ticket){const existing=await submittedListing(db(),ticket);if(existing)return ok(existing,{headers:{'Cache-Control':'private, no-store'}});}}catch(cause){if(cause instanceof SubmissionError)return error(cause.message,cause.status);throw cause;}
-  if(user.role==='individual'&&!isAdmin(user)){const quota=await db().prepare('SELECT last_submitted_at FROM individual_listing_quota WHERE user_id=?').bind(user.id).first<{last_submitted_at:string}>();if(quota&&Date.parse(nextIndividualSubmission(String(quota.last_submitted_at)))>Date.now())return error('Bireysel üyeler 3 takvim ayında bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);}
+  if(user.role==='individual'&&!isAdmin(user)&&!team){const quota=await db().prepare('SELECT last_submitted_at FROM individual_listing_quota WHERE user_id=?').bind(user.id).first<{last_submitted_at:string}>();if(quota&&Date.parse(nextIndividualSubmission(String(quota.last_submitted_at)))>Date.now())return error('Bireysel üyeler 3 takvim ayında bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);}
   const title=str(data.title,150),description=str(data.description,5000),purpose=str(data.purpose,20),propertyType=str(data.propertyType,20),city=str(data.city,70),district=str(data.district,70);
   const neighborhoodId=num(data.neighborhoodId),neighborhood=findNeighborhood(city,district,neighborhoodId);
   const price=num(data.price),grossArea=num(data.grossArea);
@@ -112,18 +114,19 @@ export async function POST(request:Request) {
   }
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
-  const status=isAdmin(user)||user.role==='individual'||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
-  const agentGuard=AGENT_PLANS_ENABLED&&user.role==='agent'&&!isAdmin(user);
-  const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at) "+(agentGuard?`SELECT ${Array(33).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(33).fill('?').join(',')})`);
+  const status=team?(await officePublicationAllowed(team.owner_id)?'published':'pending'):isAdmin(user)||user.role==='individual'||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
+  const agentGuard=AGENT_PLANS_ENABLED&&user.role==='agent'&&!isAdmin(user)&&!team;
+  const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at,agency_id) "+(team?`SELECT ${Array(34).fill('?').join(',')} WHERE EXISTS(SELECT 1 FROM company_team_memberships m JOIN agencies a ON a.id=m.agency_id JOIN users owner ON owner.id=a.owner_id JOIN users member ON member.id=m.user_id WHERE member.role='buyer' AND m.user_id=? AND m.agency_id=? AND m.ended_at IS NULL AND a.status='approved' AND owner.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications v WHERE v.user_id=CAST(owner.id AS TEXT) AND v.state='approved' AND v.company_snapshot=owner.company))`:agentGuard?`SELECT ${Array(34).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(34).fill('?').join(',')})`);
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
-    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,...(agentGuard?[user.id,createdAt,createdAt]:[]))];
+    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,team?.id||null,...(team?[user.id,team.id]:[]),...(agentGuard?[user.id,createdAt,createdAt]:[]))];
   if(ticket)statements.push(submissionStatement(db(),ticket,id,createdAt));
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
-  if(user.role==='agent'&&!isAdmin(user))statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));
+  if(user.role==='agent'&&!isAdmin(user)&&!team)statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=? AND status='published'").bind(createdAt,id));
   try{await db().batch(statements);}catch(cause){if(ticket){try{const existing=await submittedListing(db(),ticket);if(existing)return ok(existing,{headers:{'Cache-Control':'private, no-store'}});}catch(replayError){if(replayError instanceof SubmissionError)return error(replayError.message,replayError.status);throw replayError;}}if(String((cause as Error).message).includes('individual_listing_quota'))return error('Bireysel üyeler 3 takvim ayında bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);if(agentGuard&&String((cause as Error).message).includes('foreign key'))return error('Paket hakkınız değişti. Sayfayı yenileyip tekrar deneyin.',409);throw cause;}
   const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
+  if(!saved)return error('Ekip üyeliğiniz değişti. Sayfayı yenileyin.',409);
   if(saved?.status==='published')scheduleListingTranslations(id);
   return ok({id,status:saved?.status||'pending'},{status:201});
 }

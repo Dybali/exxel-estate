@@ -70,6 +70,7 @@ export const listings = sqliteTable("listings", {
  presentation:text("presentation").notNull().default("{}"),
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id),
+  agencyId: text("agency_id").references(() => agencies.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
   purpose: text("purpose").notNull(),
