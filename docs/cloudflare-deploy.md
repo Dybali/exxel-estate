@@ -88,7 +88,7 @@ node scripts/migrate-private-media.mjs --dry-run
 node scripts/migrate-private-media.mjs
 ```
 
-Gerekli ortam değişkenleri betiğin başında yazılıdır. Dosyalar önce `work/private-media/` klasörüne (Git dışı) indirilir, sonra yeni bucket'a yüklenir ve boyutları doğrulanır. Betik tekrar çalıştırılabilir; geçiş anında son bir kez çalıştırılarak arada eklenen dosyalar da alınır.
+Betik eski sitenin `BACKUP_READ_TOKEN` değerini gizli girişle sorar ve yüklemeyi oturum açılmış Wrangler ile yapar; R2 anahtarı istemez. Dosyalar önce `work/private-media/` klasörüne (Git dışı) indirilir, sonra yeni bucket'a yüklenir. Yeni Worker'a da aynı `BACKUP_READ_TOKEN` girilmişse betik yeni sitedeki listeyi okuyup her dosyanın boyutunu doğrular. Betik tekrar çalıştırılabilir; geçiş anında son bir kez çalıştırılarak arada eklenen dosyalar da alınır.
 
 Geçişten hemen önce Neon panelinden bir **branch (anlık kopya)** oluşturulur; bir sorun olursa veri o ana döndürülebilir.
 
