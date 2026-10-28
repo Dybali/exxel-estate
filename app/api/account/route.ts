@@ -22,6 +22,10 @@ export async function POST(request:Request) {
     if(token) await db().prepare("DELETE FROM sessions WHERE token_hash=?").bind(await sha256(token)).run();
     return ok({success:true},{headers:{"Set-Cookie":sessionCookie("",true)}});
   }
+  if (action === "update_profile" || action === "request_seller_role") {
+    const actor = await currentUser(request);
+    if (actor && !actor.email_verified) return error("Önce e-posta adresinizi doğrulayın.",403);
+  }
   if (action==="update_profile") {
     const user=await currentUser(request);
     if(!user) return error("Önce giriş yapın.",401);

@@ -8,8 +8,9 @@ test('document review → one admin approval → first listing and later listing
  for(const q of officeSchema.OFFICE_SCHEMA)sql.exec(q);
  sql.exec('CREATE TABLE listing_moderation_holds(listing_id TEXT,active INTEGER)');
  let batch=Promise.resolve();const db={prepare(query){let values=[];return {bind(...v){values=v;return this;},async first(){return sql.prepare(query).get(...values)||null;},async all(){return {results:sql.prepare(query).all(...values)};},async run(){return sql.prepare(query).run(...values);}};},batch(statements){const run=batch.then(async()=>{sql.exec('BEGIN');try{for(const statement of statements)await statement.run();sql.exec('COMMIT');}catch(e){sql.exec('ROLLBACK');throw e;}});batch=run.catch(()=>{});return run;}};
- const agent={id:crypto.randomUUID(),email:'agent@example.test',name:'Test Agent',role:'agent',email_verified:0,agent_status:'pending',company:'Test Office'},admin={id:crypto.randomUUID(),name:'Admin',role:'admin',email_verified:1};let actor=agent;
+ const agent={id:crypto.randomUUID(),email:'agent@example.test',name:'Test Agent',role:'agent',email_verified:1,agent_status:'pending',company:'Test Office'},admin={id:crypto.randomUUID(),name:'Admin',role:'admin',email_verified:1};let actor=agent;
  sql.prepare('INSERT INTO users(id,email,password_hash,name,role,agent_status,company,created_at) VALUES(?,?,?,?,?,?,?,?)').run(agent.id,agent.email,'not-a-production-password',agent.name,agent.role,agent.agent_status,agent.company,new Date().toISOString());
+ sql.prepare('UPDATE users SET email_verified=1 WHERE id=?').run(agent.id);
  sql.prepare('INSERT INTO agencies(id,owner_id,name,category,status,created_at) VALUES(?,?,?,?,?,?)').run(crypto.randomUUID(),agent.id,agent.company,'agency','pending','now');
  const server={db:()=>db,currentUser:async()=>actor,sameOrigin:()=>true,isAdmin:u=>u?.role==='admin',body:r=>r.json(),str:(v,n)=>typeof v==='string'?v.trim().slice(0,n):'',num:Number,now:()=>new Date().toISOString(),ok:(v,i)=>Response.json(v,i),error:(error,status=400)=>Response.json({error},{status})};
  const office={officeDB:async()=>db,officePublicationAllowed:async id=>!!await db.prepare("SELECT u.id FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company").bind(id).first()};
@@ -23,7 +24,7 @@ test('document review → one admin approval → first listing and later listing
   const responses=await Promise.all([post(),post()]);assert.deepEqual(responses.map(r=>r.status).sort(),[200,201]);const saved=await responses[0].json();assert.equal(saved.status,'pending');assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM listings').get().n,1);assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM property_images').get().n,1);
   assert.equal((await post({...payload,title:'Başka bir villa ilan başlığı'})).status,409);
   actor=admin;const decision=new Request('https://site.test/api/admin/agent-verifications',{method:'POST',body:JSON.stringify({id:agent.id,state:'approved',version:1})});assert.equal((await approval.POST(decision)).status,200);
-  actor={...agent,agent_status:'approved'};assert.equal((await (await post()).json()).status,'published');assert.equal(sql.prepare('SELECT email_verified FROM users WHERE id=?').get(agent.id).email_verified,0);
+  actor={...agent,agent_status:'approved'};assert.equal((await (await post()).json()).status,'published');assert.equal(sql.prepare('SELECT email_verified FROM users WHERE id=?').get(agent.id).email_verified,1);
   const next=await post({...payload,submissionId:crypto.randomUUID(),images:[`/api/media/listings/${agent.id}/${crypto.randomUUID()}.jpg`]});assert.equal(next.status,201);assert.equal((await next.json()).status,'published');assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM listings').get().n,2);
   actor={id:crypto.randomUUID(),role:'buyer',email_verified:1};assert.equal((await post()).status,403);
  }finally{sql.close()}

@@ -64,7 +64,11 @@ export async function currentUser(request:Request):Promise<User|null> {
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.whatsapp_enabled,u.company,u.avatar_url FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
-  return row || null;
+  if (!row) return null;
+  // Unverified sessions can only access account identification and the OTP flow.
+  const pathname = new URL(request.url).pathname;
+  if (!row.email_verified && pathname !== '/api/account' && pathname !== '/api/account/recovery') return null;
+  return row;
 }
 export function sessionCookie(token:string, clear=false) {
   return `excell_session=${clear?"":token}; HttpOnly; Secure; SameSite=Lax; Path=/; ${clear?"Max-Age=0":"Max-Age=2592000"}`;

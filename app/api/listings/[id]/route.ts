@@ -25,7 +25,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request),{id}=await params;
   if(!user) return error("Giriş gerekli.",401);
-  if(!user.email_verified&&user.role!=='agent')return error('İlan düzenlemek için önce e-posta adresinizi doğrulayın.',403);
+  if(!user.email_verified)return error('İlan düzenlemek için önce e-posta adresinizi doğrulayın.',403);
   if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))return error("İlan bulunamadı.",404);
   const row=await db().prepare("SELECT * FROM listings WHERE id=?").bind(id).first<Record<string,unknown>>();
   if(!row) return error("İlan bulunamadı.",404);

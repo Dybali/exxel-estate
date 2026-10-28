@@ -104,7 +104,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
         return;
       }
       if(data.user?.isAdmin&&data.user.email_verified){window.location.assign(safeNext.startsWith("/yonetim")?safeNext:"/yonetim");return;}
-      if (!data.user?.email_verified && data.user?.role!=="agent") {
+      if (!data.user?.email_verified) {
         const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify'})}).then(r=>r.ok).catch(()=>false);
         window.location.assign('/eposta-dogrula'+(sent?'?sent=1':''));
       } else window.location.assign(role==="developer"?"/hesabim?tab=firma":safeNext);

@@ -52,6 +52,7 @@ export function Dashboard() {
   useEffect(()=>{const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(response=>apiJson<{user?:User}>(response)).then((data:{user?:User})=>setUser(data.user||null)).catch(()=>{});window.addEventListener("salesorrent:profile-changed",refresh);return()=>window.removeEventListener("salesorrent:profile-changed",refresh);},[]);
 
   useEffect(() => {
+    if (!loading && user && !user.email_verified) { window.location.replace("/eposta-dogrula"); return; }
     if (!loading && !user) {
       const query = typeof window !== "undefined" ? window.location.search : "";
       window.location.replace(`/giris?next=${encodeURIComponent(`/hesabim${query}`)}`);
@@ -69,7 +70,7 @@ export function Dashboard() {
     if(response.ok){setFavorites(items=>items.filter(item=>item.id!==id));favoritesChanged();}
   }
 
-  if (loading || !user) return <main className="account-page"><div className="container section">{t(loading ? "Hesabınız yükleniyor..." : "Giriş sayfasına yönlendiriliyorsunuz...")}</div></main>;
+  if (loading || !user || !user.email_verified) return <main className="account-page"><div className="container section">{t(loading ? "Hesabınız yükleniyor..." : "Giriş sayfasına yönlendiriliyorsunuz...")}</div></main>;
 
   const items = [
     { id: "genel", label: "Genel Bakış", icon: LayoutDashboard },

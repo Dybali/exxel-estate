@@ -64,7 +64,7 @@ export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request);
   if(!user) return error("İlan vermek için giriş yapın.",401);
-  if(!user.email_verified&&user.role!=='agent')return error('İlan vermek için önce e-posta adresinizi doğrulayın.',403);
+  if(!user.email_verified)return error('İlan vermek için önce e-posta adresinizi doğrulayın.',403);
   if(!["agent","individual","admin"].includes(user.role)) return error("İlan vermek için hesap türünüzü güncelleyin.",403);
   await officeDB();
   if(user.role==='agent'&&!isAdmin(user)){
