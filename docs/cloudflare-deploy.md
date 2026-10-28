@@ -88,7 +88,7 @@ node scripts/migrate-private-media.mjs --dry-run
 node scripts/migrate-private-media.mjs
 ```
 
-Betik eski sitenin `BACKUP_READ_TOKEN` değerini gizli girişle sorar ve yüklemeyi oturum açılmış Wrangler ile yapar; R2 anahtarı istemez. Dosyalar önce `work/private-media/` klasörüne (Git dışı) indirilir, sonra yeni bucket'a yüklenir. Yeni Worker'a da aynı `BACKUP_READ_TOKEN` girilmişse betik yeni sitedeki listeyi okuyup her dosyanın boyutunu doğrular. Betik tekrar çalıştırılabilir; geçiş anında son bir kez çalıştırılarak arada eklenen dosyalar da alınır.
+İki eski Sites yayını vardır ve ikisi de aynı Neon veritabanına bağlıdır: güncel `estatemarket24-showcase.tastymole36.chatgpt.site` (betiğin varsayılanı) ve daha eski `exxel-estate.blue-grape-8839.chatgpt.site`. Her birinin kendi özel deposu vardır; eskisi için `OLD_SITE_URL` ile ayrıca çalıştırılır. Betik eski sitenin `BACKUP_READ_TOKEN` değerini gizli girişle sorar ve yüklemeyi oturum açılmış Wrangler ile yapar; R2 anahtarı istemez. Dosyalar önce `work/private-media/` klasörüne (Git dışı) indirilir, sonra yeni bucket'a yüklenir. Yeni Worker'a da aynı `BACKUP_READ_TOKEN` girilmişse betik yeni sitedeki listeyi okuyup her dosyanın boyutunu doğrular. Betik tekrar çalıştırılabilir; geçiş anında son bir kez çalıştırılarak arada eklenen dosyalar da alınır.
 
 Geçişten hemen önce Neon panelinden bir **branch (anlık kopya)** oluşturulur; bir sorun olursa veri o ana döndürülebilir.
 

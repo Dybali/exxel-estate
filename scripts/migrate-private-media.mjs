@@ -13,7 +13,7 @@ import path from "node:path";
 import readline from "node:readline";
 
 const dryRun = process.argv.includes("--dry-run");
-const oldSite = (process.env.OLD_SITE_URL || "https://exxel-estate.blue-grape-8839.chatgpt.site").replace(/\/$/, "");
+const oldSite = (process.env.OLD_SITE_URL || "https://estatemarket24-showcase.tastymole36.chatgpt.site").replace(/\/$/, "");
 const newSite = (process.env.NEW_SITE_URL || "https://exxel-estate.aliikocr10.workers.dev").replace(/\/$/, "");
 const newBucket = process.env.NEW_R2_BUCKET || "exxel-estate-private";
 const dumpDir = path.resolve(process.env.DUMP_DIR || "work/private-media");
