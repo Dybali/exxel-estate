@@ -28,3 +28,5 @@ ALTER TABLE listings ADD COLUMN IF NOT EXISTS agency_id uuid REFERENCES agencies
 CREATE INDEX IF NOT EXISTS listings_agency_portfolio_idx ON listings(agency_id, status, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS company_featured_listings (agency_id uuid NOT NULL REFERENCES agencies(id), listing_id uuid NOT NULL REFERENCES listings(id) ON DELETE CASCADE, created_at text NOT NULL, PRIMARY KEY(agency_id,listing_id));
+
+CREATE TABLE IF NOT EXISTS company_team_codes (invitation_id uuid PRIMARY KEY REFERENCES company_team_invitations(id), code_hash text NOT NULL UNIQUE);

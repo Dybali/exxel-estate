@@ -1,7 +1,8 @@
-import {body,currentUser,error,ok,sameOrigin,str} from '@/lib/server';
+import {consumeRecoveryLimit,RecoveryError} from '@/lib/recovery-service';
+import {body,currentUser,error,ok,sameOrigin,str,sha256} from '@/lib/server';
 import {statisticsDB} from '@/lib/listing-statistics-server';
 import {teamDB} from '@/lib/company-team-server';
-import {inviteTeamMember,acceptTeamInvitation,endTeamMembership,TeamError} from '@/lib/company-team-service';
+import {inviteTeamMember,acceptTeamInvitation,endTeamMembership,createTeamCode,redeemTeamCode,TeamError} from '@/lib/company-team-service';
 const headers={'Cache-Control':'private, no-store'};
 export async function GET(request:Request){
  const user=await currentUser(request);if(!user?.email_verified)return error('Giriş ve e-posta doğrulaması gerekli.',401);
@@ -21,6 +22,7 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  if(!sameOrigin(request))return error('Geçersiz kaynak.',403);const user=await currentUser(request);if(!user?.email_verified)return error('Giriş ve e-posta doğrulaması gerekli.',401);
  try{const data=await body(request),database=await teamDB(),action=str(data.action,20),id=str(data.id,36);
+ if(action==='create_code'||action==='redeem_code'){await consumeRecoveryLimit(database,await sha256('team-code:'+action+':'+user.id),action==='create_code'?20:12);if(action==='create_code')return ok(await createTeamCode(database,user),{headers});return ok(await redeemTeamCode(database,user,str(data.code,40)),{headers});}
  if(action==='invite')return ok(await inviteTeamMember(database,user,str(data.email,254)),{headers});
  if(action==='accept')return ok(await acceptTeamInvitation(database,user,id),{headers});
  if(action==='remove')return ok(await endTeamMembership(database,user,id),{headers});
@@ -32,5 +34,5 @@ export async function POST(request:Request){
  }
  if(action==='revoke'){const row=await database.prepare(`UPDATE company_team_invitations SET revoked_at=? WHERE id=? AND accepted_at IS NULL AND revoked_at IS NULL AND agency_id IN (SELECT id FROM agencies WHERE owner_id=?) RETURNING id`).bind(new Date().toISOString(),id,user.id).first();if(!row)return error('Davet bulunamadı veya yetkiniz yok.',404);return ok({success:true},{headers});}
  return error('Geçersiz işlem.');
- }catch(e){if(e instanceof TeamError)return error(e.message,e.status);return error('Ekip işlemi tamamlanamadı.',500);}
+ }catch(e){if(e instanceof TeamError||e instanceof RecoveryError)return error(e.message,e.status);return error('Ekip işlemi tamamlanamadı.',500);}
 }

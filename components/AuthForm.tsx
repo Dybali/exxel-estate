@@ -103,6 +103,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
         setError(data.error || "İşlem tamamlanamadı.");
         return;
       }
+      if(mode==='register' && role==='buyer') { const companyCode=String(form.get('companyCode')||'').trim(); if(companyCode) sessionStorage.setItem('company-invite-code',companyCode); else sessionStorage.removeItem('company-invite-code'); }
       if(data.user?.isAdmin&&data.user.email_verified){window.location.assign(safeNext.startsWith("/yonetim")?safeNext:"/yonetim");return;}
       if (!data.user?.email_verified) {
         const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify'})}).then(r=>r.ok).catch(()=>false);
@@ -175,6 +176,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
                     <option value="agent">{t("Emlakçıyım")}</option><option value="developer">{t("İnşaat firmasıyım")}</option>
                   </select>
                 </label>
+                {role === "buyer" && <label>{t("Şirket davet kodu (isteğe bağlı)")}<input name="companyCode" maxLength={24} autoComplete="off" placeholder={t("Şirketinizin verdiği kod")}/><small>{t("E-postanızı doğruladıktan sonra şirket ekibine katılabilirsiniz.")}</small></label>}
                 {(role === "agent" || role === "developer") && (
                   <>
                     <p className="corporate-hint">{t(role==="developer"?"Firmanız adına kayıt olun. E-posta doğrulamasından sonra firma bilgilerinizi ve başvuru belgenizi tamamlayın.":"Emlak ofisiniz adına kayıt olun.")}</p>

@@ -19,6 +19,9 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "Şirket davet kodu (isteğe bağlı)": {de:"Firmeneinladungscode (optional)",fr:"Code d’invitation de l’entreprise (facultatif)",en:"Company invitation code (optional)",ar:"رمز دعوة الشركة (اختياري)",ru:"Код приглашения компании (необязательно)"},
+  "Şirketinizin verdiği kod": {de:"Code Ihres Unternehmens",fr:"Code fourni par votre entreprise",en:"Code provided by your company",ar:"الرمز الذي قدمته شركتك",ru:"Код вашей компании"},
+  "E-postanızı doğruladıktan sonra şirket ekibine katılabilirsiniz.": {de:"Nach der Bestätigung Ihrer E-Mail können Sie dem Team beitreten.",fr:"Après vérification de votre e-mail, vous pourrez rejoindre l’équipe.",en:"You can join the company team after verifying your email.",ar:"يمكنك الانضمام إلى فريق الشركة بعد تأكيد بريدك الإلكتروني.",ru:"После подтверждения электронной почты вы сможете присоединиться к команде."},
   "Öne çıkanlar": {de:"Highlights",fr:"À la une",en:"Featured",ar:"المميزة",ru:"Избранное"},
   "Ekibimiz": {de:"Unser Team",fr:"Notre équipe",en:"Our team",ar:"فريقنا",ru:"Наша команда"},
   "Bu şirket henüz ekip üyesi eklemedi.": {de:"Dieses Unternehmen hat noch keine Teammitglieder hinzugefügt.",fr:"Cette entreprise n’a pas encore ajouté de membres.",en:"This company has not added team members yet.",ar:"لم تضف الشركة أعضاء للفريق بعد.",ru:"Компания пока не добавила участников команды."},
