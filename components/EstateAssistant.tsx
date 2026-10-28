@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,Globe2,LoaderCircle,Plus,Send,Sparkles,X} from 'lucide-react';
 import Link from './SafeLink';
-import {useLocale,locales} from '@/lib/i18n';
+import {useLocale,locales,isRtl} from '@/lib/i18n';
 import {assistantCopy,assistantMemberCopy,assistantResultLabel} from '@/lib/assistant-copy';
 import {assistantHistory,emptyFilters,type AssistantFilters,type AssistantLanguage} from '@/lib/assistant';
 import {type Listing} from '@/lib/listings';
@@ -33,8 +33,8 @@ export function EstateAssistant({compact=false,onClose}:{compact?:boolean;onClos
  }
 
  const member=assistantMemberCopy[language];
- const closeLabel={tr:'Kapat',en:'Close',de:'Schließen',ar:'إغلاق',fr:'Fermer',ru:'Закрыть'}[language];
- return <section className={'estate-assistant assistant-text-only'+(compact?' assistant-compact':'')} dir={language==='ar'?'rtl':'ltr'}>
+ const closeLabel={tr:'Kapat',en:'Close',de:'Schließen',ar:'إغلاق',fa:'بستن',fr:'Fermer',ru:'Закрыть'}[language];
+ return <section className={'estate-assistant assistant-text-only'+(compact?' assistant-compact':'')} dir={isRtl(language)?'rtl':'ltr'}>
   <section className="assistant-chat" aria-label={copy.badge}>
    <header className="assistant-chat-top"><span><span className="assistant-avatar"><Sparkles size={21}/></span><span className="assistant-chat-name"><strong>{copy.launcher}</strong><small>{member.badge}</small></span></span><div className="assistant-header-actions"><button type="button" onClick={reset} disabled={busy} aria-label={copy.reset} title={copy.reset}><Plus size={18}/></button>{onClose&&<button type="button" onClick={onClose} aria-label={closeLabel} title={closeLabel}><X size={22}/></button>}</div></header>
    <div className="assistant-chat-language"><Globe2 size={14}/><label htmlFor="assistant-language">{copy.language}</label><select id="assistant-language" value={selected} onChange={e=>setSelected(e.target.value as typeof selected)}><option value="auto">{copy.auto}</option>{locales.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}</select></div>

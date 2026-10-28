@@ -1,13 +1,13 @@
 import {recordOperation} from '@/lib/operations';
 import {env} from 'cloudflare:workers';
 import {body,currentUser,db,sameOrigin,sha256} from '@/lib/server';
-import {AssistantError,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
+import {AssistantError,assistantLanguages,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
 import {assistantCopy,assistantResultSummary} from '@/lib/assistant-copy';
 import {planSearch,explainListings,type AISettings} from '@/lib/assistant-provider';
 import {findAssistantListings,reserveAssistantUsage} from '@/lib/assistant-server';
 const settings=()=>env as unknown as AISettings;
 const reply=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
-export async function GET(request:Request){const user=await currentUser(request);return reply({authenticated:Boolean(user),available:Boolean(user&&settings().GEMINI_API_KEY),textOnly:true,languages:['tr','en','de','ar','fr','ru']});}
+export async function GET(request:Request){const user=await currentUser(request);return reply({authenticated:Boolean(user),available:Boolean(user&&settings().GEMINI_API_KEY),textOnly:true,languages:assistantLanguages});}
 export async function POST(request:Request) {
   let language:AssistantLanguage='tr';
   if(!sameOrigin(request)||request.headers.get('sec-fetch-site')==='cross-site')return reply({error:'input'},403);

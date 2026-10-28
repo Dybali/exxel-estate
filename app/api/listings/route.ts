@@ -102,7 +102,7 @@ export async function POST(request:Request) {
   if(!storageBucket) return error("Fotoğraf deposu yapılandırılmamış.",503);
   const translations:Record<string,{title:string;description:string}>={};
   if(data.translations && typeof data.translations==="object" && !Array.isArray(data.translations)) {
-    for(const locale of ["de","fr","en","ar","ru"]){
+    for(const locale of ["de","fr","en","ar","fa","ru"]){
       const entry=(data.translations as Record<string,unknown>)[locale];
       if(!entry || typeof entry!=="object" || Array.isArray(entry)) continue;
       const translatedTitle=str((entry as Record<string,unknown>).title,150);

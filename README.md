@@ -2,7 +2,7 @@
 
 Türkiye'deki satılık ve kiralık gayrimenkulleri tanıtan çok sayfalı platform. `app/` arayüzü, `app/api/` oturum ve ilan API'lerini içerir. Canlı yapılandırmada ana veri deposu Neon PostgreSQL, fotoğraf deposu Cloudflare R2 EU bucket'ıdır. Eski D1/R2 bağları geçiş süresince yalnızca geri dönüş ve eski dosyaları okuyabilmek için korunur.
 
-Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça için yazı yönü sağdan sola çevrilir. İlan verirken diğer beş dil için başlık ve açıklama isteğe bağlı girilebilir; bu metinler ilan kartında ve detayında seçilen dile göre gösterilir. Çeviri girilmediyse ana ilan metni gösterilir. Otomatik makine çevirisi yapılmaz.
+Arayüzde Türkçe, Almanca, Fransızca, İngilizce, Arapça, Farsça ve Rusça seçimi bulunur. Seçim tarayıcıda saklanır; Arapça ve Farsça için yazı yönü sağdan sola çevrilir. İlan verirken diğer altı dil için başlık ve açıklama isteğe bağlı girilebilir; bu metinler ilan kartında ve detayında seçilen dile göre gösterilir. Çeviri girilmediyse ana ilan metni gösterilir. Otomatik makine çevirisi yapılmaz.
 
 Arama sayfasında filtreler URL'ye yazılır; bağlantı paylaşılınca aynı arama açılır. Etkin filtreler tek tek kaldırılabilir. Kullanıcı aramalarını aynı tarayıcıda kaydedebilir. Liste/harita görünümünde seçilen ilanın yaklaşık konumu gösterilir; demo ilanlar kartta açıkça etiketlenir. Harita verisi OpenStreetMap gömülü görünümüdür; üretim ölçeğinde özel harita sağlayıcısı değerlendirilebilir.
 

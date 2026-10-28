@@ -32,4 +32,4 @@ export const editorialArticles:EditorialArticle[]=[
  ]},
 ];
 export const editorialDate=(date:string,locale='tr')=>new Date(date+'T12:00:00+03:00').toLocaleDateString(locale,{day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Istanbul'});
-export const editorialReadTime=(value:string,locale='tr')=>new Intl.NumberFormat(locale).format(parseInt(value,10))+' '+(({tr:'dk',de:'Min.',fr:'min',en:'min',ar:'دقائق',ru:'мин'} as Record<string,string>)[locale]||'min');
+export const editorialReadTime=(value:string,locale='tr')=>new Intl.NumberFormat(locale).format(parseInt(value,10))+' '+(({tr:'dk',de:'Min.',fr:'min',en:'min',ar:'دقائق',fa:'دقیقه',ru:'мин'} as Record<string,string>)[locale]||'min');

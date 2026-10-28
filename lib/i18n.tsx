@@ -7,15 +7,18 @@ import {exchangeWords} from "./exchange-translations";
 import listingToolsTranslations from "@/data/listing-tools-translations.json";
 import discoveryTranslations from "@/data/discovery-translations.json";
 import editorialUITranslations from "@/data/editorial-ui-translations.json";
+import persianTranslations from "@/data/fa-translations.json";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "ru";
+export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru";
 export const locales: { code: Locale; label: string; flag: string }[] = [
   { code: "tr", label: "Türkçe", flag: "tr" }, { code: "de", label: "Deutsch", flag: "de" },
   { code: "fr", label: "Français", flag: "fr" }, { code: "en", label: "English", flag: "gb" },
-  { code: "ar", label: "العربية", flag: "sa" }, { code: "ru", label: "Русский", flag: "ru" },
+  { code: "ar", label: "العربية", flag: "sa" }, { code: "fa", label: "فارسی", flag: "ir" },
+  { code: "ru", label: "Русский", flag: "ru" },
 ];
+export const isRtl = (locale: string) => locale === "ar" || locale === "fa";
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
@@ -678,6 +681,8 @@ for(const [key,[de,fr,en,ar,ru]] of Object.entries({...discoveryTranslations,...
 Object.assign(words,editorialUITranslations);
 
 for(const [key,[de,fr,en,ar,ru]] of Object.entries({...privacyCompanyWords,...developerShowcaseWords,...managerReviewWords,...legalReviewWords,...exchangeWords}))words[key]={de,fr,en,ar,ru};
+// Persian is kept in one file keyed by the Turkish source text; missing keys fall back to English.
+for(const [key,fa] of Object.entries(persianTranslations as Record<string,string>))words[key]={...words[key],fa};
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
@@ -694,10 +699,10 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   }, []);
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = isRtl(locale) ? "rtl" : "ltr";
     window.localStorage.setItem("exxel_locale", locale);
   }, [locale]);
-  const value = useMemo(() => ({ locale, setLocale, t: (key: string) => words[key]?.[locale] || key }), [locale]);
+  const value = useMemo(() => ({ locale, setLocale, t: (key: string) => words[key]?.[locale] || (locale === "fa" ? words[key]?.en : undefined) || key }), [locale]);
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 export const useLocale = () => useContext(LocaleContext);
