@@ -7,6 +7,7 @@ import listingToolsTranslations from "@/data/listing-tools-translations.json";
 import discoveryTranslations from "@/data/discovery-translations.json";
 import editorialUITranslations from "@/data/editorial-ui-translations.json";
 import persianTranslations from "@/data/fa-translations.json";
+import {portalWords} from "./portal-translations";
 
 
 export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru";
@@ -681,6 +682,7 @@ Object.assign(words,editorialUITranslations);
 for(const [key,[de,fr,en,ar,ru]] of Object.entries({...privacyCompanyWords,...developerShowcaseWords,...managerReviewWords,...legalReviewWords,...exchangeWords}))words[key]={de,fr,en,ar,ru};
 // Persian is kept in one file keyed by the Turkish source text; missing keys fall back to English.
 for(const [key,fa] of Object.entries(persianTranslations as Record<string,string>))words[key]={...words[key],fa};
+Object.assign(words,portalWords);
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 export function translate(key: string, locale: Locale) {

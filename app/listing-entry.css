@@ -26,3 +26,4 @@
 .home-account-guest a:focus-visible{outline:2px solid #fff;outline-offset:2px}
 @media(max-width:700px){.home-account-guest{gap:4px}.home-account-guest svg{width:16px}.home-account-guest a{font-size:11px}.site-header.home-header .header-inner{gap:5px}.home-header .header-actions{gap:5px}}
 @media(max-width:380px){.home-header .estatemarket-wordmark{font-size:21px}.home-header .brand-tagline{font-size:8px;max-width:165px}.home-account-guest svg{display:none}}
+.upload-privacy-note{font-size:12px;color:#6b7a70;margin-top:-6px}
