@@ -14,8 +14,7 @@
     {
       "binding": "DB",
       "database_name": "exxel-estate-db",
-      // Replace with the id printed by `npx wrangler d1 create exxel-estate-db`.
-      "database_id": "00000000-0000-4000-8000-000000000000",
+      "database_id": "60ca008b-3c3c-41cd-944c-027e67f7a1b1",
       "migrations_dir": "drizzle"
     }
   ],
