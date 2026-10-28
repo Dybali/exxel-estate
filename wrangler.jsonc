@@ -11,8 +11,8 @@
   "workers_dev": true,
   "preview_urls": false,
   // Public base URL for canonical links, hreflang and the sitemap.
-  // 06:00 UTC (09:00 in Türkiye): daily saved-search and price digest emails.
-  "triggers": { "crons": ["0 6 * * *"] },
+  // 06:00 UTC (09:00 in Türkiye): promotion expiry and digest emails. Minute 7 hourly: health check.
+  "triggers": { "crons": ["0 6 * * *", "7 * * * *"] },
   "vars": { "SITE_URL": "https://exxel-estate.estatemarket24.workers.dev" },
   // Operations counters, translation cache and fallback storage. Listings,
   // users and messages stay in Neon (DATABASE_URL).

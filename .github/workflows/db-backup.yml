@@ -1,0 +1,57 @@
+name: Daily database backup
+# Encrypted pg_dump of the Neon database to the R2 bucket estatemarket24-backups (prefix db/).
+# Enable by setting repository variable DB_BACKUP_ENABLED=true and the secrets in docs/backups-monitoring.md.
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: vars.DB_BACKUP_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NEON_DIRECT_URL: ${{ secrets.NEON_DIRECT_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_ENDPOINT: ${{ secrets.R2_BACKUP_ENDPOINT }}
+      BUCKET: estatemarket24-backups
+    steps:
+      - name: Check configuration
+        run: |
+          for name in NEON_DIRECT_URL BACKUP_PASSPHRASE AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY R2_ENDPOINT; do
+            if [ -z "${!name}" ]; then echo "::error::Missing secret for $name"; exit 1; fi
+          done
+          case "$NEON_DIRECT_URL" in *-pooler.*) echo "::error::Use Neon's direct (non-pooled) connection for pg_dump"; exit 1;; esac
+      - name: Install PostgreSQL 18 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-18
+      - name: Dump, verify and encrypt
+        run: |
+          set -euo pipefail
+          stamp=$(date -u +%Y-%m-%dT%H%M%SZ)
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          /usr/lib/postgresql/18/bin/pg_dump --format=custom --no-owner --no-privileges --dbname="$NEON_DIRECT_URL" --file=db.dump
+          # A dump that pg_restore cannot read is not a backup.
+          tables=$(/usr/lib/postgresql/18/bin/pg_restore --list db.dump | grep -c " TABLE DATA " || true)
+          if [ "$tables" -lt 10 ]; then echo "::error::Dump looks incomplete ($tables tables)"; exit 1; fi
+          echo "Dumped $tables tables, $(stat -c %s db.dump) bytes"
+          sha256sum db.dump | cut -d' ' -f1 > db.dump.sha256
+          openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -in db.dump -out "db-$stamp.dump.enc" -pass env:BACKUP_PASSPHRASE
+          rm db.dump
+      - name: Upload to R2
+        run: |
+          set -euo pipefail
+          aws s3 cp "db-$STAMP.dump.enc" "s3://$BUCKET/db/db-$STAMP.dump.enc" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          aws s3 cp db.dump.sha256 "s3://$BUCKET/db/db-$STAMP.dump.sha256" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          echo "Uploaded db/db-$STAMP.dump.enc"

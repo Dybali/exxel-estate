@@ -8,6 +8,8 @@ import { db } from "../lib/server";
 import { siteUrl } from "../lib/site-url";
 import { sendDailyDigests, type NotificationDatabase } from "../lib/email-notifications";
 import { expirePromotions, type OrderDatabase } from "../lib/orders";
+import { alertOnFailure, runHealthChecks } from "../lib/health";
+import { externalR2Ready, headExternalImage } from "../lib/external-r2";
 import type { EmailSettings } from "../lib/email";
 
 // Pass ?lang and the path to server components so pages render in the requested language.
@@ -20,10 +22,15 @@ function withRequestContext(request: Request) {
 }
 
 export default {
-  // Daily email digest (cron in wrangler.jsonc). Does nothing until Resend is configured.
-  async scheduled(_controller: ScheduledController, env: Cloudflare.Env, ctx: ExecutionContext) {
+  // Cron triggers (wrangler.jsonc): hourly health check; daily promotion expiry and email digest.
+  async scheduled(controller: ScheduledController, env: Cloudflare.Env, ctx: ExecutionContext) {
+    const settings = { ...(env as unknown as EmailSettings & { ALERT_EMAIL?: string; EXXEL_ADMIN_EMAIL?: string }), SITE_URL: siteUrl() };
+    if (controller.cron === "7 * * * *") {
+      ctx.waitUntil(runHealthChecks(db() as never, { imageStorageReady: externalR2Ready, listImages: () => headExternalImage("listings/00000000-0000-4000-8000-000000000000/00000000-0000-4000-8000-000000000000.jpg"), privateBucket: env.BUCKET }).then((checks) => alertOnFailure(checks, settings)).catch((cause) => console.error("health_check_crashed", String(cause))));
+      return;
+    }
     ctx.waitUntil(expirePromotions(db() as unknown as OrderDatabase).catch((cause) => console.error("promotion_expiry_failed", String(cause))));
-    ctx.waitUntil(sendDailyDigests(db() as unknown as NotificationDatabase, { ...(env as unknown as EmailSettings), SITE_URL: siteUrl() }).catch((cause) => console.error("daily_digest_failed", String(cause))));
+    ctx.waitUntil(sendDailyDigests(db() as unknown as NotificationDatabase, settings).catch((cause) => console.error("daily_digest_failed", String(cause))));
   },
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     const request=withRequestContext(incoming);

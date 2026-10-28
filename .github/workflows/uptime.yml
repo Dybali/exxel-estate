@@ -1,0 +1,38 @@
+name: Uptime check
+# Read-only checks of the public site every 3 hours. A failed run makes GitHub email the repository owner.
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://exxel-estate.estatemarket24.workers.dev' }}
+    steps:
+      - name: Public pages, API, photo and headers
+        run: |
+          set -uo pipefail
+          failed=0
+          check() { # path expected-status
+            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 2 --retry-delay 5 --max-time 25 "$SITE_URL$1")
+            if [ "$code" = "$2" ]; then echo "ok   $1 $code"; else echo "::error::$1 returned $code, expected $2"; failed=1; fi
+          }
+          check / 200
+          check /ilanlar 200
+          check /sitemap.xml 200
+          check /robots.txt 200
+          check /api/account 200
+          check /api/admin 403
+          check /api/messages 401
+          headers=$(curl -s -D - -o /dev/null --max-time 25 "$SITE_URL/")
+          echo "$headers" | grep -qi '^x-content-type-options: nosniff' || { echo "::error::Missing X-Content-Type-Options"; failed=1; }
+          listings=$(curl -s --max-time 25 "$SITE_URL/api/listings?page=1")
+          total=$(echo "$listings" | jq -r '.total // empty')
+          if [ -z "$total" ]; then echo "::error::Listing API returned no total"; failed=1; else echo "ok   listings total=$total"; fi
+          image=$(echo "$listings" | jq -r '[.listings[] | select(.source=="user") | .images[0]] | map(select(. != null)) | first // empty')
+          if [ -n "$image" ]; then check "$image" 200; else echo "no published user listing with a photo to check"; fi
+          exit $failed

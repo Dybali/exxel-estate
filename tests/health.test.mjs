@@ -1,0 +1,11 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
+const compile=p=>'data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64');
+const source=readFileSync(new URL('../lib/health.ts',import.meta.url),'utf8').replace('from "./email"',`from "${compile('email')}"`);
+const {runHealthChecks,alertOnFailure}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpile(source,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64'));
+const db=(fail)=>({prepare(){return {bind(){return this},async first(){if(fail)throw Error('connection refused');return {n:7};},async run(){}}}});
+test('healthy services report ok with details',async()=>{const checks=await runHealthChecks(db(false),{imageStorageReady:()=>true,listImages:async()=>null,privateBucket:{head:async()=>null}});assert.deepEqual(checks.map(c=>[c.name,c.ok]),[['database',true],['listing-photos',true],['private-storage',true]]);assert.equal(checks[0].detail,'7 published');});
+test('each failing dependency is reported separately',async()=>{const checks=await runHealthChecks(db(true),{imageStorageReady:()=>false,listImages:async()=>null});assert.deepEqual(checks.map(c=>c.ok),[false,false,false]);assert.match(checks[0].detail,/connection refused/);assert.match(checks[1].detail,/R2 settings/);});
+test('alerts go to the configured address only when something failed',async()=>{const calls=[];globalThis.fetch=async(url,init)=>{calls.push(JSON.parse(init.body));return new Response('{}');};const original=console.error;console.error=()=>{};try{
+ assert.equal(await alertOnFailure([{name:'database',ok:true,ms:1}],{RESEND_API_KEY:'k',EMAIL_FROM:'a@b.c',SITE_URL:'https://s'}),'healthy');
+ assert.equal(await alertOnFailure([{name:'database',ok:false,ms:1,detail:'down'}],{RESEND_API_KEY:'k',EMAIL_FROM:'a@b.c',SITE_URL:'https://s',EXXEL_ADMIN_EMAIL:'admin@example.com'}),'alerted');
+ assert.deepEqual(calls[0].to,['admin@example.com']);assert.match(calls[0].subject,/database/);}finally{console.error=original;}});
