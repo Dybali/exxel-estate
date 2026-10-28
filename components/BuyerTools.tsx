@@ -38,8 +38,8 @@ export function BuyerTools({listing}:{listing:Listing}){
    {difference!=null?<p className={`buyer-tool-compare ${difference>5?"above":difference<-5?"below":"near"}`}>{Math.abs(difference)<=5?t("Bölge medyanına yakın"):`%${number(Math.abs(difference))} ${t(difference>0?"medyanın üstünde":"medyanın altında")}`}</p>:market&&<p className="buyer-tool-note">{t("Karşılaştırma için bu bölgede yeterli ilan yok.")}</p>}
    <p className="buyer-tool-note">{t("Yayındaki ilanların m² fiyatlarından hesaplanır; değerleme değildir.")}</p>
   </article>}
-  {listing.latitude!=null&&listing.longitude!=null&&<article className="buyer-tool"><h3><MapPinned size={17}/>{t("Yakın çevre")}</h3>
-   {nearby?.places?<ul className="buyer-nearby">{CATEGORIES.map(([key,label])=>{const place=nearby.places![key];return <li key={key}><strong>{t(label)}</strong><span>{place.count>0?<>{number(place.count)} · {place.nearest?<>{t("en yakın")}: {place.nearest.name} ({distance(place.nearest.meters)})</>:null}</>:t("Yakında bulunamadı")}</span></li>;})}</ul>:<p className="buyer-tool-note">{t(nearbyError?"Yakın çevre bilgisi şu anda alınamadı.":"Yakın çevre bilgisi yükleniyor...")}</p>}
+  {listing.latitude!=null&&listing.longitude!=null&&!nearbyError&&nearby?.available!==false&&<article className="buyer-tool"><h3><MapPinned size={17}/>{t("Yakın çevre")}</h3>
+   {nearby?.places?<ul className="buyer-nearby">{CATEGORIES.map(([key,label])=>{const place=nearby.places![key];return <li key={key}><strong>{t(label)}</strong><span>{place.count>0?<>{number(place.count)} · {place.nearest?<>{t("en yakın")}: {place.nearest.name} ({distance(place.nearest.meters)})</>:null}</>:t("Yakında bulunamadı")}</span></li>;})}</ul>:<p className="buyer-tool-note">{t("Yakın çevre bilgisi yükleniyor...")}</p>}
    <p className="buyer-tool-note">{t("Yaklaşık konumun 1,5 km çevresi. Veriler OpenStreetMap katkıcılarından alınır ve eksik olabilir.")}</p>
   </article>}
  </div></section>;
