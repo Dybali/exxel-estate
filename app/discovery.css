@@ -13,3 +13,5 @@
 .discovery-alert.price-up>svg{color:#b95f16}.discovery-alert.price-up small{color:#a84d10}.discovery-alert.price-down>svg{color:#07836c}.discovery-alert.price-down small{color:#08715e}
 
 .property-map-canvas.drawing-area{cursor:crosshair}.property-map-controls .map-draw-start,.property-map-controls .map-draw-finish{background:#17334b;color:#fff;border-color:#17334b}.property-map-controls .map-draw-finish:disabled{opacity:.45;cursor:not-allowed}.map-draw-hint{position:static;margin:8px 0 0}
+
+.email-preferences{border:1px solid #e3e6df;background:#fff;padding:16px 18px;margin-bottom:18px;display:grid;gap:10px}.email-preferences h3{display:flex;align-items:center;gap:8px;font-size:15px;margin:0}.email-preferences label{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#3d5145;line-height:1.45}.email-preferences input{margin-top:2px;accent-color:var(--deep)}.email-preferences-note{font-size:12px;color:#7c887f;margin:0}

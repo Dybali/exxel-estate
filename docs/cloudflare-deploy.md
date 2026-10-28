@@ -58,6 +58,7 @@ E-posta doğrulama ve şifre sıfırlama için (Neon Auth):
 | `EXXEL_ADMIN_SETUP_CODE` | `/yonetim/kurulum` ile tek seferlik yönetici açılışı |
 | `BACKUP_READ_TOKEN` | Salt okunur yedek okuyucu (`docs/backup-reader.md`) |
 | `CAPTURE_WORKER_TOKEN`, `CAPTURE_WORKER_MODE` | 360° tur işleme |
+| `RESEND_API_KEY`, `EMAIL_FROM` | E-posta bildirimleri (`docs/email-notifications.md`) |
 
 ChatGPT Sites gizli değerleri geri göstermez. Elinde kopyası olmayan anahtarlar ilgili panelden yeniden oluşturulur; eskisi iptal edilmeden önce yeni site test edilir.
 

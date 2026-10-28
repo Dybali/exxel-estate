@@ -4,6 +4,10 @@ import handler from "vinext/server/fetch-handler";
 import { withResponseSecurity } from "../lib/response-security";
 import { isLocale } from "../lib/i18n-dictionary";
 import { LOCALE_HEADER, PATH_HEADER } from "../lib/request-headers";
+import { db } from "../lib/server";
+import { siteUrl } from "../lib/site-url";
+import { sendDailyDigests, type NotificationDatabase } from "../lib/email-notifications";
+import type { EmailSettings } from "../lib/email";
 
 // Pass ?lang and the path to server components so pages render in the requested language.
 function withRequestContext(request: Request) {
@@ -15,6 +19,10 @@ function withRequestContext(request: Request) {
 }
 
 export default {
+  // Daily email digest (cron in wrangler.jsonc). Does nothing until Resend is configured.
+  async scheduled(_controller: ScheduledController, env: Cloudflare.Env, ctx: ExecutionContext) {
+    ctx.waitUntil(sendDailyDigests(db() as unknown as NotificationDatabase, { ...(env as unknown as EmailSettings), SITE_URL: siteUrl() }).catch((cause) => console.error("daily_digest_failed", String(cause))));
+  },
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     const request=withRequestContext(incoming);
     const reference=crypto.randomUUID();

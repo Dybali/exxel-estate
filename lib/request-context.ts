@@ -1,8 +1,9 @@
 import { headers } from "next/headers";
-import { env } from "cloudflare:workers";
 import { isLocale, locales, type Locale } from "./i18n-dictionary";
-
 import { LOCALE_HEADER, PATH_HEADER } from "./request-headers";
+import { siteUrl } from "./site-url";
+
+export { siteUrl };
 
 export async function requestLocale(): Promise<Locale> {
   const value = (await headers()).get(LOCALE_HEADER);
@@ -14,9 +15,6 @@ export async function requestPath() {
   return value.startsWith("/") ? value : "/";
 }
 
-export function siteUrl() {
-  return ((env as { SITE_URL?: string }).SITE_URL || "https://exxel-estate.estatemarket24.workers.dev").replace(/\/$/, "");
-}
 
 export function localizedUrl(path: string, locale: Locale) {
   const url = new URL(path, siteUrl());
