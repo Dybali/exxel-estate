@@ -1,10 +1,11 @@
 import {bucket,currentUser,error,isAdmin,now,ok,sameOrigin,str} from '@/lib/server';
+import {normalizeContactPhone} from '@/lib/phone';
 import {officeDB} from '@/lib/office-verification-server';
 import {officeFileType,readOfficeFile,OFFICE_PUBLIC_FIELDS,type OfficeVerification} from '@/lib/office-verification';
 export async function GET(request:Request){
- const user=await currentUser(request);if(!user?.email_verified)return error('Doğrulanmış hesapla giriş yapın.',401);
+ const user=await currentUser(request);if(!user)return error('Belge başvurusu için hesabınızla giriş yapın.',401);
  const database=await officeDB(),id=new URL(request.url).searchParams.get('userId')||user.id;
- if(id!==user.id&&!isAdmin(user))return error('Bu belgeye erişiminiz yok.',403);
+ if(id!==user.id&&(!user.email_verified||!isAdmin(user)))return error('Bu belgeye erişiminiz yok.',403);
  const record=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS},object_key FROM office_verifications WHERE user_id=?`).bind(id).first<OfficeVerification&{object_key:string}>();
  if(new URL(request.url).searchParams.get('download')==='1'){
   if(!record)return error('Belge bulunamadı.',404);
@@ -14,13 +15,17 @@ export async function GET(request:Request){
  }
  if(record)delete (record as Partial<typeof record>).object_key;
  const company=await database.prepare('SELECT category FROM agencies WHERE owner_id=?').bind(id).first<{category:string}>();
- return ok({verification:record,companyCategory:company?.category||'agency'},{headers:{'Cache-Control':'private, no-store'}});
+ const application=record?await database.prepare('SELECT contact_name,phone,address,tax_number FROM office_application_details WHERE user_id=? AND document_id=?').bind(id,record.document_id).first():null;
+ return ok({application,verification:record,companyCategory:company?.category||'agency'},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
  if(!sameOrigin(request))return error('Geçersiz kaynak.',403);
  const user=await currentUser(request);if(!user)return error('Giriş yapın.',401);
- if(!user.email_verified||user.role!=='agent')return error('E-postası doğrulanmış şirket hesabı gerekli.',403);
+ if(user.role!=='agent')return error('Emlakçı veya şirket hesabı gerekli.',403);
  if(!user.company?.trim())return error('Önce profilinize ofis adını ekleyin.');
+ let application:Record<string,unknown>;try{application=JSON.parse(decodeURIComponent(request.headers.get('X-Office-Application')||''));if(!application||typeof application!=='object'||Array.isArray(application))throw Error();}catch{return error('Ofis başvuru bilgilerini doldurun.');}
+ const contactName=str(application.name,100),phone=normalizeContactPhone(str(application.phone,32)),address=str(application.address,500),taxNumber=str(application.taxNumber,30);
+ if(contactName.length<2||!phone||address.length<10||!/^[A-Za-z0-9 /-]{5,30}$/.test(taxNumber))return error('Ad soyad, ülke koduyla telefon, ofis adresi ve vergi / şirket sicil numarasını doldurun.');
  const number=str(request.headers.get('X-Document-Number'),41);if(!/^[A-Za-z0-9/-]{3,40}$/.test(number))return error('Yetki belgesi numarasını girin (3–40 harf/rakam).');
  const database=await officeDB(),previous=await database.prepare('SELECT * FROM office_verifications WHERE user_id=?').bind(user.id).first<OfficeVerification&{object_key:string}>();
  if(previous&&previous.state!=='rejected')return error(previous.state==='approved'?'Belgeniz zaten onaylı. Tekrar yüklemeniz gerekmez.':'Belgeniz incelemede. Sonucu bekleyin.',409);
@@ -31,9 +36,10 @@ export async function POST(request:Request){
  const documentId=crypto.randomUUID(),key=`private/office-verifications/${user.id}/${documentId}.${ext}`,stamp=now();
  await storage.put(key,bytes,{httpMetadata:{contentType:type}});
  try{
-  await database.prepare(`INSERT INTO office_verifications(user_id,document_id,document_number,company_snapshot,object_key,content_type,byte_size,state,note,version,created_at,updated_at)
+  await database.batch([database.prepare(`INSERT INTO office_verifications(user_id,document_id,document_number,company_snapshot,object_key,content_type,byte_size,state,note,version,created_at,updated_at)
    VALUES(?,?,?,?,?,?,?,'pending','',1,?,?) ON CONFLICT(user_id) DO UPDATE SET document_id=excluded.document_id,document_number=excluded.document_number,company_snapshot=excluded.company_snapshot,object_key=excluded.object_key,content_type=excluded.content_type,byte_size=excluded.byte_size,state='pending',note='',version=office_verifications.version+1,updated_at=excluded.updated_at,reviewer_id=NULL,reviewed_at=NULL WHERE office_verifications.state='rejected' AND office_verifications.version=?`)
-   .bind(user.id,documentId,number,user.company,key,type,bytes.length,stamp,stamp,expected).run();
+   .bind(user.id,documentId,number,user.company,key,type,bytes.length,stamp,stamp,expected),
+   database.prepare('INSERT INTO office_application_details(user_id,document_id,contact_name,phone,address,tax_number) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM office_verifications WHERE user_id=? AND document_id=?) ON CONFLICT(user_id) DO UPDATE SET document_id=excluded.document_id,contact_name=excluded.contact_name,phone=excluded.phone,address=excluded.address,tax_number=excluded.tax_number').bind(user.id,documentId,contactName,phone,address,taxNumber,user.id,documentId)]);
   const saved=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS} FROM office_verifications WHERE user_id=?`).bind(user.id).first<OfficeVerification>();
   if(saved?.document_id!==documentId){await storage.delete(key);return error('Belge başka bir oturumda değişti. Sayfayı yenileyin.',409);}
   if(previous)await storage.delete(previous.object_key).catch(()=>{});

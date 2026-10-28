@@ -172,3 +172,8 @@ BEGIN
 END $$;
 DROP TRIGGER IF EXISTS individual_listing_policy ON listings;
 CREATE TRIGGER individual_listing_policy BEFORE INSERT OR UPDATE ON listings FOR EACH ROW EXECUTE FUNCTION enforce_individual_listing_policy();
+
+CREATE TABLE IF NOT EXISTS listing_submissions (
+ user_id TEXT NOT NULL, request_id TEXT NOT NULL, payload_hash TEXT NOT NULL,
+ listing_id TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(user_id,request_id)
+);

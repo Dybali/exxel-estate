@@ -1,4 +1,5 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -97,12 +98,13 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await response.json() as { error?: string; user?: {email_verified?:number} };
+      const data = await apiJson(response) as { error?: string; user?: {email_verified?:number;role?:string;isAdmin?:boolean} };
       if (!response.ok) {
         setError(data.error || "İşlem tamamlanamadı.");
         return;
       }
-      if (!data.user?.email_verified) {
+      if(data.user?.isAdmin&&data.user.email_verified){window.location.assign(safeNext.startsWith("/yonetim")?safeNext:"/yonetim");return;}
+      if (!data.user?.email_verified && data.user?.role!=="agent") {
         const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify'})}).then(r=>r.ok).catch(()=>false);
         window.location.assign('/eposta-dogrula'+(sent?'?sent=1':''));
       } else window.location.assign(role==="developer"?"/hesabim?tab=firma":safeNext);

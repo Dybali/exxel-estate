@@ -43,7 +43,7 @@ test('company profile persists privately, isolates owners, rejects stale updates
  try{assert.equal((await post()).status,200);assert.equal((await post()).status,409);assert.equal(sql.prepare('SELECT status FROM agencies WHERE owner_id=?').get('u1').status,'pending');
  const get=()=>api.GET(new Request('https://site.test/api/company-account'));
  assert.equal((await (await get()).json()).profile.description,'Developer portfolio');user={id:'u2',role:'agent',email_verified:1};assert.equal((await (await get()).json()).profile,null);
- user={id:'u1',role:'agent',email_verified:0};assert.equal((await post()).status,403);user={id:'u1',role:'buyer',email_verified:1};assert.equal((await post()).status,403);user=null;assert.equal((await get()).status,401);
+ user={id:'u1',role:'agent',email_verified:0};input.version=1;assert.equal((await post()).status,200);assert.equal(sql.prepare('SELECT status FROM agencies WHERE owner_id=?').get('u1').status,'pending');user={id:'u1',role:'buyer',email_verified:1};assert.equal((await post()).status,403);user=null;assert.equal((await get()).status,401);
  }finally{sql.close();}
 });
 test('construction registration persists the developer category with pending approval and rejects injected account types',async()=>{

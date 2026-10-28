@@ -27,6 +27,8 @@ export const users = sqliteTable("users", {
   createdAt: text("created_at").notNull(),
 }, (t) => [uniqueIndex("users_email_unique").on(t.email)]);
 
+export const agencies=sqliteTable("agencies",{id:text("id").primaryKey(),ownerId:text("owner_id").notNull().references(()=>users.id),name:text("name").notNull(),phone:text("phone"),email:text("email"),category:text("category").notNull().default("agency"),status:text("status").notNull().default("pending"),createdAt:text("created_at").notNull()},t=>[uniqueIndex("agencies_owner_unique").on(t.ownerId)]);
+
 export const sessions = sqliteTable("sessions", {
   tokenHash: text("token_hash").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
@@ -95,6 +97,7 @@ export const listings = sqliteTable("listings", {
   images: text("images").notNull().default("[]"),
   translations: text("translations").notNull().default("{}"),
   status: text("status").notNull().default("pending"),
+  expiresAt: text("expires_at"),
   reviewNote: text("review_note"),
   reviewedBy: text("reviewed_by"),
   reviewedAt: text("reviewed_at"),
@@ -196,3 +199,6 @@ export const appointments = sqliteTable("appointments", {
 
 // Daily deduplication stores no IP address, contact detail or message content.
 export const listingViewDaily=sqliteTable('listing_view_daily',{listingId:text('listing_id').notNull(),day:text('day').notNull(),visitorHash:text('visitor_hash').notNull(),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.listingId,t.day,t.visitorHash]})]);
+
+export const individualListingQuota=sqliteTable("individual_listing_quota",{userId:text("user_id").primaryKey().references(()=>users.id),lastSubmittedAt:text("last_submitted_at").notNull()});
+export const listingSubmissions=sqliteTable("listing_submissions",{userId:text("user_id").notNull(),requestId:text("request_id").notNull(),payloadHash:text("payload_hash").notNull(),listingId:text("listing_id").notNull(),createdAt:text("created_at").notNull()},t=>[primaryKey({columns:[t.userId,t.requestId]})]);
