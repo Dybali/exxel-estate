@@ -30,9 +30,11 @@ import "./listing-entry.css";
 import "./fixed-exchange.css";
 import "./company-directory-list.css";
 import "./foreign-buyer-guide.css";
+import "./admin-workspace.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
+import {SiteFrame} from "@/components/SiteFrame";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppPrompt } from "@/components/WhatsAppPrompt";
@@ -55,7 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body><LocaleProvider><CookieConsentProvider><Header/><WhatsAppPrompt/>{children}<CompareTray/><AssistantLauncher/><Footer/></CookieConsentProvider></LocaleProvider></body>
+      <body><LocaleProvider><CookieConsentProvider><SiteFrame>{children}</SiteFrame></CookieConsentProvider></LocaleProvider></body>
     </html>
   );
 }
