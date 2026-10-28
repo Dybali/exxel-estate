@@ -19,6 +19,16 @@ export const locales: { code: Locale; label: string; flag: string }[] = [
 
 type Translations = Partial<Record<Locale, string>>;
 const words: Record<string, Translations> = {
+  "Tüm ilanlarınızın toplamı": {de:"Gesamtübersicht Ihrer Anzeigen",fr:"Total de vos annonces",en:"Totals across your listings",ar:"إجمالي إعلاناتك",ru:"Итого по вашим объявлениям"},
+  "Yayın tarihi": {de:"Veröffentlichung",fr:"Date de publication",en:"Published",ar:"تاريخ النشر",ru:"Дата публикации"},
+  "Son güncelleme": {de:"Zuletzt aktualisiert",fr:"Dernière mise à jour",en:"Last updated",ar:"آخر تحديث",ru:"Обновлено"},
+  "Belirtilmemiş": {de:"Nicht angegeben",fr:"Non précisé",en:"Not specified",ar:"غير محدد",ru:"Не указано"},
+  "okunmamış": {de:"ungelesen",fr:"non lus",en:"unread",ar:"غير مقروء",ru:"непрочитано"},
+  "Görüşmelerde ara": {de:"Gespräche durchsuchen",fr:"Rechercher dans les conversations",en:"Search conversations",ar:"البحث في المحادثات",ru:"Поиск разговоров"},
+  "Kişi veya görüşme ara": {de:"Person oder Gespräch suchen",fr:"Rechercher une personne ou une conversation",en:"Search people or conversations",ar:"ابحث عن شخص أو محادثة",ru:"Поиск людей и разговоров"},
+  "Mesajınızı yazın…": {de:"Schreiben Sie Ihre Nachricht…",fr:"Écrivez votre message…",en:"Write your message…",ar:"اكتب رسالتك…",ru:"Напишите сообщение…"},
+  "Mesaj gönder": {de:"Nachricht senden",fr:"Envoyer le message",en:"Send message",ar:"إرسال الرسالة",ru:"Отправить сообщение"},
+  "Hesap ve şirket profili yönetici tarafından onaylanmıştır; ilan bilgileri ayrıca doğrulanmış değildir.": {de:"Konto und Firmenprofil wurden vom Administrator freigegeben; die Anzeigenangaben wurden nicht gesondert überprüft.",fr:"Le compte et le profil de l’entreprise ont été approuvés par l’administrateur ; les informations de l’annonce ne sont pas vérifiées séparément.",en:"The account and company profile were approved by an administrator; listing information has not been independently verified.",ar:"وافق المسؤول على الحساب وملف الشركة؛ لم يتم التحقق من معلومات الإعلان بشكل منفصل.",ru:"Администратор одобрил аккаунт и профиль компании; сведения объявления отдельно не проверялись."},
   "Şirket hakkında": {de:"Über das Unternehmen",fr:"À propos de l’entreprise",en:"About the company",ar:"عن الشركة",ru:"О компании"},
   "Bu şirket henüz tanıtım yazısı eklemedi.": {de:"Dieses Unternehmen hat noch keine Beschreibung hinzugefügt.",fr:"Cette entreprise n’a pas encore ajouté de présentation.",en:"This company has not added a description yet.",ar:"لم تضف هذه الشركة نبذة تعريفية بعد.",ru:"Компания пока не добавила описание."},
   "Şirket profilini görüntüle": {de:"Unternehmensprofil ansehen",fr:"Voir le profil de l’entreprise",en:"View company profile",ar:"عرض ملف الشركة",ru:"Посмотреть профиль компании"},
