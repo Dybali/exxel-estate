@@ -22,3 +22,11 @@ test('missing currencies and old or future publications are not displayed as cur
   assert.throws(()=>parseEcbDaily(xml.replace('2026-10-23','2026-10-01'),at));
   assert.throws(()=>parseEcbDaily(xml.replace('2026-10-23','2026-10-27'),at));
 });
+
+test('additional currencies are converted from ECB euro rates and missing optional rates are omitted',()=>{
+  const more=xml.replace('</Cube></Cube>',"<Cube currency='GBP' rate='0.85'/><Cube currency='CHF' rate='0.95'/></Cube></Cube>");
+  const rates=parseEcbDaily(more,at);
+  assert.ok(Math.abs(rates.gbpTry-55.6715/0.85)<1e-12);
+  assert.ok(Math.abs(rates.chfTry-55.6715/0.95)<1e-12);
+  assert.equal(parseEcbDaily(xml,at).gbpTry,undefined);
+});

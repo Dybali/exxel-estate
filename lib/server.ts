@@ -1,3 +1,4 @@
+import {publicationD1} from './d1-publication';
 import {listingExpired} from './listing-policy';
 import { env } from "cloudflare:workers";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
@@ -9,7 +10,7 @@ export const db = () => {
   if (settings.DATABASE_URL) return neonD1(settings.DATABASE_URL) as unknown as D1Database;
   const database = settings.DB;
   if (!database) throw new Error("Database binding unavailable");
-  return database;
+  return publicationD1(database);
 };
 export const bucket = () => (env as SiteEnv).BUCKET;
 export async function publishedListingEntries(){const rows=await db().prepare("SELECT id,updated_at FROM listings WHERE status='published' ORDER BY updated_at DESC,id DESC LIMIT 10000").all<{id:string;updated_at:string}>();return rows.results.map(row=>({id:String(row.id),updatedAt:String(row.updated_at)}));}
@@ -63,7 +64,11 @@ export async function currentUser(request:Request):Promise<User|null> {
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await db().prepare("SELECT u.id,u.email,u.email_verified,u.name,u.role,u.agent_status,u.phone,u.whatsapp_enabled,u.company,u.avatar_url FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").bind(tokenHash,now()).first<User>();
-  return row || null;
+  if (!row) return null;
+  // Unverified sessions can only access account identification and the OTP flow.
+  const pathname = new URL(request.url).pathname;
+  if (!row.email_verified && pathname !== '/api/account' && pathname !== '/api/account/recovery') return null;
+  return row;
 }
 export function sessionCookie(token:string, clear=false) {
   return `excell_session=${clear?"":token}; HttpOnly; Secure; SameSite=Lax; Path=/; ${clear?"Max-Age=0":"Max-Age=2592000"}`;
@@ -84,8 +89,8 @@ export function parseListing(row:Record<string,unknown>):Listing {
     latitude:row.latitude==null?undefined:Number(row.latitude),longitude:row.longitude==null?undefined:Number(row.longitude),grossArea:Number(row.gross_area),netArea:row.net_area==null?undefined:Number(row.net_area),
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
     buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
-    heating:row.heating?String(row.heating):undefined,furnished:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
-    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:listingExpired(row.expires_at)?"expired":String(row.status),expiresAt:row.expires_at?String(row.expires_at):undefined,reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),updatedAt:String(row.updated_at),source:"user"
+    heating:row.heating?String(row.heating):undefined,furnished:row.furnished==null?undefined:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
+    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:listingExpired(row.expires_at)?"expired":String(row.status),expiresAt:row.expires_at?String(row.expires_at):undefined,reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerId:String(row.owner_id),createdAt:String(row.created_at),publishedAt:row.published_at?String(row.published_at):undefined,updatedAt:String(row.updated_at),source:"user"
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {

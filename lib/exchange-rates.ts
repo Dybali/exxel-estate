@@ -5,6 +5,8 @@ export type ExchangeRates = {
   eurTry: number;
   usdTry: number;
   eurUsd: number;
+  gbpTry?: number;
+  chfTry?: number;
   source: 'ECB';
 };
 
@@ -25,5 +27,6 @@ export function parseEcbDaily(xml: string, at = Date.now()): ExchangeRates {
   if (!eurTry || !eurUsd || !Number.isFinite(eurTry) || !Number.isFinite(eurUsd) || eurTry <= 0 || eurUsd <= 0) {
     throw new Error('Required exchange rates unavailable');
   }
-  return {date: date!, eurTry, usdTry: eurTry / eurUsd, eurUsd, source: 'ECB'};
+  const cross=(currency:string)=>{const value=values.get(currency);return value && Number.isFinite(value) && value>0 ? eurTry/value : undefined;};
+  return {date: date!, eurTry, usdTry: eurTry / eurUsd, eurUsd, gbpTry:cross('GBP'), chfTry:cross('CHF'), source: 'ECB'};
 }

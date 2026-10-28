@@ -165,7 +165,7 @@ test('signed-in member receives verified search data; cross-site requests cannot
 test('assistant result destination excludes demo listings and keeps unfurnished criteria',async()=>{
  const queries=[];
  const route=load('app/api/listings/route.ts',{
-  '@/lib/translation-runtime':{scheduleListingTranslations(){}},'@/lib/office-verification-server':{},'@/lib/presentation':{},'@/lib/external-r2':{},'@/lib/turkey-neighborhoods':{},
+  '@/lib/company-team-server':{},'@/lib/translation-runtime':{scheduleListingTranslations(){}},'@/lib/listing-submissions':{},'@/lib/agent-plan':{},'@/lib/office-verification-server':{},'@/lib/presentation':{},'@/lib/external-r2':{},'@/lib/turkey-neighborhoods':{},
   '@/lib/server':{ok:Response.json,error:(message,status=400)=>Response.json({error:message},{status}),db:()=>({prepare(query){queries.push(query);return {bind(){return this;},async first(){return {n:0};}};}})},
  });
  const result=await(await route.GET(new Request('https://site.test/api/listings?assistant=1&furnished=0'))).json();

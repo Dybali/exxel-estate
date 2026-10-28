@@ -1,0 +1,2 @@
+# D1 trigger parsing requires stable line endings on Windows and Linux.
+*.sql text eol=lf

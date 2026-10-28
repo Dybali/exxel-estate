@@ -8,12 +8,12 @@ export const listingPolicyWords:Record<string,[string,string,string,string,strin
     "حصة الإعلانات الفردية",
     "Лимит частных объявлений"
   ],
-  "Bireysel üyeler 3 takvim ayında bir ilan verebilir. İlan, ilk yayın onayından itibaren 20 gün yayında kalır. Düzenleme veya silme yeni ilan hakkını erkene almaz.": [
-    "Private Mitglieder können alle 3 Kalendermonate eine Anzeige aufgeben. Sie bleibt ab der ersten Freigabe 20 Tage online. Bearbeiten oder Löschen verkürzt die Wartezeit nicht.",
-    "Les particuliers peuvent déposer une annonce tous les 3 mois calendaires. Elle reste publiée 20 jours après sa première validation. La modifier ou la supprimer ne raccourcit pas le délai.",
-    "Private members can submit one listing every 3 calendar months. It stays online for 20 days from first publication approval. Editing or deleting it does not shorten the waiting period.",
-    "يمكن للأعضاء الأفراد تقديم إعلان واحد كل 3 أشهر تقويمية. يبقى منشوراً 20 يوماً من أول موافقة للنشر. لا يؤدي تعديله أو حذفه إلى تقصير مدة الانتظار.",
-    "Частные пользователи могут подавать одно объявление каждые 3 календарных месяца. Оно публикуется на 20 дней с первого одобрения. Редактирование или удаление не сокращает ожидание."
+  "Bireysel üyeler 3 takvim ayında bir ilan verebilir. İlan, yayımlandığı andan itibaren 20 gün yayında kalır. Düzenleme veya silme yeni ilan hakkını erkene almaz.": [
+    "Private Mitglieder können alle 3 Kalendermonate eine Anzeige aufgeben. Sie bleibt ab der Veröffentlichung 20 Tage online. Bearbeiten oder Löschen verkürzt die Wartezeit nicht.",
+    "Les particuliers peuvent déposer une annonce tous les 3 mois calendaires. Elle reste publiée 20 jours à compter de sa publication. La modifier ou la supprimer ne raccourcit pas le délai.",
+    "Private members can submit one listing every 3 calendar months. It stays online for 20 days from publication. Editing or deleting it does not shorten the waiting period.",
+    "يمكن للأعضاء الأفراد تقديم إعلان واحد كل 3 أشهر تقويمية. يبقى منشوراً 20 يوماً من تاريخ النشر. لا يؤدي تعديله أو حذفه إلى تقصير مدة الانتظار.",
+    "Частные пользователи могут подавать одно объявление каждые 3 календарных месяца. Оно публикуется на 20 дней с момента публикации. Редактирование или удаление не сокращает ожидание."
   ],
   "Sonraki ilan hakkınız": [
     "Nächste Anzeige möglich ab",

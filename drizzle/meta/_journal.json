@@ -148,6 +148,34 @@
       "when": 1792656530914,
       "tag": "0020_glorious_mariko_yashida",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1793139317365,
+      "tag": "0021_agencies_stage_parity",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1793139668529,
+      "tag": "0022_publication_stage_parity",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1793139752426,
+      "tag": "0023_individual_policy_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1793177000000,
+      "tag": "0024_company_listing_link",
+      "breakpoints": true
     }
   ]
 }

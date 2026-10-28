@@ -11,7 +11,7 @@ export type Listing = {
   amenities: string[]; images: string[]; featured?: boolean; status?: string; expiresAt?: string;
   reviewNote?: string; reviewedAt?: string;
   translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "ru", { title: string; description: string }>>;
-  ownerName?: string; ownerId?: string; createdAt?: string; updatedAt?: string; source?: "demo" | "user";
+  ownerName?: string; ownerId?: string; createdAt?: string; publishedAt?: string; updatedAt?: string; source?: "demo" | "user";
 };
 
 const photo = (id: string, _width = 1200) => `/editorial/${id}.webp`;

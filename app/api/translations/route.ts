@@ -11,10 +11,10 @@ export async function POST(request:Request){
  if(!sameOrigin(request)||request.headers.get('sec-fetch-site')==='cross-site')return Response.json({error:'invalid_origin'},{status:403});
  try{
   const input=await body(request),{kind,id,locale}=input;
-  if(Object.keys(input).some(k=>!['kind','id','locale'].includes(k))||!['listing','blog'].includes(kind)||typeof id!=='string'||!id||id.length>80||!translationLocales.includes(locale))return Response.json({error:'invalid_request'},{status:400});
-  const content=await translationContent(kind,id,locale);if(!content)return Response.json({error:'not_found'},{status:404});
+  if(Object.keys(input).some(k=>!['kind','id','locale'].includes(k))||(typeof kind!=='string'||!['listing','blog'].includes(kind))||typeof id!=='string'||!id||id.length>80||(typeof locale!=='string'||!translationLocales.includes(locale as TranslationLocale)))return Response.json({error:'invalid_request'},{status:400});
+  const content=await translationContent(kind,id,locale as TranslationLocale);if(!content)return Response.json({error:'not_found'},{status:404});
   const doc={...content.document,fields:Object.fromEntries(Object.entries(content.document.fields).filter(([field])=>!content.manual[field]))};
-  const result=Object.keys(doc.fields).length?await prepareTranslations(env.DB as never,translationSettings(),doc,locale):{status:'cached',fields:{}};
+  const result=Object.keys(doc.fields).length?await prepareTranslations(env.DB as never,translationSettings(),doc,locale as TranslationLocale):{status:'cached',fields:{}};
   const pending=result.status==='pending';
   return Response.json({locale,revision:await translationHash(JSON.stringify(content.document.fields)),status:pending?'pending':'ready',fields:pending?content.manual:{...result.fields,...content.manual},machine:!pending&&Object.keys(result.fields).length>0},{status:pending?202:200,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
  }catch(e){await recordOperation(env.DB as never,'deepl',String(e instanceof TranslationError?e.status:503)).catch(()=>{});return Response.json({error:e instanceof TranslationError?e.code:'translation_unavailable'},{status:e instanceof TranslationError?e.status:503,headers:{'Cache-Control':'no-store'}});}

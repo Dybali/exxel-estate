@@ -10,3 +10,5 @@
 .photo-quality-note{font-size:12px;line-height:1.6;color:#855314;background:#fff5e5;padding:10px;margin:0;border-bottom:1px solid #eddcc0}
 
 .property-gallery[data-count="1"]{height:clamp(280px,40vw,520px)}@media(max-width:700px){.property-gallery[data-count="1"]{height:auto;min-height:0;max-height:none;aspect-ratio:4/3}}
+
+.listing-trust-dates{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0 0 20px;color:#5e746f;font-size:12px;line-height:1.5}.listing-trust-dates span{display:inline-flex;align-items:center;gap:6px}.listing-trust-dates svg{color:#13897d;flex-shrink:0}

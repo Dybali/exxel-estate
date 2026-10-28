@@ -58,7 +58,7 @@ export function SellerUpgrade({ user }: { user: Account }) {
   return <div className="seller-upgrade">
     {canApply && <>
       <h3>{t("İlan vermeye başlayın")}</h3>
-      <p>{t("Bireysel mal sahibi olarak ilanınızı incelemeye gönderebilirsiniz. Emlak ofisi ve inşaat firması başvuruları yönetici onayı gerektirir.")}</p>
+      <p>{t("Bireysel mal sahibi olarak ilanınız doğrudan yayımlanır. Emlak ofisi ve inşaat firması başvuruları yönetici onayı gerektirir.")}</p>
       <form onSubmit={submit}>
         <label>{t("Hesap türü")}<select value={role} onChange={(event) => setRole(event.target.value as "individual" | "agent")}>
           {user.role === "buyer" && <option value="individual">{t("Bireysel mal sahibiyim")}</option>}

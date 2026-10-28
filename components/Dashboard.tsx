@@ -1,6 +1,9 @@
 "use client";
+import {apiJson} from '@/lib/api-client';
+
 import {IndividualPolicyNotice} from "./IndividualPolicyNotice";
 import {CompanyAccount} from './CompanyAccount';
+import {CompanyTeam} from './CompanyTeam';
 import {AppointmentsPanel} from "./Appointments";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
@@ -47,16 +50,17 @@ export function Dashboard() {
     }).catch(() => setLoading(false));
   }, []);
 
-  useEffect(()=>{const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(response=>response.json()).then((data:{user?:User})=>setUser(data.user||null)).catch(()=>{});window.addEventListener("salesorrent:profile-changed",refresh);return()=>window.removeEventListener("salesorrent:profile-changed",refresh);},[]);
+  useEffect(()=>{const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(response=>apiJson<{user?:User}>(response)).then((data:{user?:User})=>setUser(data.user||null)).catch(()=>{});window.addEventListener("salesorrent:profile-changed",refresh);return()=>window.removeEventListener("salesorrent:profile-changed",refresh);},[]);
 
   useEffect(() => {
+    if (!loading && user && !user.email_verified) { window.location.replace("/eposta-dogrula"); return; }
     if (!loading && !user) {
       const query = typeof window !== "undefined" ? window.location.search : "";
       window.location.replace(`/giris?next=${encodeURIComponent(`/hesabim${query}`)}`);
     }
   }, [loading, user]);
 
-  useEffect(()=>{if(tab!=="ilanlarim"&&tab!=="genel")return;const controller=new AbortController();fetch('/api/listing-draft',{cache:'no-store',signal:controller.signal}).then(r=>r.ok?r.json():{draft:null}).then(data=>{if(!controller.signal.aborted)setDraft(data.draft||null);}).catch(()=>{});return()=>controller.abort();},[tab]);
+  useEffect(()=>{if(tab!=="ilanlarim"&&tab!=="genel")return;const controller=new AbortController();fetch('/api/listing-draft',{cache:'no-store',signal:controller.signal}).then(r=>r.ok?apiJson<{draft?:import('@/lib/listing-drafts').DraftRecord|null}>(r):{draft:null}).then(data=>{if(!controller.signal.aborted)setDraft(data.draft||null);}).catch(()=>{});return()=>controller.abort();},[tab]);
   async function logout() {
     await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) });
     window.location.assign("/");
@@ -67,7 +71,7 @@ export function Dashboard() {
     if(response.ok){setFavorites(items=>items.filter(item=>item.id!==id));favoritesChanged();}
   }
 
-  if (loading || !user) return <main className="account-page"><div className="container section">{t(loading ? "Hesabınız yükleniyor..." : "Giriş sayfasına yönlendiriliyorsunuz...")}</div></main>;
+  if (loading || !user || !user.email_verified) return <main className="account-page"><div className="container section">{t(loading ? "Hesabınız yükleniyor..." : "Giriş sayfasına yönlendiriliyorsunuz...")}</div></main>;
 
   const items = [
     { id: "genel", label: "Genel Bakış", icon: LayoutDashboard },
@@ -78,6 +82,7 @@ export function Dashboard() {
     {id:"bildirimler",label:"Aramalarım ve bildirimler",icon:Bookmark},
     {id:"bildirimlerim",label:"İlan bildirimlerim",icon:Mail},
     { id: "profil", label: "Profilim", icon: UserRound },
+    { id: "ekip", label: "Ekip ve davetler", icon: UserRound },
     ...(user.role==="agent"?[{id:"firma",label:"Firma bilgilerim",icon:LayoutDashboard}]:[]),
   ];
 
@@ -112,6 +117,7 @@ export function Dashboard() {
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
         {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <DiscoveryPanel/>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}
+        {tab === "ekip" && <CompanyTeam/>}
         {tab === "firma" && user.role==='agent' && <CompanyAccount/>}
         {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/>{user.role==='agent'&&<OfficeVerification/>}<AccountSecurity/></>}
       </section>

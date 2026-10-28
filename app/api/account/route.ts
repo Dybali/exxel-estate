@@ -1,3 +1,4 @@
+import {activeTeamCompany} from '@/lib/company-team-server';
 import { ensureProfiles, validProfileImage } from '@/lib/seller-profiles';
 import { headExternalImage } from '@/lib/external-r2';
 import { body, createSession, currentUser, db, error, isAdmin, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str, verifyPassword } from "@/lib/server";
@@ -22,6 +23,10 @@ export async function POST(request:Request) {
     if(token) await db().prepare("DELETE FROM sessions WHERE token_hash=?").bind(await sha256(token)).run();
     return ok({success:true},{headers:{"Set-Cookie":sessionCookie("",true)}});
   }
+  if (action === "update_profile" || action === "request_seller_role") {
+    const actor = await currentUser(request);
+    if (actor && !actor.email_verified) return error("Önce e-posta adresinizi doğrulayın.",403);
+  }
   if (action==="update_profile") {
     const user=await currentUser(request);
     if(!user) return error("Önce giriş yapın.",401);
@@ -44,6 +49,7 @@ export async function POST(request:Request) {
   if (action==="request_seller_role") {
     const user=await currentUser(request);
     if(!user) return error("Önce giriş yapın.",401);
+    if(await activeTeamCompany(user.id))return error("Hesap türünü değiştirmek için önce şirket ekibinden ayrılın.",409);
     if(user.role==="admin") return error("Yönetici hesabı değiştirilemez.",403);
     const role=str(data.role,20);
     if(!["individual","agent"].includes(role)) return error("Geçerli bir ilan veren türü seçin.");

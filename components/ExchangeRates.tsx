@@ -25,7 +25,9 @@ export function ExchangeRates(){
   },[]);
   const number=(value:number)=>new Intl.NumberFormat(locale,{minimumFractionDigits:4,maximumFractionDigits:4}).format(value);
   const date=rates?new Intl.DateTimeFormat(locale,{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(`${rates.date}T00:00:00Z`)):null;
+  const items=rates?[{code:'USD',value:rates.usdTry},{code:'EUR',value:rates.eurTry},{code:'GBP',value:rates.gbpTry},{code:'CHF',value:rates.chfTry}].filter((item):item is {code:string;value:number}=>typeof item.value==='number'&&Number.isFinite(item.value)):[];
+  const group=(hidden:boolean)=><div className="home-fx-rates" aria-hidden={hidden||undefined}>{items.map(item=><div key={item.code}><span>1 {item.code}</span><strong>{number(item.value)} ₺</strong></div>)}<div className="home-fx-source"><span>ECB · {t('Yayımlanma tarihi')}:</span><strong>{date}</strong></div></div>;
   return <aside className="home-fx-card" aria-label={t('Güncel döviz referansı')} title={rates?`${t('Yayımlanma tarihi')}: ${date} · ECB · ${t('ECB referans kurları bilgilendirme amaçlıdır; işlem kuru değildir.')}`:undefined}>
-    {rates?<div className="home-fx-rates"><div><span>1 EUR</span><strong>{number(rates.eurTry)} ₺</strong></div><div><span>1 USD</span><strong>{number(rates.usdTry)} ₺</strong></div></div>:<span className="home-fx-status" role="status">{t(unavailable?'Kur verisi şu anda alınamıyor.':'Kurlar yükleniyor...')}</span>}
+    {rates?<div className="home-fx-viewport" tabIndex={0}><div className="home-fx-track">{group(false)}{group(true)}</div></div>:<span className="home-fx-status" role="status">{t(unavailable?'Kur verisi şu anda alınamıyor.':'Kurlar yükleniyor...')}</span>}
   </aside>;
 }
