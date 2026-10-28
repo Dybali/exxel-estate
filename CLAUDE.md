@@ -5,8 +5,9 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 ## Geçmiş
 
 - Proje ChatGPT Sites üzerinde geliştirildi; commit mesajları otomatik ("Update Site source").
-- Güncel çalışma `estatemarket24-guncel-2026-10-28` branch'inde. `main` ile **ortak geçmişi yok** (bağımsız iki kopya), birleştirme yapma.
-- Hedef barındırma: sahibinin kendi Cloudflare hesabında Worker (`wrangler.jsonc`, adımlar [docs/cloudflare-deploy.md](docs/cloudflare-deploy.md)). Sites'a özel kod (ChatGPT girişi, connector'lar, `.openai/hosting.json`) kaldırıldı. Eski Sites yayını geçiş bitene kadar açık.
+- Geliştirme `main` üzerinden yapılır. Eski Sites geçmişleri `archive/main-before-cloudflare` ve `archive/sites-2026-10-28` branch'lerinde saklıdır; bunlara commit atılmaz.
+- Barındırma: sahibinin Cloudflare hesabında Worker `exxel-estate` (`wrangler.jsonc`, adımlar [docs/cloudflare-deploy.md](docs/cloudflare-deploy.md)), şimdilik `https://exxel-estate.aliikocr10.workers.dev`. Sites'a özel kod kaldırıldı. Güncel Sites yayını (`estatemarket24-showcase.tastymole36.chatgpt.site`) alan adı geçişine kadar açık; iki yayın aynı Neon veritabanını kullanır.
+- Yayın canlı veriyi kullanır: `npm run deploy` gerçek kullanıcılara açık siteyi günceller. Önce `npm run verify`.
 - `apps/web` (Vercel) + `apps/api` (NestJS/Render) eski, yarım kalmış bir geçiş planıdır; kullanılmıyor.
 
 ## Yapı
