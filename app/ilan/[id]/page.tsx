@@ -14,11 +14,14 @@ import { T, Money } from "@/lib/i18n";
 import { ListingGallery } from "@/components/ListingGallery";
 import { PropertyText } from "@/components/PropertyText";
 import { ExternalMap } from "@/components/ExternalMap";
+import { listingStructuredData, localizedListingText } from "@/lib/listing-seo";
+import { pageAlternates, requestLocale } from "@/lib/request-context";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params, listing=await listingById(id);
-  if(!listing || listing.source==='user'&&listing.status!=='published')return {title:'İlan bulunamadı | estatemarket24'};
-  return {title:`${listing.title} | estatemarket24`,description:listing.description.slice(0,155),openGraph:{title:listing.title,description:listing.description.slice(0,155),images:listing.images[0]?[listing.images[0]]:[]}};
+  if(!listing || listing.source==='user'&&listing.status!=='published')return {title:'İlan bulunamadı | estatemarket24',robots:{index:false,follow:false}};
+  const locale=await requestLocale(),text=localizedListingText(listing,locale),description=text.description.slice(0,155);
+  return {title:`${text.title} | estatemarket24`,description,alternates:await pageAlternates(`/ilan/${listing.id}`),...(listing.source==='demo'?{robots:{index:false,follow:true}}:{}),openGraph:{title:text.title,description,images:listing.images[0]?[listing.images[0]]:[]}};
 }
 export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const {id}=await params,original=await listingById(id),listing=original?publicListing(original):null;
@@ -27,7 +30,8 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const facts:[string,React.ReactNode][]=[['İlan türü',<T key="purpose" id={purposeLabel(listing.purpose)}/>],['Gayrimenkul tipi',<T key="type" id={typeLabel(listing.propertyType)}/>],['Brüt alan',`${listing.grossArea} m²`]];
   if(listing.presentation?.plotArea!=null)facts.push(['Arsa alanı',`${listing.presentation.plotArea} m²`]);if(listing.presentation?.gardenArea!=null)facts.push(['Bahçe alanı',`${listing.presentation.gardenArea} m²`]);
   if(listing.netArea)facts.push(['Net alan',`${listing.netArea} m²`]);if(listing.rooms)facts.push(['Oda düzeni',listing.rooms]);if(listing.bedrooms!=null)facts.push(['Yatak odası',listing.bedrooms]);if(listing.bathrooms!=null)facts.push(['Banyo',listing.bathrooms]);if(listing.buildingAge!=null)facts.push(['Bina yaşı',listing.buildingAge===0?<T key="new" id="Yeni"/>:listing.buildingAge]);if(listing.floor!=null)facts.push(['Bulunduğu kat',listing.floor]);if(listing.totalFloors!=null)facts.push(['Kat sayısı',listing.totalFloors]);if(listing.heating)facts.push(['Isıtma',listing.heating]);facts.push(['Eşyalı',<T key="furnished" id={listing.furnished==null?'Belirtilmemiş':listing.furnished?'Evet':'Hayır'}/>]);
-  return <main className="property-detail-page"><ListingViewTracker id={listing.id}/><div className="container">
+  const structured=listing.source==='demo'?null:listingStructuredData(listing,localizedListingText(listing,await requestLocale()));
+  return <main className="property-detail-page">{structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structured).replace(/</g,'\\u003c')}}/>}<ListingViewTracker id={listing.id}/><div className="container">
     <nav className="property-breadcrumb" aria-label="Sayfa konumu"><Link href="/ilanlar"><ArrowLeft size={15}/><T id="İlanlar"/></Link><ChevronRight size={13}/><Link href={`/ilanlar?city=${encodeURIComponent(listing.city)}`}>{listing.city}</Link><ChevronRight size={13}/><span>{listing.district}</span></nav>
     <ListingGallery listingId={listing.id} images={listing.images} title={listing.title} panoramas={listing.presentation?.panoramas} floorPlan={listing.presentation?.floorPlan}/>
     <div className="property-detail-layout"><article className="property-detail-main"><div className="property-heading"><div className="property-labels"><span><T id={purposeLabel(listing.purpose)}/></span><span><T id={typeLabel(listing.propertyType)}/></span>{listing.source==='demo'&&<span className="sample">Örnek ilan</span>}</div><h1><PropertyText listing={listing} field="title"/></h1><p><MapPin size={18}/>{listing.postalCode?`${listing.postalCode} `:''}{listing.city}, {listing.district}{listing.neighborhood?`, ${listing.neighborhood}`:''}</p></div>

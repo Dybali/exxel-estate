@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),require=createRequire(import.meta.url);
 function load(file,extra=''){const m={exports:{}};new Function('require','module','exports',ts.transpile(fs.readFileSync(path.join(root,file),'utf8')+extra,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}))(name=>{if(name.startsWith('@/'))return name.endsWith('.json')?JSON.parse(fs.readFileSync(path.join(root,name.slice(2)),'utf8')):load(name.slice(2)+'.ts');if(name.startsWith('./'))return load(path.join(path.dirname(file),name)+'.ts');return require(name);},m,m.exports);return m.exports;}
-const dictionary=load('lib/i18n.tsx','\nexport const dictionary=words;').dictionary;
+const dictionary=load('lib/i18n-dictionary.ts').words;
 const locales=['de','fr','en','ar','fa','ru'];
 function check(key){if(/^ESTATEMARKET24/.test(key))return;for(const locale of locales)assert.ok(dictionary[key]?.[locale]?.trim(),`Missing ${locale}: ${key}`);}
 test('literal UI translation keys have coverage in all six languages',()=>{

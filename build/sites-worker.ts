@@ -2,9 +2,21 @@ import {apiFailureResponse,failureLog} from '../lib/api-failures';
 import {recordOperation} from '../lib/operations';
 import handler from "vinext/server/fetch-handler";
 import { withResponseSecurity } from "../lib/response-security";
+import { isLocale } from "../lib/i18n-dictionary";
+import { LOCALE_HEADER, PATH_HEADER } from "../lib/request-headers";
+
+// Pass ?lang and the path to server components so pages render in the requested language.
+function withRequestContext(request: Request) {
+  const url = new URL(request.url), lang = url.searchParams.get("lang");
+  const headers = new Headers(request.headers);
+  headers.set(LOCALE_HEADER, isLocale(lang) ? lang : "tr");
+  headers.set(PATH_HEADER, url.pathname);
+  return new Request(request, { headers });
+}
 
 export default {
-  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
+  async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
+    const request=withRequestContext(incoming);
     const reference=crypto.randomUUID();
     try {
       const response=await handler.fetch(request,env,ctx);

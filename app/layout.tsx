@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./market-refresh.css";
 import "./home-premium.css";
@@ -41,25 +41,41 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppPrompt } from "@/components/WhatsAppPrompt";
 import { LocaleProvider } from "@/lib/i18n";
+import { ServiceWorker } from "@/components/ServiceWorker";
+import { isRtl } from "@/lib/i18n-dictionary";
+import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
+import { openGraphLocale, seoCopy } from "@/lib/seo-copy";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://exxel-estate.blue-grape-8839.chatgpt.site"),
-  title: "estatemarket24 | Türkiye'de Seçkin Gayrimenkuller",
-  description: "Türkiye'deki seçkin satılık ve kiralık daire, villa ve yaşam alanlarını estatemarket24 ile keşfedin.",
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
-};
+export const viewport: Viewport = { themeColor: "#17334b" };
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, path] = await Promise.all([requestLocale(), requestPath()]);
+  const [title, description] = (seoCopy[path] || seoCopy["/"])[locale];
+  return {
+    metadataBase: new URL(siteUrl()),
+    title,
+    description,
+    alternates: { canonical: localizedUrl(path, locale), languages: languageAlternates(path) },
+    openGraph: { siteName: "estatemarket24", locale: openGraphLocale[locale], type: "website", title, description, url: localizedUrl(path, locale) },
+    icons: {
+      icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }, { url: "/favicon.svg" }],
+      shortcut: "/icons/icon-192.png",
+      apple: "/icons/apple-touch-icon.png",
+    },
+    appleWebApp: { capable: true, title: "estatemarket24", statusBarStyle: "default" },
+    manifest: "/manifest.webmanifest",
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await requestLocale();
   return (
-    <html lang="tr">
-      <body><LocaleProvider><CookieConsentProvider><SiteFrame>{children}</SiteFrame></CookieConsentProvider></LocaleProvider></body>
+    <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
+      <body><LocaleProvider initialLocale={locale}><CookieConsentProvider><SiteFrame>{children}</SiteFrame></CookieConsentProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }

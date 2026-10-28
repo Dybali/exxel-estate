@@ -1,0 +1,23 @@
+{
+  "name": "estatemarket24 — Türkiye Gayrimenkul",
+  "short_name": "estatemarket24",
+  "description": "Türkiye'de satılık ve kiralık gayrimenkuller. Property for sale and rent in Türkiye.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#17334b",
+  "lang": "tr",
+  "dir": "auto",
+  "categories": ["business", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "İlanlar", "url": "/ilanlar?source=pwa", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "İlan ver", "url": "/ilan-ver?source=pwa", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
