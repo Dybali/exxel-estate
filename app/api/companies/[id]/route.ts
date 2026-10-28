@@ -1,3 +1,4 @@
+import { userAuthorityNumber } from "@/lib/office-verification-server";
 import {teamDB} from '@/lib/company-team-server';
 import {companyProfileDB} from '@/lib/company-profile-server';
 import {publicListing} from '@/lib/listings';
@@ -25,7 +26,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     db().prepare(`SELECT u.id,u.name,u.avatar_url,COUNT(l.id) AS listing_count FROM company_team_memberships m JOIN users u ON u.id=m.user_id LEFT JOIN listings l ON l.owner_id=u.id AND l.agency_id=m.agency_id AND l.status='published' WHERE m.agency_id=? AND m.ended_at IS NULL GROUP BY u.id,u.name,u.avatar_url ORDER BY u.name`).bind(company.id).all(),
   ]);
   const listings = (rows.results || []).map((row:Record<string,unknown>)=>publicListing(parseListing(row)));
-  return ok({ company: { id: company.id, ownerId:company.owner_id,city:company.city||undefined,description:company.description||company.bio||"",avatarUrl:company.avatar_url,name: company.name, category: company.category, listingCount: Number(counts?.listing_count || 0), saleCount: Number(counts?.sale_count || 0), rentCount: Number(counts?.rent_count || 0) }, listings, team:team.results, page, pageSize }, {
+  const authorityNumber = await userAuthorityNumber(String(company.owner_id));
+  return ok({ company: { id: company.id, ownerId:company.owner_id,authorityNumber,city:company.city||undefined,description:company.description||company.bio||"",avatarUrl:company.avatar_url,name: company.name, category: company.category, listingCount: Number(counts?.listing_count || 0), saleCount: Number(counts?.sale_count || 0), rentCount: Number(counts?.rent_count || 0) }, listings, team:team.results, page, pageSize }, {
     headers: { "Cache-Control": "no-store" },
   });
 }

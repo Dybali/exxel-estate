@@ -15,6 +15,7 @@ import { ListingGallery } from "@/components/ListingGallery";
 import { PropertyText } from "@/components/PropertyText";
 import { ExternalMap } from "@/components/ExternalMap";
 import { BuyerTools } from "@/components/BuyerTools";
+import { listingAuthorityNumber } from "@/lib/office-verification-server";
 import { listingStructuredData, localizedListingText } from "@/lib/listing-seo";
 import { pageAlternates, requestLocale } from "@/lib/request-context";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const facts:[string,React.ReactNode][]=[['İlan türü',<T key="purpose" id={purposeLabel(listing.purpose)}/>],['Gayrimenkul tipi',<T key="type" id={typeLabel(listing.propertyType)}/>],['Brüt alan',`${listing.grossArea} m²`]];
   if(listing.presentation?.plotArea!=null)facts.push(['Arsa alanı',`${listing.presentation.plotArea} m²`]);if(listing.presentation?.gardenArea!=null)facts.push(['Bahçe alanı',`${listing.presentation.gardenArea} m²`]);
   if(listing.netArea)facts.push(['Net alan',`${listing.netArea} m²`]);if(listing.rooms)facts.push(['Oda düzeni',listing.rooms]);if(listing.bedrooms!=null)facts.push(['Yatak odası',listing.bedrooms]);if(listing.bathrooms!=null)facts.push(['Banyo',listing.bathrooms]);if(listing.buildingAge!=null)facts.push(['Bina yaşı',listing.buildingAge===0?<T key="new" id="Yeni"/>:listing.buildingAge]);if(listing.floor!=null)facts.push(['Bulunduğu kat',listing.floor]);if(listing.totalFloors!=null)facts.push(['Kat sayısı',listing.totalFloors]);if(listing.heating)facts.push(['Isıtma',listing.heating]);facts.push(['Eşyalı',<T key="furnished" id={listing.furnished==null?'Belirtilmemiş':listing.furnished?'Evet':'Hayır'}/>]);
+  const authorityNumber=listing.source==='demo'?null:await listingAuthorityNumber(listing.id),eids=listing.presentation?.eidsNumber;
   const structured=listing.source==='demo'?null:listingStructuredData(listing,localizedListingText(listing,await requestLocale()));
   return <main className="property-detail-page">{structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structured).replace(/</g,'\\u003c')}}/>}<ListingViewTracker id={listing.id}/><div className="container">
     <nav className="property-breadcrumb" aria-label="Sayfa konumu"><Link href="/ilanlar"><ArrowLeft size={15}/><T id="İlanlar"/></Link><ChevronRight size={13}/><Link href={`/ilanlar?city=${encodeURIComponent(listing.city)}`}>{listing.city}</Link><ChevronRight size={13}/><span>{listing.district}</span></nav>
@@ -44,6 +46,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     {listing.amenities.length>0&&<section className="property-section"><h2><T id="Öne çıkan imkânlar"/></h2><div className="property-amenities">{listing.amenities.map(a=><span key={a}><Check size={16}/><T id={a}/></span>)}</div></section>}
     <PropertyPresentation value={listing.presentation}/>
     <BuyerTools listing={listing}/>
+    {(authorityNumber||eids)&&<section className="property-section property-legal"><h2><T id="Yasal bilgiler"/></h2><dl className="property-facts-grid">{authorityNumber&&<div><dt><T id="Taşınmaz ticareti yetki belgesi no"/></dt><dd>{authorityNumber}</dd></div>}{eids&&<div><dt><T id="EİDS doğrulama no (ilan verenin beyanı)"/></dt><dd>{eids}</dd></div>}</dl></section>}
     {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={`${listing.district} haritası`} src={map}/><p className="property-map-note"><MapPin size={14}/><T id="Haritadaki nokta yaklaşık konumu gösterir."/></p></section>}
     </article><aside className="property-detail-aside"><ContactCard listing={listing}/></aside></div>
     <div className="property-detail-back"><Link href="/ilanlar"><ArrowLeft size={16}/><T id="Tüm ilanlara dön"/></Link></div>

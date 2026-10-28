@@ -1,6 +1,7 @@
 export type Company = {
   id: string;
   ownerId?:string;
+  authorityNumber?:string|null;
   avatarUrl?:string|null;
   name: string;
   category: "agency" | "developer";
