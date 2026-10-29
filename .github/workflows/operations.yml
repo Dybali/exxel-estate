@@ -707,7 +707,7 @@ jobs:
            }
            return refs;
           }
-          export function verifyReferenceMap(refs,objects){const lookup=new Map(objects.map(x=>[x.source+'\0'+x.key,x]));const missing=[];for(const ref of refs){const object=lookup.get(ref.source+'\0'+ref.key);if(!object||ref.sha256&&ref.sha256!==object.sha256)missing.push({source:ref.source,key:ref.key,table:ref.table});}if(missing.length)throw Error(`${missing.length} missing or mismatched database/media references; backup cannot be completed`);return refs.length;}
+          export function verifyReferenceMap(refs,objects){const lookup=new Map(objects.map(x=>[x.source+'\0'+x.key,x]));const missing=[];for(const ref of refs){const object=lookup.get(ref.source+'\0'+ref.key);if(!object||ref.sha256&&ref.sha256!==object.sha256)missing.push({source:ref.source,key:ref.key,table:ref.table});}if(missing.length){const groups={};for(const ref of missing){const group=ref.table+':'+ref.source;groups[group]=(groups[group]||0)+1;}console.error(JSON.stringify({diagnostic:'media-reference-counts',groups}));throw Error(`${missing.length} missing or mismatched database/media references; backup cannot be completed`);}return refs.length;}
           export function validateConfig(config){
            if(!config.databaseUrl||!config.pgBin||!config.outputRoot||!config.encryptionKey)throw Error('Database, PostgreSQL tools, output path and encryption key are required');
            const url=new URL(config.databaseUrl);if(!['postgres:','postgresql:'].includes(url.protocol)||url.hostname.includes('-pooler.'))throw Error('A direct PostgreSQL connection is required');
