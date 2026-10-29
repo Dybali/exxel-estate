@@ -7,7 +7,7 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Proje ChatGPT Sites üzerinde geliştirildi; commit mesajları otomatik ("Update Site source").
 - Geliştirme `main` üzerinden yapılır. Eski Sites geçmişleri `archive/main-before-cloudflare` ve `archive/sites-2026-10-28` branch'lerinde saklıdır; bunlara commit atılmaz.
 - Barındırma: sahibinin Cloudflare hesabında Worker `exxel-estate` (`wrangler.jsonc`, adımlar [docs/cloudflare-deploy.md](docs/cloudflare-deploy.md)), şimdilik `https://exxel-estate.estatemarket24.workers.dev`. Sites'a özel kod kaldırıldı. Güncel Sites yayını (`estatemarket24-showcase.tastymole36.chatgpt.site`) alan adı geçişine kadar açık; iki yayın aynı Neon veritabanını kullanır.
-- Yayın canlı veriyi kullanır: `npm run deploy` gerçek kullanıcılara açık siteyi günceller. Önce `npm run verify`.
+- Yayın canlı veriyi kullanır: site gerçek kullanıcılara açıktır ve eski Sites yayınıyla aynı Neon veritabanını paylaşır.
 - `apps/web` (Vercel) + `apps/api` (NestJS/Render) eski, yarım kalmış bir geçiş planıdır; kullanılmıyor.
 
 ## Yapı
@@ -29,8 +29,18 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Geliştirme sunucusu: `npm run dev` (port 5173)
 - Tam doğrulama: `npm run verify`: testler (`tests/*.test.mjs`, `node --test`), `tsc -p tsconfig.site.json`, production build. Değişiklikten sonra mutlaka çalıştır.
 - Sadece testler: `npm test`
-- Yayın: `npm run deploy` (build + `wrangler deploy`); D1 migrasyonları: `npm run db:migrate:remote`
+- Yayın: `main`'e push yeterli (bkz. Çalışma düzeni). `npm run deploy` yalnızca acil durumda ve sahibinin açık isteğiyle. D1 migrasyonları: `npm run db:migrate:remote`
 - Windows'ta yeniden build almadan önce açık Worker süreçlerini durdur (`dist/` kilitlenebilir).
+
+## Çalışma düzeni (birden fazla cihaz)
+
+Sahibi aynı repoda iş bilgisayarından, ev bilgisayarından ve telefondan (Claude Code bulut oturumu) çalışır. Karışıklık olmaması için:
+
+- **Tek yayın yolu GitHub Actions'tır.** `main`'e push edilince `verify-site.yml` önce `npm run verify`, başarılıysa `npm run deploy` çalıştırır (`CLOUDFLARE_API_TOKEN` ve `CLOUDFLARE_ACCOUNT_ID` repo secret'ları gerekir). Yerelden `npm run deploy` / `wrangler deploy` yapılmaz: yerel kopya eskiyse daha yeni bir yayını geri alır.
+- **İşe başlamadan önce `git pull origin main`.** Push'tan önce de tekrar çek; reddedilen push'ta `git pull --rebase` (veya merge) yapılır, asla force-push yapılmaz.
+- Değişiklikler küçük, kendi içinde tamam commit'ler halinde ve iş bitince hemen push'lanır; yarım iş bir cihazda push'lanmadan bırakılmaz.
+- Yayından sonra GitHub Actions sonucu kontrol edilir; kırmızıysa düzeltilir. Geri alma: hatalı commit `git revert` ile geri alınıp push'lanır (gerekirse sahibi `npx wrangler rollback` yapar).
+- Veritabanını değiştiren işler (migrasyon, toplu güncelleme, silme) önce sahibine sorulur.
 
 ## Kurallar
 
