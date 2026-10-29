@@ -70,6 +70,8 @@ npm run verify
 npm run deploy
 ```
 
+Otomatik yayın: `main`'e yapılan her push'ta GitHub Actions (`verify-site.yml`) önce `npm run verify`, başarılıysa `npm run deploy` çalıştırır. Bunun için depoda **Settings → Secrets and variables → Actions** altında iki gizli değer tanımlı olmalıdır: `CLOUDFLARE_API_TOKEN` (Cloudflare → My Profile → API Tokens → "Edit Cloudflare Workers" şablonu, yalnızca bu hesap) ve `CLOUDFLARE_ACCOUNT_ID` (Workers & Pages sayfasının sağındaki Account ID). Tanımlı değilse yayın adımı atlanır.
+
 İlk yayın `https://exxel-estate.<hesap-alt-alanı>.workers.dev` adresinde açılır. Bu adreste kontrol edilecekler: ana sayfa, arama, ilan detayı ve fotoğraflar, kayıt/giriş, ilan verme ve fotoğraf yükleme, mesajlaşma, yönetim paneli.
 
 ## 5. Verilerin eksiksiz taşınması
