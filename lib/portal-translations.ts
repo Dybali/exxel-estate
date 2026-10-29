@@ -1339,6 +1339,7 @@ export const portalWords: Record<string, Row> = {
   "Bilinmiyor": { de: "Unbekannt", fr: "Inconnu", en: "Unknown", ar: "غير معروف", fa: "نامشخص", ru: "Неизвестно" },
   "Arsa bilgileri": { de: "Grundstücksangaben", fr: "Informations sur le terrain", en: "Land details", ar: "معلومات الأرض", fa: "اطلاعات زمین", ru: "Данные участка" },
   "İmar, ada, parsel ve tapu bilgilerini ekleyin.": { de: "Geben Sie Bebauungsstatus, Block, Flurstück und Grundbuchstatus an.", fr: "Indiquez le zonage, l'îlot, la parcelle et le statut du titre.", en: "Add zoning, block, parcel and title deed details.", ar: "أضف معلومات التنظيم والجزيرة والقطعة وسند الملكية.", fa: "اطلاعات کاربری، بلوک، قطعه و سند را وارد کنید.", ru: "Укажите статус застройки, квартал, участок и право собственности." },
+  "En yeni ilanlar": { de: "Neueste Anzeigen", fr: "Annonces les plus récentes", en: "Newest listings", ar: "أحدث الإعلانات", fa: "جدیدترین آگهی‌ها", ru: "Сначала новые" },
   // Automatic message translation
   "Otomatik çevrildi": { de: "Automatisch übersetzt", fr: "Traduit automatiquement", en: "Translated automatically", ar: "مترجم تلقائيًا", fa: "ترجمهٔ خودکار", ru: "Переведено автоматически" },
   "Orijinali göster": { de: "Original anzeigen", fr: "Voir l'original", en: "Show original", ar: "عرض النص الأصلي", fa: "نمایش متن اصلی", ru: "Показать оригинал" },

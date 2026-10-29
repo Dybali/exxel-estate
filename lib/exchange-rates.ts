@@ -30,3 +30,14 @@ export function parseEcbDaily(xml: string, at = Date.now()): ExchangeRates {
   const cross=(currency:string)=>{const value=values.get(currency);return value && Number.isFinite(value) && value>0 ? eurTry/value : undefined;};
   return {date: date!, eurTry, usdTry: eurTry / eurUsd, eurUsd, gbpTry:cross('GBP'), chfTry:cross('CHF'), source: 'ECB'};
 }
+
+let latest: {until:number;value:ExchangeRates}|null = null;
+// ECB daily reference rates, cached in the Worker isolate for 30 minutes.
+export async function latestExchangeRates() {
+  if (latest && latest.until > Date.now()) return latest.value;
+  const response = await fetch(ECB_DAILY_XML,{headers:{Accept:'application/xml'},signal:AbortSignal.timeout(8000)});
+  if (!response.ok) throw new Error('ECB unavailable');
+  const value = parseEcbDaily(await response.text());
+  latest = {until:Date.now()+30*60_000,value};
+  return value;
+}

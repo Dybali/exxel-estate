@@ -14,12 +14,18 @@ import {body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameO
 import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
 import {agentPlanAccess,agentInsertGuard} from '@/lib/agent-plan';
 import { validDistrict } from "@/lib/turkey-locations";
+import {compareListings,listingOrderSql,listingSort,priceSort,strictSort,tryRates} from "@/lib/listing-sort";
+import {latestExchangeRates} from "@/lib/exchange-rates";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
   try{const currency=priceCurrency(q);if(currency)q.set("currency",currency);}catch{return error("Geçersiz para birimi.");}
+  const sort=listingSort(q.get("sort"));
+  // Price sorting across currencies uses ECB rates; without them it falls back to TRY listings only.
+  const rates=priceSort(sort)&&!q.get("currency")?tryRates(await latestExchangeRates().catch(()=>null)):null;
+  if(priceSort(sort)&&!q.get("currency")&&!rates)q.set("currency","TRY");
   const page=Math.min(1000,Math.max(1,Math.floor(Number(q.get("page")))||1)),pageSize=q.get("map")==="1"?500:12;
   const where=["l.status='published'"],values:(string|number)[]=[];
   const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
@@ -36,8 +42,7 @@ export async function GET(request:Request) {
   const area=validArea(q.get("area")||"");
   if(area){const spatial=mapBoundsSql(areaBounds(area));where.push(spatial.where);values.push(...spatial.values);}
   const query=where.join(" AND ");
-  const sort=q.get("sort");
-  const order=sort==="priceAsc"?"l.price ASC,l.id ASC":sort==="priceDesc"?"l.price DESC,l.id ASC":sort==="area"?"l.gross_area DESC,l.id ASC":"l.featured DESC,l.created_at DESC";
+  const order=listingOrderSql(sort,rates);
   const demo=(q.get('assistant')==='1'?[]:PUBLIC_DEMO_LISTINGS).filter((l)=>{
     if(!matchesSearchText(q.get("q")||"",l))return false;
     if(!categoryMatches(q.get('category')||'',l))return false;
@@ -49,7 +54,7 @@ export async function GET(request:Request) {
     if(q.get("furnished")==="1"&&!l.furnished)return false;
     if(chosen.some((a)=>!l.amenities.includes(a)))return false;
     return true;
-  }).sort((a,b)=>sort==="priceAsc"?a.price-b.price:sort==="priceDesc"?b.price-a.price:sort==="area"?b.grossArea-a.grossArea:Number(Boolean(b.featured))-Number(Boolean(a.featured)));
+  }).sort(compareListings(sort,rates));
   const mapRow=(l:Listing)=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province" as const:"approximate" as const,description:"",images:l.images.slice(0,1),translations:undefined});
   if(area){
     // The bounding box narrows the query in SQL; the polygon test runs here, so results are paged in memory.
@@ -62,13 +67,13 @@ export async function GET(request:Request) {
   const realCount=Number(count?.n||0);
   const pageStart=(page-1)*pageSize;
   // Published customer listings appear first; demo content only fills remaining slots.
-  const ordered=["priceAsc","priceDesc","area"].includes(sort||"");
+  const ordered=strictSort(sort);
   const realOffset=Math.min(ordered?Math.max(0,pageStart-demo.length):pageStart,realCount);
   const realLimit=Math.max(0,Math.min(ordered?pageStart+pageSize-realOffset:pageSize,realCount-realOffset));
   let real:Listing[]=[];
   if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
-  const listings=ordered?[...real,...demo].sort((a,b)=>sort==="priceAsc"?a.price-b.price||a.id.localeCompare(b.id):sort==="priceDesc"?b.price-a.price||a.id.localeCompare(b.id):b.grossArea-a.grossArea||a.id.localeCompare(b.id)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
+  const listings=ordered?[...real,...demo].sort(compareListings(sort,rates)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
   return ok({listings:q.get("map")==="1"?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
 }
 
