@@ -47,7 +47,7 @@ export async function createOrder(db: OrderDatabase, user: { id: string; role: s
     if (listing.status !== "published") throw new OrderError("Yalnızca yayındaki ilanlar öne çıkarılabilir.");
   } else if (user.role !== "agent") throw new OrderError("Paketler emlakçı hesapları içindir.", 403);
   const open = await db.prepare("SELECT reference FROM orders WHERE user_id=? AND item=? AND COALESCE(listing_id,'')=? AND status='awaiting_payment'").bind(user.id, item, listingId || "").first<{ reference: string }>();
-  if (open) throw new OrderError(`Bu ürün için bekleyen bir siparişiniz var (${open.reference}).`, 409);
+  if (open) throw new OrderError(`Bu ürün için bekleyen bir siparişiniz var: ${open.reference}`, 409);
   const id = crypto.randomUUID(), reference = orderReference(), stamp = at.toISOString();
   await db.prepare("INSERT INTO orders(id,user_id,item,listing_id,amount,currency,status,provider,reference,created_at,updated_at) VALUES(?,?,?,?,?,?,'awaiting_payment',?,?,?,?)")
     .bind(id, user.id, item, listingId, product.amount, product.currency, provider, reference, stamp, stamp).run();

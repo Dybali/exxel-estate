@@ -208,7 +208,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
                 </button>
               </div>
             </label>
-            {mode === "login" && <Link className="auth-forgot-link" href="/sifremi-unuttum">Şifremi unuttum</Link>}
+            {mode === "login" && <Link className="auth-forgot-link" href="/sifremi-unuttum">{t("Şifremi unuttum")}</Link>}
             {mode === "register" && <p className="form-helper">{t("Şirket hesapları e-posta ve belge incelemesinden sonra etkinleştirilir.")}</p>}
             {error && <div className="form-error" role="alert">{t(error)}</div>}
             <button className="primary-button auth-submit" disabled={loading}>

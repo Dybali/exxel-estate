@@ -682,9 +682,16 @@ Object.assign(words,editorialUITranslations);
 for(const [key,[de,fr,en,ar,ru]] of Object.entries({...privacyCompanyWords,...developerShowcaseWords,...managerReviewWords,...legalReviewWords,...exchangeWords}))words[key]={de,fr,en,ar,ru};
 // Persian is kept in one file keyed by the Turkish source text; missing keys fall back to English.
 for(const [key,fa] of Object.entries(persianTranslations as Record<string,string>))words[key]={...words[key],fa};
-Object.assign(words,portalWords);
+// Portal rows fill languages an older entry lacks; existing translations win.
+for(const [key,row] of Object.entries(portalWords))words[key]={...row,...Object.fromEntries(Object.entries(words[key]||{}).filter(([,value])=>value))};
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
+const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" ? words[key]?.en : undefined);
+// "Label: value" messages translate the label and keep the value (e.g. "Geçersiz para birimi: JPY").
 export function translate(key: string, locale: Locale) {
-  return words[key]?.[locale] || (locale === "fa" ? words[key]?.en : undefined) || key;
+  const direct = lookup(key, locale);
+  if (direct) return direct;
+  const at = key.indexOf(": ");
+  const label = at > 0 ? lookup(key.slice(0, at), locale) : undefined;
+  return label ? `${label}: ${key.slice(at + 2)}` : key;
 }

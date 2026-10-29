@@ -40,7 +40,7 @@ export function normalizeImport(raw: RawImport, options: { propertyTypes: readon
     const value = text(key, 20);
     if (!value) { numbers[key] = ""; continue; }
     const parsed = Number(value);
-    if (!Number.isSafeInteger(parsed) || parsed < 0) errors.push(`${key} tam sayı olmalı.`);
+    if (!Number.isSafeInteger(parsed) || parsed < 0) errors.push(`Tam sayı olmalı: ${key}`);
     numbers[key] = parsed;
   }
   if (!(Number(numbers.grossArea) > 0)) errors.push("Brüt alan (grossArea) gerekli.");

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "@/components/SafeLink";
 import { ArrowRight, ShieldCheck } from "lucide-react";
+import { useLocale } from "@/lib/i18n";
 
 export function AdminSetup() {
+  const { t } = useLocale();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -29,5 +31,5 @@ export function AdminSetup() {
     }
   }
 
-  return <main className="admin-page"><div className="form-hero"><div className="container"><span className="eyebrow dark-eyebrow">ESTATEMARKET24 · YÖNETİM</span><h1>Yönetici <em>kurulumu.</em></h1><p>İlan onaylarını yönetmek için tek kullanımlık kurulum kodunu girin.</p></div></div><div className="container admin-setup-wrap"><div className="admin-setup-card"><ShieldCheck size={31}/><h2>Yönetici hesabını açın</h2><p>Bu işlem önceden belirlenen yönetici e-postasına erişim verir. O e-postayla daha önce hesap açıldıysa şifresi yenilenir ve eski oturumlar kapatılır.</p><form onSubmit={submit}><label>Kurulum kodu<input value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" required/></label><label>Ad soyad<input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} autoComplete="name" required/></label><label>Yeni şifre<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={12} maxLength={128} autoComplete="new-password" required/></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" type="submit" disabled={busy}>Yönetici hesabını etkinleştir <ArrowRight size={17}/></button></form><Link href="/" className="back-link">Ana sayfaya dön</Link></div></div></main>;
+  return <main className="admin-page"><div className="form-hero"><div className="container"><span className="eyebrow dark-eyebrow">{t("ESTATEMARKET24 · YÖNETİM")}</span><h1>{t("Yönetici")} <em>{t("kurulumu.")}</em></h1><p>{t("İlan onaylarını yönetmek için tek kullanımlık kurulum kodunu girin.")}</p></div></div><div className="container admin-setup-wrap"><div className="admin-setup-card"><ShieldCheck size={31}/><h2>{t("Yönetici hesabını açın")}</h2><p>{t("Bu işlem önceden belirlenen yönetici e-postasına erişim verir. O e-postayla daha önce hesap açıldıysa şifresi yenilenir ve eski oturumlar kapatılır.")}</p><form onSubmit={submit}><label>{t("Kurulum kodu")}<input value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" required/></label><label>{t("Ad soyad")}<input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} autoComplete="name" required/></label><label>{t("Yeni şifre")}<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={12} maxLength={128} autoComplete="new-password" required/></label>{error && <p className="form-error" role="alert">{t(error)}</p>}<button className="primary-button" type="submit" disabled={busy}>{t("Yönetici hesabını etkinleştir")} <ArrowRight size={17}/></button></form><Link href="/" className="back-link">{t("Ana sayfaya dön")}</Link></div></div></main>;
 }

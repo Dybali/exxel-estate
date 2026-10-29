@@ -69,6 +69,6 @@ export function SellerUpgrade({ user }: { user: Account }) {
         {error && <div className="form-error" role="alert">{t(error)}</div>}
       </form>
     </>}
-    {googleEnabled && !user.email_verified && <a className="google-link-profile" href="/api/auth/google?link=1&next=%2Fhesabim%3Ftab%3Dprofil"><span className="google-symbol" aria-hidden="true">G</span> Google hesabını bağla <ArrowRight size={16} /></a>}
+    {googleEnabled && !user.email_verified && <a className="google-link-profile" href="/api/auth/google?link=1&next=%2Fhesabim%3Ftab%3Dprofil"><span className="google-symbol" aria-hidden="true">G</span> {t("Google hesabını bağla")} <ArrowRight size={16} /></a>}
   </div>;
 }

@@ -42,7 +42,7 @@ export function CityMap() {
         })}</g>
         {shapes.filter((shape) => countFor(shape.name) > 0).slice(0, 20).map((shape) => <g key={`${shape.name}-label`} className="city-map-pin" transform={`translate(${shape.cx} ${shape.cy})`} onClick={() => setSelected(shape.name)} role="button" tabIndex={0} aria-label={`${shape.name}: ${countFor(shape.name)} ${t("ilan")}`} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(shape.name); } }}><circle r="15"/><text textAnchor="middle" dy="4">{countFor(shape.name)}</text></g>)}
       </svg> : <div className="city-map-loading"><MapPinned size={32}/>{t(failed ? "Harita şu anda yüklenemedi." : "Harita yükleniyor...")}</div>}
-      <span className="city-map-attribution">{t("Harita verisi")}: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap katkıcıları</a> · ODbL</span>
+      <span className="city-map-attribution">{t("Harita verisi")}: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">{t("OpenStreetMap katkıcıları")}</a> · ODbL</span>
     </div>
     <aside className="city-map-side">
       <span className="market-overline">{t("İl bazında arama")}</span>

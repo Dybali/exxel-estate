@@ -24,7 +24,7 @@ export async function agentPlanAccess(userId:string){
  const legacy=String(row.created_at)<String(row.activated_at)&&Number(row.had_grant)===0;
  if(legacy)return {allowed:true,legacy:true};
  if(!row.grant_id)return {allowed:false,reason:'İlan verebilmek için aktif paketiniz bulunmalı. Yöneticiyle iletişime geçin.'};
- if(Number(row.used)>=Number(row.listing_limit))return {allowed:false,reason:`Paketinizin ${row.listing_limit} eş zamanlı ilan hakkı doldu.`};
+ if(Number(row.used)>=Number(row.listing_limit))return {allowed:false,reason:`Paketinizin eş zamanlı ilan hakkı doldu: ${row.listing_limit}`};
  return {allowed:true,legacy:false};
 }
 

@@ -51,7 +51,7 @@ export function ListingImport(){
     try{
      const payload=row.payload as {city:string;district:string};const placeKey=`${payload.city}|${payload.district}`;
      if(!places.has(placeKey)){const r=await fetch(`/api/locations?${new URLSearchParams({city:payload.city,district:payload.district})}`);const data=await apiJson<{neighborhoods?:{id:number;name:string;postalCode?:string}[]}>(r);places.set(placeKey,r.ok?data.neighborhoods||[]:[]);}
-     const neighborhood=matchNeighborhood(places.get(placeKey)!,row.neighborhood,row.postalCode);if(!neighborhood)throw Error(`Mahalle bulunamadı veya birden fazla eşleşti: ${row.neighborhood}`);
+     const neighborhood=matchNeighborhood(places.get(placeKey)!,row.neighborhood,row.postalCode);if(!neighborhood)throw Error(t("Mahalle bulunamadı veya birden fazla eşleşti: {name}").replace("{name}",row.neighborhood));
      const images:string[]=[];for(const url of row.images)images.push(await photo(url));
      const r=await fetch("/api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...row.payload,neighborhoodId:neighborhood.id,images,submissionId:await importSubmissionId(account.user.id,row.ref)})});
      const data=await apiJson<{id?:string;status?:string;error?:string}>(r);
@@ -68,7 +68,7 @@ export function ListingImport(){
   <p>{t("İlanlarınızı belgelenmiş XML biçimimizle tek seferde aktarın. Her ilan normal ilan kurallarından geçer; fotoğraflar küçültülür ve filigranlanır.")} <Link href="/xml-ornek-ilanlar.xml">{t("Örnek XML dosyası")}</Link></p>
   <label className="outline-button listing-import-file"><input type="file" accept=".xml,application/xml,text/xml" disabled={running} onChange={e=>choose(e.target.files?.[0])}/>{t("XML dosyası seçin")}</label>
   {error&&<p className="form-error" role="alert">{t(error)}</p>}
-  {rows.length>0&&<><table className="listing-import-table"><thead><tr><th>ref</th><th>{t("Başlık")}</th><th>{t("Durum")}</th></tr></thead><tbody>{rows.map(row=><tr key={row.ref||row.payload.title as string} className={`import-${row.state}`}><td>{row.ref}</td><td>{row.listingId?<Link href={`/ilan/${row.listingId}`}>{String(row.payload.title)}</Link>:String(row.payload.title)}</td><td>{t(label[row.state])}{(row.errors.length>0||row.message)&&<small>{[...row.errors,row.message].filter(Boolean).join(" · ")}</small>}</td></tr>)}</tbody></table>
+  {rows.length>0&&<><table className="listing-import-table"><thead><tr><th>ref</th><th>{t("Başlık")}</th><th>{t("Durum")}</th></tr></thead><tbody>{rows.map(row=><tr key={row.ref||row.payload.title as string} className={`import-${row.state}`}><td>{row.ref}</td><td>{row.listingId?<Link href={`/ilan/${row.listingId}`}>{String(row.payload.title)}</Link>:String(row.payload.title)}</td><td>{t(label[row.state])}{(row.errors.length>0||row.message)&&<small>{[...row.errors,row.message].filter(Boolean).map(x=>t(String(x))).join(" · ")}</small>}</td></tr>)}</tbody></table>
    <button type="button" className="header-post" disabled={running||!ready} onClick={run}>{t(running?"Aktarılıyor...":"Hazır ilanları aktar")} ({ready})</button></>}
  </article>;
 }
