@@ -10,7 +10,7 @@ import {presentationFrom} from "@/lib/presentation";
 import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
 import { areaBounds,centers,listingInArea,mapBoundsSql,validArea,validBounds } from "@/lib/search-filters";
 import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
-import { body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str } from "@/lib/server";
+import {body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str,OWNER_VERIFIED_SQL} from "@/lib/server";
 import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
 import {agentPlanAccess,agentInsertGuard} from '@/lib/agent-plan';
 import { validDistrict } from "@/lib/turkey-locations";
@@ -53,7 +53,7 @@ export async function GET(request:Request) {
   const mapRow=(l:Listing)=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province" as const:"approximate" as const,description:"",images:l.images.slice(0,1),translations:undefined});
   if(area){
     // The bounding box narrows the query in SQL; the polygon test runs here, so results are paged in memory.
-    const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT 500`).bind(...values).all<Record<string,unknown>>();
+    const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT 500`).bind(...values).all<Record<string,unknown>>();
     const inside=[...(rows.results||[]).map(row=>publicListing(parseListing(row))).filter(l=>listingInArea(l,area)),...demo];
     const pageRows=inside.slice((page-1)*pageSize,page*pageSize);
     return ok({listings:q.get("map")==="1"?pageRows.map(mapRow):pageRows,total:inside.length,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
@@ -66,7 +66,7 @@ export async function GET(request:Request) {
   const realOffset=Math.min(ordered?Math.max(0,pageStart-demo.length):pageStart,realCount);
   const realLimit=Math.max(0,Math.min(ordered?pageStart+pageSize-realOffset:pageSize,realCount-realOffset));
   let real:Listing[]=[];
-  if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
+  if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=ordered?[...real,...demo].sort((a,b)=>sort==="priceAsc"?a.price-b.price||a.id.localeCompare(b.id):sort==="priceDesc"?b.price-a.price||a.id.localeCompare(b.id):b.grossArea-a.grossArea||a.id.localeCompare(b.id)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
   return ok({listings:q.get("map")==="1"?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});

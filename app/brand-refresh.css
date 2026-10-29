@@ -4,3 +4,14 @@
 .brand-lockup .wordmark-estate::before{content:"";position:absolute;inset:0 -.02em;z-index:-1;background:#35ead8;clip-path:polygon(0 13%,82% 0,100% 25%,96% 88%,5% 100%)}
 .brand-lockup .wordmark-market,.brand-lockup .wordmark-24{color:#20282d;font-weight:800;text-shadow:none}
 .home-header .brand-lockup .estatemarket-wordmark,.footer-brand .brand-lockup .estatemarket-wordmark{background:#fff;border-radius:5px;padding:3px 8px 4px 4px}
+/* Verified agent badge (approved Taşınmaz Ticareti Yetki Belgesi). */
+.verified-agent-badge{display:inline-flex;align-items:center;gap:5px;background:#f6c343;color:#3d2c00;border:1px solid #e0a800;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;line-height:1.2;white-space:nowrap;width:max-content}
+.verified-agent-badge.compact{font-size:10px;padding:3px 8px;margin-top:6px}
+.verified-agent-badge svg{flex-shrink:0;color:#7a5600}
+/* Sign-out is a clear, coloured action. */
+.account-logout{background:#b23b2e!important;color:#fff!important;border-color:#b23b2e!important;font-weight:700}
+.account-logout:hover{background:#932f24!important}
+/* Required fields: a red asterisk on every label that contains a required control. */
+label:has(> :is(input,select,textarea)[required]),label:has(> div > :is(input,select,textarea)[required]){position:relative}
+label:has(> :is(input,select,textarea)[required])::before,label:has(> div > :is(input,select,textarea)[required])::before{content:"*";position:absolute;top:0;inset-inline-end:2px;color:#c0392b;font-weight:800;line-height:1}
+.required-legend{font-size:12px;color:#6b7a70;margin:0 0 12px}.required-legend b{color:#c0392b}

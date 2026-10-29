@@ -98,7 +98,7 @@ export function Dashboard() {
         <div className="account-nav">
           {items.map((item) => <button key={item.id} className={tab === item.id ? "active" : ""} onClick={() => { setTab(item.id); history.replaceState(null, "", `/hesabim?tab=${item.id}`); }}><item.icon size={17}/>{t(item.label)}</button>)}
           {user.isAdmin && <Link href="/yonetim"><LayoutDashboard size={17}/>{t("Yönetim Paneli")}</Link>}
-          <button onClick={logout}><LogOut size={17}/>{t("Çıkış Yap")}</button>
+          <button className="account-logout" onClick={logout}><LogOut size={17}/>{t("Çıkış Yap")}</button>
         </div>
       </aside>
       <section className={`account-content ${tab === "mesajlar" ? "account-content-inbox" : ""}`}>
