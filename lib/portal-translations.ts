@@ -1337,4 +1337,6 @@ export const portalWords: Record<string, Row> = {
   "Zilliyet": { de: "Besitz ohne Grundbuch", fr: "Possession sans titre", en: "Possession without title", ar: "حيازة دون سند", fa: "تصرف بدون سند", ru: "Владение без титула" },
   "Kooperatif Hisseli": { de: "Genossenschaftsanteil", fr: "Part de coopérative", en: "Cooperative share", ar: "حصة تعاونية", fa: "سهم تعاونی", ru: "Доля в кооперативе" },
   "Bilinmiyor": { de: "Unbekannt", fr: "Inconnu", en: "Unknown", ar: "غير معروف", fa: "نامشخص", ru: "Неизвестно" },
+  "Arsa bilgileri": { de: "Grundstücksangaben", fr: "Informations sur le terrain", en: "Land details", ar: "معلومات الأرض", fa: "اطلاعات زمین", ru: "Данные участка" },
+  "İmar, ada, parsel ve tapu bilgilerini ekleyin.": { de: "Geben Sie Bebauungsstatus, Block, Flurstück und Grundbuchstatus an.", fr: "Indiquez le zonage, l'îlot, la parcelle et le statut du titre.", en: "Add zoning, block, parcel and title deed details.", ar: "أضف معلومات التنظيم والجزيرة والقطعة وسند الملكية.", fa: "اطلاعات کاربری، بلوک، قطعه و سند را وارد کنید.", ru: "Укажите статус застройки, квартал, участок и право собственности." },
 };
