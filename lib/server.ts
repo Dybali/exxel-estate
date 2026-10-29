@@ -15,7 +15,7 @@ export const db = () => {
 export const bucket = () => (env as SiteEnv).BUCKET;
 export async function publishedListingEntries(){const rows=await db().prepare("SELECT id,updated_at FROM listings WHERE status='published' ORDER BY updated_at DESC,id DESC LIMIT 10000").all<{id:string;updated_at:string}>();return rows.results.map(row=>({id:String(row.id),updatedAt:String(row.updated_at)}));}
 // 1 when the owner is an approved agent whose Taşınmaz Ticareti Yetki Belgesi was approved by an admin.
-export const OWNER_VERIFIED_SQL = "(CASE WHEN u.role='agent' AND u.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications ov WHERE ov.user_id=CAST(u.id AS TEXT) AND ov.state='approved') THEN 1 ELSE 0 END) AS owner_verified";
+export const OWNER_VERIFIED_SQL = "(CASE WHEN u.role='agent' AND u.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications ov WHERE ov.user_id=CAST(u.id AS TEXT) AND ov.state='approved') THEN 1 ELSE 0 END) AS owner_verified,u.role AS owner_role";
 export const now = () => new Date().toISOString();
 export const error = (message:string, status=400) => Response.json({error:message},{status});
 export const ok = (data:unknown, init?:ResponseInit) => Response.json(data, init);
@@ -92,7 +92,7 @@ export function parseListing(row:Record<string,unknown>):Listing {
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
     buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
     heating:row.heating?String(row.heating):undefined,furnished:row.furnished==null?undefined:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
-    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:listingExpired(row.expires_at)?"expired":String(row.status),expiresAt:row.expires_at?String(row.expires_at):undefined,reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerVerified:Number(row.owner_verified)===1||row.owner_verified===true,ownerId:String(row.owner_id),createdAt:String(row.created_at),publishedAt:row.published_at?String(row.published_at):undefined,updatedAt:String(row.updated_at),source:"user"
+    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:listingExpired(row.expires_at)?"expired":String(row.status),expiresAt:row.expires_at?String(row.expires_at):undefined,reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerVerified:Number(row.owner_verified)===1||row.owner_verified===true,ownerRole:row.owner_role?String(row.owner_role):undefined,ownerId:String(row.owner_id),createdAt:String(row.created_at),publishedAt:row.published_at?String(row.published_at):undefined,updatedAt:String(row.updated_at),source:"user"
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {

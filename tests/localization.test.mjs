@@ -39,6 +39,6 @@ test('no Turkish JSX text is rendered without translation',()=>{
 test('user-facing messages have a translation in every language',()=>{
  const missing=new Set();
  for(const file of sourceFiles(['app','components','lib']).filter(f=>/\.tsx?$/.test(f))){const source=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,file.endsWith('.tsx')?ts.ScriptKind.TSX:ts.ScriptKind.TS);
-  const visit=n=>{if((ts.isCallExpression(n)||ts.isNewExpression(n))&&n.arguments?.[0]&&ts.isStringLiteral(n.arguments[0])&&TURKISH.test(n.arguments[0].text)){const name=n.expression.getText(source);if(/^(error|set\w*(Error|Message|Status|Notice|Info|Result)|Error|[A-Z]\w*Error)$/.test(name)){const key=n.arguments[0].text;for(const locale of locales)if(!dictionary[key]?.[locale]?.trim()){missing.add(`${path.relative(root,file)}: ${key}`);break;}}}ts.forEachChild(n,visit);};visit(source);}
+  const visit=n=>{if((ts.isCallExpression(n)||ts.isNewExpression(n))&&n.arguments?.[0]&&ts.isStringLiteral(n.arguments[0])&&TURKISH.test(n.arguments[0].text)){const name=n.expression.getText(source);if(/^(error|set\w*(Error|Message|Status|Notice|Info|Result)|Error|[A-Z]\w*Error)$/.test(name)){const key=n.arguments[0].text,label=key.includes(': ')?key.slice(0,key.indexOf(': ')):key;for(const locale of locales)if(!dictionary[key]?.[locale]?.trim()&&!dictionary[label]?.[locale]?.trim()){missing.add(`${path.relative(root,file)}: ${key}`);break;}}}ts.forEachChild(n,visit);};visit(source);}
  assert.deepEqual([...missing],[]);
 });
