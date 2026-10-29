@@ -71,7 +71,7 @@ jobs:
           cat > "$RUNNER_TEMP/em24-tools/operations/launch-preflight.mjs" <<'EM24_FILE_1'
           // Read-only production smoke checks. No login attempts, uploads or paid AI calls.
           import fs from 'node:fs/promises';
-          const base='https://exxel-estate.blue-grape-8839.chatgpt.site',checks=[];
+          const base='https://exxel-estate.estatemarket24.workers.dev',checks=[];
           async function check(name,run){const start=Date.now();try{const details=await run();checks.push({name,passed:true,milliseconds:Date.now()-start,...details});}catch(e){checks.push({name,passed:false,milliseconds:Date.now()-start,error:e.message});}}
           function ensure(value,message){if(!value)throw Error(message);}
           async function get(path){for(let attempt=0;attempt<3;attempt++){try{const response=await fetch(base+path,{redirect:'manual',headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(20000)});if(![429,500,502,503,504].includes(response.status)||attempt===2)return response;await response.body?.cancel();}catch(error){if(attempt===2)throw error;}await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));}}
@@ -860,7 +860,7 @@ jobs:
           export function cloudConfig(env=process.env){
            const required=['BACKUP_DATABASE_URL','BACKUP_ENCRYPTION_KEY','BACKUP_SOURCE_TOKEN','BACKUP_S3_ENDPOINT','BACKUP_S3_BUCKET',...(env.BACKUP_GATEWAY_TOKEN?[]:['BACKUP_S3_ACCESS_KEY_ID','BACKUP_S3_SECRET_ACCESS_KEY'])];
            for(const name of required)if(!env[name])throw Error('Missing setting: '+name);
-           const source=env.BACKUP_SOURCE_URL||'https://exxel-estate.blue-grape-8839.chatgpt.site/api/backup-storage';
+           const source=env.BACKUP_SOURCE_URL||'https://exxel-estate.estatemarket24.workers.dev/api/backup-storage';
            const u=new URL(source);if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw Error('Source must be a clean HTTPS URL');
            const remoteUrl=new URL(env.BACKUP_S3_ENDPOINT);if(remoteUrl.protocol!=='https:'||remoteUrl.username||remoteUrl.password||remoteUrl.search||remoteUrl.hash)throw Error('Destination must be a clean HTTPS URL');
            const prefix=env.BACKUP_S3_PREFIX||'sql-media';if(!/^[a-z0-9][a-z0-9/_-]{0,100}$/.test(prefix)||prefix.split('/').includes('..'))throw Error('Unsafe remote prefix');
