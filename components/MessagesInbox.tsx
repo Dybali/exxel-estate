@@ -1,9 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "@/components/SafeLink";
-import { ArrowUpRight, Check, CheckCheck, ChevronLeft, Mail, MessageCircle, RefreshCw, Search, Send, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, CheckCheck, ChevronLeft, Languages, Mail, MessageCircle, RefreshCw, Search, Send, ShieldCheck } from "lucide-react";
 import { whatsappHref } from "@/lib/phone";
 import { useLocale } from "@/lib/i18n";
+import type { MessageTranslation } from "@/lib/message-translations";
+const TRANSLATION_BATCH = 20; // MESSAGE_TRANSLATION_BATCH on the server
 export type Conversation = { id: string; listing_id: string; peer_id: string; peer_name: string; peer_role?: string; peer_company?: string; peer_whatsapp_phone?:string|null; listing_title: string; listing_status: string | null; sender_id: string; last_body: string; last_at: string; unread_count?: number };
 export type MessageRecipient = { id: string; name: string; role?: string; company?: string; context?: string };
 type ThreadMessage = { id: string; listing_id: string; sender_id: string; recipient_id: string; body: string; created_at: string; read_at?: string | null };
@@ -23,6 +25,9 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
   const [error, setError] = useState(""), [listError, setListError] = useState(""), [hasOlder, setHasOlder] = useState(false), [hasMore, setHasMore] = useState(false), [page, setPage] = useState(1);
   const [search, setSearch] = useState(""), [unreadOnly, setUnreadOnly] = useState(false), [refresh, setRefresh] = useState(0);
   const drafts = useRef(new Map<string,string>()), retries = useRef(new Map<string,{ body: string; id: string }>());
+  // Incoming messages are shown in the reader's site language; keys are `${locale}:${messageId}`.
+  const [translations, setTranslations] = useState<Record<string, MessageTranslation>>({}), [originals, setOriginals] = useState<Set<string>>(() => new Set());
+  const requested = useRef(new Set<string>());
   const loadedPage = useRef(1);
   const selectedRef = useRef(selectedKey), bottom = useRef<HTMLDivElement>(null), pane = useRef<HTMLDivElement>(null), composer = useRef<HTMLTextAreaElement>(null);
   selectedRef.current = selectedKey;
@@ -74,6 +79,23 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
     window.addEventListener("focus", mark); document.addEventListener("visibilitychange", mark); mark();
     return () => { alive = false; observer.disconnect(); window.removeEventListener("focus", mark); document.removeEventListener("visibilitychange", mark); };
   }, [thread, selectedKey, userId, refreshConversations]);
+  useEffect(() => {
+    const pending = thread.filter(m => m.recipient_id === userId && !requested.current.has(`${locale}:${m.id}`)).map(m => m.id);
+    if (!pending.length) return;
+    pending.forEach(id => requested.current.add(`${locale}:${id}`));
+    for (let i = 0; i < pending.length; i += TRANSLATION_BATCH) {
+      const ids = pending.slice(i, i + TRANSLATION_BATCH);
+      fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "translate", ids, locale }) })
+        .then(async response => {
+          const data = await response.json() as { status?: string; translations?: Record<string, MessageTranslation> };
+          if (!response.ok) return;
+          setTranslations(old => ({ ...old, ...Object.fromEntries(Object.entries(data.translations || {}).map(([id, value]) => [`${locale}:${id}`, value])) }));
+          // A busy provider is retried on the next refresh; other outcomes are final for this page view.
+          if (data.status === "pending") ids.forEach(id => requested.current.delete(`${locale}:${id}`));
+        })
+        .catch(() => ids.forEach(id => requested.current.delete(`${locale}:${id}`)));
+    }
+  }, [thread, locale, userId]);
   function choose(c: Conversation) {
     drafts.current.set(selectedKey, draft); setSelectedKey(keyOf(c)); setDraft(drafts.current.get(keyOf(c)) || ""); setThread([]); setError("");
     if (!adminMode) { const p = new URLSearchParams(window.location.search); p.set("tab", "mesajlar"); p.set("listingId", c.listing_id); p.set("peerId", c.peer_id); history.replaceState(null, "", `/hesabim?${p}`); }
@@ -106,7 +128,7 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
       {hasMore&&<button className="message-load" onClick={()=>refreshConversations(page+1)}>{t("Daha fazla görüşme")}</button>}
     </aside>
     {selected ? <section className="inbox-thread"><div className="inbox-thread-head"><button className="message-back" aria-label={t("Görüşmelere dön")} onClick={()=>{drafts.current.set(selectedKey,draft);setSelectedKey("");}}><ChevronLeft size={20}/></button><div><span className={`message-thread-label ${support?"support":""}`}>{support&&<ShieldCheck size={13}/>} {t(support?"YÖNETİM · DESTEK":"İLAN GÖRÜŞMESİ")}</span><h3>{selected.peer_name}</h3><p>{selected.peer_company || selected.listing_title}</p></div>{selected.peer_whatsapp_phone&&<a className="inbox-whatsapp" href={whatsappHref(selected.peer_whatsapp_phone)} target="_blank" rel="noopener noreferrer" aria-label={t("WhatsApp’tan yaz")}><MessageCircle size={18}/><span>WhatsApp</span></a>}{selected.listing_status==="published"&&<Link href={`/ilan/${selected.listing_id}`} title={t("İlanı görüntüle")}><ArrowUpRight size={19}/></Link>}</div>
-      <div className="inbox-thread-messages" ref={pane} role="log" aria-label={t("Konuşma geçmişi")} aria-live="polite">{hasOlder&&<button className="message-load" onClick={older} disabled={olderBusy}>{t(olderBusy?"Yükleniyor…":"Önceki mesajları yükle")}</button>}{loading?<p className="inbox-muted">{t("Mesajlar yükleniyor…")}</p>:!thread.length?<div className="message-welcome"><ShieldCheck size={28}/><strong>{t(support?"Yeni destek görüşmesi":"Görüşmeye başlayın")}</strong><p>{t("Mesajınız yalnızca bu görüşmenin diğer tarafına iletilir.")}</p></div>:thread.map(m=><div key={m.id} className={`inbox-bubble ${m.sender_id===userId?"mine":"theirs"}`}><p>{m.body}</p><div className="message-stamp"><time dateTime={m.created_at}>{new Date(m.created_at).toLocaleString(locale,{dateStyle:"short",timeStyle:"short"})}</time>{m.sender_id===userId&&<span title={t(m.read_at?"Okundu":"Gönderildi")} aria-label={t(m.read_at?"Okundu":"Gönderildi")}>{m.read_at?<CheckCheck size={15}/>:<Check size={15}/>}</span>}</div></div>)}<div ref={bottom}/></div>
+      <div className="inbox-thread-messages" ref={pane} role="log" aria-label={t("Konuşma geçmişi")} aria-live="polite">{hasOlder&&<button className="message-load" onClick={older} disabled={olderBusy}>{t(olderBusy?"Yükleniyor…":"Önceki mesajları yükle")}</button>}{loading?<p className="inbox-muted">{t("Mesajlar yükleniyor…")}</p>:!thread.length?<div className="message-welcome"><ShieldCheck size={28}/><strong>{t(support?"Yeni destek görüşmesi":"Görüşmeye başlayın")}</strong><p>{t("Mesajınız yalnızca bu görüşmenin diğer tarafına iletilir.")}</p></div>:thread.map(m=>{const translated=m.sender_id===userId?undefined:translations[`${locale}:${m.id}`],original=!translated||originals.has(m.id);return <div key={m.id} className={`inbox-bubble ${m.sender_id===userId?"mine":"theirs"}`}><p dir="auto">{original?m.body:translated.text}</p>{translated&&<button type="button" className="message-translation" onClick={()=>setOriginals(old=>{const next=new Set(old);if(next.has(m.id))next.delete(m.id);else next.add(m.id);return next;})}><Languages size={12}/>{original?t("Çeviriyi göster"):<>{t("Otomatik çevrildi")} · {t("Orijinali göster")}</>}</button>}<div className="message-stamp"><time dateTime={m.created_at}>{new Date(m.created_at).toLocaleString(locale,{dateStyle:"short",timeStyle:"short"})}</time>{m.sender_id===userId&&<span title={t(m.read_at?"Okundu":"Gönderildi")} aria-label={t(m.read_at?"Okundu":"Gönderildi")}>{m.read_at?<CheckCheck size={15}/>:<Check size={15}/>}</span>}</div></div>;})}<div ref={bottom}/></div>
       {selected.listing_status ? <div className="message-compose-wrap">{adminMode&&<div className="message-templates" aria-label={t("Mesaj şablonları")}>{["İlan düzenleme","Evrak talebi","Onay bilgisi"].map((label,i)=><button key={label} onClick={()=>{const templates=["Merhaba, ilanınızı incelememiz sırasında bazı bilgilerin güncellenmesi gerektiğini gördük. Lütfen aşağıdaki noktaları düzenleyip bize bilgi verin:\n\n","Merhaba, hesabınızın incelemesini tamamlayabilmemiz için eksik evraklar hakkında sizinle iletişime geçiyoruz. Lütfen aşağıdaki bilgileri kontrol edin:\n\n","Merhaba, hesabınız / ilanınız için inceleme süreciyle ilgili size bilgi vermek istiyoruz:\n\n"];setDraft(old=>old?old+"\n\n"+templates[i]:templates[i]);composer.current?.focus();}}>{t(label)}</button>)}</div>}<form className="inbox-compose" onSubmit={send}><label htmlFor={adminMode?"admin-message-draft":"inbox-draft"} className="sr-only">{t("Mesajınız")}</label><textarea ref={composer} id={adminMode?"admin-message-draft":"inbox-draft"} value={draft} disabled={sending} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();send();}}} minLength={2} maxLength={2000} rows={3} placeholder={t("Mesajınızı yazın…")} required/><button type="submit" disabled={sending||draft.trim().length<2||loading} aria-label={t("Mesaj gönder")}><Send size={18}/><span>{t(sending?"Gönderiliyor…":"Gönder")}</span></button></form><div className="message-compose-meta"><span>{t("Ctrl / ⌘ + Enter ile gönder")}</span><span>{draft.length}/2000</span></div></div>:<p className="inbox-muted">{t("Bu ilan artık mevcut değil. Yeni mesaj gönderilemez.")}</p>}
       {error&&<div className="message-send-error" role="alert"><span>{t(error)}</span><button onClick={()=>setRefresh(n=>n+1)}>{t("Yeniden yükle")}</button></div>}
     </section>:<div className="message-no-selection"><Mail size={40}/><h3>{t(adminMode?"Mesaj merkezi":"Mesajlarınız")}</h3><p>{t(adminMode?"Bir görüşme seçin veya yeni mesaj için bir alıcı bulun.":"Konuşma geçmişini görmek ve yanıtlamak için bir görüşme seçin.")}</p><small>{t("Görüşmeler açıkken otomatik yenilenir.")}</small></div>}

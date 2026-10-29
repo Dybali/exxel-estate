@@ -20,6 +20,10 @@ const sections=[
     "text": "Veritabanı için Neon, barındırma ve dosyalar için Cloudflare tabanlı altyapı kullanılır. estateAİ arama mesajları yanıt üretmek için Google Gemini’ye; çevirilecek ilan metinleri DeepL’e iletilir. İlan ve profilinizde yayımladığınız bilgiler ziyaretçilerce görülebilir; gönderdiğiniz mesajlar alıcısına iletilir. Harici video sağlayıcıları yalnızca ilgili izinden sonra yüklenir."
   },
   {
+    "title": "Mesaj çevirisi",
+    "text": "Size gelen mesajlar, sitede seçtiğiniz dilde okuyabilmeniz için DeepL’e iletilerek otomatik çevrilir. Çeviri yalnızca mesajın alıcısına gösterilir, mesajla birlikte saklanır ve mesaj silindiğinde silinir. Orijinal metin her zaman görüntülenebilir."
+  },
+  {
     "title": "Teknik kayıtlar ve Google ile giriş",
     "text": "Siteye erişimde IP adresi, istek zamanı ve tarayıcıya ilişkin teknik bilgiler barındırma, güvenlik ve hata incelemesi için işlenebilir. Google ile giriş seçilirse Google kimlik doğrulama akışı kullanılır; Google hesabınızdan alınan kimlik ve e-posta bilgileri hesabınızla eşleştirilir. Google ile giriş isteğe bağlıdır."
   },
@@ -44,4 +48,4 @@ const sections=[
     "text": "Uygulanabilir mevzuat ve koşulları kapsamında verileriniz hakkında bilgi ve erişim, düzeltme, silme, işlemeyi kısıtlama ve uygulanabildiğinde taşınabilirlik talep edebilirsiniz. Rızanızı geri alabilir ve meşru menfaate dayalı işlemeye itiraz edebilirsiniz. Yetkili denetim makamına şikâyet hakkınız saklıdır. Başvurunuzu info@exxelmedia.de adresine gönderin; kimliğinizi güvenli şekilde doğrulamak için ek bilgi istenebilir."
   }
 ];
-export function PrivacyPolicy(){const {t,locale}=useLocale();return <main className="container cookie-policy"><header className="cookie-policy-header"><span className="market-overline">ESTATEMARKET24 · {t('Güncelleme')}: {new Intl.DateTimeFormat(locale,{dateStyle:'long',timeZone:'UTC'}).format(new Date('2026-10-23T12:00:00Z'))}</span><h1>{t('Gizlilik politikası')}</h1><h2>{t('Veri sorumlusu ve iletişim')}</h2><CompanyIdentity/></header>{sections.map((s,i)=><section key={s.title}><h2>{i+1}. {t(s.title)}</h2><p>{t(s.text)}</p></section>)}<section><h2>{t('Çerez politikası')}</h2><Link href="/cerez-politikasi">{t('Çerez politikası')}</Link></section></main>;}
+export function PrivacyPolicy(){const {t,locale}=useLocale();return <main className="container cookie-policy"><header className="cookie-policy-header"><span className="market-overline">ESTATEMARKET24 · {t('Güncelleme')}: {new Intl.DateTimeFormat(locale,{dateStyle:'long',timeZone:'UTC'}).format(new Date('2026-10-29T12:00:00Z'))}</span><h1>{t('Gizlilik politikası')}</h1><h2>{t('Veri sorumlusu ve iletişim')}</h2><CompanyIdentity/></header>{sections.map((s,i)=><section key={s.title}><h2>{i+1}. {t(s.title)}</h2><p>{t(s.text)}</p></section>)}<section><h2>{t('Çerez politikası')}</h2><Link href="/cerez-politikasi">{t('Çerez politikası')}</Link></section></main>;}

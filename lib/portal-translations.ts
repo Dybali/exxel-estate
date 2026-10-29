@@ -1339,4 +1339,19 @@ export const portalWords: Record<string, Row> = {
   "Bilinmiyor": { de: "Unbekannt", fr: "Inconnu", en: "Unknown", ar: "غير معروف", fa: "نامشخص", ru: "Неизвестно" },
   "Arsa bilgileri": { de: "Grundstücksangaben", fr: "Informations sur le terrain", en: "Land details", ar: "معلومات الأرض", fa: "اطلاعات زمین", ru: "Данные участка" },
   "İmar, ada, parsel ve tapu bilgilerini ekleyin.": { de: "Geben Sie Bebauungsstatus, Block, Flurstück und Grundbuchstatus an.", fr: "Indiquez le zonage, l'îlot, la parcelle et le statut du titre.", en: "Add zoning, block, parcel and title deed details.", ar: "أضف معلومات التنظيم والجزيرة والقطعة وسند الملكية.", fa: "اطلاعات کاربری، بلوک، قطعه و سند را وارد کنید.", ru: "Укажите статус застройки, квартал, участок и право собственности." },
+  // Automatic message translation
+  "Otomatik çevrildi": { de: "Automatisch übersetzt", fr: "Traduit automatiquement", en: "Translated automatically", ar: "مترجم تلقائيًا", fa: "ترجمهٔ خودکار", ru: "Переведено автоматически" },
+  "Orijinali göster": { de: "Original anzeigen", fr: "Voir l'original", en: "Show original", ar: "عرض النص الأصلي", fa: "نمایش متن اصلی", ru: "Показать оригинал" },
+  "Çeviriyi göster": { de: "Übersetzung anzeigen", fr: "Voir la traduction", en: "Show translation", ar: "عرض الترجمة", fa: "نمایش ترجمه", ru: "Показать перевод" },
+  "Dil seçimi geçersiz.": { de: "Ungültige Sprachauswahl.", fr: "Choix de langue invalide.", en: "Invalid language selection.", ar: "اختيار اللغة غير صالح.", fa: "انتخاب زبان نامعتبر است.", ru: "Неверный выбор языка." },
+  "Mesaj seçimi geçersiz.": { de: "Ungültige Nachrichtenauswahl.", fr: "Sélection de messages invalide.", en: "Invalid message selection.", ar: "اختيار الرسائل غير صالح.", fa: "انتخاب پیام نامعتبر است.", ru: "Неверный выбор сообщений." },
+  "Mesaj çevirisi": { de: "Übersetzung von Nachrichten", fr: "Traduction des messages", en: "Message translation", ar: "ترجمة الرسائل", fa: "ترجمهٔ پیام‌ها", ru: "Перевод сообщений" },
+  "Size gelen mesajlar, sitede seçtiğiniz dilde okuyabilmeniz için DeepL’e iletilerek otomatik çevrilir. Çeviri yalnızca mesajın alıcısına gösterilir, mesajla birlikte saklanır ve mesaj silindiğinde silinir. Orijinal metin her zaman görüntülenebilir.": {
+    de: "Nachrichten, die Sie erhalten, werden zur automatischen Übersetzung an DeepL übermittelt, damit Sie sie in der auf der Website gewählten Sprache lesen können. Die Übersetzung sieht nur der Empfänger; sie wird mit der Nachricht gespeichert und mit ihr gelöscht. Der Originaltext bleibt jederzeit abrufbar.",
+    fr: "Les messages que vous recevez sont transmis à DeepL pour être traduits automatiquement dans la langue choisie sur le site. Seul le destinataire voit la traduction ; elle est conservée avec le message et supprimée avec lui. Le texte original reste toujours consultable.",
+    en: "Messages you receive are sent to DeepL and translated automatically so you can read them in the language selected on the site. Only the recipient sees the translation; it is stored with the message and deleted with it. The original text can always be viewed.",
+    ar: "تُرسل الرسائل التي تتلقاها إلى DeepL لترجمتها تلقائيًا حتى تقرأها باللغة المختارة في الموقع. لا يرى الترجمة إلا المستلم، وتُحفظ مع الرسالة وتُحذف بحذفها. ويمكن عرض النص الأصلي دائمًا.",
+    fa: "پیام‌هایی که دریافت می‌کنید برای ترجمهٔ خودکار به DeepL فرستاده می‌شوند تا آن‌ها را به زبانی که در سایت انتخاب کرده‌اید بخوانید. ترجمه فقط به گیرنده نشان داده می‌شود، همراه پیام نگهداری و با حذف آن حذف می‌شود. متن اصلی همیشه قابل مشاهده است.",
+    ru: "Полученные вами сообщения передаются в DeepL для автоматического перевода на язык, выбранный на сайте. Перевод видит только получатель; он хранится вместе с сообщением и удаляется вместе с ним. Исходный текст всегда можно посмотреть.",
+  },
 };

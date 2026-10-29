@@ -7,7 +7,10 @@ export async function readTranslations(database:Database,doc:TranslationDocument
  const values=new Map(rows.results.map(r=>[r.key,r.translated_text]));
  return {fields:Object.fromEntries(segments.filter(s=>values.has(s.key)).map(s=>[s.field,values.get(s.key)!])),complete:segments.every(s=>values.has(s.key)),segments};
 }
-function limit(raw:string|undefined,fallback:number,max:number){const n=Number(raw);return Number.isSafeInteger(n)&&n>=0?Math.min(n,max):fallback;}
+// These counters are advisory only. Provider/account limits still apply.
+export async function recordTranslationUsage(database:Database,characters:number,stamp=new Date().toISOString()){
+ for(const key of ['day:'+stamp.slice(0,10),'month:'+stamp.slice(0,7)])await database.prepare('INSERT INTO translation_usage(key,characters) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET characters=translation_usage.characters+excluded.characters').bind(key,characters).run();
+}
 export async function prepareTranslations(database:Database,settings:TranslationSettings,doc:TranslationDocument,locale:TranslationLocale){
  if(!settings.DEEPL_API_KEY)throw new TranslationError('not_configured');
  let cached=await readTranslations(database,doc,locale);if(cached.complete)return {status:'cached',fields:cached.fields};
@@ -19,10 +22,7 @@ export async function prepareTranslations(database:Database,settings:Translation
   cached=await readTranslations(database,doc,locale);if(cached.complete)return {status:'cached',fields:cached.fields};
   const missing=[...new Map(cached.segments.filter(s=>!Object.hasOwn(cached.fields,s.field)).map(s=>[s.key,s])).values()];
   const characters=missing.reduce((n,s)=>n+Array.from(s.text).length,0),stamp=new Date().toISOString();
-  for(const [key,cap] of [['day:'+stamp.slice(0,10),limit(settings.DEEPL_DAILY_CHAR_LIMIT,50000,500000)],['month:'+stamp.slice(0,7),limit(settings.DEEPL_MONTHLY_CHAR_LIMIT,300000,5000000)]] as const){
-   // These counters are advisory only. Provider/account limits still apply.
-   await database.prepare('INSERT INTO translation_usage(key,characters) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET characters=translation_usage.characters+excluded.characters').bind(key,characters).run();
-  }
+  await recordTranslationUsage(database,characters,stamp);
   const translated=await translateDeepL(settings,locale,missing.map(s=>s.text));
   await database.batch(missing.map((s,i)=>database.prepare('INSERT INTO content_translations(key,translated_text,detected_language,created_at) VALUES(?,?,?,?) ON CONFLICT(key) DO NOTHING').bind(s.key,translated[i].text,translated[i].language,stamp)));
   return {status:'ready',fields:(await readTranslations(database,doc,locale)).fields};

@@ -5,3 +5,4 @@
 .header-messages-link{position:relative;display:inline-flex;align-items:center;color:#365a46}.header-messages-link>span{position:absolute;top:-8px;right:-9px;min-width:16px;height:16px;padding:0 3px;border-radius:9px;display:grid;place-items:center;background:#276d4c;color:#fff;font-size:9px;font-weight:800;box-shadow:0 0 0 2px #fff}
 .account-layout>.account-sidebar{min-width:0}.account-sidebar .account-user>span{min-width:0;overflow-wrap:anywhere}.message-center .inbox-compose{flex-direction:row}
 @media(max-width:700px){.account-content-inbox{padding:14px}.message-center .inbox-bubble p{font-size:13px}.message-center .inbox-compose textarea{min-height:88px}}
+.message-translation{display:inline-flex;align-items:center;gap:5px;background:transparent;border:0;padding:0;margin:0 0 6px;font-size:10px;color:#5d7a68;cursor:pointer}.message-translation:hover{color:#24543f;text-decoration:underline}
