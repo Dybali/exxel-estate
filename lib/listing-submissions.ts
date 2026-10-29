@@ -13,7 +13,7 @@ export async function submissionTicket(database:Database,userId:string,data:Reco
 }
 export type SubmissionTicket=NonNullable<Awaited<ReturnType<typeof submissionTicket>>>;
 export async function submittedListing(database:Database,ticket:SubmissionTicket){
- const row=await database.prepare('SELECT s.payload_hash,s.listing_id,l.status FROM listing_submissions s LEFT JOIN listings l ON l.id=s.listing_id AND CAST(l.owner_id AS TEXT)=s.user_id WHERE s.user_id=? AND s.request_id=?').bind(ticket.userId,ticket.requestId).first() as {payload_hash:string;listing_id:string;status:string|null}|null;
+ const row=await database.prepare('SELECT s.payload_hash,s.listing_id,l.status FROM listing_submissions s LEFT JOIN listings l ON CAST(l.id AS TEXT)=s.listing_id AND CAST(l.owner_id AS TEXT)=s.user_id WHERE s.user_id=? AND s.request_id=?').bind(ticket.userId,ticket.requestId).first() as {payload_hash:string;listing_id:string;status:string|null}|null;
  if(!row)return null;
  if(row.payload_hash!==ticket.hash)throw new SubmissionError('Önceki gönderiminiz kaydedilmiş. İlanlarım bölümünden mevcut ilanı düzenleyin.');
  if(!row.status)throw new SubmissionError('Bu gönderime ait ilan artık mevcut değil. Yeni bir taslak oluşturun.',410);
