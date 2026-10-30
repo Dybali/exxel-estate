@@ -40,7 +40,5 @@ details.filter-block{padding:0}details.filter-block>summary{list-style:none;curs
 .home-header .brand-lockup .brand-logo{filter:drop-shadow(0 1px 1px rgba(0,0,0,.45)) drop-shadow(0 2px 6px rgba(0,0,0,.35))}
 /* Home page: darken only the strip behind the top line and menu, fading out at its bottom edge,
    so the logo and links stay sharp while the rest of the cover photo is unchanged. */
-.home-topline{background:rgba(6,17,24,.5)}
-.site-header.home-header{background:linear-gradient(180deg,rgba(6,17,24,.5) 0%,rgba(6,17,24,.32) 55%,rgba(6,17,24,0) 100%);border-bottom-color:transparent}
-/* Home page currency bar in the same dark tone as the menu strip below it. */
-.home-fixed-exchange{background:#0b1b22;border-bottom-color:#ffffff1f;box-shadow:none;color:#fff}.home-fixed-exchange .home-fx-card{background:transparent;color:#fff}.home-fixed-exchange .home-fx-rates span,.home-fixed-exchange .home-fx-status{color:#9fbcc3}.home-fixed-exchange .home-fx-rates strong{color:#fff}.home-fixed-exchange .home-fx-rates>div+div{border-left-color:#ffffff29}
+.home-topline{background:rgba(9,24,31,.82);border-bottom:1px solid #ffffff14}
+.site-header.home-header{background:linear-gradient(180deg,rgba(9,24,31,.78) 0%,rgba(9,24,31,.55) 60%,rgba(9,24,31,0) 100%);border-bottom-color:transparent}
