@@ -46,7 +46,7 @@ import { isRtl } from "@/lib/i18n-dictionary";
 import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
 import { openGraphLocale, seoCopy } from "@/lib/seo-copy";
 
-export const viewport: Viewport = { themeColor: "#17334b" };
+export const viewport: Viewport = { themeColor: "#0B5F63" };
 
 export async function generateMetadata(): Promise<Metadata> {
   const [locale, path] = await Promise.all([requestLocale(), requestPath()]);

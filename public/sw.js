@@ -1,6 +1,6 @@
 // estatemarket24 service worker: cache static assets, keep pages and API live,
 // and show a small offline page when there is no connection.
-const VERSION = "em24-v2";
+const VERSION = "em24-v3";
 const STATIC = `${VERSION}-static`;
 const OFFLINE_URL = "/offline";
 

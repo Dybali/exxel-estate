@@ -31,7 +31,7 @@ details.filter-block{padding:0}details.filter-block>summary{list-style:none;curs
 .video-upload-preview{display:grid;gap:12px;justify-items:start}.video-upload-preview .stream-frame{width:100%;max-width:560px}.video-upload-processing{display:flex;align-items:center;gap:10px;margin:0;padding:14px 16px;border-radius:10px;background:#eef6f8;color:#26505c;font-size:14px}.video-upload-processing .spinner{width:16px;height:16px;border:2px solid #9fc3cb;border-top-color:#087f77;border-radius:50%;animation:video-spin 1s linear infinite}@keyframes video-spin{to{transform:rotate(360deg)}}
 .property-video .stream-frame{margin-top:14px}
 /* EstateMarket24 logo (components/Brand.tsx) with the slogan aligned under the lettering. */
-.brand-lockup{--logo-h:45px;display:inline-flex;flex-direction:column;align-items:flex-start;max-width:none;gap:2px}.brand-lockup .brand-logo{display:block;height:var(--logo-h);width:auto}.brand-lockup .brand-tagline{padding-inline-start:calc(var(--logo-h)*1.22)}
+.brand-lockup{--logo-h:45px;display:inline-flex;flex-direction:column;align-items:flex-start;max-width:none;gap:2px}.brand-lockup .brand-logo{display:block;height:var(--logo-h);width:auto}.brand-lockup .brand-tagline{padding-inline-start:calc(var(--logo-h)*1.23)}
 .footer-brand .brand-lockup{--logo-h:48px}.admin-brand .brand-lockup,.admin-login-brand .brand-lockup{--logo-h:38px}.admin-brand .brand-tagline,.admin-login-brand .brand-tagline{display:none}
 .admin-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 @media(max-width:900px){.brand-lockup{--logo-h:40px}}
@@ -40,5 +40,5 @@ details.filter-block{padding:0}details.filter-block>summary{list-style:none;curs
 .home-header .brand-lockup .brand-logo{filter:drop-shadow(0 1px 1px rgba(0,0,0,.45)) drop-shadow(0 2px 6px rgba(0,0,0,.35))}
 /* Home page: darken only the strip behind the top line and menu, fading out at its bottom edge,
    so the logo and links stay sharp while the rest of the cover photo is unchanged. */
-.home-topline{background:rgba(9,24,31,.82);border-bottom:1px solid #ffffff14}
-.site-header.home-header{background:linear-gradient(180deg,rgba(9,24,31,.78) 0%,rgba(9,24,31,.55) 60%,rgba(9,24,31,0) 100%);border-bottom-color:transparent}
+.home-topline{background:rgba(6,52,55,.86);border-bottom:1px solid #ffffff14}
+.site-header.home-header{background:linear-gradient(180deg,rgba(6,52,55,.82) 0%,rgba(6,52,55,.55) 60%,rgba(6,52,55,0) 100%);border-bottom-color:transparent}
