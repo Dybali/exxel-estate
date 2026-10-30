@@ -5,6 +5,7 @@ import {CITIES,PROPERTY_TYPES} from '@/lib/listings';
 import {PROPERTY_CATEGORIES,purposeLabel} from '@/lib/property-categories';
 import {AGE_OPTIONS,FLOOR_OPTIONS,ROOM_OPTIONS,SEARCH_CATEGORIES,type SearchFieldKey} from '@/lib/search-categories';
 import {LAND_CREDIT,LAND_DEED,LAND_ZONING} from '@/lib/land';
+import {subtypeFor} from '@/lib/property-subtypes';
 import {useLocale} from '@/lib/i18n';
 const icons=[House,Building2,LandPlot,Building,CalendarDays,Hotel];
 type Values=Partial<Record<SearchFieldKey,string>>;
@@ -20,6 +21,7 @@ export function HomeSearch(){
  const plain=(items:readonly string[],format=(v:string)=>v)=>items.map(value=>({value,label:format(value)}));
  function field(key:SearchFieldKey){switch(key){
   case 'type':return select(key,'Konut tipi',PROPERTY_TYPES.filter(item=>(group.types as readonly string[]).includes(item.value)).map(item=>({value:item.value,label:t(item.label)})));
+  case 'businessType':case 'tourismType':{const subtype=subtypeFor(key);return select(key,subtype.label,plain(subtype.options,t));}
   case 'city':return select(key,'İl',plain(CITIES),'Tüm şehirler');
   case 'rooms':return select(key,'Oda sayısı',plain(ROOM_OPTIONS));
   case 'minArea':return number(key,'Min m²','m²');

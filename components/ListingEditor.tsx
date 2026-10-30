@@ -1,6 +1,7 @@
 "use client";
 import {LandFields} from './LandFields';
 import {LAND_FIELDS} from '@/lib/land';
+import {SUBTYPES,SUBTYPE_FIELDS} from '@/lib/property-subtypes';
 import {apiJson} from '@/lib/api-client';
 
 
@@ -77,7 +78,7 @@ export function ListingEditor({id}:{id:string}) {
     const form=new FormData(event.currentTarget);
     const translations:Record<string,{title:string;description:string}>={};
     for(const {code} of locales){if(code==="tr")continue;const title=String(form.get(`title_${code}`)||"").trim(),description=String(form.get(`description_${code}`)||"").trim();if(title||description)translations[code]={title,description};}
-    const payload={...presentation,title:form.get("title"),description:form.get("description"),purpose:form.get("purpose"),propertyType:form.get("propertyType"),price:form.get("price"),currency:form.get("currency"),city,district,neighborhoodId, gardenArea:form.get("gardenArea"),plotArea:form.get("plotArea"),grossArea:form.get("grossArea"),netArea:form.get("netArea"),rooms:form.get("rooms"),bedrooms:form.get("bedrooms"),bathrooms:form.get("bathrooms"),buildingAge:form.get("buildingAge"),floor:form.get("floor"),totalFloors:form.get("totalFloors"),heating:form.get("heating"),furnished:form.get("furnished")==="1",...Object.fromEntries(Object.keys(LAND_FIELDS).map(field=>[field,String(form.get(field)||"")])),...(form.get("propertyType")==="arsa"?{rooms:'',bedrooms:'',bathrooms:'',buildingAge:'',floor:'',totalFloors:'',heating:'',netArea:'',plotArea:'',gardenArea:'',furnished:false}:{}),amenities,images,translations,expectedUpdatedAt:listing.updatedAt};
+    const payload={...presentation,title:form.get("title"),description:form.get("description"),purpose:form.get("purpose"),propertyType:form.get("propertyType"),price:form.get("price"),currency:form.get("currency"),city,district,neighborhoodId, gardenArea:form.get("gardenArea"),plotArea:form.get("plotArea"),grossArea:form.get("grossArea"),netArea:form.get("netArea"),rooms:form.get("rooms"),bedrooms:form.get("bedrooms"),bathrooms:form.get("bathrooms"),buildingAge:form.get("buildingAge"),floor:form.get("floor"),totalFloors:form.get("totalFloors"),heating:form.get("heating"),furnished:form.get("furnished")==="1",...Object.fromEntries(SUBTYPE_FIELDS.map(item=>[item.field,String(form.get(item.field)||"")])),...Object.fromEntries(Object.keys(LAND_FIELDS).map(field=>[field,String(form.get(field)||"")])),...(form.get("propertyType")==="arsa"?{rooms:'',bedrooms:'',bathrooms:'',buildingAge:'',floor:'',totalFloors:'',heating:'',netArea:'',plotArea:'',gardenArea:'',furnished:false}:{}),amenities,images,translations,expectedUpdatedAt:listing.updatedAt};
     setSaving(true);setError("");
     try{const response=await fetch(`/api/listings/${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await response.json() as {error?:string};if(!response.ok)throw new Error(data.error||"İlan güncellenemedi.");window.location.assign("/hesabim?tab=ilanlarim");}
     catch(cause){setError(cause instanceof Error?cause.message:"İlan güncellenemedi.");setSaving(false);}
@@ -93,6 +94,7 @@ export function ListingEditor({id}:{id:string}) {
       <section id="edit-basics"><span className="form-section-no">01</span><h2>{t("Temel bilgiler")}</h2><p>{t("Başlık, açıklama ve fiyatı güncelleyin.")}</p><div className="form-grid">
         <label>{t("İlan türü")}<select name="purpose" defaultValue={listing.purpose}>{PURPOSES.map(item=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
         <label>{t("Gayrimenkul tipi")}<select name="propertyType" defaultValue={listing.propertyType} onChange={e=>setEditType(e.target.value)}>{PROPERTY_TYPES.map((item)=><option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></label>
+        {SUBTYPES[editType||listing.propertyType]&&(({field,label,options})=><label key={field}>{t(label)}<select name={field} defaultValue={listing.presentation?.[field]||""} required><option value="">{t("Seçin")}</option>{options.map(x=><option key={x} value={x}>{t(x)}</option>)}</select></label>)(SUBTYPES[editType||listing.propertyType])}
         <label className="span-2">{t("İlan başlığı")}<input name="title" required minLength={12} maxLength={150} defaultValue={listing.title}/></label>
         <label className="span-2">{t("Açıklama")}<textarea name="description" required minLength={30} maxLength={5000} rows={6} defaultValue={listing.description}/></label>
         <label>{t("Fiyat")}<input name="price" type="number" required min="1" step="1" defaultValue={listing.price}/></label>
