@@ -63,6 +63,7 @@ export function Header() {
     { href: "/ilanlar?purpose=satilik", label: "Satılık", active: false },
     { href: "/ilanlar?purpose=kiralik", label: "Kiralık", active: false },
     { href: "/ilanlar", label: "İlanlar", active: path === "/ilanlar" },
+    { href: "/projeler", label: "Projeler", active: path.startsWith("/projeler") },
     { href: "/sirketler", label: "Şirketler", active: path.startsWith("/sirketler") },
     { href: "/paketler", label: "Fiyatlar", active: path === "/paketler" },
     { href: "/blog", label: "Blog & Haberler", active: path.startsWith("/blog") },

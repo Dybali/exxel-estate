@@ -1,0 +1,123 @@
+/* Housing projects ("Projeler"): public list, detail page, dashboard tab and admin review. */
+.projects-page .directory-heading{margin-bottom:22px}
+.project-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end;background:#fff;border:1px solid #e2e8ea;border-radius:12px;padding:16px;margin-bottom:22px}
+.project-filters label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#53666d}
+.project-filters select,.project-filters input{height:42px;border:1px solid #d6dfe2;border-radius:8px;padding:0 10px;font:inherit;font-size:14px;background:#fff;color:#15171c;min-width:0}
+.project-filter-price{display:flex;gap:6px}.project-filter-price input{flex:1}.project-filter-price select{width:78px}
+.project-filter-actions{display:flex;gap:8px}
+.project-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:14px 0 26px}
+.project-card{background:#fff;border:1px solid #e2e8ea;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 6px #15171c0a;transition:box-shadow .2s,transform .2s}
+.project-card:hover{box-shadow:0 10px 26px #15171c18;transform:translateY(-2px)}
+.project-card-photo{position:relative;display:block;aspect-ratio:4/3;background:#eef3f4;color:#9aaab0}
+.project-card-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.project-card-photo>span[aria-hidden]{display:grid;place-items:center;height:100%}
+.project-card-photo .project-status-badge{position:absolute;left:12px;top:12px}
+.project-status-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.02em;background:var(--brand-gold,#f2b84b);color:var(--brand-ink,#15171c)}
+.project-status-badge.completed{background:var(--brand-petrol,#0b5f63);color:#fff}
+.project-card-body{padding:16px 16px 18px;display:grid;gap:8px}
+.project-card-body h2{font-size:18px;margin:0;line-height:1.25}.project-card-body h2 a{color:inherit;text-decoration:none}
+.project-card-location,.project-card-delivery{display:flex;align-items:center;gap:6px;margin:0;color:#53666d;font-size:13px}
+.project-room-chips{display:flex;flex-wrap:wrap;gap:6px}
+.project-room-chips span{border:1px solid #cfe0e1;color:var(--brand-petrol,#0b5f63);background:#f2f8f8;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700}
+.project-price{color:var(--brand-petrol,#0b5f63);font-size:16px}
+.project-card-owner{display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid #eef2f3;padding-top:10px;font-size:13px;color:#303b34;font-weight:600}
+.project-empty{margin:20px 0}
+.project-detail{padding:22px 0 60px}
+.project-detail-state{min-height:50vh;display:grid;place-content:center;justify-items:center;gap:12px;text-align:center}
+.project-back{display:inline-flex;align-items:center;gap:6px;color:#53666d;text-decoration:none;font-size:14px;margin-bottom:14px}
+.project-moderation-note{background:#fff7e6;border:1px solid #f2d79b;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:14px}
+.project-moderation-note p{margin:6px 0 0}
+.project-detail-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:16px}
+.project-detail-head h1{margin:8px 0 6px;font-size:clamp(26px,3.4vw,38px);line-height:1.15}
+.project-detail-head p{display:flex;align-items:center;gap:6px;margin:0;color:#53666d}
+.project-detail-head .project-price{font-size:20px;text-align:end}
+.project-detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:30px;margin-top:26px;align-items:start}
+.project-detail-main{display:grid;gap:26px}
+.project-detail-main h2{font-size:20px;margin:0 0 12px}
+.project-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.project-facts div{background:#f4f7f8;border-radius:10px;padding:12px 14px;display:grid;gap:4px}
+.project-facts span{font-size:12px;color:#53666d;display:flex;align-items:center;gap:4px}
+.project-description{white-space:pre-line;line-height:1.65;margin:0}
+.project-unit-table{overflow-x:auto;border:1px solid #e2e8ea;border-radius:10px}
+.project-unit-table table{width:100%;border-collapse:collapse;font-size:14px}
+.project-unit-table th,.project-unit-table td{padding:11px 14px;text-align:start;border-bottom:1px solid #eef2f3}
+.project-unit-table th{background:#f4f7f8;font-size:12px;color:#53666d}
+.project-unit-table tr:last-child td{border-bottom:0}
+.project-amenities{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.project-amenities li{display:flex;align-items:center;gap:8px}.project-amenities svg{color:var(--brand-petrol,#0b5f63)}
+.project-publisher p{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 8px}
+.project-detail-side{position:sticky;top:100px}
+.project-reservation-form,.project-reservation-success{background:#fff;border:1px solid #e2e8ea;border-radius:14px;padding:20px;display:grid;gap:12px;box-shadow:0 8px 24px #15171c10}
+.project-reservation-form h2,.project-reservation-success h3{margin:0;font-size:20px}
+.project-reservation-form>p,.project-reservation-success p{margin:0;color:#53666d;font-size:13px;line-height:1.5}
+.project-reservation-form label{display:grid;gap:6px;font-size:13px;font-weight:700;color:#303b34}
+.project-reservation-form :is(input,select,textarea){border:1px solid #d6dfe2;border-radius:8px;padding:10px;font:inherit;font-size:14px;font-weight:400;min-width:0}
+.project-reservation-form .project-consent{display:flex;align-items:flex-start;gap:8px;font-weight:400;font-size:12px;line-height:1.5}
+.project-consent input{margin-top:3px}.project-consent a{color:var(--brand-petrol,#0b5f63)}
+.project-reservation-form button[type=submit]{justify-content:center;width:100%}
+.project-reservation-success{justify-items:center;text-align:center}.project-reservation-success svg{color:var(--brand-petrol,#0b5f63)}
+/* Dashboard: Projelerim */
+.projects-panel{display:grid;gap:18px}
+.projects-panel .icon-button{display:inline-grid;place-items:center;width:36px;height:36px;border:1px solid #d6dfe2;border-radius:8px;background:#fff;cursor:pointer;color:#303b34}
+.projects-panel .icon-button:disabled{opacity:.4;cursor:default}
+.project-owner-list{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.project-owner-list>li{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:14px;align-items:center;background:#fff;border:1px solid #e2e8ea;border-radius:12px;padding:12px}
+.project-owner-list img,.project-owner-thumb{width:96px;height:72px;object-fit:cover;border-radius:8px;background:#eef3f4;display:grid;place-items:center;color:#9aaab0}
+.project-owner-list>li>div:nth-child(2){display:grid;gap:4px;justify-items:start}
+.project-owner-list small{color:#53666d}
+.project-moderation{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:800}
+.project-moderation.pending{background:#fff1d1;color:#8a5a00}.project-moderation.approved{background:#e2f3ef;color:#0b5f63}.project-moderation.rejected{background:#fde8e6;color:#a0261b}
+.project-review-note{margin:0;font-size:13px;color:#a0261b}
+.project-owner-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.project-owner-actions .outline-button{display:inline-flex;align-items:center;gap:6px}
+.project-owner-actions .danger{color:#a0261b;border-color:#f0c4bf}
+.project-editor{background:#fff;border:1px solid #e2e8ea;border-radius:14px;padding:20px;display:grid;gap:14px}
+.project-editor-head{display:flex;justify-content:space-between;align-items:center}.project-editor-head h3{margin:0}
+.project-editor-note{margin:0;color:#53666d;font-size:13px}
+.project-editor label{display:grid;gap:6px;font-size:13px;font-weight:700;color:#303b34}
+.project-editor :is(input:not([type=checkbox]),select,textarea){border:1px solid #d6dfe2;border-radius:8px;padding:9px 10px;font:inherit;font-size:14px;font-weight:400;min-width:0;background:#fff}
+.project-editor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.project-editor-wide{grid-column:span 2}
+.project-editor fieldset{border:1px solid #e2e8ea;border-radius:10px;padding:12px 14px;margin:0;display:grid;gap:10px}
+.project-editor legend{font-weight:800;font-size:14px;padding:0 6px}
+.project-editor fieldset>p{margin:0;font-size:12px;color:#53666d}
+.project-unit-row{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr 90px 36px;gap:8px;align-items:end}
+.project-units>.outline-button,.project-upload{justify-self:start;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.project-amenity-picker{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.project-amenity-picker label{display:flex;align-items:center;gap:8px;font-weight:500}
+.project-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.project-photo-grid figure{margin:0;position:relative;border-radius:8px;overflow:hidden;background:#eef3f4}
+.project-photo-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.project-photo-grid figure:first-child{outline:3px solid var(--brand-gold,#f2b84b);outline-offset:-3px}
+.project-photo-grid figcaption{position:absolute;inset:auto 0 0;display:flex;justify-content:space-between;gap:4px;padding:4px;background:#15171c99}
+.project-photo-grid figcaption button{border:0;background:#fff;border-radius:5px;min-width:26px;height:24px;cursor:pointer;display:grid;place-items:center}
+.project-photo-grid figcaption button:disabled{opacity:.4}
+.project-editor-actions{display:flex;gap:10px;flex-wrap:wrap}
+.project-reservation-contact{margin:4px 0;font-size:14px}.project-reservation-contact a{color:var(--brand-petrol,#0b5f63)}
+.project-reservation-message{margin:6px 0;white-space:pre-line;font-size:14px;color:#303b34;background:#f4f7f8;border-radius:8px;padding:8px 10px}
+/* Admin review */
+.admin-projects{display:grid;gap:14px}
+.admin-project-review{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;align-items:start}
+.admin-project-photo{aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:#eef3f4;display:grid;place-items:center;color:#9aaab0}
+.admin-project-photo img{width:100%;height:100%;object-fit:cover}
+.admin-project-body{display:grid;gap:8px}
+.admin-project-body h3,.admin-project-body p{margin:0}
+.admin-project-units{font-size:13px;color:#0b5f63;font-weight:600}
+.admin-project-description{font-size:13px;color:#53666d;white-space:pre-line}
+.admin-project-body label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.admin-project-body textarea{border:1px solid #d6dfe2;border-radius:8px;padding:8px;font:inherit}
+.admin-project-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:1000px){
+ .project-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.project-filter-actions{grid-column:1/-1}
+ .project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .project-detail-layout{grid-template-columns:1fr}.project-detail-side{position:static}
+ .project-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .project-unit-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:640px){
+ .project-filters,.project-grid,.project-editor-grid{grid-template-columns:1fr}.project-editor-wide{grid-column:auto}
+ .project-detail-head{flex-direction:column;align-items:flex-start}.project-detail-head .project-price{text-align:start}
+ .project-owner-list>li{grid-template-columns:72px minmax(0,1fr)}.project-owner-list img,.project-owner-thumb{width:72px;height:56px}.project-owner-actions{grid-column:1/-1;justify-content:flex-start}
+ .project-unit-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .admin-project-review{grid-template-columns:1fr}
+}

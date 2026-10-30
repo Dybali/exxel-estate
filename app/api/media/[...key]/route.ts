@@ -1,11 +1,15 @@
 import { bucket, currentUser, db, isAdmin } from "@/lib/server";
 import { getExternalImage } from "@/lib/external-r2";
+import { projectMediaPublic } from "@/lib/projects";
+import { projectsDB } from "@/lib/projects-server";
 export async function GET(request:Request,{params}:{params:Promise<{key:string[]}>}) {
   const key=(await params).key.join("/");
   if(!/^listings\/[a-f0-9-]+\/[a-f0-9-]+\.(jpg|png|webp)$/.test(key)) return new Response(null,{status:404});
   const row=await db().prepare("SELECT l.status,l.owner_id FROM property_images p JOIN listings l ON l.id=p.property_id WHERE p.object_key=?").bind(key).first<{status:string;owner_id:string}>();
   const profile=row?null:await db().prepare('SELECT id FROM users WHERE avatar_url=?').bind('/api/media/'+key).first();
-  const isPublic=row?.status==="published"||Boolean(profile);
+  // Photos of approved projects (lib/projects.ts) are public as well.
+  const project=row||profile?false:await projectMediaPublic(projectsDB(),key).catch(()=>false);
+  const isPublic=row?.status==="published"||Boolean(profile)||project;
   if(!isPublic) {
     const user=await currentUser(request);
     const uploaderId=key.split("/")[1];

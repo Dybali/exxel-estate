@@ -31,6 +31,15 @@ export const seoCopy: Record<string, Copy> = {
     fa: ["مشاوران املاک و شرکت‌های سازنده | estatemarket24", "مشاوران املاک و شرکت‌های سازندهٔ تأییدشده در ترکیه را همراه با سبد املاک و اطلاعات تماس ببینید."],
     ru: ["Агентства недвижимости и застройщики | estatemarket24", "Проверенные агентства недвижимости и застройщики в Турции с портфолио и контактами."],
   },
+  "/projeler": {
+    tr: ["Konut Projeleri | estatemarket24", "Türkiye'deki yeni konut projelerini, daire tiplerini ve başlangıç fiyatlarını inceleyin; ücretsiz yer ayırtma talebi gönderin."],
+    de: ["Neubauprojekte | estatemarket24", "Neubauprojekte in der Türkei mit Wohnungstypen und Einstiegspreisen entdecken und kostenlos eine Reservierungsanfrage senden."],
+    fr: ["Programmes immobiliers neufs | estatemarket24", "Découvrez les programmes neufs en Turquie, leurs typologies et prix de départ, et envoyez une demande de réservation gratuite."],
+    en: ["New Housing Projects | estatemarket24", "Explore new housing projects in Türkiye with unit types and starting prices, and send a free reservation request."],
+    ar: ["مشاريع سكنية جديدة | estatemarket24", "اكتشف المشاريع السكنية الجديدة في تركيا مع أنواع الوحدات وأسعارها المبدئية، وأرسل طلب حجز مجاني."],
+    fa: ["پروژه‌های مسکونی جدید | estatemarket24", "پروژه‌های مسکونی جدید در ترکیه را همراه با انواع واحد و قیمت‌های شروع ببینید و درخواست رزرو رایگان بفرستید."],
+    ru: ["Новые жилые комплексы | estatemarket24", "Новые жилые комплексы в Турции: типы квартир и стартовые цены. Отправьте бесплатную заявку на бронирование."],
+  },
   "/blog": {
     tr: ["Blog ve Emlak Haberleri | estatemarket24", "Resmî kaynaklara dayanan emlak haberleri, piyasa verileri ve Türkiye'de ev alma rehberleri."],
     de: ["Blog und Immobiliennachrichten | estatemarket24", "Immobiliennachrichten aus offiziellen Quellen, Marktdaten und Ratgeber zum Hauskauf in der Türkei."],

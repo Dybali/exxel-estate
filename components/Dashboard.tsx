@@ -11,12 +11,13 @@ import {EmailPreferences} from "./EmailPreferences";
 import {MyOrders} from "./Orders";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
+import {ProjectsPanel} from "./ProjectsPanel";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
-import { CalendarDays, ArrowUpRight, Bookmark, Heart, LayoutDashboard, LogOut, Mail, Plus, UserRound, Users } from "lucide-react";
+import { Building2, CalendarDays, ArrowUpRight, Bookmark, Heart, LayoutDashboard, LogOut, Mail, Plus, UserRound, Users } from "lucide-react";
 import { type Listing, formatPrice } from "@/lib/listings";
 import {DiscoveryPanel} from "./DiscoveryPanel";
 import { ProfileEditor } from "@/components/ProfileEditor";
@@ -81,6 +82,7 @@ export function Dashboard() {
     { id: "genel", label: "Genel Bakış", icon: LayoutDashboard },
     { id: "favoriler", label: "Favorilerim", icon: Heart },
     { id: "ilanlarim", label: "İlanlarım", icon: Bookmark },
+    ...(user.role==="agent"||user.isAdmin?[{id:"projelerim",label:"Projelerim",icon:Building2}]:[]),
     { id: "mesajlar", label: "Mesajlar", icon: Mail },
     {id:"randevular",label:"Randevularım",icon:CalendarDays},
     ...(["agent","individual","admin"].includes(user.role)?[{id:"talepler",label:"Müşteri talepleri",icon:Users},{id:"siparisler",label:"Siparişlerim",icon:Bookmark}]:[]),
@@ -121,7 +123,7 @@ export function Dashboard() {
 
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <><EmailPreferences/><DiscoveryPanel/></>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}{tab==="talepler"&&<LeadsPanel/>}{tab==="siparisler"&&<MyOrders/>}
+        {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <><EmailPreferences/><DiscoveryPanel/></>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}{tab==="talepler"&&<LeadsPanel/>}{tab==="siparisler"&&<MyOrders/>}{tab==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}
         {tab === "ekip" && <CompanyTeam/>}
         {tab === "firma" && user.role==='agent' && <CompanyAccount/>}
         {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/>{user.role==='agent'&&<OfficeVerification/>}<AccountSecurity/></>}

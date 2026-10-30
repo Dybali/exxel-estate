@@ -106,3 +106,24 @@ export async function sendDailyDigests(db: NotificationDatabase, settings: Setti
   }
   return { users: users.results.length, sent };
 }
+
+// New reservation request for a project ("yer ayırtma talebi"); follows the owner's message-email preference.
+export async function notifyProjectReservation(db: NotificationDatabase, settings: Settings, request: { ownerId: string; projectName: string; unitType: string; name: string }, at = new Date()) {
+  if (!emailReady(settings)) return "not_configured";
+  await ensure(db);
+  const owner = await db.prepare("SELECT email,email_verified FROM users WHERE CAST(id AS TEXT)=?").bind(request.ownerId).first<{ email: string; email_verified: number }>();
+  if (!owner?.email || !Number(owner.email_verified)) return "no_recipient";
+  const prefs = await emailPreferences(db, request.ownerId, at);
+  if (!prefs.messages) return "opted_out";
+  const link = `${settings.SITE_URL}/hesabim?tab=projelerim`;
+  const unsubscribe = unsubscribeUrl(settings, prefs.token, "messages");
+  const about = `${request.projectName} · ${request.unitType}`;
+  const result = await sendEmail(settings, {
+    to: owner.email,
+    subject: `Yeni yer ayırtma talebi / New reservation request: ${about}`.slice(0, 180),
+    html: emailLayout({ title: "Yeni yer ayırtma talebi", titleEn: "New reservation request", lines: [`<strong>${escapeHtml(request.name)}</strong> · ${escapeHtml(about)}`, "Talebi görmek ve yanıtlamak için hesabınıza giriş yapın. / Sign in to view and answer the request."], action: { href: link, label: "Talepleri aç / Open requests" }, unsubscribeUrl: unsubscribe }),
+    text: `Yeni yer ayırtma talebi / New reservation request: ${request.name} · ${about}\n${link}\n\nAbonelikten çık / Unsubscribe: ${unsubscribe}`,
+    unsubscribeUrl: unsubscribe,
+  });
+  return result.sent ? "sent" : result.reason;
+}
