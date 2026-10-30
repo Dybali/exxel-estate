@@ -43,6 +43,13 @@ export async function headExternalImage(key: string) {
   return { contentType: response.headers.get("content-type") || "image/jpeg", size: Number(response.headers.get("content-length") || 0), checksum: response.headers.get("x-amz-meta-sha256") };
 }
 
+export async function deleteExternalImage(key: string) {
+  const storage = config();
+  if (!storage) return;
+  const response = await storage.client.fetch(objectUrl(storage.endpoint, key), { method: "DELETE" });
+  if (!response.ok && response.status !== 404) throw new Error(`R2 delete failed (${response.status})`);
+}
+
 export async function getExternalImage(key: string) {
   const storage = config();
   if (!storage) return null;

@@ -8,10 +8,13 @@ import {presentationFrom} from "@/lib/presentation";
 import {validRooms} from "@/lib/listing-details";
 import {claimStreamVideo,deleteStreamVideo} from "@/lib/stream-server";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
-import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
+import { deleteExternalImage, externalR2BucketName, headExternalImage } from "@/lib/external-r2";
+import { listingMediaKeys, removeListingMedia } from "@/lib/listing-media";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
 import { validDistrict } from "@/lib/turkey-locations";
-import { body, currentUser, db, error, isAdmin, listingById, now, num, ok, sameOrigin, str } from "@/lib/server";
+import { body, bucket, currentUser, db, error, isAdmin, listingById, now, num, ok, sameOrigin, str } from "@/lib/server";
+// Photos also live in the private bucket for listings created before the EU bucket.
+const removeMedia=async(key:string)=>{await deleteExternalImage(key);await bucket()?.delete(key);};
 
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}) {
   const {id}=await params,listing=await listingById(id);
@@ -95,6 +98,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const actual=await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{status:string}>();
   if(actual?.status==='published')scheduleListingTranslations(id);
   if(previousVideo&&previousVideo!==presentation.streamVideo)await deleteStreamVideo(previousVideo);
+  await removeListingMedia([...previousKeys].filter(key=>!keys.includes(key)),removeMedia);
   return ok({success:true,id,status:actual?.status||status,updatedAt},{headers:{"Cache-Control":"private, no-store"}});
 }
 export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}) {
@@ -102,10 +106,11 @@ export async function DELETE(request:Request,{params}:{params:Promise<{id:string
   const user=await currentUser(request),{id}=await params;
   if(!user) return error("Giriş gerekli.",401);
   if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))return error("İlan bulunamadı.",404);
-  const row=await db().prepare("SELECT owner_id,presentation FROM listings WHERE id=?").bind(id).first<{owner_id:string;presentation:string|null}>();
+  const row=await db().prepare("SELECT owner_id,images,presentation FROM listings WHERE id=?").bind(id).first<{owner_id:string;images:string|null;presentation:string|null}>();
   if(!row) return error("İlan bulunamadı.",404);
   if(row.owner_id!==user.id&&!isAdmin(user)) return error("Yetkiniz yok.",403);
   await db().prepare("DELETE FROM listings WHERE id=?").bind(id).run();
-  const video=String(JSON.parse(row.presentation||'{}').streamVideo||'');if(video)await deleteStreamVideo(video);
+  const shown=JSON.parse(row.presentation||'{}'),video=String(shown.streamVideo||'');if(video)await deleteStreamVideo(video);
+  await removeListingMedia(listingMediaKeys(JSON.parse(row.images||'[]'),shown),removeMedia);
   return ok({success:true});
 }
