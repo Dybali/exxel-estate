@@ -1,6 +1,7 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {DatabaseSync} from 'node:sqlite';import ts from 'typescript';
 const compile=p=>'data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64');
-const code=ts.transpile(readFileSync(new URL('../lib/search-categories.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}).replace("'./land'",JSON.stringify(compile('land'))).replace("'./property-subtypes'",JSON.stringify(compile('property-subtypes'))).replace("'./listings'",JSON.stringify('data:text/javascript,'+encodeURIComponent("export const AMENITIES=['Havuz','Asansör','Otopark'];")));
+const detailsURL='data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/listing-details.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}).replace("'./property-categories'",JSON.stringify(compile('property-categories')))).toString('base64');
+const code=ts.transpile(readFileSync(new URL('../lib/search-categories.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}).replace("'./land'",JSON.stringify(compile('land'))).replace("'./property-subtypes'",JSON.stringify(compile('property-subtypes'))).replace("'./listings'",JSON.stringify('data:text/javascript,'+encodeURIComponent("export const AMENITIES=['Havuz','Asansör','Otopark'];"))).replace("'./listing-details'",JSON.stringify(detailsURL));
 const {SEARCH_CATEGORIES,SIDEBARS,searchCategory,extraFilterSql,extraFilterMatches}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 const {subtypeFrom}=await import(compile('property-subtypes'));
 const {pgPresentationJson}=await import(compile('pg-json'));
@@ -87,4 +88,18 @@ test('portal style filters: room and heating lists, ranges, owner, date and medi
  assert.equal(extraFilterMatches(query({rooms:'2+1',heating:'Kombi (Doğalgaz)',from:'agent',days:'3',video:'1',mapped:'1'}),listing,now),true);
  assert.equal(extraFilterMatches(query({from:'owner'}),listing,now),false);
  assert.equal(extraFilterMatches(query({maxNetArea:'50'}),listing,now),false);
+});
+
+test('portal details are validated per category, shown on the page and searchable',async()=>{
+ const src=ts.transpile(readFileSync(new URL('../lib/listing-details.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}).replace("'./property-categories'",JSON.stringify(compile('property-categories')));
+ const {detailsFrom,detailFacts,validRooms}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
+ assert.deepEqual(detailsFrom({propertyType:'daire',detailKitchen:'Kapalı',detailSite:'Evet',detailDeed:'Kat Mülkiyetli'}),{kitchen:'Kapalı',site:'Evet',deed:'Kat Mülkiyetli'});
+ assert.equal(detailsFrom({propertyType:'arsa',detailKitchen:'Kapalı'}),undefined);
+ assert.deepEqual(detailsFrom({propertyType:'ticari',detailKitchen:'Kapalı',detailUsage:'Kiracılı'}),{usage:'Kiracılı'});
+ assert.throws(()=>detailsFrom({propertyType:'villa',detailSwap:'Belki'}),/Takas/);
+ assert.equal(detailFacts('daire',{site:'Evet'}).length,6);
+ assert.deepEqual(detailFacts('turistik',{}).map(r=>r[0]),['Tapu Durumu','Takas']);
+ for(const ok of ['','3+1','7+2','4.5+2','10 Üzeri',undefined])assert.equal(validRooms(ok),true,String(ok));
+ for(const bad of ['abc','3+1; DROP','100+1'])assert.equal(validRooms(bad),false,bad);
+ assert.equal(pgPresentationJson("json_extract(l.presentation,'$.details.site')=?"),"(l.presentation::jsonb->'details'->>'site')=?");
 });

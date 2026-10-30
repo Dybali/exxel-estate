@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
 const source=readFileSync(new URL('../lib/presentation.ts',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
-const code=ts.transpile('const validatePanoramas=()=>[],subtypeFrom=()=>({});\n'+source,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022});
+const code=ts.transpile('const validatePanoramas=()=>[],subtypeFrom=()=>({}),detailsFrom=()=>undefined;\n'+source,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022});
 const {presentationFrom}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 test('garden and land dimensions retain zero and reject invalid or impossible measurements',()=>{assert.equal(presentationFrom({gardenArea:'0',plotArea:'500'},'owner').gardenArea,0);assert.equal(presentationFrom({gardenArea:'200',plotArea:'500'},'owner').plotArea,500);assert.equal(presentationFrom({},'owner').gardenArea,undefined);for(const fields of [{gardenArea:-1},{gardenArea:'NaN'},{plotArea:1.2},{gardenArea:501,plotArea:500},{plotArea:Infinity}])assert.throws(()=>presentationFrom(fields,'owner'));});

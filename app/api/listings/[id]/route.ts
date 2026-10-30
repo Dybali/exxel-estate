@@ -5,6 +5,7 @@ import {publicListing} from '@/lib/listings';
 import {reportsDB} from '@/lib/reports-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
+import {validRooms} from "@/lib/listing-details";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
@@ -57,6 +58,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(optionalFields.some((item)=>Number.isNaN(item)))return error("Sayısal özellikleri kontrol edin.");
   const amenities=Object.hasOwn(data,"amenities")?Array.isArray(data.amenities)?data.amenities.filter((item):item is string=>typeof item==="string"&&AMENITIES.includes(item)).slice(0,20):null:JSON.parse(String(row.amenities||"[]")) as string[];
   if(!amenities)return error("Özellikleri kontrol edin.");
+  if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
   if(propertyType==='villa'&&(!optionalFields[0]||!presentation.plotArea||presentation.gardenArea==null))return error('Villa için net, arsa ve bahçe alanını girin. Bahçe yoksa 0 yazın.');
   const originalImages=JSON.parse(String(row.images||"[]")) as string[];

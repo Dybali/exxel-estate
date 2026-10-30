@@ -1,6 +1,7 @@
 import {LAND_CREDIT,LAND_DEED,LAND_ZONING} from './land';
 import {SUBTYPE_FIELDS,subtypeFor,type SubtypeField} from './property-subtypes';
 import {AMENITIES,type Listing} from './listings';
+import {DETAIL_FIELDS} from './listing-details';
 
 // Search fields per home page category tab, modelled on the usual Turkish portals: each tab
 // asks only what makes sense for it (no room count for land, floors for buildings and so on).
@@ -41,7 +42,7 @@ const CATEGORY_OF_TYPE:Record<string,string>={ticari:'isyeri',arsa:'arsa',bina:'
 export const searchCategory=(category:string,type:string)=>category||(type?CATEGORY_OF_TYPE[type]||'konut':'');
 
 // Filters beyond the plain column equality ones in app/api/listings; shared by the API and the listings page.
-export const EXTRA_FILTERS=['rooms','minNetArea','maxNetArea','minAge','maxAge','minFloor','maxFloor','minFloors','maxFloors','heating','from','days','video','tour','mapped','zoning','deed','credit','businessType','tourismType'] as const;
+export const EXTRA_FILTERS=['rooms','minNetArea','maxNetArea','minAge','maxAge','minFloor','maxFloor','minFloors','maxFloors','heating','from','days','video','tour','mapped','zoning','deed','credit','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap'] as const;
 export type ExtraFilter=typeof EXTRA_FILTERS[number];
 type Query={get:(key:string)=>string|null};
 const LAND_OPTIONS={zoning:LAND_ZONING,deed:LAND_DEED,credit:LAND_CREDIT} as const;
@@ -50,6 +51,9 @@ const large=(value:string|null)=>value&&/^\d{1,12}$/.test(value)?Number(value):n
 const subtype=(field:SubtypeField,value:string|null)=>value&&subtypeFor(field).options.includes(value)?value:null;
 const land=(key:keyof typeof LAND_OPTIONS,value:string|null)=>value&&(LAND_OPTIONS[key] as readonly string[]).includes(value)?value:null;
 const list=(value:string|null,options:readonly string[])=>(value||'').split(',').filter(item=>options.includes(item)).slice(0,options.length);
+// Rooms come from the list or are typed ("Diğer"), so any well formed layout is accepted.
+const roomList=(q:Query)=>(q.get('rooms')||'').split(',').map(item=>item.trim()).filter(item=>(ROOM_OPTIONS as readonly string[]).includes(item)||/^\d{1,2}(\.5)?\+\d{1,2}$/.test(item)).slice(0,30);
+const detail=(form:string,value:string|null)=>{const field=DETAIL_FIELDS.find(item=>item.form===form);return field&&value&&(field.options as readonly string[]).includes(value)?field.key:null;};
 const heatingValues=(q:Query)=>list(q.get('heating'),HEATING_OPTIONS).flatMap(item=>[item,...(HEATING_ALIASES[item]||[])]);
 const sinceDays=(q:Query,now:number)=>{const days=q.get('days');return (DAY_OPTIONS as readonly string[]).includes(days||'')?new Date(now-Number(days)*86400000).toISOString():null;};
 // [param, column, listing field, operator, parser]
@@ -58,7 +62,7 @@ const RANGES=[['minNetArea','net_area','netArea','>=',large],['maxNetArea','net_
 export function extraFilterSql(q:Query,now=Date.now()){
  const where:string[]=[],values:(string|number)[]=[];
  for(const [param,column,,op,parse] of RANGES){const value=parse(q.get(param));if(value!=null){where.push(`l.${column}${op}?`);values.push(value);}}
- const rooms=list(q.get('rooms'),ROOM_OPTIONS);if(rooms.length){where.push(`l.rooms IN (${rooms.map(()=>'?').join(',')})`);values.push(...rooms);}
+ const rooms=roomList(q);if(rooms.length){where.push(`l.rooms IN (${rooms.map(()=>'?').join(',')})`);values.push(...rooms);}
  const heating=heatingValues(q);if(heating.length){where.push(`l.heating IN (${heating.map(()=>'?').join(',')})`);values.push(...heating);}
  const from=q.get('from');if(from==='agent'||from==='owner')where.push(`${from==='owner'?'NOT ':''}EXISTS(SELECT 1 FROM users fu WHERE fu.id=l.owner_id AND fu.role='agent')`);
  const since=sinceDays(q,now);if(since){where.push('COALESCE(l.published_at,l.created_at)>=?');values.push(since);}
@@ -67,17 +71,19 @@ export function extraFilterSql(q:Query,now=Date.now()){
  if(q.get('mapped')==='1')where.push('l.latitude IS NOT NULL');
  for(const key of ['zoning','deed','credit'] as const){const value=land(key,q.get(key));if(value){where.push(`json_extract(l.presentation,'$.land.${key}')=?`);values.push(value);}}
  for(const {field} of SUBTYPE_FIELDS){const value=subtype(field,q.get(field));if(value){where.push(`json_extract(l.presentation,'$.${field}')=?`);values.push(value);}}
+ for(const {form} of DETAIL_FIELDS){const value=q.get(form),key=detail(form,value);if(key){where.push(`json_extract(l.presentation,'$.details.${key}')=?`);values.push(value!);}}
  return {where,values};
 }
 
 export function extraFilterMatches(q:Query,listing:Listing,now=Date.now()){
  for(const [param,,field,op,parse] of RANGES){const value=parse(q.get(param));const actual=listing[field];if(value!=null&&!(actual!=null&&(op==='>='?actual>=value:actual<=value)))return false;}
- const rooms=list(q.get('rooms'),ROOM_OPTIONS);if(rooms.length&&!rooms.includes(listing.rooms as typeof rooms[number]))return false;
+ const rooms=roomList(q);if(rooms.length&&!rooms.includes(listing.rooms||''))return false;
  const heating=heatingValues(q);if(heating.length&&!heating.includes(listing.heating||''))return false;
  const from=q.get('from');if(from==='agent'&&listing.ownerRole!=='agent'||from==='owner'&&listing.ownerRole==='agent')return false;
  const since=sinceDays(q,now);if(since&&!((listing.publishedAt||listing.createdAt||'')>=since))return false;
  if(q.get('video')==='1'&&!listing.presentation?.videoUrl||q.get('tour')==='1'&&!listing.presentation?.tourUrl||q.get('mapped')==='1'&&listing.latitude==null)return false;
  for(const key of ['zoning','deed','credit'] as const){const value=land(key,q.get(key));if(value&&listing.presentation?.land?.[key]!==value)return false;}
  for(const {field} of SUBTYPE_FIELDS){const value=subtype(field,q.get(field));if(value&&listing.presentation?.[field]!==value)return false;}
+ for(const {form} of DETAIL_FIELDS){const value=q.get(form),key=detail(form,value);if(key&&listing.presentation?.details?.[key]!==value)return false;}
  return true;
 }

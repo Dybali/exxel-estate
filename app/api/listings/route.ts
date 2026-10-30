@@ -4,6 +4,7 @@ import {textSearchSql,matchesSearchText} from '@/lib/text-search';
 import {nextIndividualSubmission} from '@/lib/listing-policy';
 import {categoryFilter,categoryMatches} from "@/lib/property-categories";
 import {extraFilterMatches,extraFilterSql} from "@/lib/search-categories";
+import {validRooms} from "@/lib/listing-details";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
@@ -112,6 +113,7 @@ export async function POST(request:Request) {
   const images=Array.isArray(data.images)?data.images.filter((x):x is string=>typeof x==="string"&&x.startsWith("/api/media/")).slice(0,30):[];
   if(images.length===0) return error("En az bir fotoğraf yükleyin.");
   if(new Set(images).size!==images.length) return error("Aynı fotoğraf birden fazla eklenemez.");
+  if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){return error((e as Error).message);}
   const imageKeys=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))].map((url)=>url.slice("/api/media/".length));
   if(imageKeys.some((key)=>!new RegExp(`^listings/${user.id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key))) return error("Yalnızca kendi yüklediğiniz fotoğrafları ekleyebilirsiniz.",403);
