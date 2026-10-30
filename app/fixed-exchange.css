@@ -1,13 +1,12 @@
-/* Homepage currency strip stays above the page while scrolling. Dark, in the same tone as the
-   menu strip under it, with white figures. */
-.home-fixed-exchange{position:fixed;inset:0 0 auto;z-index:120;height:44px;background:#073b3e;border-bottom:1px solid #ffffff1f;box-shadow:0 2px 10px #00000040;color:#fff}
+/* Homepage currency strip stays above the page while scrolling; white like the page header. */
+.home-fixed-exchange{position:fixed;inset:0 0 auto;z-index:120;height:44px;background:#fff;border-bottom:1px solid #e5eaec;box-shadow:0 1px 6px #15171c0a;color:#15171c}
 .home-fixed-exchange>.container{height:100%;display:flex;align-items:center;justify-content:center}
-.home-fixed-exchange .home-fx-card{display:flex;align-items:center;justify-content:center;min-height:36px;max-width:100%;padding:6px 0;background:transparent;color:#fff;border:0;box-shadow:none}
+.home-fixed-exchange .home-fx-card{display:flex;align-items:center;justify-content:center;min-height:36px;max-width:100%;padding:6px 0;background:transparent;color:#15171c;border:0;box-shadow:none}
 .home-fixed-exchange .home-fx-rates{gap:0}
-.home-fixed-exchange .home-fx-rates span{color:#f2b84b;font-size:11px}
-.home-fixed-exchange .home-fx-rates strong{color:#fff;font-size:14px}
-.home-fixed-exchange .home-fx-rates>div+div{border-left-color:#ffffff29;margin-left:18px;padding-left:18px}
-.home-fixed-exchange .home-fx-status{color:#d4e6ea;font-size:12px}
+.home-fixed-exchange .home-fx-rates span{color:#0b5f63;font-size:11px}
+.home-fixed-exchange .home-fx-rates strong{color:#15171c;font-size:14px}
+.home-fixed-exchange .home-fx-rates>div+div{border-left-color:#e5eaec;margin-left:18px;padding-left:18px}
+.home-fixed-exchange .home-fx-status{color:#53666d;font-size:12px}
 .home-topline{top:44px}
 .site-header.home-header{top:79px}
 .market-home .market-hero-inner{padding-top:219px}
@@ -20,8 +19,8 @@
 .home-fx-track{display:flex;width:max-content;min-width:200%;animation:fx-scroll 32s linear infinite}
 .home-fixed-exchange .home-fx-rates{display:flex;justify-content:space-around;flex:0 0 50%;min-width:0;gap:0}
 .home-fixed-exchange .home-fx-rates>div{padding:0 24px;min-height:44px;align-items:center}
-.home-fixed-exchange .home-fx-rates>div+div{margin:0;border-left:1px solid #ffffff29;padding-left:24px}
-.home-fixed-exchange .home-fx-source strong{font-size:11px;font-weight:600;color:#d4e6ea}
+.home-fixed-exchange .home-fx-rates>div+div{margin:0;border-left:1px solid #e5eaec;padding-left:24px}
+.home-fixed-exchange .home-fx-source strong{font-size:11px;font-weight:600;color:#53666d}
 .home-fx-viewport:hover .home-fx-track,.home-fx-viewport:focus .home-fx-track,.home-fx-viewport:focus-within .home-fx-track{animation-play-state:paused}
 @keyframes fx-scroll{to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.home-fx-viewport{overflow-x:auto}.home-fx-track{animation:none;min-width:100%}.home-fx-rates[aria-hidden="true"]{display:none}}
