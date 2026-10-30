@@ -5,9 +5,9 @@
   .site-header .header-inner{height:86px}
   .site-header.home-header .header-inner{height:82px}
   .site-header .compact-post-row{display:block;padding-bottom:8px}
-  .compact-post-listing{display:flex;align-items:center;justify-content:center;gap:12px;min-height:44px;padding:10px 16px;border-radius:6px;background:#35ead8;color:#17252b;font-size:14px;font-weight:800;text-align:center;overflow-wrap:anywhere}
-  .compact-post-listing:hover{background:#67f1e3}
-  .compact-post-listing:focus-visible{outline:3px solid #147f75;outline-offset:3px}
+  .compact-post-listing{display:flex;align-items:center;justify-content:center;gap:12px;min-height:44px;padding:10px 16px;border-radius:6px;background:#5ebcc1;color:#17252b;font-size:14px;font-weight:800;text-align:center;overflow-wrap:anywhere}
+  .compact-post-listing:hover{background:#87cdd1}
+  .compact-post-listing:focus-visible{outline:3px solid #147a7f;outline-offset:3px}
   .site-header .header-post{display:none}
   .site-header .main-nav{top:100%}
   .main-nav.open .nav-post-listing{display:flex;align-items:center;gap:12px;font-weight:800}
@@ -22,7 +22,7 @@
 .home-account-guest{display:flex;align-items:center;gap:7px;color:#fff;flex-shrink:0}
 .home-account-guest>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.15}
 .home-account-guest a{color:#fff;font-size:12px;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px #0009}
-.home-account-guest a:last-child{color:#80f2e3;text-decoration:underline;text-underline-offset:2px}
+.home-account-guest a:last-child{color:#81ebf1;text-decoration:underline;text-underline-offset:2px}
 .home-account-guest a:focus-visible{outline:2px solid #fff;outline-offset:2px}
 @media(max-width:700px){.home-account-guest{gap:4px}.home-account-guest svg{width:16px}.home-account-guest a{font-size:11px}.site-header.home-header .header-inner{gap:5px}.home-header .header-actions{gap:5px}}
 @media(max-width:380px){.home-header .estatemarket-wordmark{font-size:21px}.home-header .brand-tagline{font-size:8px;max-width:165px}.home-account-guest svg{display:none}}

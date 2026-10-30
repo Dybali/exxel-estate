@@ -1,0 +1,22 @@
+/* EstateMarket24 brand colours, loaded last so they win over the older layered rules.
+   Petrol #0b5f63 for primary actions, gold #F2B84B for the main call to action and highlights. */
+:root{--brand-petrol:#0b5f63;--brand-petrol-dark:#09494c;--brand-gold:#f2b84b;--brand-gold-dark:#e3a634;--brand-ink:#15171c}
+
+/* "İlan Ver" everywhere: gold with dark text. */
+.nav-post-listing,.compact-post-listing,.header-post{background:var(--brand-gold)!important;color:var(--brand-ink)!important;border-color:var(--brand-gold)!important}
+.nav-post-listing:hover,.compact-post-listing:hover,.header-post:hover{background:var(--brand-gold-dark)!important}
+.nav-post-listing svg,.compact-post-listing svg{color:var(--brand-ink)}
+
+/* Active menu item and sign-up link. */
+.main-nav a.active:after{background:var(--brand-gold)}
+.home-header .main-nav a.active{color:#fff}
+.home-header a[href*="mode=register"]{color:var(--brand-gold)}
+
+/* Home search: active category tab in petrol with a gold edge, search button in petrol. */
+.category-search-tabs button.active{background:var(--brand-petrol);color:#fff;box-shadow:inset 0 -3px var(--brand-gold)}
+.category-search-tabs button.active svg{color:var(--brand-gold)}
+.category-search-tabs button:hover:not(.active){background:#e8f2f2}
+.category-find{background:var(--brand-petrol);border-color:var(--brand-petrol);color:#fff}
+.category-find:hover{background:var(--brand-petrol-dark)}
+.category-map{color:var(--brand-petrol);border-color:var(--brand-petrol)}
+.category-map:hover{background:#e8f2f2}

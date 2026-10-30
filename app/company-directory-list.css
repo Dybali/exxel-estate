@@ -1,20 +1,20 @@
 /* Company directory: one company per row, with profile and introduction side by side. */
 .directory-company-list{display:grid;gap:16px}
-.directory-company-row{display:grid;grid-template-columns:minmax(300px,39%) minmax(0,1fr);background:#fff;border:1px solid #dce8e6;border-radius:14px;overflow:hidden;box-shadow:0 5px 22px #173d3609;transition:border-color .2s,box-shadow .2s}
-.directory-company-row:hover{border-color:#a7d8d0;box-shadow:0 10px 30px #173d3611}
+.directory-company-row{display:grid;grid-template-columns:minmax(300px,39%) minmax(0,1fr);background:#fff;border:1px solid #dce8e6;border-radius:14px;overflow:hidden;box-shadow:0 5px 22px #173b3d09;transition:border-color .2s,box-shadow .2s}
+.directory-company-row:hover{border-color:#a7d6d8;box-shadow:0 10px 30px #173b3d11}
 .directory-company-identity{display:flex;align-items:center;gap:20px;min-width:0;padding:25px 28px;background:#f5faf9;border-inline-end:1px solid #e2eeeb}
-.directory-company-image{display:grid;place-items:center;flex-shrink:0;width:112px;height:112px;border-radius:12px;overflow:hidden;background:#d8f4ee;color:#087e75}
+.directory-company-image{display:grid;place-items:center;flex-shrink:0;width:112px;height:112px;border-radius:12px;overflow:hidden;background:#d8f3f4;color:#0d7379}
 .directory-company-image img{width:100%;height:100%;object-fit:cover}
 .directory-company-name{min-width:0;display:grid;gap:8px}
-.directory-company-name small,.directory-about-label{color:#138c7e;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.directory-company-name small,.directory-about-label{color:#13868c;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .directory-company-name small{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .directory-company-name h2{font-family:var(--sans);font-size:22px;line-height:1.25;font-weight:750;letter-spacing:-.02em;color:#1e3539;margin:0;overflow-wrap:anywhere}
 .directory-company-name>span{color:#728581;font-size:12px;line-height:1.5}
 .directory-company-city{display:flex;align-items:center;gap:5px}
 .directory-company-about{padding:26px 34px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:0}
 .directory-company-about p{font-size:14px;line-height:1.8;color:#506763;margin:11px 0 16px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-.directory-profile-link{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:750;color:#087e75}
+.directory-profile-link{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:750;color:#0d7379}
 .directory-profile-link:hover{text-decoration:underline;text-underline-offset:4px}
-.directory-profile-link:focus-visible{outline:3px solid #0b9989;outline-offset:4px}
+.directory-profile-link:focus-visible{outline:3px solid #108d94;outline-offset:4px}
 @media(max-width:900px){.directory-company-row{grid-template-columns:minmax(260px,42%) minmax(0,1fr)}.directory-company-identity{padding:22px;gap:14px}.directory-company-image{width:88px;height:88px}.directory-company-about{padding:22px 25px}}
 @media(max-width:650px){.directory-company-row{grid-template-columns:1fr}.directory-company-identity{border-inline-end:0;border-bottom:1px solid #e2eeeb;padding:19px}.directory-company-about{padding:19px}.directory-company-image{width:76px;height:76px}.directory-company-name h2{font-size:19px}.directory-company-about p{margin:9px 0 14px}}
