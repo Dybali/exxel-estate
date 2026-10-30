@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
+const compile=p=>'data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64');
+const code=ts.transpile(readFileSync(new URL('../lib/listing-drafts.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}).replace("'./panoramas'",JSON.stringify(compile('panoramas')));
+const {draftHasContent}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+test('a freshly opened form with only defaults is not a draft',()=>{assert.equal(draftHasContent({fields:{purpose:'satilik',propertyType:'daire',currency:'TRY',submissionId:'x',panoramas:'[]'},images:[],amenities:[]}),false);assert.equal(draftHasContent(null),false);});
+test('any entered text, photo or feature makes it a draft',()=>{assert.equal(draftHasContent({fields:{title:'Deniz manzaralı daire'},images:[],amenities:[]}),true);assert.equal(draftHasContent({fields:{},images:['/api/media/x.webp'],amenities:[]}),true);assert.equal(draftHasContent({fields:{},images:[],amenities:['Havuz']}),true);assert.equal(draftHasContent({fields:{city:'  '},images:[],amenities:[]}),false);});

@@ -9,7 +9,7 @@ import {ArrowRight,CloudUpload,Eye,ImagePlus,Save,X} from 'lucide-react';
 import {AMENITIES,PROPERTY_TYPES,formatPrice} from '@/lib/listings';
 import {CITIES,districtsFor} from '@/lib/turkey-locations';
 import {locales,useLocale} from '@/lib/i18n';
-import type {DraftPayload,DraftRecord} from '@/lib/listing-drafts';
+import {draftHasContent,type DraftPayload,type DraftRecord} from '@/lib/listing-drafts';
 import {PresentationFields,PropertyPresentation} from './PropertyPresentation';
 import {readPanoramas} from '@/lib/panoramas';
 import {checkListingPhoto} from '@/lib/photo-quality';
@@ -39,6 +39,8 @@ export function PostListing(){
  useEffect(()=>{setNeighborhoods([]);if(!city||!district)return;const controller=new AbortController();setLoadingLocations(true);fetch(`/api/locations?city=${encodeURIComponent(city)}&district=${encodeURIComponent(district)}`,{signal:controller.signal}).then(async r=>{if(!r.ok)throw Error();return apiJson<PostResponse>(r);}).then(data=>{if(!controller.signal.aborted)setNeighborhoods(data.neighborhoods||[]);}).catch(()=>{if(!controller.signal.aborted)setError('Mahalleler yüklenemedi.');}).finally(()=>{if(!controller.signal.aborted)setLoadingLocations(false);});return()=>controller.abort();},[city,district]);
  async function saveDraft(){
   if(!ready||busy.current||publishing.current||stopped.current||JSON.stringify(latest.current)===saved.current)return;
+  // Opening the form must not create a draft; save once something was actually entered.
+  if(!version.current&&!draftHasContent(latest.current))return;
   busy.current=true;setSaving(true);const payload=latest.current;
   try{const response=await fetch('/api/listing-draft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',version:version.current,payload})});const data=await apiJson<PostResponse>(response);if(!response.ok){if(response.status===409){stopped.current=true;setConflict(true);}throw Error(data.error||'Taslak kaydedilemedi.');}if(!data.draft)throw Error('Taslak yanıtı tamamlanamadı. Sayfayı yenileyin.');version.current=data.draft.version;saved.current=JSON.stringify(payload);dirty.current=JSON.stringify(latest.current)!==saved.current;setDraftMessage('Taslak hesabınıza kaydedildi.');setError('');}
   catch(e){stopped.current=true;setError(e instanceof Error?e.message:'Taslak kaydedilemedi.');setDraftMessage('Taslak kaydedilemedi.');}

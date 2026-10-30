@@ -1,4 +1,5 @@
 "use client";
+import {draftHasContent} from "@/lib/listing-drafts";
 import {apiJson} from '@/lib/api-client';
 
 import {IndividualPolicyNotice} from "./IndividualPolicyNotice";
@@ -102,7 +103,7 @@ export function Dashboard() {
         </div>
       </aside>
       <section className={`account-content ${tab === "mesajlar" ? "account-content-inbox" : ""}`}>
-        {draft&&(tab==="genel"||tab==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")} →</Link></div>}
+        {draft&&draftHasContent(draft.payload)&&(tab==="genel"||tab==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")} →</Link></div>}
         {tab === "genel" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div><Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link></div>
           <div className="summary-cards"><div><Heart size={22}/><strong>{favorites.length}</strong><span>{t("Favori ilan")}</span></div><div><Bookmark size={22}/><strong>{mine.length}</strong><span>{t("İlanım")}</span></div><div><Mail size={22}/><strong>{conversations.length}</strong><span>{t("Görüşme")}</span></div></div>

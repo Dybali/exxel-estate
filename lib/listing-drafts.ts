@@ -2,6 +2,13 @@ import {validatePanoramas} from './panoramas';
 // One portable, private working copy per account. Publishing always uses listing validation.
 export type DraftPayload = {fields:Record<string,string>;images:string[];amenities:string[]};
 export type DraftRecord = {payload:DraftPayload;version:number;updatedAt:string};
+// Values the form fills in by itself; a draft holding only these has nothing worth keeping.
+const DEFAULT_FIELDS=new Set(['submissionId','purpose','propertyType','currency','furnished']);
+export function draftHasContent(payload?:Partial<DraftPayload>|null){
+ if(!payload)return false;
+ if(payload.images?.length||payload.amenities?.length)return true;
+ return Object.entries(payload.fields||{}).some(([key,value])=>!DEFAULT_FIELDS.has(key)&&typeof value==='string'&&value.trim()!==''&&value.trim()!=='[]');
+}
 type Value=string|number|null;
 export interface DraftDatabase {prepare(query:string):{bind(...values:Value[]):{first<T>():Promise<T|null>}}}
 export class DraftError extends Error {constructor(message:string,public status=400){super(message);}}
