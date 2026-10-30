@@ -1,6 +1,6 @@
 // estatemarket24 service worker: cache static assets, keep pages and API live,
 // and show a small offline page when there is no connection.
-const VERSION = "em24-v1";
+const VERSION = "em24-v2";
 const STATIC = `${VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
@@ -12,7 +12,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => !key.startsWith(VERSION)).map((key) => caches.delete(key)))).then(() => self.clients.claim()));
 });
 
-const cacheable = (url) => url.origin === self.location.origin && (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/flags/") || url.pathname.startsWith("/icons/") || url.pathname.startsWith("/fonts/"));
+const cacheable = (url) => url.origin === self.location.origin && (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/flags/") || url.pathname.startsWith("/icons/") || url.pathname.startsWith("/brand/") || url.pathname.startsWith("/fonts/"));
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;

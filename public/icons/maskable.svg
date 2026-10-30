@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#17334b"/>
-  <path d="M136 196 L352 174 L390 218 L380 340 L148 356 Z" fill="#35ead8"/>
-  <text x="263" y="302" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="128" fill="#17334b" letter-spacing="-5">E24</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><rect width="1024" height="1024" rx="230" fill="#FFFFFF"/><g transform="translate(192 192) scale(10.0)"><polygon points="7.57,28.5 28.5,10.08 28.5,28.5" fill="#14A3A0" stroke="#14A3A0" stroke-width="4" stroke-linejoin="round"/><polygon points="35.5,10.08 56.43,28.5 35.5,28.5" fill="#FF6B57" stroke="#FF6B57" stroke-width="4" stroke-linejoin="round"/><path fill-rule="evenodd" d="M7 35.5H28.5V57H7Z M13 38H25V50H13Z" fill="#2F5BEA" stroke="#2F5BEA" stroke-width="4" stroke-linejoin="round"/><path d="M35.5 35.5H57V57H51V41H39V57H35.5Z" fill="#FFC145" stroke="#FFC145" stroke-width="4" stroke-linejoin="round"/></g></svg>
