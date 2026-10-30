@@ -1,5 +1,5 @@
 import {recordOperation} from '@/lib/operations';
-import {env} from 'cloudflare:workers';
+import {env} from '@/lib/runtime';
 import {translationContent} from '@/lib/translation-content';
 import {readTranslations,prepareTranslations} from '@/lib/translation-cache';
 import {translationLocales,translationHash,TranslationError,type TranslationLocale} from '@/lib/translation';

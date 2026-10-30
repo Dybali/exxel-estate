@@ -8,6 +8,7 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Geliştirme `main` üzerinden yapılır. Eski Sites geçmişleri `archive/main-before-cloudflare` ve `archive/sites-2026-10-28` branch'lerinde saklıdır; bunlara commit atılmaz.
 - Barındırma: sahibinin Cloudflare hesabında Worker `exxel-estate` (`wrangler.jsonc`, adımlar [docs/cloudflare-deploy.md](docs/cloudflare-deploy.md)), şimdilik `https://exxel-estate.estatemarket24.workers.dev`. Sites'a özel kod kaldırıldı. Güncel Sites yayını (`estatemarket24-showcase.tastymole36.chatgpt.site`) alan adı geçişine kadar açık; iki yayın aynı Neon veritabanını kullanır.
 - Yayın canlı veriyi kullanır: site gerçek kullanıcılara açıktır ve eski Sites yayınıyla aynı Neon veritabanını paylaşır.
+- **Son barındırma Mittwald olacak** (sahibinin kesin kararı, 2026-10-30): geliştirme bitince site alan adıyla Mittwald dedicated server'a taşınır, plan [docs/mittwald-migration.md](docs/mittwald-migration.md). Bu yüzden `cloudflare:workers` yalnızca `lib/runtime.ts` içinde import edilir; yeni özellikler Cloudflare'e özel servislere (D1, R2 binding, KV, Queues, Stream vb.) bağlanmaz, veri Neon'a ve S3 uyumlu depoya gider.
 - `apps/web` (Vercel) + `apps/api` (NestJS/Render) eski, yarım kalmış bir geçiş planıdır; kullanılmıyor.
 
 ## Yapı

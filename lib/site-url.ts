@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "./runtime";
 
 // Public base URL (wrangler.jsonc SITE_URL) for canonical links, sitemap and emails.
 export function siteUrl() {

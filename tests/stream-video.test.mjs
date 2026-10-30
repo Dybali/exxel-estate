@@ -6,7 +6,7 @@ const calls=[];let info={creator:'owner-1',readyToStream:false,status:{state:'qu
 globalThis.fetch=async(url,init={})=>{calls.push({url:String(url),method:init.method||'GET',headers:init.headers||{},body:init.body});
  if(String(url).includes('direct_user=true'))return new Response(null,{status:201,headers:{Location:'https://upload.videodelivery.net/tus/abc','stream-media-id':'a'.repeat(32)}});
  if((init.method||'GET')==='GET')return Response.json({result:info});return Response.json({result:{}});};
-const {createVideoUpload,claimStreamVideo,streamReady}=await import(compile('stream-server',s=>s.replace('"cloudflare:workers"',JSON.stringify('data:text/javascript,'+encodeURIComponent("export const env={CLOUDFLARE_ACCOUNT_ID:'3df99ce483c1e55817e51df63c034615',STREAM_API_TOKEN:'token'};"))).replace('"./stream-video"',JSON.stringify(video))));
+const {createVideoUpload,claimStreamVideo,streamReady}=await import(compile('stream-server',s=>s.replace('"./runtime"',JSON.stringify('data:text/javascript,'+encodeURIComponent("export const env={CLOUDFLARE_ACCOUNT_ID:'3df99ce483c1e55817e51df63c034615',STREAM_API_TOKEN:'token'};"))).replace('"./stream-video"',JSON.stringify(video))));
 
 test('stream ids, embeds and tus metadata are well formed',()=>{
  assert.equal(validStreamUid('a'.repeat(32)),true);

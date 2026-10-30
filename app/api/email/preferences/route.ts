@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime";
 import { body, currentUser, db, error, ok, sameOrigin } from "@/lib/server";
 import { emailReady, type EmailSettings } from "@/lib/email";
 import { emailPreferences, setEmailPreferences, type NotificationDatabase } from "@/lib/email-notifications";

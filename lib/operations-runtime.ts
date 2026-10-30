@@ -1,4 +1,4 @@
-import {env} from 'cloudflare:workers';
+import {env} from './runtime';
 import {operationsSummary,deeplProviderUsage,type OpsSettings} from './operations';
 import {translationServicePause} from './translation-service';
 let providerCache:{until:number,value:Awaited<ReturnType<typeof deeplProviderUsage>>}|null=null;

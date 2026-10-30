@@ -1,4 +1,4 @@
-import {env} from 'cloudflare:workers';
+import {env} from './runtime';
 import {bucket,db,sha256} from './server';
 import {CAPTURE_LIMITS as L} from './capture-rules';
 export type CaptureJob={id:string;owner_id:string;name:string;state:string;expected:number;files:string;hfov:number|null;progress:number;message:string;lease:string|null;lease_until:number;attempts:number;created:number;expires:number;result_key:string|null;public_id:string};

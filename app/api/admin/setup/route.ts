@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime";
 import { body, createSession, db, error, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str } from "@/lib/server";
 
 type SetupEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; EXXEL_ADMIN_SETUP_CODE?: string };

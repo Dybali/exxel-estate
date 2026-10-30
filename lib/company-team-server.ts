@@ -1,5 +1,5 @@
 import {db} from './server';
-import {env} from 'cloudflare:workers';
+import {env} from './runtime';
 const schema=[
  `CREATE TABLE IF NOT EXISTS company_team_invitations (id uuid PRIMARY KEY,agency_id uuid NOT NULL REFERENCES agencies(id),invited_email text NOT NULL,invited_by uuid NOT NULL REFERENCES users(id),created_at text NOT NULL,expires_at text NOT NULL,accepted_at text,revoked_at text)`,
  `CREATE INDEX IF NOT EXISTS company_team_invitation_email_idx ON company_team_invitations(invited_email,expires_at)`,

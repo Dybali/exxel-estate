@@ -1,5 +1,5 @@
 import {recordOperation} from './operations';
-import {env,waitUntil} from 'cloudflare:workers';
+import {env,waitUntil} from './runtime';
 import {translationLocales,type TranslationSettings} from './translation';
 import {prepareTranslations} from './translation-cache';
 import {translationContent} from './translation-content';

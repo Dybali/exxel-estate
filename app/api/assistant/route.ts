@@ -1,5 +1,5 @@
 import {recordOperation} from '@/lib/operations';
-import {env} from 'cloudflare:workers';
+import {env} from '@/lib/runtime';
 import {body,currentUser,db,sameOrigin,sha256} from '@/lib/server';
 import {AssistantError,assistantLanguages,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
 import {assistantCopy,assistantResultSummary} from '@/lib/assistant-copy';

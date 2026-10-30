@@ -1,6 +1,6 @@
 import { body, currentUser, db, error, isAdmin, ok, sameOrigin } from "@/lib/server";
 import { chatGet, chatPost, ChatError, type ChatDatabase } from "@/lib/messaging-service";
-import { env, waitUntil } from "cloudflare:workers";
+import { env, waitUntil } from "@/lib/runtime";
 import { notifyNewMessage, type NotificationDatabase } from "@/lib/email-notifications";
 import { siteUrl } from "@/lib/request-context";
 import type { EmailSettings } from "@/lib/email";

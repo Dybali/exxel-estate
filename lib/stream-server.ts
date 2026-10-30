@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "./runtime";
 import { MAX_VIDEO_SECONDS, tusMetadata, validStreamUid } from "./stream-video";
 
 // Cloudflare Stream API. Needs the CLOUDFLARE_ACCOUNT_ID var and the STREAM_API_TOKEN secret

@@ -1,4 +1,4 @@
-import {env} from 'cloudflare:workers';
+import {env} from '@/lib/runtime';
 import {body,currentUser,isAdmin,sameOrigin,db} from '@/lib/server';
 import {editorialArticles} from '@/lib/editorial';
 import {translationContent} from '@/lib/translation-content';

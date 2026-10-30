@@ -1,6 +1,6 @@
 import {publicationD1} from './d1-publication';
 import {listingExpired} from './listing-policy';
-import { env } from "cloudflare:workers";
+import { env } from "./runtime";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
 import { neonD1 } from "./neon-d1";
 
