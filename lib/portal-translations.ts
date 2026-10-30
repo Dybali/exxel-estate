@@ -1355,4 +1355,10 @@ export const portalWords: Record<string, Row> = {
     fa: "پیام‌هایی که دریافت می‌کنید برای ترجمهٔ خودکار به DeepL فرستاده می‌شوند تا آن‌ها را به زبانی که در سایت انتخاب کرده‌اید بخوانید. ترجمه فقط به گیرنده نشان داده می‌شود، همراه پیام نگهداری و با حذف آن حذف می‌شود. متن اصلی همیشه قابل مشاهده است.",
     ru: "Полученные вами сообщения передаются в DeepL для автоматического перевода на язык, выбранный на сайте. Перевод видит только получатель; он хранится вместе с сообщением и удаляется вместе с ним. Исходный текст всегда можно посмотреть.",
   },
+  "Konut tipi": { de: "Wohnungstyp", fr: "Type de logement", en: "Home type", ar: "نوع السكن", fa: "نوع مسکن", ru: "Тип жилья" },
+  "Oda sayısı": { de: "Zimmeranzahl", fr: "Nombre de pièces", en: "Rooms", ar: "عدد الغرف", fa: "تعداد اتاق", ru: "Количество комнат" },
+  "En az fiyat (TL)": { de: "Mindestpreis (TL)", fr: "Prix minimum (TL)", en: "Min price (TL)", ar: "أدنى سعر (ليرة)", fa: "حداقل قیمت (لیر)", ru: "Мин. цена (TL)" },
+  "En çok fiyat (TL)": { de: "Höchstpreis (TL)", fr: "Prix maximum (TL)", en: "Max price (TL)", ar: "أعلى سعر (ليرة)", fa: "حداکثر قیمت (لیر)", ru: "Макс. цена (TL)" },
+  "Sıfır bina": { de: "Neubau", fr: "Construction neuve", en: "New building", ar: "مبنى جديد", fa: "ساختمان نوساز", ru: "Новостройка" },
+  "Alan": { de: "Fläche", fr: "Surface", en: "Area", ar: "المساحة", fa: "مساحت", ru: "Площадь" },
 };

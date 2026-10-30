@@ -14,17 +14,19 @@ import {discoveryAction,type SavedSearch} from "@/lib/discovery-client";
 import {CURRENCIES,priceCurrency} from "@/lib/price-filters";
 import {PROPERTY_CATEGORIES,PURPOSES,purposeLabel} from "@/lib/property-categories";
 import { ListingCard } from "./ListingCard";
+import {AGE_OPTIONS,FLOOR_OPTIONS} from "@/lib/search-categories";
+import {LAND_CREDIT,LAND_DEED,LAND_ZONING} from "@/lib/land";
 
 type Filters = {
   q:string; category:string; neighborhood:string; currency:string; purpose: string; city: string; district: string; type: string;
   minPrice: string; maxPrice: string; minArea: string; maxArea: string;
   rooms: string; bedrooms: string; bathrooms: string; furnished: boolean;
-  amenities: string[];
+  amenities: string[]; maxAge:string; minFloors:string; zoning:string; deed:string; credit:string;
 };
 const emptyFilters: Filters = {
   q:"", category:"", neighborhood:"", currency:"", purpose: "", city: "", district: "", type: "", minPrice: "", maxPrice: "",
   minArea: "", maxArea: "", rooms: "", bedrooms: "", bathrooms: "",
-  furnished: false, amenities: [],
+  furnished: false, amenities: [], maxAge:"", minFloors:"", zoning:"", deed:"", credit:"",
 };
 const filterKeys = Object.keys(emptyFilters) as (keyof Filters)[];
 
@@ -39,6 +41,7 @@ function readFilters(params: { get: (key: string) => string | null }): Filters {
     rooms: params.get("rooms") || "", bedrooms: params.get("bedrooms") || "",
     bathrooms: params.get("bathrooms") || "", furnished: params.get("furnished") === "1",
     amenities: (params.get("amenities") || "").split(",").filter((item) => AMENITIES.includes(item)),
+    maxAge: params.get("maxAge") || "", minFloors: params.get("minFloors") || "", zoning: params.get("zoning") || "", deed: params.get("deed") || "", credit: params.get("credit") || "",
   };
 }
 function filterQuery(filters: Filters, sort: string) {
@@ -125,9 +128,9 @@ export function Explorer() {
   };
   const reset = () => { setFilters(emptyFilters);setBoundsFilter(""); setSort("new"); setPage(1); };
   const active = [
-    ...(["category","neighborhood","purpose", "city", "district", "type", "currency", "minPrice", "maxPrice", "minArea", "maxArea", "rooms", "bedrooms", "bathrooms"] as const)
+    ...(["category","neighborhood","purpose", "city", "district", "type", "currency", "minPrice", "maxPrice", "minArea", "maxArea", "rooms", "bedrooms", "bathrooms", "maxAge", "minFloors", "zoning", "deed", "credit"] as const)
       .filter((key) => filters[key])
-      .map((key) => ({ key, label: `${t(({ category:"Gayrimenkul kategorileri",neighborhood:"Mahalle",purpose: "İlan türü", city: "Şehir", district: "İlçe", type: "Kategori", currency:"Para birimi", minPrice: "En az", maxPrice: "En çok", minArea: "Min m²", maxArea: "Max m²", rooms: "Oda düzeni", bedrooms: "En az yatak odası", bathrooms: "En az banyo" })[key])}: ${key === "purpose" ? t(purposeLabel(filters[key])) : key === "category" ? t(PROPERTY_CATEGORIES.find(item=>item.value===filters[key])?.label||filters[key]) : key === "type" ? t(PROPERTY_TYPES.find((item) => item.value === filters[key])?.label || filters[key]) : filters[key]}` })),
+      .map((key) => ({ key, label: `${t(({ category:"Gayrimenkul kategorileri",neighborhood:"Mahalle",purpose: "İlan türü", city: "Şehir", district: "İlçe", type: "Kategori", currency:"Para birimi", minPrice: "En az", maxPrice: "En çok", minArea: "Min m²", maxArea: "Max m²", rooms: "Oda düzeni", bedrooms: "En az yatak odası", bathrooms: "En az banyo", maxAge:"Bina yaşı", minFloors:"Kat sayısı", zoning:"İmar Durumu", deed:"Tapu Durumu", credit:"Krediye Uygunluk" })[key])}: ${key === "zoning" || key === "deed" || key === "credit" ? t(filters[key]) : key === "maxAge" ? (filters[key] === "0" ? t("Sıfır bina") : `≤ ${filters[key]}`) : key === "minFloors" ? `≥ ${filters[key]}` : key === "purpose" ? t(purposeLabel(filters[key])) : key === "category" ? t(PROPERTY_CATEGORIES.find(item=>item.value===filters[key])?.label||filters[key]) : key === "type" ? t(PROPERTY_TYPES.find((item) => item.value === filters[key])?.label || filters[key]) : filters[key]}` })),
     ...(filters.furnished ? [{ key: "furnished", label: t("Eşyalı") }] : []),
     ...filters.amenities.map((item) => ({ key: `amenity:${item}`, label: t(item) })),
   ];
@@ -151,6 +154,8 @@ export function Explorer() {
     setSaveOpen(false);
   };
   const removeSaved = async (id: string) => {try{await discoveryAction({action:"delete",id});}catch(e){setSaveError((e as Error).message);}};
+  const land = filters.category === "arsa" || filters.type === "arsa";
+  const roomsShown = !land && !["isyeri", "bina"].includes(filters.category);
   const searchNameSuggestion = [filters.city || t("Türkiye"), filters.purpose ? t(purposeLabel(filters.purpose)) : ""].filter(Boolean).join(" · ");
 
   return <main className="explore-page">
@@ -162,8 +167,9 @@ export function Explorer() {
         <div className="filter-block"><Field label={t("İlan ara")}><input type="search" maxLength={160} value={filters.q} onChange={event=>set("q",event.target.value)} placeholder={t("İlçe, mahalle veya anahtar kelime")}/></Field></div><div className="filter-block"><h3>{t("Konum")}</h3><Field label={t("Şehir")}><select value={filters.city} onChange={(event) => { setFilters((old) => ({ ...old, city: event.target.value, district: "",neighborhood:"" })); setBoundsFilter("");setPage(1); }}><option value="">{t("Tüm şehirler")}</option>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></Field><Field label={t("İlçe")}><select value={filters.district} onChange={(event) => set("district", event.target.value)} disabled={!filters.city}><option value="">{t("Tüm ilçeler")}</option>{districtsFor(filters.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></Field></div>
         <div className="filter-block"><h3>{t("Gayrimenkul türü")}</h3><Field label={t("Kategori")}><select value={filters.type} onChange={(event) => set("type", event.target.value)}><option value="">{t("Tüm kategoriler")}</option>{PROPERTY_TYPES.map((item) => <option key={item.value} value={item.value}>{t(item.label)}</option>)}</select></Field></div>
         <div className="filter-block"><h3>{t("Fiyat aralığı")}</h3><Field label={t("Para birimi")}><select value={filters.currency} onChange={event=>set("currency",event.target.value)}><option value="">{t("Tüm para birimleri")}</option>{CURRENCIES.map(code=><option key={code}>{code}</option>)}</select></Field><p className="currency-note">{t("Fiyat filtresi ve sıralaması seçili para birimine uygulanır. Döviz çevrimi yapılmaz.")}</p><div className="filter-pair"><Field label={`${t("En az")} ${filters.currency||"TRY"}`}><input type="number" min="0" placeholder="Min" value={filters.minPrice} onChange={(event) => set("minPrice", event.target.value)}/></Field><Field label={`${t("En çok")} ${filters.currency||"TRY"}`}><input type="number" min="0" placeholder="Max" value={filters.maxPrice} onChange={(event) => set("maxPrice", event.target.value)}/></Field></div></div>
-        <div className="filter-block"><h3>{t("Alan ve oda")}</h3><div className="filter-pair"><Field label={t("Min m²")}><input type="number" min="0" placeholder="m²" value={filters.minArea} onChange={(event) => set("minArea", event.target.value)}/></Field><Field label={t("Max m²")}><input type="number" min="0" placeholder="m²" value={filters.maxArea} onChange={(event) => set("maxArea", event.target.value)}/></Field></div><Field label={t("Oda düzeni")}><select value={filters.rooms} onChange={(event) => set("rooms", event.target.value)}><option value="">{t("Tümü")}</option>{["1+0", "1+1", "2+1", "3+1", "4+1", "5+1", "6+1"].map((room) => <option key={room}>{room}</option>)}</select></Field><div className="filter-pair"><Field label={t("En az yatak odası")}><select value={filters.bedrooms} onChange={(event) => set("bedrooms", event.target.value)}><option value="">{t("Fark etmez")}</option>{[1, 2, 3, 4, 5].map((count) => <option key={count}>{count}</option>)}</select></Field><Field label={t("En az banyo")}><select value={filters.bathrooms} onChange={(event) => set("bathrooms", event.target.value)}><option value="">{t("Fark etmez")}</option>{[1, 2, 3, 4].map((count) => <option key={count}>{count}</option>)}</select></Field></div></div>
-        <div className="filter-block"><h3>{t("Özellikler")}</h3><label className="check-row"><input type="checkbox" checked={filters.furnished} onChange={(event) => set("furnished", event.target.checked)}/>{t("Eşyalı")}</label>{AMENITIES.map((amenity) => <label className="check-row" key={amenity}><input type="checkbox" checked={filters.amenities.includes(amenity)} onChange={(event) => set("amenities", event.target.checked ? [...filters.amenities, amenity] : filters.amenities.filter((item) => item !== amenity))}/>{t(amenity)}</label>)}</div>
+        <div className="filter-block"><h3>{t(roomsShown?"Alan ve oda":"Alan")}</h3><div className="filter-pair"><Field label={t("Min m²")}><input type="number" min="0" placeholder="m²" value={filters.minArea} onChange={(event) => set("minArea", event.target.value)}/></Field><Field label={t("Max m²")}><input type="number" min="0" placeholder="m²" value={filters.maxArea} onChange={(event) => set("maxArea", event.target.value)}/></Field></div>{roomsShown&&<><Field label={t("Oda düzeni")}><select value={filters.rooms} onChange={(event) => set("rooms", event.target.value)}><option value="">{t("Tümü")}</option>{["1+0", "1+1", "2+1", "3+1", "4+1", "5+1", "6+1"].map((room) => <option key={room}>{room}</option>)}</select></Field><div className="filter-pair"><Field label={t("En az yatak odası")}><select value={filters.bedrooms} onChange={(event) => set("bedrooms", event.target.value)}><option value="">{t("Fark etmez")}</option>{[1, 2, 3, 4, 5].map((count) => <option key={count}>{count}</option>)}</select></Field><Field label={t("En az banyo")}><select value={filters.bathrooms} onChange={(event) => set("bathrooms", event.target.value)}><option value="">{t("Fark etmez")}</option>{[1, 2, 3, 4].map((count) => <option key={count}>{count}</option>)}</select></Field></div></>}</div>
+        {land?<div className="filter-block"><h3>{t("Arsa bilgileri")}</h3><Field label={t("İmar Durumu")}><select value={filters.zoning} onChange={e=>set("zoning",e.target.value)}><option value="">{t("Tümü")}</option>{LAND_ZONING.map(v=><option key={v} value={v}>{t(v)}</option>)}</select></Field><Field label={t("Tapu Durumu")}><select value={filters.deed} onChange={e=>set("deed",e.target.value)}><option value="">{t("Tümü")}</option>{LAND_DEED.filter(v=>v!=="Belirtilmemiş").map(v=><option key={v} value={v}>{t(v)}</option>)}</select></Field><Field label={t("Krediye Uygunluk")}><select value={filters.credit} onChange={e=>set("credit",e.target.value)}><option value="">{t("Fark etmez")}</option>{LAND_CREDIT.map(v=><option key={v} value={v}>{t(v)}</option>)}</select></Field></div>:<div className="filter-block"><h3>{t("Bina")}</h3><div className="filter-pair"><Field label={t("Bina yaşı")}><select value={filters.maxAge} onChange={e=>set("maxAge",e.target.value)}><option value="">{t("Fark etmez")}</option>{AGE_OPTIONS.map(v=><option key={v} value={v}>{v==="0"?t("Sıfır bina"):`${t("En çok")} ${v}`}</option>)}</select></Field><Field label={t("Kat sayısı")}><select value={filters.minFloors} onChange={e=>set("minFloors",e.target.value)}><option value="">{t("Fark etmez")}</option>{FLOOR_OPTIONS.map(v=><option key={v} value={v}>{`${t("En az")} ${v}`}</option>)}</select></Field></div></div>}
+        {!land&&<div className="filter-block"><h3>{t("Özellikler")}</h3><label className="check-row"><input type="checkbox" checked={filters.furnished} onChange={(event) => set("furnished", event.target.checked)}/>{t("Eşyalı")}</label>{AMENITIES.map((amenity) => <label className="check-row" key={amenity}><input type="checkbox" checked={filters.amenities.includes(amenity)} onChange={(event) => set("amenities", event.target.checked ? [...filters.amenities, amenity] : filters.amenities.filter((item) => item !== amenity))}/>{t(amenity)}</label>)}</div>}
         <button className="mobile-apply" onClick={() => setMobileFilters(false)}>{total} {t("ilanı göster")}<ArrowRight size={17}/></button>
       </aside>
       <section className="results" aria-busy={loading}>

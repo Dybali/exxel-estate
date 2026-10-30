@@ -15,3 +15,5 @@
 label:has(> :is(input,select,textarea)[required]),label:has(> div > :is(input,select,textarea)[required]){position:relative}
 label:has(> :is(input,select,textarea)[required])::before,label:has(> div > :is(input,select,textarea)[required])::before{content:"*";position:absolute;top:0;inset-inline-end:2px;color:#c0392b;font-weight:800;line-height:1}
 .required-legend{font-size:12px;color:#6b7a70;margin:0 0 12px}.required-legend b{color:#c0392b}
+.compact-search .category-extra{grid-template-columns:repeat(4,minmax(0,1fr));align-items:end}.category-search-body .category-check{flex-direction:row;align-items:center;gap:8px;min-height:42px;font-size:13px;color:#163b4b}.category-search-body .category-check input{width:18px;min-height:18px;height:18px}
+@media(max-width:650px){.compact-search .category-extra{grid-template-columns:repeat(2,minmax(0,1fr))}}

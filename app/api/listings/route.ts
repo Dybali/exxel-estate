@@ -3,6 +3,7 @@ import {submissionTicket,submittedListing,submissionStatement,SubmissionError} f
 import {textSearchSql,matchesSearchText} from '@/lib/text-search';
 import {nextIndividualSubmission} from '@/lib/listing-policy';
 import {categoryFilter,categoryMatches} from "@/lib/property-categories";
+import {extraFilterMatches,extraFilterSql} from "@/lib/search-categories";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
@@ -34,6 +35,7 @@ export async function GET(request:Request) {
   for(const [param,column] of Object.entries(equals)){const v=q.get(param);if(v&&v.length<80){where.push(`l.${column}=?`);values.push(v)}}
   for(const [param,column,op] of [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const){const v=q.get(param);if(v&&/^\d{1,12}$/.test(v)){where.push(`l.${column}${op}?`);values.push(Number(v))}}
   if(q.get("furnished")==="1")where.push("l.furnished=1");
+  const extra=extraFilterSql(q);where.push(...extra.where);values.push(...extra.values);
   if(q.get('assistant')==='1'&&q.get('furnished')==='0')where.push('l.furnished=0');
   const chosen=(q.get("amenities")||"").split(",").filter((a)=>AMENITIES.includes(a)).slice(0,12);
   for(const a of chosen){where.push("EXISTS (SELECT 1 FROM json_each(l.amenities) WHERE value=?)");values.push(a)}
@@ -52,6 +54,7 @@ export async function GET(request:Request) {
     if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
     if(area&&!listingInArea(l,area))return false;
     if(q.get("furnished")==="1"&&!l.furnished)return false;
+    if(!extraFilterMatches(q,l))return false;
     if(chosen.some((a)=>!l.amenities.includes(a)))return false;
     return true;
   }).sort(compareListings(sort,rates));
