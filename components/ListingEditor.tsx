@@ -52,7 +52,7 @@ export function ListingEditor({id}:{id:string}) {
       const item=(record as {listing?:Listing}|null)?.listing||null;
       const user=(account as {user?:Profile}).user||null;
       setListing(item);setProfile(user);
-      if(item){setCity(item.city);setDistrict(item.district);setNeighborhoodId(String(item.neighborhoodId||""));setImages(item.images);setPresentation({floorPlan:item.presentation?.floorPlan||'',videoUrl:item.presentation?.videoUrl||'',tourUrl:item.presentation?.tourUrl||'',panoramas:JSON.stringify(item.presentation?.panoramas||[]),eidsNumber:item.presentation?.eidsNumber||''});setAmenities(item.amenities);}
+      if(item){setCity(item.city);setDistrict(item.district);setNeighborhoodId(String(item.neighborhoodId||""));setImages(item.images);setPresentation({floorPlan:item.presentation?.floorPlan||'',videoUrl:item.presentation?.videoUrl||'',tourUrl:item.presentation?.tourUrl||'',panoramas:JSON.stringify(item.presentation?.panoramas||[]),eidsNumber:item.presentation?.eidsNumber||'',streamVideo:item.presentation?.streamVideo||''});setAmenities(item.amenities);}
     }).catch(()=>{if(!controller.signal.aborted)setError("İlan bilgileri yüklenemedi.");}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});
     return()=>controller.abort();
   },[id]);

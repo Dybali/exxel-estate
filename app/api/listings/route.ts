@@ -5,6 +5,7 @@ import {nextIndividualSubmission} from '@/lib/listing-policy';
 import {categoryFilter,categoryMatches} from "@/lib/property-categories";
 import {extraFilterMatches,extraFilterSql} from "@/lib/search-categories";
 import {validRooms} from "@/lib/listing-details";
+import {claimStreamVideo} from "@/lib/stream-server";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
@@ -115,6 +116,7 @@ export async function POST(request:Request) {
   if(new Set(images).size!==images.length) return error("Aynı fotoğraf birden fazla eklenemez.");
   if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){return error((e as Error).message);}
+  if(presentation.streamVideo){try{const problem=await claimStreamVideo(presentation.streamVideo,user.id);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
   const imageKeys=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))].map((url)=>url.slice("/api/media/".length));
   if(imageKeys.some((key)=>!new RegExp(`^listings/${user.id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key))) return error("Yalnızca kendi yüklediğiniz fotoğrafları ekleyebilirsiniz.",403);
   const imageInfo=await Promise.all(imageKeys.map(headExternalImage));

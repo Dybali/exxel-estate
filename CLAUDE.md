@@ -19,7 +19,7 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Dil SEO'su: `?lang=xx` sunucuda işlenir (`build/sites-worker.ts` → `lib/request-context.ts`); sayfa başlıkları `lib/seo-copy.ts`, kanonik/hreflang kök layout'ta. Adresler `SITE_URL` (wrangler vars) ile üretilir.
 - Yeni tablolar ilk kullanımda `CREATE TABLE IF NOT EXISTS` ile oluşur (ör. `lib/leads.ts`, `lib/orders.ts`, `lib/email-notifications.ts`); sorgular hem PostgreSQL hem SQLite'ta çalışmalı, testler `node:sqlite` ile yazılır.
 - Worker cron'ları (`wrangler.jsonc`): saat başı :07 sağlık kontrolü, 06:00 UTC öne çıkarma bitişi ve e-posta özeti.
-- Özellik belgeleri: `docs/xml-import.md`, `docs/email-notifications.md`, `docs/payments.md`, `docs/backups-monitoring.md`, `docs/cloudflare-deploy.md`.
+- Özellik belgeleri: `docs/xml-import.md`, `docs/email-notifications.md`, `docs/payments.md`, `docs/backups-monitoring.md`, `docs/cloudflare-deploy.md`, `docs/listing-videos.md` (Cloudflare Stream).
 - `lib/messaging-service.ts` birebir `apps/api/src/shared/` altına kopyalanır; birini değiştirirsen diğerini de güncelle.
 - `apps/` ayrı bir workspace'tir ve kök doğrulamaya dahil değildir.
 

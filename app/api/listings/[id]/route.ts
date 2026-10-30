@@ -6,6 +6,7 @@ import {reportsDB} from '@/lib/reports-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {validRooms} from "@/lib/listing-details";
+import {claimStreamVideo,deleteStreamVideo} from "@/lib/stream-server";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
@@ -60,6 +61,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(!amenities)return error("Özellikleri kontrol edin.");
   if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
+  const previousVideo=String(JSON.parse(String(row.presentation||'{}')).streamVideo||'');
+  if(presentation.streamVideo&&presentation.streamVideo!==previousVideo){try{const problem=await claimStreamVideo(presentation.streamVideo,String(row.owner_id));if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
   if(propertyType==='villa'&&(!optionalFields[0]||!presentation.plotArea||presentation.gardenArea==null))return error('Villa için net, arsa ve bahçe alanını girin. Bahçe yoksa 0 yazın.');
   const originalImages=JSON.parse(String(row.images||"[]")) as string[];
   const images=Object.hasOwn(data,"images")?Array.isArray(data.images)?data.images.filter((item):item is string=>typeof item==="string"&&item.startsWith("/api/media/")).slice(0,30):null:originalImages;
@@ -91,6 +94,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   await db().batch(statements);
   const actual=await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{status:string}>();
   if(actual?.status==='published')scheduleListingTranslations(id);
+  if(previousVideo&&previousVideo!==presentation.streamVideo)await deleteStreamVideo(previousVideo);
   return ok({success:true,id,status:actual?.status||status,updatedAt},{headers:{"Cache-Control":"private, no-store"}});
 }
 export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}) {
@@ -98,9 +102,10 @@ export async function DELETE(request:Request,{params}:{params:Promise<{id:string
   const user=await currentUser(request),{id}=await params;
   if(!user) return error("Giriş gerekli.",401);
   if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id))return error("İlan bulunamadı.",404);
-  const row=await db().prepare("SELECT owner_id FROM listings WHERE id=?").bind(id).first<{owner_id:string}>();
+  const row=await db().prepare("SELECT owner_id,presentation FROM listings WHERE id=?").bind(id).first<{owner_id:string;presentation:string|null}>();
   if(!row) return error("İlan bulunamadı.",404);
   if(row.owner_id!==user.id&&!isAdmin(user)) return error("Yetkiniz yok.",403);
   await db().prepare("DELETE FROM listings WHERE id=?").bind(id).run();
+  const video=String(JSON.parse(row.presentation||'{}').streamVideo||'');if(video)await deleteStreamVideo(video);
   return ok({success:true});
 }
