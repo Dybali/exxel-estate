@@ -31,7 +31,7 @@ export async function GET(request:Request) {
   const where=["l.status='published'"],values:(string|number)[]=[];
   const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
   const textFilter=textSearchSql(q.get("q")||"");if(textFilter.where){where.push(textFilter.where);values.push(...textFilter.values);}
-  const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency",neighborhood:"neighborhood"};
+  const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",currency:"currency",neighborhood:"neighborhood"};
   for(const [param,column] of Object.entries(equals)){const v=q.get(param);if(v&&v.length<80){where.push(`l.${column}=?`);values.push(v)}}
   for(const [param,column,op] of [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const){const v=q.get(param);if(v&&/^\d{1,12}$/.test(v)){where.push(`l.${column}${op}?`);values.push(Number(v))}}
   if(q.get("furnished")==="1")where.push("l.furnished=1");
@@ -49,7 +49,7 @@ export async function GET(request:Request) {
     if(!matchesSearchText(q.get("q")||"",l))return false;
     if(!categoryMatches(q.get('category')||'',l))return false;
     if(q.get("neighborhood")&&l.neighborhood!==q.get("neighborhood"))return false;
-    for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["rooms","rooms"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
+    for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
     for(const [param,field,compare] of [["minPrice","price","min"],["maxPrice","price","max"],["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
     if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
     if(area&&!listingInArea(l,area))return false;
