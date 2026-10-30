@@ -3,7 +3,8 @@
 .project-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end;background:#fff;border:1px solid #e2e8ea;border-radius:12px;padding:16px;margin-bottom:22px}
 .project-filters label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#53666d}
 .project-filters select,.project-filters input{height:42px;border:1px solid #d6dfe2;border-radius:8px;padding:0 10px;font:inherit;font-size:14px;background:#fff;color:#15171c;min-width:0}
-.project-filter-price{display:flex;gap:6px}.project-filter-price input{flex:1}.project-filter-price select{width:78px}
+.project-filter-price{display:flex;gap:6px;min-width:0}.project-filter-price input{flex:1 1 auto;min-width:0;width:100%}.project-filter-price select{flex:0 0 74px;width:74px}
+.project-filter-actions .small-primary{background:var(--brand-petrol,#0b5f63);border-color:var(--brand-petrol,#0b5f63);color:#fff}.project-filter-actions .small-primary:hover{background:var(--brand-petrol-dark,#084a4d)}
 .project-filter-actions{display:flex;gap:8px}
 .project-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:14px 0 26px}
 .project-card{background:#fff;border:1px solid #e2e8ea;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 6px #15171c0a;transition:box-shadow .2s,transform .2s}
