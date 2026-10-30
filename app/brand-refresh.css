@@ -31,8 +31,8 @@ details.filter-block{padding:0}details.filter-block>summary{list-style:none;curs
 .video-upload-preview{display:grid;gap:12px;justify-items:start}.video-upload-preview .stream-frame{width:100%;max-width:560px}.video-upload-processing{display:flex;align-items:center;gap:10px;margin:0;padding:14px 16px;border-radius:10px;background:#eef6f8;color:#26505c;font-size:14px}.video-upload-processing .spinner{width:16px;height:16px;border:2px solid #9fc3cb;border-top-color:#087f77;border-radius:50%;animation:video-spin 1s linear infinite}@keyframes video-spin{to{transform:rotate(360deg)}}
 .property-video .stream-frame{margin-top:14px}
 /* EstateMarket24 logo (components/Brand.tsx): the image replaces the earlier text wordmark. */
-.brand-lockup{display:inline-flex;align-items:center;max-width:none;gap:0}.brand-lockup .brand-logo{display:block;height:34px;width:auto}
-.footer-brand .brand-lockup .brand-logo{height:38px}.admin-brand .brand-lockup .brand-logo,.admin-login-brand .brand-lockup .brand-logo{height:30px}
+.brand-lockup{display:inline-flex;align-items:center;max-width:none;gap:0}.brand-lockup .brand-logo{display:block;height:45px;width:auto}
+.footer-brand .brand-lockup .brand-logo{height:48px}.admin-brand .brand-lockup .brand-logo,.admin-login-brand .brand-lockup .brand-logo{height:38px}
 .admin-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-@media(max-width:900px){.brand-lockup .brand-logo{height:30px}}
-@media(max-width:380px){.site-header .brand-lockup .brand-logo{height:25px}}
+@media(max-width:900px){.brand-lockup .brand-logo{height:40px}}
+@media(max-width:380px){.site-header .brand-lockup .brand-logo{height:36px}}
