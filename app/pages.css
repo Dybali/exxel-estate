@@ -1,0 +1,134 @@
+/* Help and information pages: /iletisim, /sss, /ilan-kurallari, /toplu-ilan, plus the
+   bulk-upload hint on /kurumsal-uyelik and the admin "İletişim mesajları" view. */
+.info-page{background:#f6f8f7;padding-bottom:64px;min-height:70vh}
+.info-hero{background:linear-gradient(100deg,var(--brand-petrol-dark,#09494c),var(--brand-petrol,#0b5f63) 60%,#127a7e);color:#fff;padding:56px 0 64px}
+.info-hero .container>span{display:block;font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--brand-gold,#f2b84b);margin-bottom:14px}
+.info-hero h1{font-size:clamp(32px,4vw,50px);line-height:1.12;font-weight:650;letter-spacing:-1px;margin:0 0 16px;color:#fff}
+.info-hero p{max-width:680px;font-size:17px;line-height:1.65;color:#d7ecec;margin:0}
+.info-hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.info-body{margin-top:-28px;position:relative}
+.info-card{background:#fff;border:1px solid #dce7e4;border-radius:14px;padding:24px;box-shadow:0 8px 24px #0b5f630d}
+.info-card h2{display:flex;align-items:center;gap:8px;font-size:19px;margin:0 0 14px;color:var(--brand-ink,#15171c)}
+.info-card h2 svg{color:var(--brand-petrol,#0b5f63);flex-shrink:0}
+.info-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:8px;border:1px solid var(--brand-gold,#f2b84b);background:var(--brand-gold,#f2b84b);color:var(--brand-ink,#15171c);font-weight:700;font-size:15px;text-decoration:none;cursor:pointer}
+.info-button:hover{background:var(--brand-gold-dark,#e3a634)}
+.info-button:disabled{opacity:.6;cursor:wait}
+.info-button.secondary{background:transparent;border-color:#ffffffa6;color:#fff}
+.info-button.secondary:hover{background:#ffffff1a}
+.info-button.secondary.dark,.info-card .info-button.secondary,.info-cta .info-button.secondary{border-color:var(--brand-petrol,#0b5f63);color:var(--brand-petrol,#0b5f63)}
+.info-button.secondary.dark:hover,.info-card .info-button.secondary:hover,.info-cta .info-button.secondary:hover{background:#e8f2f2}
+.info-button:focus-visible,.info-text-link:focus-visible,.faq-item summary:focus-visible{outline:3px solid #398f94;outline-offset:3px}
+.info-text-link{display:inline-flex;align-items:center;gap:6px;color:var(--brand-petrol,#0b5f63);font-weight:650;text-decoration:none}
+.info-text-link:hover{text-decoration:underline}
+[dir=rtl] .info-text-link svg,[dir=rtl] .info-button svg.lucide-arrow-right{transform:scaleX(-1)}
+.info-cta{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:36px;padding:26px 28px;border-radius:14px;background:#eef6f4;border:1px solid #d2e4de;border-inline-start:4px solid var(--brand-gold,#f2b84b)}
+.info-cta h2{font-size:21px;margin:0 0 6px}.info-cta p{margin:0;color:#4b5e59;line-height:1.6}
+.info-cta-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+/* Contact */
+.contact-layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:start}
+.contact-side{display:grid;gap:20px}
+.contact-side address{font-style:normal;line-height:1.8;color:#2b3936}
+.contact-facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:16px 0;font-size:14px}
+.contact-facts dt{font-weight:650;color:#4b5e59}.contact-facts dd{margin:0;overflow-wrap:anywhere}
+.contact-mail{display:flex;align-items:center;gap:8px;margin:0 0 14px}.contact-mail svg{color:var(--brand-petrol,#0b5f63)}
+.contact-mail a{color:var(--brand-petrol,#0b5f63);font-weight:650}
+.contact-shortcuts a{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid #e6eeeb;text-decoration:none;color:inherit}
+.contact-shortcuts a:first-of-type{border-top:0;padding-top:0}
+.contact-shortcuts a svg{color:var(--brand-petrol,#0b5f63);margin-top:2px;flex-shrink:0}
+.contact-shortcuts span{display:grid;gap:2px}.contact-shortcuts small{color:#5b6d68;font-size:13px}
+.contact-shortcuts a:hover strong{text-decoration:underline}
+.contact-note{margin:0;font-size:14px;line-height:1.65;color:#4b5e59;padding:0 4px}
+.contact-form{display:grid;gap:16px}
+.contact-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.contact-form label{display:grid;gap:7px;font-size:14px;font-weight:600;color:#2b3936}
+.contact-form input:not([type=checkbox]),.contact-form select,.contact-form textarea{width:100%;padding:12px;border:1px solid #ccd6d2;border-radius:8px;background:#fff;color:#243331;font:inherit;font-weight:400}
+.contact-form textarea{resize:vertical;min-height:150px}
+.contact-form input:focus,.contact-form select:focus,.contact-form textarea:focus{outline:2px solid var(--brand-petrol,#0b5f63);outline-offset:1px;border-color:var(--brand-petrol,#0b5f63)}
+.contact-count{justify-self:end;font-weight:400;color:#6b7c77;font-size:12px}
+.contact-consent{display:flex!important;grid-template-columns:none;align-items:flex-start;gap:10px!important;font-weight:400!important;line-height:1.6}
+.contact-consent input{width:19px;height:19px;margin-top:2px;flex-shrink:0;accent-color:var(--brand-petrol,#0b5f63)}
+.contact-consent a{color:var(--brand-petrol,#0b5f63);text-decoration:underline}
+.contact-hint{margin:-6px 0 0;font-size:13px;color:#6b7c77}
+.contact-form .info-button{justify-self:start}
+.contact-trap{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;inset-inline-start:-10000px}
+.contact-success{display:grid;justify-items:start;gap:10px;padding:8px 0}
+.contact-success svg{color:var(--brand-petrol,#0b5f63)}.contact-success strong{font-size:20px}.contact-success p{margin:0;color:#4b5e59;line-height:1.6}
+
+/* FAQ */
+.faq-body{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;align-items:start}
+.faq-index{position:sticky;top:96px;display:grid;gap:4px;background:#fff;border:1px solid #dce7e4;border-radius:14px;padding:14px}
+.faq-index a{padding:9px 12px;border-radius:8px;color:#2b3936;text-decoration:none;font-size:14px;font-weight:600}
+.faq-index a:hover{background:#eef6f4;color:var(--brand-petrol,#0b5f63)}
+.faq-groups{display:grid;gap:28px}
+.faq-group{scroll-margin-top:96px}
+.faq-group h2{font-size:22px;margin:0 0 12px}
+.faq-item{background:#fff;border:1px solid #dce7e4;border-radius:12px;margin-bottom:10px;overflow:hidden}
+.faq-item summary{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px;cursor:pointer;list-style:none;font-weight:650;font-size:16px;color:var(--brand-ink,#15171c)}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary svg{flex-shrink:0;color:var(--brand-petrol,#0b5f63);transition:transform .2s}
+.faq-item[open] summary svg{transform:rotate(45deg)}
+.faq-item[open] summary{border-bottom:1px solid #e6eeeb;background:#f8fbfa}
+.faq-answer{padding:16px 20px 20px}
+.faq-answer p{margin:0 0 10px;line-height:1.75;color:#33433f}
+
+/* Listing rules */
+.rules-body{max-width:900px}
+.rules-intro{background:#fff;border:1px solid #dce7e4;border-radius:14px;padding:20px 24px;line-height:1.7;margin:0 0 24px;color:#33433f}
+.rules-list{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.rules-list>li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:16px;background:#fff;border:1px solid #dce7e4;border-radius:14px;padding:22px 24px}
+.rules-number{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#eef6f4;color:var(--brand-petrol,#0b5f63);font-weight:800;font-size:15px}
+.rules-list h2{font-size:19px;margin:8px 0 8px}
+.rules-list p,.rules-list ul{margin:0;line-height:1.75;color:#33433f}
+.rules-list ul{margin-top:8px;padding-inline-start:20px}.rules-list ul li{margin-bottom:4px}
+.rules-note{margin:24px 0 0;padding:16px 20px;border-radius:12px;background:#fff8e8;border:1px solid #f2dca8;line-height:1.7;color:#4a3f22}
+
+/* Bulk upload */
+.bulk-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.bulk-benefits svg{color:var(--brand-petrol,#0b5f63)}
+.bulk-benefits h2{font-size:18px;margin:12px 0 8px}
+.bulk-benefits p{margin:0;line-height:1.65;color:#4b5e59}
+.bulk-section{margin-top:44px}
+.bulk-section>h2{font-size:26px;margin:0 0 16px}
+.bulk-section>p{line-height:1.7;color:#33433f}
+.bulk-steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.bulk-steps li{display:flex;gap:14px;background:#fff;border:1px solid #dce7e4;border-radius:14px;padding:22px}
+.bulk-steps li>span{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--brand-gold,#f2b84b);color:var(--brand-ink,#15171c);font-weight:800;flex-shrink:0}
+.bulk-steps h3{font-size:17px;margin:6px 0 6px}.bulk-steps p{margin:0;line-height:1.6;color:#4b5e59}
+.bulk-table-wrap{overflow-x:auto;border:1px solid #dce7e4;border-radius:12px;background:#fff}
+.bulk-table-wrap:focus-visible{outline:3px solid #398f94}
+.bulk-table{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
+.bulk-table th,.bulk-table td{text-align:start;padding:11px 14px;border-bottom:1px solid #e6eeeb;vertical-align:top;line-height:1.55}
+.bulk-table th{background:#eef6f4;font-size:13px}
+.bulk-table tr:last-child td{border-bottom:0}
+.bulk-table code,.bulk-section code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--brand-petrol-dark,#09494c);overflow-wrap:anywhere}
+.bulk-notes{margin:18px 0;padding-inline-start:20px;line-height:1.7;color:#33433f}
+.bulk-sample{background:#10292b;color:#d7ecec;border-radius:12px;padding:18px 20px;overflow-x:auto;font-size:13px;line-height:1.55;margin:0 0 18px;text-align:left}
+.bulk-sample code{color:inherit}
+.bulk-hint{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:20px;padding:14px 18px;border-radius:10px;background:#fff8e8;border:1px solid #f2dca8;border-inline-start:4px solid var(--brand-gold,#f2b84b);font-size:15px}
+.bulk-hint a{color:var(--brand-petrol,#0b5f63);font-weight:700;text-decoration:underline}
+
+/* Admin: contact messages */
+.admin-contact{display:grid;gap:14px}
+.admin-contact-item header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.admin-contact-item header a{color:var(--brand-petrol,#0b5f63);overflow-wrap:anywhere}
+.admin-contact-item .admin-muted{margin:6px 0 10px;font-size:13px}
+.admin-contact-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:0 0 14px}
+.admin-contact-item.is-handled{opacity:.75}
+.admin-contact-actions{display:flex;flex-wrap:wrap;gap:10px}
+.admin-contact-actions a,.admin-contact-actions button{display:inline-flex;align-items:center;gap:6px}
+
+@media(max-width:900px){
+ .contact-layout,.faq-body{grid-template-columns:1fr}
+ .contact-form-card{order:-1}
+ .faq-index{position:static;display:flex;flex-wrap:wrap}
+ .bulk-benefits,.bulk-steps{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+ .info-hero{padding:40px 0 52px}.info-hero p{font-size:16px}
+ .info-card{padding:18px}
+ .contact-row,.bulk-benefits,.bulk-steps{grid-template-columns:1fr}
+ .rules-list>li{grid-template-columns:1fr;gap:6px;padding:18px}
+ .info-cta{padding:20px}
+ .info-hero-actions .info-button,.info-cta-actions .info-button{width:100%}
+}

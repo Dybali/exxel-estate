@@ -1,7 +1,7 @@
 import {LAND_CREDIT,LAND_DEED,LAND_ZONING} from './land';
 import {SUBTYPE_FIELDS,subtypeFor,type SubtypeField} from './property-subtypes';
 import {AMENITIES,type Listing} from './listings';
-import {DETAIL_FIELDS} from './listing-details';
+import {DETAIL_FIELDS,FOREIGN_SALE} from './listing-details';
 
 // Search fields per home page category tab, modelled on the usual Turkish portals: each tab
 // asks only what makes sense for it (no room count for land, floors for buildings and so on).
@@ -42,7 +42,7 @@ const CATEGORY_OF_TYPE:Record<string,string>={ticari:'isyeri',arsa:'arsa',bina:'
 export const searchCategory=(category:string,type:string)=>category||(type?CATEGORY_OF_TYPE[type]||'konut':'');
 
 // Filters beyond the plain column equality ones in app/api/listings; shared by the API and the listings page.
-export const EXTRA_FILTERS=['rooms','minNetArea','maxNetArea','minAge','maxAge','minFloor','maxFloor','minFloors','maxFloors','heating','from','days','video','tour','mapped','zoning','deed','credit','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap'] as const;
+export const EXTRA_FILTERS=['rooms','minNetArea','maxNetArea','minAge','maxAge','minFloor','maxFloor','minFloors','maxFloors','heating','from','days','video','tour','mapped','zoning','deed','credit','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale'] as const;
 export type ExtraFilter=typeof EXTRA_FILTERS[number];
 type Query={get:(key:string)=>string|null};
 const LAND_OPTIONS={zoning:LAND_ZONING,deed:LAND_DEED,credit:LAND_CREDIT} as const;
@@ -72,6 +72,8 @@ export function extraFilterSql(q:Query,now=Date.now()){
  for(const key of ['zoning','deed','credit'] as const){const value=land(key,q.get(key));if(value){where.push(`json_extract(l.presentation,'$.land.${key}')=?`);values.push(value);}}
  for(const {field} of SUBTYPE_FIELDS){const value=subtype(field,q.get(field));if(value){where.push(`json_extract(l.presentation,'$.${field}')=?`);values.push(value);}}
  for(const {form} of DETAIL_FIELDS){const value=q.get(form),key=detail(form,value);if(key){where.push(`json_extract(l.presentation,'$.details.${key}')=?`);values.push(value!);}}
+ // foreignSale=1: sale listings the advertiser marked as sellable to foreigners.
+ if(q.get('foreignSale')==='1'){where.push(`(l.purpose IN (${FOREIGN_SALE.purposes.map(()=>'?').join(',')}) AND json_extract(l.presentation,'$.details.foreignSale')=?)`);values.push(...FOREIGN_SALE.purposes,'Evet');}
  return {where,values};
 }
 
@@ -85,5 +87,6 @@ export function extraFilterMatches(q:Query,listing:Listing,now=Date.now()){
  for(const key of ['zoning','deed','credit'] as const){const value=land(key,q.get(key));if(value&&listing.presentation?.land?.[key]!==value)return false;}
  for(const {field} of SUBTYPE_FIELDS){const value=subtype(field,q.get(field));if(value&&listing.presentation?.[field]!==value)return false;}
  for(const {form} of DETAIL_FIELDS){const value=q.get(form),key=detail(form,value);if(key&&listing.presentation?.details?.[key]!==value)return false;}
+ if(q.get('foreignSale')==='1'&&!((FOREIGN_SALE.purposes as readonly string[]).includes(listing.purpose)&&listing.presentation?.details?.foreignSale==='Evet'))return false;
  return true;
 }

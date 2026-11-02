@@ -4,7 +4,9 @@ import { env } from "./runtime";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
 import { neonD1 } from "./neon-d1";
 
-type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string };
+import { admin2faPending } from "./admin-totp";
+
+type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string; ADMIN_TOTP_KEY?: string };
 export const db = () => {
   const settings = env as SiteEnv;
   if (settings.DATABASE_URL) return neonD1(settings.DATABASE_URL) as unknown as D1Database;
@@ -59,7 +61,7 @@ export async function verifyPassword(password:string, stored:string) {
   let diff=0; for (let i=0;i<a.length;i++) diff |= a[i]^b[i];
   return diff===0;
 }
-export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; whatsapp_enabled?:number; company?:string|null; avatar_url?:string|null};
+export type User = {id:string; email:string; email_verified:number; name:string; role:string; agent_status:string; phone?:string|null; whatsapp_enabled?:number; company?:string|null; avatar_url?:string|null; admin_2fa_pending?:boolean};
 export async function currentUser(request:Request):Promise<User|null> {
   const cookie = request.headers.get("cookie") || "";
   const token = cookie.match(/(?:^|;\s*)excell_session=([^;]+)/)?.[1];
@@ -70,6 +72,8 @@ export async function currentUser(request:Request):Promise<User|null> {
   // Unverified sessions can only access account identification and the OTP flow.
   const pathname = new URL(request.url).pathname;
   if (!row.email_verified && pathname !== '/api/account' && pathname !== '/api/account/recovery') return null;
+  // An administrator with two-factor login enabled has no admin rights until this session confirms a code (lib/admin-totp.ts).
+  if (isAdmin(row)) row.admin_2fa_pending = await admin2faPending(db, String(row.id), tokenHash, cookie, (env as SiteEnv).ADMIN_TOTP_KEY);
   return row;
 }
 export function sessionCookie(token:string, clear=false) {
@@ -82,7 +86,7 @@ export async function createSession(userId:string) {
 }
 export function isAdmin(user:User|null) {
   const configured = (env as SiteEnv).EXXEL_ADMIN_EMAIL?.toLowerCase();
-  return Boolean(user && (user.role==="admin" || (configured && user.email_verified && user.email.toLowerCase()===configured)));
+  return Boolean(user && !user.admin_2fa_pending && (user.role==="admin" || (configured && user.email_verified && user.email.toLowerCase()===configured)));
 }
 export function parseListing(row:Record<string,unknown>):Listing {
   return {

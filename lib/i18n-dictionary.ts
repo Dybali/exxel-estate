@@ -9,6 +9,9 @@ import editorialUITranslations from "@/data/editorial-ui-translations.json";
 import persianTranslations from "@/data/fa-translations.json";
 import dutchTranslations from "@/data/nl-translations.json";
 import {portalWords} from "./portal-translations";
+import {pagesWords} from "./pages-translations";
+import {securityWords} from "./security-translations";
+import {foreignBuyerWords} from "./foreign-buyer-translations";
 
 
 export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl";
@@ -687,6 +690,9 @@ for(const [key,fa] of Object.entries(persianTranslations as Record<string,string
 for(const [key,row] of Object.entries(portalWords))words[key]={...row,...Object.fromEntries(Object.entries(words[key]||{}).filter(([,value])=>value))};
 // Dutch, like Persian, is one overlay keyed by the Turkish source text (covering every key above); missing keys fall back to English.
 for(const [key,nl] of Object.entries(dutchTranslations as Record<string,string>))if(words[key])words[key]={...words[key],nl};
+Object.assign(words,securityWords);
+Object.assign(words,foreignBuyerWords);
+Object.assign(words,pagesWords);
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);

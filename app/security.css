@@ -1,0 +1,17 @@
+/* Phone verification (account security) and administrator two-factor settings. */
+.phone-verification{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(15,23,42,.1)}
+.phone-verification h4{display:flex;align-items:center;gap:.45rem;margin:0 0 .5rem}
+.phone-verification-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.75rem;margin:.75rem 0}
+.phone-verification-form label{display:grid;gap:.3rem;flex:1 1 220px}
+.phone-verification-form input{min-height:44px}
+.phone-verified-mark{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:999px;background:#e7f6ef;color:#0f6b46;font-size:.86rem;font-weight:700}
+.admin-security-link{margin-top:1rem}
+.security-settings .admin-card{margin-top:1rem}
+.security-settings h2,.security-settings h3{display:flex;align-items:center;gap:.45rem}
+.security-code-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.75rem;margin:.5rem 0 1rem}
+.security-code-form label{display:grid;gap:.3rem;flex:1 1 220px}
+.security-code-form input{min-height:44px;letter-spacing:.08em}
+.security-enrolment ol{padding-inline-start:1.25rem;display:grid;gap:.4rem}
+.security-secret{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem}
+.security-secret code,.security-recovery code{font-size:1.05rem;letter-spacing:.08em;direction:ltr;unicode-bidi:isolate;word-break:break-all}
+.security-recovery ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;padding:0;list-style:none}

@@ -60,6 +60,13 @@ E-posta doğrulama ve şifre sıfırlama için (Neon Auth):
 | `CAPTURE_WORKER_TOKEN`, `CAPTURE_WORKER_MODE` | 360° tur işleme |
 | `RESEND_API_KEY`, `EMAIL_FROM` | E-posta bildirimleri (`docs/email-notifications.md`) |
 | `BANK_ACCOUNT_NAME`, `BANK_IBAN`, `BANK_NAME` | Havale/EFT ile sipariş (`docs/payments.md`) |
+| `ADMIN_TOTP_KEY` | Yönetici iki adımlı doğrulaması (en az 32 rastgele karakter; değiştirilirse 2FA yeniden kurulur) — `docs/security-checklist.md` |
+| `SMS_PROVIDER` (`netgsm` veya `twilio`) + `NETGSM_USERCODE`, `NETGSM_PASSWORD`, `NETGSM_HEADER` veya `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | SMS ile telefon doğrulaması |
+| `PHONE_CODE_SECRET` | SMS kodlarının özet tuzu (yoksa `NEON_AUTH_COOKIE_SECRET` kullanılır) |
+| `GA_MEASUREMENT_ID` | Google Analytics 4 (`G-…`), yalnızca çerez izniyle yüklenir |
+| `GOOGLE_SITE_VERIFICATION` | Google Search Console HTML etiketi doğrulama değeri |
+
+Sohbette paylaşılmış değerlerin yenilenmesi, eski Sites yayınlarının kapatılması ve bu özelliklerin açılması adım adım: [security-checklist.md](security-checklist.md).
 
 ChatGPT Sites gizli değerleri geri göstermez. Elinde kopyası olmayan anahtarlar ilgili panelden yeniden oluşturulur; eskisi iptal edilmeden önce yeni site test edilir.
 

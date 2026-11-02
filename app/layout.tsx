@@ -34,8 +34,12 @@ import "./admin-workspace.css";
 import "./company-portfolio.css";
 import "./company-team.css";
 import "./projects.css";
+import "./security.css";
+import "./pages.css";
 import "./brand-colors.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
+import {GoogleAnalytics} from "@/components/GoogleAnalytics";
+import {gaMeasurementId,googleSiteVerification} from "@/lib/analytics";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
 import {CompareTray} from "@/components/Compare";
 import {SiteFrame} from "@/components/SiteFrame";
@@ -53,6 +57,7 @@ export const viewport: Viewport = { themeColor: "#0B5F63" };
 export async function generateMetadata(): Promise<Metadata> {
   const [locale, path] = await Promise.all([requestLocale(), requestPath()]);
   const [title, description] = (seoCopy[path] || seoCopy["/"])[locale];
+  const verification = googleSiteVerification();
   return {
     metadataBase: new URL(siteUrl()),
     title,
@@ -66,6 +71,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     appleWebApp: { capable: true, title: "estatemarket24", statusBarStyle: "default" },
     manifest: "/manifest.webmanifest",
+    // Google Search Console ownership meta tag (GOOGLE_SITE_VERIFICATION), only when set.
+    ...(verification ? { verification: { google: verification } } : {}),
   };
 }
 
@@ -75,9 +82,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await requestLocale();
+  const gaId = gaMeasurementId();
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
-      <body><LocaleProvider initialLocale={locale}><CookieConsentProvider><SiteFrame>{children}</SiteFrame></CookieConsentProvider></LocaleProvider><ServiceWorker/></body>
+      <body><LocaleProvider initialLocale={locale}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }
