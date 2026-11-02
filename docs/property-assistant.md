@@ -16,7 +16,7 @@ Gemini bir JSON şemasında kriter çıkarır; sunucu bunları yeniden doğrular
 
 İlan kaynağı mevcut `db()` adaptörüdür: canlı DATABASE_URL varsa Neon, yerelde D1. Sadece `status='published'` olan gerçek kayıtlar sorgulanır. DEMO_LISTINGS hiçbir zaman asistan sonuçlarına eklenmez. Sahip iletişim bilgileri, kullanıcı kayıtları, mesajlar, inceleme notları veya özel belgeler modele gönderilmez. Karşılaştırma/güncel bilgi için son görülen ilanlar tekrar published filtresiyle okunur. Başlıklar ve konuşma talimat değil veri kabul edilir. Aidat, denize mesafe, deprem dayanımı gibi kayıtta olmayan bilgiler doğrulanmış gibi sunulmaz.
 
-Türkçe, İngilizce, Almanca, Arapça, Fransızca, Rusça arayüz; otomatik veya elle dil seçimi. Arapça panel RTL, mesajlar `dir=auto`. Ses kaydı veya mikrofon yoktur. Sohbet yalnızca bileşen belleğinde tutulur; veritabanına veya localStorage'a yazılmaz. Çıkış/girişsiz durum algılanınca sohbet temizlenir. Model için iletilen geçmiş 8 mesajla sınırlandırılır; e-posta ve uluslararası telefon desenleri maskelenir. Bu maskeleme her türlü kişisel veriyi tanıma garantisi değildir; kullanıcıya özel bilgi göndermemesi belirtilir.
+Türkçe, İngilizce, Almanca, Arapça, Fransızca, Rusça, Felemenkçe arayüz; otomatik veya elle dil seçimi. Arapça panel RTL, mesajlar `dir=auto`. Ses kaydı veya mikrofon yoktur. Sohbet yalnızca bileşen belleğinde tutulur; veritabanına veya localStorage'a yazılmaz. Çıkış/girişsiz durum algılanınca sohbet temizlenir. Model için iletilen geçmiş 8 mesajla sınırlandırılır; e-posta ve uluslararası telefon desenleri maskelenir. Bu maskeleme her türlü kişisel veriyi tanıma garantisi değildir; kullanıcıya özel bilgi göndermemesi belirtilir.
 
 ## Kullanım sınırları
 

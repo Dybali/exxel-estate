@@ -1,9 +1,9 @@
-export const translationLocales=['de','fr','en','ar','fa','ru'] as const;
+export const translationLocales=['de','fr','en','ar','fa','ru','nl'] as const;
 export type TranslationLocale=typeof translationLocales[number];
 export type TranslationDocument={kind:'listing'|'blog';id:string;fields:Record<string,string>};
 export type TranslationSettings={DEEPL_API_KEY?:string;DEEPL_DAILY_CHAR_LIMIT?:string;DEEPL_MONTHLY_CHAR_LIMIT?:string};
 export class TranslationError extends Error{constructor(public code:string,public status=503){super(code);}}
-export const translationTarget=(locale:TranslationLocale|'tr')=>({tr:'TR',de:'DE',fr:'FR',en:'EN-GB',ar:'AR',fa:'FA',ru:'RU'}[locale]);
+export const translationTarget=(locale:TranslationLocale|'tr')=>({tr:'TR',de:'DE',fr:'FR',en:'EN-GB',ar:'AR',fa:'FA',ru:'RU',nl:'NL'}[locale]);
 export async function translationHash(text:string){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function translationSegments(doc:TranslationDocument,locale:TranslationLocale){
  const entries=Object.entries(doc.fields).filter(([,value])=>value.trim());

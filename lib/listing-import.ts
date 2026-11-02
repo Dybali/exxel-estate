@@ -1,7 +1,7 @@
 // Bulk import format (docs/xml-import.md): a parsed <listing> becomes the same payload
 // the listing form sends to POST /api/listings, so every server rule still applies.
 export const IMPORT_PURPOSES = ["satilik", "kiralik", "gunluk", "devren"] as const;
-export const IMPORT_LANGUAGES = ["de", "fr", "en", "ar", "fa", "ru"] as const;
+export const IMPORT_LANGUAGES = ["de", "fr", "en", "ar", "fa", "ru", "nl"] as const;
 export const MAX_IMPORT_LISTINGS = 100;
 export const MAX_IMPORT_IMAGES = 20;
 

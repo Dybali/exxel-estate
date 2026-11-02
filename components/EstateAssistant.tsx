@@ -33,7 +33,7 @@ export function EstateAssistant({compact=false,onClose}:{compact?:boolean;onClos
  }
 
  const member=assistantMemberCopy[language];
- const closeLabel={tr:'Kapat',en:'Close',de:'Schließen',ar:'إغلاق',fa:'بستن',fr:'Fermer',ru:'Закрыть'}[language];
+ const closeLabel={tr:'Kapat',en:'Close',de:'Schließen',ar:'إغلاق',fa:'بستن',fr:'Fermer',ru:'Закрыть',nl:'Sluiten'}[language];
  return <section className={'estate-assistant assistant-text-only'+(compact?' assistant-compact':'')} dir={isRtl(language)?'rtl':'ltr'}>
   <section className="assistant-chat" aria-label={copy.badge}>
    <header className="assistant-chat-top"><span><span className="assistant-avatar"><Sparkles size={21}/></span><span className="assistant-chat-name"><strong>{copy.launcher}</strong><small>{member.badge}</small></span></span><div className="assistant-header-actions"><button type="button" onClick={reset} disabled={busy} aria-label={copy.reset} title={copy.reset}><Plus size={18}/></button>{onClose&&<button type="button" onClick={onClose} aria-label={closeLabel} title={closeLabel}><X size={22}/></button>}</div></header>

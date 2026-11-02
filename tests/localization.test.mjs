@@ -8,9 +8,9 @@ import ts from 'typescript';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),require=createRequire(import.meta.url);
 function load(file,extra=''){const m={exports:{}};new Function('require','module','exports',ts.transpile(fs.readFileSync(path.join(root,file),'utf8')+extra,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}))(name=>{if(name.startsWith('@/'))return name.endsWith('.json')?JSON.parse(fs.readFileSync(path.join(root,name.slice(2)),'utf8')):load(name.slice(2)+'.ts');if(name.startsWith('./'))return load(path.join(path.dirname(file),name)+'.ts');return require(name);},m,m.exports);return m.exports;}
 const dictionary=load('lib/i18n-dictionary.ts').words;
-const locales=['de','fr','en','ar','fa','ru'];
+const locales=['de','fr','en','ar','fa','ru','nl'];
 function check(key){if(!key.trim()||/^ESTATEMARKET24/.test(key))return;for(const locale of locales)assert.ok(dictionary[key]?.[locale]?.trim(),`Missing ${locale}: ${key}`);}
-test('literal UI translation keys have coverage in all six languages',()=>{
+test('literal UI translation keys have coverage in every language',()=>{
  const files=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):[path.join(dir,e.name)]);
  for(const file of [...files(path.join(root,'app')),...files(path.join(root,'components'))].filter(f=>f.endsWith('.tsx'))){const source=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);const visit=n=>{if(ts.isCallExpression(n)&&ts.isIdentifier(n.expression)&&n.expression.text==='t'){const collect=x=>{if(ts.isStringLiteral(x))check(x.text);else if(ts.isConditionalExpression(x)){collect(x.whenTrue);collect(x.whenFalse);}};if(n.arguments[0])collect(n.arguments[0]);}ts.forEachChild(n,visit);};visit(source);}
 });

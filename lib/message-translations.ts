@@ -3,7 +3,7 @@
 import {translateDeepL,TranslationError,type TranslationSettings} from './translation';
 import {recordTranslationUsage} from './translation-cache';
 import {pauseTranslationService,translationServicePause} from './translation-service';
-export const messageLocales=['tr','de','fr','en','ar','fa','ru'] as const;
+export const messageLocales=['tr','de','fr','en','ar','fa','ru','nl'] as const;
 export type MessageLocale=typeof messageLocales[number];
 type Statement={bind(...values:(string|number|null)[]):Statement;all<T>():Promise<{results:T[]}>;first<T>():Promise<T|null>;run():Promise<unknown>};
 type Database={prepare(sql:string):Statement};

@@ -12,6 +12,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["estatemarket24 | عقارات للبيع والإيجار في تركيا", "اكتشف الشقق والفلل والأراضي والعقارات التجارية للبيع والإيجار في تركيا مع مكاتب عقارية موثقة."],
     fa: ["estatemarket24 | املاک فروشی و اجاره‌ای در ترکیه", "آپارتمان، ویلا، زمین و املاک تجاری فروشی و اجاره‌ای در ترکیه را با مشاوران املاک تأییدشده پیدا کنید."],
     ru: ["estatemarket24 | Недвижимость в Турции: продажа и аренда", "Квартиры, виллы, участки и коммерческая недвижимость в Турции от проверенных агентств."],
+    nl: ["estatemarket24 | Woningen te koop en te huur in Turkije", "Vind appartementen, villa’s, bouwgrond en bedrijfspanden te koop en te huur in Turkije bij geverifieerde makelaars."],
   },
   "/ilanlar": {
     tr: ["Satılık ve Kiralık İlanlar | estatemarket24", "Türkiye'deki daire, villa, müstakil ev, arsa ve ticari gayrimenkulleri ayrıntılı filtrelerle keşfedin."],
@@ -21,6 +22,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["إعلانات عقارية للبيع والإيجار | estatemarket24", "تصفح الشقق والفلل والمنازل المستقلة والأراضي والعقارات التجارية في تركيا بفلاتر مفصلة."],
     fa: ["آگهی‌های فروش و اجاره ملک | estatemarket24", "آپارتمان، ویلا، خانهٔ مستقل، زمین و املاک تجاری در ترکیه را با فیلترهای دقیق جست‌وجو کنید."],
     ru: ["Объявления о продаже и аренде | estatemarket24", "Квартиры, виллы, дома, участки и коммерческая недвижимость в Турции с подробными фильтрами."],
+    nl: ["Woningaanbod te koop en te huur | estatemarket24", "Bekijk appartementen, villa’s, vrijstaande woningen, bouwgrond en bedrijfspanden in Turkije met uitgebreide filters."],
   },
   "/sirketler": {
     tr: ["Emlak Ofisleri ve İnşaat Firmaları | estatemarket24", "Türkiye'deki onaylı emlak ofislerini ve inşaat firmalarını, portföyleri ve iletişim bilgileriyle inceleyin."],
@@ -30,6 +32,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["مكاتب عقارية وشركات تطوير | estatemarket24", "مكاتب عقارية وشركات تطوير موثقة في تركيا مع محافظها العقارية وبيانات التواصل."],
     fa: ["مشاوران املاک و شرکت‌های سازنده | estatemarket24", "مشاوران املاک و شرکت‌های سازندهٔ تأییدشده در ترکیه را همراه با سبد املاک و اطلاعات تماس ببینید."],
     ru: ["Агентства недвижимости и застройщики | estatemarket24", "Проверенные агентства недвижимости и застройщики в Турции с портфолио и контактами."],
+    nl: ["Makelaars en projectontwikkelaars | estatemarket24", "Geverifieerde makelaarskantoren en projectontwikkelaars in Turkije, met hun aanbod en contactgegevens."],
   },
   "/projeler": {
     tr: ["Konut Projeleri | estatemarket24", "Türkiye'deki yeni konut projelerini, daire tiplerini ve başlangıç fiyatlarını inceleyin; ücretsiz yer ayırtma talebi gönderin."],
@@ -39,6 +42,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["مشاريع سكنية جديدة | estatemarket24", "اكتشف المشاريع السكنية الجديدة في تركيا مع أنواع الوحدات وأسعارها المبدئية، وأرسل طلب حجز مجاني."],
     fa: ["پروژه‌های مسکونی جدید | estatemarket24", "پروژه‌های مسکونی جدید در ترکیه را همراه با انواع واحد و قیمت‌های شروع ببینید و درخواست رزرو رایگان بفرستید."],
     ru: ["Новые жилые комплексы | estatemarket24", "Новые жилые комплексы в Турции: типы квартир и стартовые цены. Отправьте бесплатную заявку на бронирование."],
+    nl: ["Nieuwbouwprojecten | estatemarket24", "Ontdek nieuwbouwprojecten in Turkije met woningtypes en vanafprijzen, en verstuur gratis een reserveringsaanvraag."],
   },
   "/blog": {
     tr: ["Blog ve Emlak Haberleri | estatemarket24", "Resmî kaynaklara dayanan emlak haberleri, piyasa verileri ve Türkiye'de ev alma rehberleri."],
@@ -48,6 +52,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["المدونة وأخبار العقارات | estatemarket24", "أخبار عقارية من مصادر رسمية وبيانات السوق وأدلة شراء المنازل في تركيا."],
     fa: ["وبلاگ و اخبار املاک | estatemarket24", "اخبار املاک از منابع رسمی، داده‌های بازار و راهنمای خرید خانه در ترکیه."],
     ru: ["Блог и новости недвижимости | estatemarket24", "Новости недвижимости из официальных источников, данные рынка и гиды по покупке жилья в Турции."],
+    nl: ["Blog en vastgoednieuws | estatemarket24", "Vastgoednieuws uit officiële bronnen, marktcijfers en gidsen voor het kopen van een woning in Turkije."],
   },
   "/hakkimizda": {
     tr: ["Hakkımızda | estatemarket24", "estatemarket24, Türkiye'deki gayrimenkulleri dünyanın her yerinden şeffaf bilgilerle keşfetmenizi sağlar."],
@@ -57,6 +62,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["من نحن | estatemarket24", "يتيح لك estatemarket24 استكشاف العقارات في تركيا من أي مكان في العالم بمعلومات شفافة."],
     fa: ["دربارهٔ ما | estatemarket24", "estatemarket24 به شما امکان می‌دهد از هر جای دنیا املاک ترکیه را با اطلاعات شفاف بررسی کنید."],
     ru: ["О нас | estatemarket24", "estatemarket24 помогает изучать недвижимость в Турции из любой точки мира с прозрачной информацией."],
+    nl: ["Over ons | estatemarket24", "Met estatemarket24 ontdekt u vastgoed in Turkije vanaf elke plek ter wereld, met transparante informatie."],
   },
   "/paketler": {
     tr: ["İlan Paketleri | estatemarket24", "Bireysel ilan verenler, emlak ofisleri ve inşaat firmaları için ilan ve öne çıkarma paketleri."],
@@ -66,6 +72,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["باقات الإعلانات | estatemarket24", "باقات نشر وتمييز الإعلانات للأفراد والمكاتب العقارية وشركات التطوير."],
     fa: ["بسته‌های آگهی | estatemarket24", "بسته‌های درج و ویژه‌سازی آگهی برای اشخاص، مشاوران املاک و شرکت‌های سازنده."],
     ru: ["Пакеты объявлений | estatemarket24", "Пакеты размещения и продвижения объявлений для частных лиц, агентств и застройщиков."],
+    nl: ["Advertentiepakketten | estatemarket24", "Advertentie- en uitlichtpakketten voor particuliere verkopers, makelaars en projectontwikkelaars."],
   },
   "/kurumsal-uyelik": {
     tr: ["Kurumsal Üyelik | estatemarket24", "Emlak ofisi veya inşaat firması olarak estatemarket24'e katılın, portföyünüzü uluslararası alıcılara sunun."],
@@ -75,6 +82,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["عضوية الشركات | estatemarket24", "انضم كمكتب عقاري أو شركة تطوير واعرض محفظتك العقارية على المشترين الدوليين."],
     fa: ["عضویت شرکتی | estatemarket24", "به‌عنوان مشاور املاک یا شرکت سازنده بپیوندید و سبد املاک خود را به خریداران بین‌المللی عرضه کنید."],
     ru: ["Корпоративное членство | estatemarket24", "Присоединяйтесь как агентство или застройщик и представьте портфолио иностранным покупателям."],
+    nl: ["Zakelijk lidmaatschap | estatemarket24", "Sluit u aan als makelaar of projectontwikkelaar en presenteer uw aanbod aan internationale kopers."],
   },
   "/asistan": {
     tr: ["Ev Asistanı | estatemarket24", "Aradığınız evi kendi dilinizde yazın; asistan Türkiye'deki uygun satılık ve kiralık ilanları bulsun."],
@@ -84,6 +92,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["المساعد العقاري | estatemarket24", "صف المنزل الذي تبحث عنه بلغتك ليجد لك المساعد الإعلانات المناسبة في تركيا."],
     fa: ["دستیار املاک | estatemarket24", "خانهٔ مورد نظرتان را به زبان خودتان بنویسید تا دستیار آگهی‌های مناسب در ترکیه را پیدا کند."],
     ru: ["Помощник по недвижимости | estatemarket24", "Опишите нужное жильё на своём языке, и помощник подберёт подходящие объявления в Турции."],
+    nl: ["Woningassistent | estatemarket24", "Beschrijf de woning die u zoekt in uw eigen taal; de assistent vindt passende advertenties in Turkije."],
   },
   "/karsilastir": {
     tr: ["İlan Karşılaştırma | estatemarket24", "En fazla dört ilanı fiyat, alan ve özelliklerine göre yan yana karşılaştırın."],
@@ -93,6 +102,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["مقارنة الإعلانات | estatemarket24", "قارن حتى أربعة إعلانات جنبًا إلى جنب حسب السعر والمساحة والمزايا."],
     fa: ["مقایسهٔ آگهی‌ها | estatemarket24", "حداکثر چهار آگهی را از نظر قیمت، متراژ و امکانات کنار هم مقایسه کنید."],
     ru: ["Сравнение объявлений | estatemarket24", "Сравните до четырёх объявлений по цене, площади и характеристикам."],
+    nl: ["Advertenties vergelijken | estatemarket24", "Vergelijk maximaal vier advertenties naast elkaar op prijs, oppervlakte en kenmerken."],
   },
   "/impressum": {
     tr: ["Yasal Künye | estatemarket24", "estatemarket24 platformunun işletmecisi ve iletişim bilgileri."],
@@ -102,6 +112,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["البيانات القانونية | estatemarket24", "مشغل منصة estatemarket24 وبيانات التواصل."],
     fa: ["اطلاعات حقوقی | estatemarket24", "گردانندهٔ پلتفرم estatemarket24 و اطلاعات تماس."],
     ru: ["Правовая информация | estatemarket24", "Оператор и контактные данные платформы estatemarket24."],
+    nl: ["Colofon | estatemarket24", "Exploitant en contactgegevens van het platform estatemarket24."],
   },
   "/gizlilik-politikasi": {
     tr: ["Gizlilik Politikası | estatemarket24", "estatemarket24'ün kişisel verileri nasıl işlediği ve haklarınız."],
@@ -111,6 +122,7 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["سياسة الخصوصية | estatemarket24", "كيف يعالج estatemarket24 البيانات الشخصية وما هي حقوقك."],
     fa: ["سیاست حریم خصوصی | estatemarket24", "نحوهٔ پردازش داده‌های شخصی در estatemarket24 و حقوق شما."],
     ru: ["Политика конфиденциальности | estatemarket24", "Как estatemarket24 обрабатывает персональные данные и каковы ваши права."],
+    nl: ["Privacybeleid | estatemarket24", "Hoe estatemarket24 persoonsgegevens verwerkt en welke rechten u hebt."],
   },
   "/cerez-politikasi": {
     tr: ["Çerez Politikası | estatemarket24", "estatemarket24'te kullanılan çerezler ve yerel depolama kayıtları."],
@@ -120,7 +132,8 @@ export const seoCopy: Record<string, Copy> = {
     ar: ["سياسة ملفات تعريف الارتباط | estatemarket24", "ملفات تعريف الارتباط والتخزين المحلي المستخدمة في estatemarket24."],
     fa: ["سیاست کوکی‌ها | estatemarket24", "کوکی‌ها و دادهٔ ذخیره‌شدهٔ محلی در estatemarket24."],
     ru: ["Политика cookie | estatemarket24", "Файлы cookie и локальное хранилище на estatemarket24."],
+    nl: ["Cookiebeleid | estatemarket24", "Cookies en lokale opslag op estatemarket24."],
   },
 };
 
-export const openGraphLocale: Record<Locale, string> = { tr: "tr_TR", de: "de_DE", fr: "fr_FR", en: "en_GB", ar: "ar_AR", fa: "fa_IR", ru: "ru_RU" };
+export const openGraphLocale: Record<Locale, string> = { tr: "tr_TR", de: "de_DE", fr: "fr_FR", en: "en_GB", ar: "ar_AR", fa: "fa_IR", ru: "ru_RU", nl: "nl_NL" };

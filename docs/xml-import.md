@@ -32,6 +32,6 @@ Kök öğe `<listings version="1">`, her ilan `<listing ref="...">`. `ref` hesab
 | `amenities/amenity` | hayır | `AMENITIES` listesindeki Türkçe adlar (ör. `Asansör`, `Otopark`, `Havuz`) |
 | `images/image` | evet | 1–20 adet herkese açık `https` fotoğraf adresi |
 | `videoUrl`, `tourUrl` | hayır | YouTube/Vimeo veya Matterport/Kuula `https` bağlantısı |
-| `translations/translation[lang]` | hayır | `de`, `fr`, `en`, `ar`, `fa`, `ru` için `title` ve `description` |
+| `translations/translation[lang]` | hayır | `de`, `fr`, `en`, `ar`, `fa`, `ru`, `nl` için `title` ve `description` |
 
 Dosya en fazla 2 MB olabilir. Fotoğraflar sırayla işlendiği için 100 ilanlık bir aktarma birkaç dakika sürebilir; sayfa açık kalmalıdır.
