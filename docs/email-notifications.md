@@ -18,9 +18,8 @@ Ayarlar girilmeden hiçbir e-posta gönderilmez; tercihler yine kaydedilir.
 3. Gizli değerleri girin:
    ```bash
    npx.cmd wrangler secret put RESEND_API_KEY
-   npx.cmd wrangler secret put EMAIL_FROM
    ```
-   `EMAIL_FROM` örneği: `estatemarket24 <bildirim@exxelestate.com>`
+   `EMAIL_FROM` gizli ayar değil, `wrangler.jsonc` içindeki `vars`ta durur (aynı adla secret eklemeyin, çakışır). Şimdilik alan adı olmadığı için `EstateMarket24 <onboarding@resend.dev>`: Resend bu göndericiyle yalnızca Resend hesabının sahibine (estatemarket24@gmail.com, iletişim formu alıcısı `CONTACT_EMAIL`) gönderir; diğer alıcılara giden bildirimler alan adı doğrulanana kadar sessizce atlanır. Alan adı doğrulanınca `EMAIL_FROM`u ör. `EstateMarket24 <bildirim@exxelestate.com>` yapın.
 4. **Gizlilik politikasını güncelleyin:** Resend (Resend, Inc.) e-posta gönderimi için veri işleyen olarak eklenmeli; alıcının e-posta adresi ve bildirim içeriği bu sağlayıcıya iletilir. Bu güncelleme yapılmadan gönderim açılmamalıdır.
 
 Test için Resend, alan adı doğrulanmadan yalnızca hesap sahibinin kendi adresine `onboarding@resend.dev` göndericisiyle e-posta gönderir.
