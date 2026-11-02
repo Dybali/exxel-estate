@@ -40,6 +40,7 @@ Zorunlu:
 | `R2_BUCKET_NAME` | `exxel-estate-images` |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Cloudflare → R2 → Manage API tokens (yalnızca bu bucket için Object Read & Write) |
 | `EXXEL_ADMIN_EMAIL` | Yönetici e-postası |
+| `CONTACT_EMAIL` | İletişim formu mesajlarının gideceği adres (`wrangler.jsonc` vars; boşsa `EXXEL_ADMIN_EMAIL`) |
 
 E-posta doğrulama ve şifre sıfırlama için (Neon Auth):
 

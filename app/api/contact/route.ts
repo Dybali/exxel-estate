@@ -17,11 +17,12 @@ export async function POST(request: Request) {
     const saved = await submitContact(contactDB(), data, user?.id || null);
     // Honeypot submissions get the same answer as real ones but are neither stored nor emailed.
     if (!saved) return ok({ ok: true }, { status: 201, headers });
-    const settings = env as unknown as EmailSettings & { EXXEL_ADMIN_EMAIL?: string };
-    const admin = settings.EXXEL_ADMIN_EMAIL?.trim();
-    if (admin) {
+    // Messages go to CONTACT_EMAIL (wrangler vars); without it, to the administrator address.
+    const settings = env as unknown as EmailSettings & { EXXEL_ADMIN_EMAIL?: string; CONTACT_EMAIL?: string };
+    const recipient = settings.CONTACT_EMAIL?.trim() || settings.EXXEL_ADMIN_EMAIL?.trim();
+    if (recipient) {
       const notice = contactNotice(saved, siteUrl());
-      waitUntil(sendEmail({ ...settings, SITE_URL: siteUrl() }, { to: admin, ...notice }).catch(() => {}));
+      waitUntil(sendEmail({ ...settings, SITE_URL: siteUrl() }, { to: recipient, ...notice }).catch(() => {}));
     }
     return ok({ ok: true }, { status: 201, headers });
   } catch (cause) {
