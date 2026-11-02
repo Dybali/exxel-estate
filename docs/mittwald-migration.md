@@ -22,13 +22,22 @@
 | Video (`lib/stream-server.ts`) | Cloudflare Stream (token yok, kapalı) | Sunucuda ffmpeg konteyneri: tus yükleme, MP4/H.264 dönüştürme, kapak; arayüz (`components/VideoUpload.tsx`) aynı kalır | Orta |
 | Yayın | GitHub Actions → `wrangler deploy` | GitHub Actions → derle, Mittwald'a gönder (SSH/rsync veya konteyner imajı) | Küçük |
 
-Değişmeyenler: Neon PostgreSQL (ilanlar, kullanıcılar, mesajlar), Neon Auth, Resend, DeepL, Gemini. Veri taşınmaz; yeni sunucu aynı veritabanına bağlanır.
+Değişmeyenler: Resend, DeepL, Gemini.
+
+## Veritabanı ve giriş sistemi (sahibinin isteği, 2026-11-02)
+
+Veritabanı da Mittwald'a alınacak. mStudio'da proje içinde **PostgreSQL konteyner şablonu** var (sürüm 18, Almanya'da, Mittwald yedeklemesi `backup.command` etiketiyle).
+
+- **Zamanlama:** Konteyner veritabanı projenin iç ağında çalışır; site Cloudflare'deyken ona bağlanmak için veritabanını internete açmak gerekir, bu yapılmaz. Veritabanı, site Mittwald'a taşındığı gün aynı projeye kurulur ve site ile yan yana çalışır. O güne kadar Neon kalır.
+- **Veri aktarımı:** Taşıma günü yazmayı durdur (bakım modu) → `pg_dump` (Neon) → `pg_restore` (Mittwald) → tablo/satır sayılarını karşılaştır → `DATABASE_URL`'i Mittwald'a çevir. Neon projesi bir süre salt okunur yedek olarak tutulur. Veritabanını değiştiren iş olduğu için her adım sahibine sorulur.
+- **Bağlantı:** `lib/neon-d1.ts` Neon'un HTTP sürücüsünü kullanır; Mittwald'da standart PostgreSQL sürücüsüne (`pg`/`postgres`) geçilir, D1 benzeri arayüz aynı kalır.
+- **Giriş sistemi (en riskli kısım):** Kayıt, giriş ve e-posta kodları Neon Auth'ta. Neon Auth, açık kaynaklı **Better Auth** üzerine kurulu; taşımada Better Auth Mittwald'da kendimiz çalıştırılır, kullanıcı/oturum tabloları aynı PostgreSQL'e aktarılır. Önce bir deneme ortamında giriş, kayıt, şifre sıfırlama ve mevcut kullanıcıların girişi test edilir; e-posta kodları için Resend (alan adıyla) hazır olmalıdır.
 
 ## Taşıma günü
 
 1. Mittwald'da proje ve Node.js uygulaması (veya konteyner) oluştur; bütün gizli ayarları ortam değişkeni olarak gir (`DATABASE_URL`, `R2_*`, `NEON_AUTH_*`, `GEMINI_API_KEY`, `DEEPL_API_KEY`, `RESEND_API_KEY`, `GOOGLE_CLIENT_*`, `EXXEL_ADMIN_EMAIL`, `BACKUP_READ_TOKEN`, `SITE_URL`).
 2. Yukarıdaki tablodaki değişiklikleri bir dalda yap, `npm run verify` ve Mittwald'daki geçici adreste uçtan uca test et.
 3. Alan adını Mittwald'a yönlendir, HTTPS sertifikası.
-4. `SITE_URL`'i alan adına çevir; Neon Auth güvenilen adresleri, Google OAuth yönlendirme adresi, Resend alan adı doğrulaması (SPF/DKIM).
+4. `SITE_URL`'i alan adına çevir; Better Auth (Neon Auth yerine) güvenilen adresleri, Google OAuth yönlendirme adresi, Resend alan adı doğrulaması (SPF/DKIM).
 5. workers.dev adresini alan adına yönlendir, bir süre sonra Cloudflare Worker'ı kapat.
 6. Eski Sites yayınını kapat; ortak gizli anahtarları (Neon şifresi, Gemini, DeepL, yedek token'ı) yenile.
