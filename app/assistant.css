@@ -51,7 +51,7 @@
 .assistant-launcher:hover{background:#45abb0}
 .assistant-launcher i{width:6px;height:6px;border-radius:50%;background:#176a6e;margin-inline-start:2px}
 .assistant-launcher[aria-expanded=true]{visibility:hidden}
-.assistant-dock{position:fixed;top:96px;bottom:20px;right:24px;width:min(520px,calc(100vw - 40px));z-index:80;filter:drop-shadow(0 12px 26px #18393b24)}
+.assistant-dock{position:fixed;top:96px;bottom:20px;right:24px;width:min(520px,calc(100vw - 40px));z-index:130;filter:drop-shadow(0 12px 26px #18393b24)}
 .assistant-dock[hidden]{display:none}
 .assistant-compact{max-width:none;margin:0;padding:0;height:100%;width:100%}
 .assistant-compact .assistant-chat{height:100%;width:100%;box-shadow:none}

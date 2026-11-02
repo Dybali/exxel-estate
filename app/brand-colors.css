@@ -28,3 +28,28 @@
 .site-header.home-header .main-nav a.active{color:#174547!important}
 .site-header.home-header .brand-tagline{color:#203e32!important;text-shadow:none!important}
 .site-header.home-header a[href*="mode=register"]{color:var(--brand-petrol)!important}
+
+/* Small laptops (990–1350px) keep the desktop header: menu in one row and the gold "İlan Ver"
+   button on the right. The compact header (hamburger + full-width "İlan Ver" bar) is for tablets
+   and phones only. */
+@media(min-width:990px) and (max-width:1350px){
+  .site-header,.site-header.home-header{height:auto}
+  .site-header .header-inner{height:84px}
+  .site-header .compact-post-row{display:none!important}
+  .site-header .header-post{display:inline-flex!important;align-items:center;gap:8px;white-space:nowrap;padding:10px 16px;border-radius:6px}
+  .site-header .mobile-menu{display:none!important}
+  .site-header .main-nav{display:flex!important;position:static!important;flex-direction:row!important;align-items:center!important;box-shadow:none!important;padding:0!important;background:transparent!important;height:auto!important;gap:14px!important}
+  .site-header .main-nav a{padding:0!important;font-size:12.5px;white-space:nowrap}
+  .site-header .main-nav .nav-post-listing{display:none!important}
+  .site-header .brand-lockup{--logo-h:38px}
+  .site-header .brand-tagline{font-size:10px!important}
+  .market-home .market-hero-inner{padding-top:219px}
+}
+@media(min-width:990px) and (max-width:1250px){.site-header .main-nav a[href="/ilanlar?purpose=kiralik"]{display:none!important}}
+@media(min-width:990px) and (max-width:1150px){
+  .site-header .brand-lockup{--logo-h:32px}
+  .site-header .main-nav{gap:11px!important}
+  .site-header .main-nav a{font-size:12px}
+  .site-header .main-nav a[href^="/blog"]{display:none!important}
+  .site-header .header-inner{gap:14px}
+}
