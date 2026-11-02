@@ -62,3 +62,5 @@
   .site-header .brand-tagline{font-size:9.5px!important}
   .market-home .market-hero-inner{padding-top:219px}
 }
+/* Attribution required by the daily exchange-rate provider; kept small and quiet. */
+.footer-bottom{flex-wrap:wrap;row-gap:8px}.footer-bottom .footer-rates-credit{flex-basis:100%;font-size:10.5px;opacity:.7}.footer-bottom .footer-rates-credit a{color:inherit;text-decoration:underline}
