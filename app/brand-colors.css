@@ -53,3 +53,12 @@
   .site-header .main-nav a[href^="/blog"]{display:none!important}
   .site-header .header-inner{gap:14px}
 }
+/* Tablets (768–989px): menu stays behind the hamburger, but "İlan Ver" sits in the header row too.
+   The full-width centred "İlan Ver" bar is for phones (under 768px) only. */
+@media(min-width:768px) and (max-width:989px){
+  .site-header .compact-post-row{display:none!important}
+  .site-header .header-post{display:inline-flex!important;align-items:center;gap:8px;white-space:nowrap;padding:9px 14px;border-radius:6px}
+  .site-header .brand-lockup{--logo-h:34px}
+  .site-header .brand-tagline{font-size:9.5px!important}
+  .market-home .market-hero-inner{padding-top:219px}
+}
