@@ -6,6 +6,8 @@ declare global{interface Window{pannellum?:{viewer:(element:HTMLElement,config:R
 let loading:Promise<void>|undefined;
 function loadViewer(){
  if(window.pannellum)return Promise.resolve();
+ // The viewer stylesheet is loaded with the script (not @import in CSS) so every bundler accepts it.
+ if(!document.querySelector('link[data-pannellum]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/vendor/pannellum/pannellum.css';link.dataset.pannellum='';document.head.appendChild(link);}
  if(!loading)loading=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/vendor/pannellum/pannellum.js';const fail=()=>{script.remove();loading=undefined;reject(Error('Görüntüleyici yüklenemedi.'));};script.onload=()=>window.pannellum?resolve():fail();script.onerror=fail;document.head.appendChild(script);});
  return loading;
 }

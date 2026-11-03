@@ -3,6 +3,8 @@ import {body,currentUser,db,error,now,ok,passwordHash,sameOrigin,sessionCookie,s
 import {neonMailAuth} from '@/lib/neon-mail-auth';
 import {linkNeonAccount,NeonIdentityError} from '@/lib/neon-identities';
 import {consumeRecoveryLimit,RecoveryError,validateRecoveryInput} from '@/lib/recovery-service';
+// Always rendered per request (live data); the standard Next.js build must not prerender it.
+export const dynamic = "force-dynamic";
 type AuthEnv=Cloudflare.Env&{NEON_AUTH_BASE_URL?:string;NEON_AUTH_COOKIE_SECRET?:string};
 function settings(){const values=env as AuthEnv;return values.NEON_AUTH_BASE_URL&&(values.NEON_AUTH_COOKIE_SECRET?.length||0)>=32?{baseUrl:values.NEON_AUTH_BASE_URL,cookieSecret:values.NEON_AUTH_COOKIE_SECRET!}:null;}
 const privateHeaders={'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'};

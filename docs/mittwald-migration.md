@@ -2,6 +2,14 @@
 
 **Karar (2026-10-30, sahibi):** Geliştirme bitince site alan adıyla birlikte Mittwald dedicated server'a (mStudio, Node.js) taşınacak. O zamana kadar geliştirme ve test Cloudflare Workers'ta (`exxel-estate.estatemarket24.workers.dev`) sürer.
 
+**Kararlar (2026-11-03, sahibi):** Taşımaya şimdi başlanıyor, geliştirme sonra Mittwald'da sürer.
+- Ana adres **estatemarket24.com**, test ortamı **test.estatemarket24.com**; exxelestate.com ana adrese yönlendirilir. Alan adları ve DNS Mittwald'da (proje `exxelestate`, proje alan adı `p-r9al26.project.space`).
+- Site Mittwald'da **konteyner** olarak çalışır (Docker imajı GitHub Actions'ta üretilir); PostgreSQL de aynı projede konteyner.
+- Fotoğraflar ve belgeler şimdilik **Cloudflare R2 (AB)**'de kalır; site S3 API ile bağlanır.
+- İki ortam: `main`'e her push test ortamına gider; canlıya geçiş sahibinin onayıyla.
+
+Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulmadan), 2) sahibinin mStudio kurulumu (PostgreSQL, uygulama konteyneri, test alt alan adı, API anahtarı), 3) GitHub Actions ile Mittwald test yayını + Neon verisinin kopyası, 4) Resend (estatemarket24.com) ve Neon Auth → Better Auth, 5) test ortamında uçtan uca deneme, 6) canlıya geçiş, anahtarların yenilenmesi, eski adreslerin kapatılması.
+
 ## Kurallar (şimdiden)
 
 - Barındırma ortamını yalnızca `lib/runtime.ts` bilir. `cloudflare:workers` başka hiçbir dosyada import edilmez; ortam değişkenleri ve `waitUntil` oradan alınır.
