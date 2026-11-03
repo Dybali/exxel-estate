@@ -1,5 +1,5 @@
 import { env } from "@/lib/runtime";
-import { body, createSession, db, error, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str } from "@/lib/server";
+import { body, clientIp, createSession, db, error, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str } from "@/lib/server";
 
 type SetupEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; EXXEL_ADMIN_SETUP_CODE?: string };
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const completed = await db().prepare("SELECT id FROM admin_setup WHERE id='primary'").first();
   if (completed) return error("Yönetici kurulumu tamamlandı.", 409);
 
-  const ip = request.headers.get("CF-Connecting-IP") || request.headers.get("x-forwarded-for") || "local";
+  const ip = clientIp(request);
   const limitKey = await sha256(`admin-setup:${ip}`);
   const cutoff = new Date(Date.now() - 15 * 60_000).toISOString();
   const attempts = await db().prepare("SELECT failures,window_started_at FROM auth_limits WHERE key=?")

@@ -38,9 +38,25 @@ export const OWNER_VERIFIED_SQL = "(CASE WHEN u.role='agent' AND u.agent_status=
 export const now = () => new Date().toISOString();
 export const error = (message:string, status=400) => Response.json({error:message},{status});
 export const ok = (data:unknown, init?:ResponseInit) => Response.json(data, init);
+// Public origin of the request. Behind Mittwald's HTTPS proxy request.url arrives as plain http
+// (and possibly an internal host), so the forwarded headers set by the proxy take precedence.
+export function requestOrigin(request:Request) {
+  const url = new URL(request.url);
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0].trim();
+  const host = request.headers.get("x-forwarded-host")?.split(",")[0].trim() || request.headers.get("host");
+  return proto && host && /^https?$/.test(proto) ? `${proto}://${host}` : url.origin;
+}
 export function sameOrigin(request:Request) {
   const origin = request.headers.get("origin");
-  return !origin || origin === new URL(request.url).origin;
+  return !origin || origin === new URL(request.url).origin || origin === requestOrigin(request);
+}
+// Visitor IP for rate limits: Cloudflare's header, else the address Mittwald's proxy appended last
+// to X-Forwarded-For (earlier entries can be supplied by the client).
+export function clientIp(request:Request) {
+  const cf = request.headers.get("CF-Connecting-IP");
+  if (cf) return cf;
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",").map((part) => part.trim()).filter(Boolean);
+  return forwarded?.at(-1) || request.headers.get("x-real-ip") || "local";
 }
 export class RequestInputError extends Error {}
 export async function body(request:Request):Promise<Record<string,unknown>> {

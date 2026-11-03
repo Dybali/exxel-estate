@@ -1,5 +1,5 @@
 import {env} from '@/lib/runtime';
-import {body,currentUser,db,error,now,ok,passwordHash,sameOrigin,sessionCookie,sha256} from '@/lib/server';
+import {body,clientIp,currentUser,db,error,now,ok,passwordHash,requestOrigin,sameOrigin,sessionCookie,sha256} from '@/lib/server';
 import {neonMailAuth} from '@/lib/neon-mail-auth';
 import {linkNeonAccount,NeonIdentityError} from '@/lib/neon-identities';
 import {consumeRecoveryLimit,RecoveryError,validateRecoveryInput} from '@/lib/recovery-service';
@@ -16,10 +16,10 @@ export async function POST(request:Request){
   const data=await body(request),verification=data.purpose==='verify';const actor=verification?await currentUser(request):null;
   if(verification&&!actor)throw new RecoveryError('E-postanızı doğrulamak için giriş yapın.',401);
   const input=validateRecoveryInput({...data,email:verification?actor!.email:data.email});
-  const database=db(),ip=request.headers.get('CF-Connecting-IP')||'local';
+  const database=db(),ip=clientIp(request);
   await consumeRecoveryLimit(database,await sha256('neon-mail:'+input.action+':ip:'+ip),input.action==='send'?10:24);
   await consumeRecoveryLimit(database,await sha256('neon-mail:'+input.action+':email:'+input.email),input.action==='send'?3:8);
-  const auth=await neonMailAuth({...config,origin:new URL(request.url).origin});
+  const auth=await neonMailAuth({...config,origin:requestOrigin(request)});
   if(input.action==='send'){
    try{await auth.send(input.email);}catch{throw new RecoveryError('E-posta şu anda gönderilemiyor. Lütfen tekrar deneyin.',503);}
    return ok({success:true,message:'E-posta adresinizi kontrol edin. Kod gelmezse adresi ve spam klasörünü kontrol edin.'},{headers:privateHeaders});
