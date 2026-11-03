@@ -12,6 +12,9 @@ export function proxy(request: NextRequest) {
   headers.set(PATH_HEADER, request.nextUrl.pathname);
   const response = NextResponse.next({ request: { headers } });
   response.headers.set("X-Content-Type-Options", "nosniff");
+  // Temporary and test addresses (Mittwald project domain, test.*) must stay out of search results.
+  const host = request.nextUrl.hostname;
+  if (host.endsWith(".project.space") || host.startsWith("test.")) response.headers.set("X-Robots-Tag", "noindex, nofollow");
   if (!response.headers.has("Referrer-Policy")) response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   return response;
 }
