@@ -1,4 +1,4 @@
-import { body, currentUser, db, error, isAdmin, ok, sameOrigin } from "@/lib/server";
+import { body, currentUser, db, error, isAdmin, ok, sameOrigin, serviceDB } from "@/lib/server";
 import { chatGet, chatPost, ChatError, type ChatDatabase } from "@/lib/messaging-service";
 import { env, waitUntil } from "@/lib/runtime";
 import { notifyNewMessage, type NotificationDatabase } from "@/lib/email-notifications";
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Geçersiz istek."); }
   if (data.action === "translate") {
-    try { return ok(await translateMessages(db() as never, (env as Cloudflare.Env).DB as never, translationSettings(), user.id, data.ids, data.locale), { headers: { "Cache-Control": "no-store" } }); }
+    try { return ok(await translateMessages(db() as never, (serviceDB() ?? undefined) as never, translationSettings(), user.id, data.ids, data.locale), { headers: { "Cache-Control": "no-store" } }); }
     catch (cause) { if (cause instanceof MessageTranslationError) return error(cause.message, cause.status); throw cause; }
   }
   if(data.action!=='read'&&!user.email_verified)return error('Mesaj göndermek için önce e-posta adresinizi doğrulayın. Hesabım bölümünden doğrulayabilirsiniz.',403);

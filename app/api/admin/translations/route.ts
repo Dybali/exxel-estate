@@ -1,5 +1,4 @@
-import {env} from '@/lib/runtime';
-import {body,currentUser,isAdmin,sameOrigin,db} from '@/lib/server';
+import {body,currentUser,isAdmin,sameOrigin,db,serviceDB} from '@/lib/server';
 import {editorialArticles} from '@/lib/editorial';
 import {translationContent} from '@/lib/translation-content';
 import {prepareTranslations} from '@/lib/translation-cache';
@@ -22,7 +21,7 @@ export async function POST(request:Request){
   if(Object.keys(input).some(k=>!['kind','id','locale'].includes(k))||typeof kind!=='string'||typeof id!=='string'||id.length>80||!translationLocales.includes(locale as TranslationLocale))return reply({error:'İçerik ve dili kontrol edin.'},400);
   const content=await translationContent(kind,id,locale as TranslationLocale);if(!content)return reply({error:'Yayında içerik bulunamadı.'},404);
   const document={...content.document,fields:Object.fromEntries(Object.entries(content.document.fields).filter(([field])=>!content.manual[field]))};
-  const result=Object.keys(document.fields).length?await prepareTranslations(env.DB as never,settings,document,locale as TranslationLocale):{status:'cached'};
+  const result=Object.keys(document.fields).length?await prepareTranslations(serviceDB() as never,settings,document,locale as TranslationLocale):{status:'cached'};
   return reply({status:result.status});
  }catch(e){const code=e instanceof TranslationError?e.code:'storage_error';const errors:Record<string,string>={character_limit:'Çeviri karakter sınırına ulaşıldı.',provider_quota:'DeepL hesap kotasına ulaşıldı.',provider_auth:'DeepL anahtarı doğrulanamadı.',provider_busy:'DeepL şu an yoğun. Biraz sonra yeniden deneyin.'};return reply({error:errors[code]||'Çeviri hazırlanamadı. Orijinal metin korunuyor.',code},e instanceof TranslationError?e.status:503);}
 }

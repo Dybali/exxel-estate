@@ -1,14 +1,17 @@
+import {ensureOps} from './operations';
 import {translationServicePause,pauseTranslationService} from './translation-service';
 import {translateDeepL,translationSegments,translationHash,TranslationError,type TranslationDocument,type TranslationLocale,type TranslationSettings} from './translation';
 type Database={prepare(sql:string):{bind(...values:(string|number|null)[]):{all<T>():Promise<{results:T[]}>;first<T>():Promise<T|null>;run():Promise<unknown>}};batch(statements:unknown[]):Promise<unknown>};
 export async function readTranslations(database:Database,doc:TranslationDocument,locale:TranslationLocale){
  const segments=await translationSegments(doc,locale);if(!segments.length)return {fields:{},complete:true,segments};
+ await ensureOps(database as never);
  const keys=[...new Set(segments.map(s=>s.key))];const rows=await database.prepare(`SELECT key,translated_text FROM content_translations WHERE key IN (${keys.map(()=>'?').join(',')})`).bind(...keys).all<{key:string;translated_text:string}>();
  const values=new Map(rows.results.map(r=>[r.key,r.translated_text]));
  return {fields:Object.fromEntries(segments.filter(s=>values.has(s.key)).map(s=>[s.field,values.get(s.key)!])),complete:segments.every(s=>values.has(s.key)),segments};
 }
 // These counters are advisory only. Provider/account limits still apply.
 export async function recordTranslationUsage(database:Database,characters:number,stamp=new Date().toISOString()){
+ await ensureOps(database as never);
  for(const key of ['day:'+stamp.slice(0,10),'month:'+stamp.slice(0,7)])await database.prepare('INSERT INTO translation_usage(key,characters) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET characters=translation_usage.characters+excluded.characters').bind(key,characters).run();
 }
 export async function prepareTranslations(database:Database,settings:TranslationSettings,doc:TranslationDocument,locale:TranslationLocale){

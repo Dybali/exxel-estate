@@ -25,7 +25,7 @@ npx wrangler r2 bucket create exxel-estate-private --jurisdiction eu
 npm run db:migrate:remote
 ```
 
-D1 yalnızca işletim sayaçları, çeviri önbelleği ve yedek veri yolu içindir. Neon bağlıyken kullanıcı ve ilan verisi D1'e yazılmaz.
+D1 artık canlıda kullanılmıyor (2026-11-03): işletim sayaçları, çeviri önbelleği ve asistan kotaları ana veritabanına (Neon, `DATABASE_URL`) taşındı; eski D1 verisi aktarılmadı, önbellek ve sayaçlar kendiliğinden yeniden dolar. D1 yalnızca `DATABASE_URL` olmayan yerel geliştirmede yedek veri yoludur; `drizzle/` geçmiş olarak durur. Ayrıntı: [mittwald-migration.md](mittwald-migration.md).
 
 ## 3. Gizli değerler
 

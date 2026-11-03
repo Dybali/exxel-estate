@@ -53,7 +53,7 @@ test('listing subtypes are validated against the category they belong to',()=>{
 test('PostgreSQL gets jsonb lookups for presentation fields',()=>{
  assert.equal(pgPresentationJson(extraFilterSql(query({zoning:'Konut'})).where[0]),"(l.presentation::jsonb->'land'->>'zoning')=?");
  assert.equal(pgPresentationJson(extraFilterSql(query({businessType:'Otopark'})).where[0]),"(l.presentation::jsonb->>'businessType')=?");
- assert.match(readFileSync(new URL('../lib/neon-d1.ts',import.meta.url),'utf8'),/pgPresentationJson\(/);
+ assert.match(readFileSync(new URL('../lib/pg-d1.ts',import.meta.url),'utf8'),/pgPresentationJson\(/);
 });
 
 test('side panel shows only blocks that fit the category',()=>{

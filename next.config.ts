@@ -12,7 +12,12 @@ const nextConfig: NextConfig = {
     // Self-contained server (.next/standalone) for the Docker image.
     output: "standalone" as const,
     // lib/runtime.ts re-exports "cloudflare:workers"; on Node that module is lib/runtime-node.ts.
-    turbopack: { resolveAlias: { "cloudflare:workers": "./lib/runtime-node.ts" } },
+    // lib/postgres-driver.ts is an empty slot in the Cloudflare build; on Node it is the TCP
+    // PostgreSQL driver (postgres.js), so Workers never bundle it.
+    turbopack: { resolveAlias: {
+      "cloudflare:workers": "./lib/runtime-node.ts",
+      "@/lib/postgres-driver": "./lib/postgres-driver-node.ts",
+    } },
   } : {}),
 };
 

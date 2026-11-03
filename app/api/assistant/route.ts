@@ -1,6 +1,6 @@
 import {recordOperation} from '@/lib/operations';
 import {env} from '@/lib/runtime';
-import {body,currentUser,db,sameOrigin,sha256} from '@/lib/server';
+import {body,currentUser,db,sameOrigin,serviceDB,sha256} from '@/lib/server';
 import {AssistantError,assistantLanguages,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
 import {assistantCopy,assistantResultSummary} from '@/lib/assistant-copy';
 import {planSearch,explainListings,type AISettings} from '@/lib/assistant-provider';
@@ -19,7 +19,7 @@ export async function POST(request:Request) {
     const parsed=chatInput.safeParse(raw);if(!parsed.success)throw new AssistantError('input');
     const input=parsed.data;language=input.language==='auto'?input.uiLanguage:input.language;
     const database=db();
-    const quotas=(env as Cloudflare.Env).DB;
+    const quotas=serviceDB();
     if(!quotas)throw new AssistantError('unavailable',503);
     const client=user.id;
     const recordUsage=await reserveAssistantUsage(quotas,await sha256('assistant:'+settings().GEMINI_API_KEY+':'+client),Number(settings().AI_DAILY_CALL_LIMIT)||400);
@@ -37,7 +37,7 @@ export async function POST(request:Request) {
     return reply({...base,...result,message,searched:true});
   }catch(cause){
     const code=cause instanceof AssistantError?cause.code:'provider';
-    const status=cause instanceof AssistantError?cause.status:503;if(status>=500||status===429)await recordOperation(env.DB as never,'gemini',String(status)).catch(()=>{});
+    const status=cause instanceof AssistantError?cause.status:503;if(status>=500||status===429)await recordOperation(serviceDB() as never,'gemini',String(status)).catch(()=>{});
     return reply({error:code,message:assistantCopy[language][code as keyof typeof assistantCopy.tr]||assistantCopy[language].provider},cause instanceof AssistantError?cause.status:503);
   }
 }

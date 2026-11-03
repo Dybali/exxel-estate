@@ -1,48 +1,12 @@
-import {activePublicationQuery} from './listing-policy';
-import {pgPresentationJson} from './pg-json';
 import { neon } from "@neondatabase/serverless";
+import { pgD1 } from "./pg-d1";
 
-type BoundValue = string | number | boolean | null;
-
-// A small D1-compatible surface lets the existing API use parameterized PostgreSQL
-// while the original D1 database remains available for the migration window.
-function pgQuery(source: string) {
-  let index = 0;
-  return pgPresentationJson(activePublicationQuery(source))
-    .replace(/INSERT\s+OR\s+IGNORE\s+INTO/i, "INSERT INTO")
-    .replace(/json_each\(l\.amenities\)/g, "jsonb_array_elements_text(l.amenities::jsonb)")
-    .replace(/\?/g, () => `$${++index}`)
-    .replace(/\bINSERT INTO favorites\b([\s\S]*?)$/i, (whole) =>
-      /ON CONFLICT/i.test(whole) || !/INSERT\s+OR\s+IGNORE/i.test(source) ? whole : `${whole} ON CONFLICT DO NOTHING`);
-}
-
+// Neon's HTTP driver behind the D1-compatible surface (query rewriting and batch semantics are
+// shared with the TCP driver in lib/pg-d1.ts).
 export function neonD1(url: string) {
   const sql = neon(url);
-  function prepare(source: string) {
-    const values: BoundValue[] = [];
-    const query = pgQuery(source);
-    const statement = {
-      bind(...args: BoundValue[]) { values.push(...args); return statement; },
-      async all<T = Record<string, unknown>>() {
-        const rows = await sql.query(query, values);
-        return { results: rows as T[] };
-      },
-      async first<T = Record<string, unknown>>() {
-        const rows = await sql.query(query, values);
-        return (rows[0] as T | undefined) ?? null;
-      },
-      async run() {
-        await sql.query(query, values);
-        return { success: true };
-      },
-      toQuery() { return sql.query(query, values); },
-    };
-    return statement;
-  }
-  return {
-    prepare,
-    async batch(statements: ReturnType<typeof prepare>[]) {
-      return sql.transaction(statements.map((statement) => statement.toQuery()));
-    },
-  };
+  return pgD1({
+    query: (text, values) => sql.query(text, values) as Promise<Record<string, unknown>[]>,
+    transaction: (queries) => sql.transaction(queries.map((query) => sql.query(query.text, query.values))) as Promise<Record<string, unknown>[][]>,
+  });
 }
