@@ -8,6 +8,14 @@
 - Fotoğraflar ve belgeler şimdilik **Cloudflare R2 (AB)**'de kalır; site S3 API ile bağlanır.
 - İki ortam: `main`'e her push test ortamına gider; canlıya geçiş sahibinin onayıyla.
 
+**Güncel durum (2026-11-03 akşam, sahibinin kararı):** Ayrı test ortamı yok; Mittwald ana çalışma yeri oldu.
+- Site `https://p-r9al26.project.space` (geçici proje adresi) üzerinde konteyner `site` olarak çalışır, `SITE_URL` bu adres. Geliştirme bitince estatemarket24.com bağlanır.
+- Veritabanı aynı stack'te `postgres` konteyneri (PostgreSQL 18, iç ağ, port 5432). Neon'un tam kopyası 2026-11-03'te alındı (68 tablo, satır sayıları aynı); kopya tek seferlik `db-copy` konteyneriyle (`postgres:18`, `pg_dump | psql`, ardından tablo bazında satır sayısı karşılaştırması) yapıldı ve konteyner silindi.
+- `main`'e her push `mittwald.yml` ile imajı GHCR'ye (herkese açık paket) gönderir ve `site` konteynerini günceller (`MITTWALD_API_TOKEN` secret'ı, `MITTWALD_PROJECT_ID`/`MITTWALD_SERVICE_ID`/`MITTWALD_TEST_URL` değişkenleri).
+- R2: `mittwald-site` token'ı (üç kovaya okuma/yazma).
+- Giriş şimdilik Neon Auth'ta kalır (Better Auth'a geçişe kadar); Neon Auth güvenilen adreslerine geçici adres eklenmelidir.
+- Cloudflare yayını ve eski Sites hâlâ Neon'a yazar; kapatılmaları ve son veri kopyası sıradaki iştir.
+
 Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulmadan), 2) sahibinin mStudio kurulumu (PostgreSQL, uygulama konteyneri, test alt alan adı, API anahtarı), 3) GitHub Actions ile Mittwald test yayını + Neon verisinin kopyası, 4) Resend (estatemarket24.com) ve Neon Auth → Better Auth, 5) test ortamında uçtan uca deneme, 6) canlıya geçiş, anahtarların yenilenmesi, eski adreslerin kapatılması.
 
 ## Kurallar (şimdiden)
@@ -48,7 +56,7 @@ Veritabanı da Mittwald'a alınacak. mStudio'da proje içinde **PostgreSQL konte
 3. Alan adını Mittwald'a yönlendir, HTTPS sertifikası.
 4. `SITE_URL`'i alan adına çevir; Better Auth (Neon Auth yerine) güvenilen adresleri, Google OAuth yönlendirme adresi, Resend alan adı doğrulaması (SPF/DKIM).
 5. workers.dev adresini alan adına yönlendir, bir süre sonra Cloudflare Worker'ı kapat.
-6. Eski Sites yayınını kapat; ortak gizli anahtarları (Neon şifresi, Gemini, DeepL, yedek token'ı) yenile.
+6. Eski Sites yayınını kapat; sohbette görünen bütün anahtarları yenile: Mittwald PostgreSQL şifresi (`eyup-aydin`), Neon şifresi, Gemini, DeepL, `BACKUP_READ_TOKEN`; `NEON_AUTH_COOKIE_SECRET` ve `CRON_SECRET` da yeniden üretilir.
 
 ## Aşama 1: teslim edilenler (2026-11-03)
 
