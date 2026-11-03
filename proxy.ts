@@ -13,7 +13,8 @@ export function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers } });
   response.headers.set("X-Content-Type-Options", "nosniff");
   // Temporary and test addresses (Mittwald project domain, test.*) must stay out of search results.
-  const host = request.nextUrl.hostname;
+  // Behind Mittwald's proxy nextUrl carries the internal host; the public one is in the headers.
+  const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.hostname).split(",")[0].trim().replace(/:\d+$/, "");
   if (host.endsWith(".project.space") || host.startsWith("test.")) response.headers.set("X-Robots-Tag", "noindex, nofollow");
   if (!response.headers.has("Referrer-Policy")) response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   return response;
