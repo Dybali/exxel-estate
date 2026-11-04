@@ -1,5 +1,8 @@
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
 import postgres from "postgres";
-import { pgD1, type BoundValue, type PgClient, type PgRow } from "./pg-d1";
+import { databaseDriver, pgD1, type BoundValue, type PgClient, type PgRow } from "./pg-d1";
+import { applyMigrations, type MigrationSql } from "./postgres-migrations";
 
 // Standard TCP PostgreSQL driver (postgres.js) for the Mittwald container, behind the same
 // D1-compatible surface as Neon's HTTP driver. Only the Node build uses this module (next.config.ts
@@ -40,3 +43,34 @@ export function postgresClient(sql: Pick<Sql, "unsafe" | "begin">): PgClient {
 }
 
 export const postgresDriver = (url: string) => pgD1(postgresClient(pool(url)));
+
+// Startup migrations (instrumentation.ts): applies postgres/migrations from 018 on to the TCP
+// PostgreSQL database. Uses its own single connection, so the advisory lock and every statement
+// share one session. Never throws: a failure is logged and the server keeps serving.
+export async function runStartupMigrations(settings: Record<string, string | undefined> = process.env) {
+  const url = settings.DATABASE_URL;
+  if (!url || databaseDriver(url, settings.DATABASE_DRIVER, true) !== "postgres") {
+    console.info("[migrations] skipped: no TCP PostgreSQL database configured");
+    return;
+  }
+  // The Docker image copies postgres/migrations to /app/postgres/migrations (process.cwd() is /app).
+  const dir = path.join(/* turbopackIgnore: true */ process.cwd(), "postgres", "migrations");
+  let sql: ReturnType<typeof postgres> | undefined;
+  try {
+    const files = await readdir(dir);
+    sql = postgres(url, {
+      max: 1,
+      connect_timeout: 10,
+      onnotice: () => {},
+      // Do not hold up startup forever behind another session's lock.
+      connection: { application_name: "exxel-migrations", lock_timeout: 60_000 },
+    });
+    const applied = await applyMigrations(sql as unknown as MigrationSql, files, (file) => readFile(path.join(dir, file), "utf8"));
+    console.info(applied.length ? `[migrations] done: ${applied.join(", ")}` : "[migrations] database up to date");
+  } catch (cause) {
+    const failure = cause as { code?: string; message?: string };
+    console.error(`[migrations] failed (${failure?.code || "error"}): ${failure?.message || String(cause)}; the server keeps running`);
+  } finally {
+    await sql?.end({ timeout: 5 }).catch(() => {});
+  }
+}

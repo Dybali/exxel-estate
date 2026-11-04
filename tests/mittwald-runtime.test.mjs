@@ -156,3 +156,42 @@ test('liveness endpoint answers without touching database or storage',async()=>{
  const live=load('app/api/health/live/route.ts');assert.doesNotMatch(read('app/api/health/live/route.ts'),/import/);
  const r=live.GET();assert.equal(r.status,200);assert.deepEqual(await r.json(),{ok:true});assert.equal(r.headers.get('cache-control'),'no-store');assert.equal(live.HEAD().status,200);
 });
+
+// Startup migrations (instrumentation.ts -> lib/postgres-migrations.ts) for the Mittwald PostgreSQL.
+function fakeMigrationSql(applied=[],failOn=null){const log=[];const run=(where)=>async(text,values=[])=>{log.push([where,text.trim().split(/\s+/).slice(0,3).join(' '),...values]);if(failOn&&text.includes(failOn))throw Error('boom');if(/^SELECT version FROM schema_migrations/.test(text))return applied.map(version=>({version}));return [];};
+ return {log,sql:{unsafe:run('sql'),begin:async work=>{log.push(['BEGIN']);try{const out=await work({unsafe:run('tx')});log.push(['COMMIT']);return out;}catch(e){log.push(['ROLLBACK']);throw e;}}}};}
+const quiet={info(){},warn(){}};
+test('startup migrations: baseline 018, valid names only, skip applied, apply in order',async()=>{
+ const m=load('lib/postgres-migrations.ts');assert.equal(m.MIGRATION_BASELINE,18);
+ const files=['017_lead_notes.sql','020_c.sql','001_core.sql','018_individual_listing_45_days.sql','019_b.sql','19_bad.sql','021_Bad.sql','022_x.sql.bak','README.md'];
+ assert.deepEqual(m.pendingMigrations(files,['019_b.sql']),['018_individual_listing_45_days.sql','020_c.sql']);
+ const {log,sql}=fakeMigrationSql(['019_b.sql']);const read=[];const warned=[];
+ const applied=await m.applyMigrations(sql,files,async f=>{read.push(f);return 'SELECT '+f.slice(0,3)+'; CREATE FUNCTION f() RETURNS void AS $$ BEGIN END $$ LANGUAGE plpgsql;';},{info(){},warn:w=>warned.push(w)});
+ assert.deepEqual(applied,['018_individual_listing_45_days.sql','020_c.sql']);assert.deepEqual(read,applied);
+ assert.deepEqual(warned.map(w=>w.split(' ').pop()),['19_bad.sql','021_Bad.sql']);
+ assert.deepEqual(log,[['sql','SELECT pg_advisory_lock($1)',m.MIGRATION_LOCK_KEY],['sql','CREATE TABLE IF'],['sql','SELECT version FROM'],
+  ['BEGIN'],['tx','SELECT 018; CREATE'],['tx','INSERT INTO schema_migrations(version)','018_individual_listing_45_days.sql'],['COMMIT'],
+  ['BEGIN'],['tx','SELECT 020; CREATE'],['tx','INSERT INTO schema_migrations(version)','020_c.sql'],['COMMIT'],
+  ['sql','SELECT pg_advisory_unlock($1)',m.MIGRATION_LOCK_KEY]]);
+ // File text goes through without parameters (simple protocol: several statements and $$ bodies).
+ const up=fakeMigrationSql(['018_individual_listing_45_days.sql','020_c.sql','019_b.sql']);assert.deepEqual(await m.applyMigrations(up.sql,files,async()=>{throw Error('no read');},quiet),[]);assert.equal(up.log.filter(e=>e[0]==='BEGIN').length,0);assert.equal(up.log.at(-1)[1],'SELECT pg_advisory_unlock($1)');
+});
+test('startup migrations: a failing file rolls back, stops later files and releases the lock',async()=>{
+ const m=load('lib/postgres-migrations.ts');const {log,sql}=fakeMigrationSql([],'BROKEN');
+ await assert.rejects(()=>m.applyMigrations(sql,['018_a.sql','019_b.sql','020_c.sql'],async f=>f==='019_b.sql'?'BROKEN':'SELECT 1',quiet),/boom/);
+ assert.deepEqual(log.filter(e=>e[0]==='BEGIN'||e[0]==='COMMIT'||e[0]==='ROLLBACK').map(e=>e[0]),['BEGIN','COMMIT','BEGIN','ROLLBACK']);
+ assert.ok(!log.some(e=>e.includes('020_c.sql')));assert.equal(log.at(-1)[1],'SELECT pg_advisory_unlock($1)');
+});
+test('startup migrations: runner only in the Node build, skipped without a TCP database, never throws',async()=>{
+ assert.equal(load('lib/postgres-driver.ts').runStartupMigrations,null);
+ const instrumentation=read('instrumentation.ts');assert.match(instrumentation,/process\.env\.NEXT_RUNTIME !== "nodejs"/);assert.match(instrumentation,/import\("@\/lib\/postgres-driver"\)/);assert.doesNotMatch(instrumentation,/(import|from)[^;\n]*(postgres-driver-node|["']postgres["'])/);
+ assert.match(read('Dockerfile'),/COPY --from=build --chown=node:node \/app\/postgres\/migrations \.\/postgres\/migrations/);
+ let connected=0;const node=load('lib/postgres-driver-node.ts',{postgres:()=>{connected++;throw Error('ECONNREFUSED');}});
+ const original={info:console.info,error:console.error};const lines=[];console.info=l=>lines.push(l);console.error=l=>lines.push(l);
+ try{
+  await node.runStartupMigrations({});await node.runStartupMigrations({DATABASE_URL:'postgres://u:p@ep-x.eu-central-1.aws.neon.tech/db'});assert.equal(connected,0);
+  await node.runStartupMigrations({DATABASE_URL:'postgres://u:p@postgres:5432/app'});assert.equal(connected,1);
+ }finally{console.info=original.info;console.error=original.error;}
+ assert.match(lines[0],/skipped/);assert.match(lines[1],/skipped/);assert.match(lines[2],/failed.*ECONNREFUSED.*keeps running/);assert.ok(!lines.join('\n').includes('u:p@'));
+ for(const f of nativeRequire("node:fs").readdirSync(path.join(root,'postgres/migrations')))assert.match(f,/^\d{3}_[a-z0-9_]+\.sql$/,f);
+});

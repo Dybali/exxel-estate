@@ -22,6 +22,9 @@ COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
 # Mittwald container cronjobs run: node scripts/cron-call.mjs health|daily
 COPY --from=build --chown=node:node /app/scripts/cron-call.mjs ./scripts/cron-call.mjs
+# Applied at startup from 018 on (instrumentation.ts -> lib/postgres-migrations.ts); read from
+# process.cwd()/postgres/migrations, i.e. /app/postgres/migrations.
+COPY --from=build --chown=node:node /app/postgres/migrations ./postgres/migrations
 # The official image's unprivileged user (uid 1000).
 USER node
 EXPOSE 3000

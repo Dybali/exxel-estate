@@ -153,9 +153,9 @@ DECLARE account_role text; previous_submission timestamptz; stamp timestamptz:=c
 BEGIN
  SELECT role INTO account_role FROM users WHERE id=NEW.owner_id;
  IF TG_OP='INSERT' AND account_role='individual' THEN
-   INSERT INTO individual_listing_quota(user_id,last_submitted_at) VALUES(NEW.owner_id,stamp-interval '4 months') ON CONFLICT DO NOTHING;
+   INSERT INTO individual_listing_quota(user_id,last_submitted_at) VALUES(NEW.owner_id,stamp-interval '46 days') ON CONFLICT DO NOTHING;
    SELECT last_submitted_at INTO previous_submission FROM individual_listing_quota WHERE user_id=NEW.owner_id FOR UPDATE;
-   IF stamp<previous_submission+interval '3 months' THEN RAISE EXCEPTION 'individual_listing_quota' USING ERRCODE='P0001'; END IF;
+   IF stamp<previous_submission+interval '45 days' THEN RAISE EXCEPTION 'individual_listing_quota' USING ERRCODE='P0001'; END IF;
    UPDATE individual_listing_quota SET last_submitted_at=stamp WHERE user_id=NEW.owner_id;
  END IF;
  IF TG_OP='UPDATE' THEN
