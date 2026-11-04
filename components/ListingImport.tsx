@@ -76,6 +76,6 @@ export function ListingImport(){
   <label className="outline-button listing-import-file"><input type="file" accept=".xml,application/xml,text/xml" disabled={running} onChange={e=>choose(e.target.files?.[0])}/>{t("XML dosyası seçin")}</label>
   {error&&<p className="form-error" role="alert">{t(error)}</p>}
   {rows.length>0&&<><table className="listing-import-table"><thead><tr><th>ref</th><th>{t("Başlık")}</th><th>{t("Durum")}</th></tr></thead><tbody>{rows.map(row=><tr key={row.ref||row.payload.title as string} className={`import-${row.state}`}><td>{row.ref}</td><td>{row.listingId?<Link href={`/ilan/${row.listingId}`}>{String(row.payload.title)}</Link>:String(row.payload.title)}</td><td>{t(label[row.state])}{(row.errors.length>0||row.message)&&<small>{[...row.errors,row.message].filter(Boolean).map(x=>t(String(x))).join(" · ")}</small>}</td></tr>)}</tbody></table>
-   <button type="button" className="header-post" disabled={running||!ready} onClick={run}>{t(running?"Aktarılıyor...":"Hazır ilanları aktar")} ({ready})</button></>}
+   <button type="button" className="primary-button" disabled={running||!ready} onClick={run}>{t(running?"Aktarılıyor...":"Hazır ilanları aktar")} ({ready})</button></>}
  </article>;
 }

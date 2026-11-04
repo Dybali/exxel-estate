@@ -156,7 +156,7 @@ export function ProjectsPanel() {
         <small>{t("{n} talep").replace("{n}", String(project.reservations || 0))}{project.newReservations ? ` · ${t("{n} yeni").replace("{n}", String(project.newReservations))}` : ""}</small>
       </div>
       <div className="project-owner-actions"><Link className="outline-button" href={`/projeler/${project.id}`}>{t("Görüntüle")}</Link>{data.allowed && <button type="button" className="outline-button" onClick={() => { setNotice(""); setEditing(project); }}><Pencil size={14}/>{t("Düzenle")}</button>}<button type="button" className="outline-button danger" onClick={() => void remove(project)}><Trash2 size={14}/>{t("Sil")}</button></div>
-    </li>)}</ul> : data.allowed && !editing && <div className="panel-empty"><Building2 size={28}/><h3>{t("Henüz proje eklemediniz.")}</h3><button type="button" className="text-link" onClick={() => setEditing("new")}>{t("İlk projenizi ekleyin")} →</button></div>)}
+    </li>)}</ul> : data.allowed && !editing && <div className="panel-empty"><Building2 size={28}/><h3>{t("Henüz proje eklemediniz.")}</h3><button type="button" onClick={() => setEditing("new")}>{t("İlk projenizi ekleyin")} →</button></div>)}
     {data && (data.projects.length > 0 || reservations.length > 0) && <section className="leads-panel project-reservations">
       <h2>{t("Yer ayırtma talepleri")}</h2>
       <p className="leads-intro">{t("Projelerinize gelen talepler burada listelenir. Kişilerle telefon veya e-posta ile iletişime geçin ve durumu güncelleyin.")}</p>
