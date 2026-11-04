@@ -6,7 +6,8 @@ import {reportsDB} from '@/lib/reports-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {validRooms} from "@/lib/listing-details";
-import {claimStreamVideo,deleteStreamVideo} from "@/lib/stream-server";
+import {attachVideoStatement,videoAttachProblem,type VideoDatabase} from "@/lib/listing-video-store";
+import {removeVideoById,videoFeatureEnabled} from "@/lib/listing-video-server";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
 import { deleteExternalImage, externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 import { listingMediaKeys, removeListingMedia } from "@/lib/listing-media";
@@ -64,8 +65,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(!amenities)return error("Özellikleri kontrol edin.");
   if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
-  const previousVideo=String(JSON.parse(String(row.presentation||'{}')).streamVideo||'');
-  if(presentation.streamVideo&&presentation.streamVideo!==previousVideo){try{const problem=await claimStreamVideo(presentation.streamVideo,String(row.owner_id));if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
+  const previousVideo=String(JSON.parse(String(row.presentation||'{}')).videoId||'');
+  if(presentation.videoId&&presentation.videoId!==previousVideo){if(!videoFeatureEnabled())return error("Video yükleme şu anda kullanılamıyor.",503);try{const problem=await videoAttachProblem(db() as unknown as VideoDatabase,presentation.videoId,String(row.owner_id),id);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
   if(propertyType==='villa'&&(!optionalFields[0]||!presentation.plotArea||presentation.gardenArea==null))return error('Villa için net, arsa ve bahçe alanını girin. Bahçe yoksa 0 yazın.');
   const originalImages=JSON.parse(String(row.images||"[]")) as string[];
   const images=Object.hasOwn(data,"images")?Array.isArray(data.images)?data.images.filter((item):item is string=>typeof item==="string"&&item.startsWith("/api/media/")).slice(0,30):null:originalImages;
@@ -93,11 +94,13 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   [...new Set([...originalImages,...originalPanoramas.map(scene=>scene.url),...(originalFloorPlan?[originalFloorPlan]:[])])].forEach((image)=>{const key=image.slice("/api/media/".length);if(!keys.includes(key))statements.push(db().prepare("DELETE FROM property_images WHERE property_id=? AND object_key=?").bind(id,key));});
   keys.forEach((key,index)=>{if(previousKeys.has(key))statements.push(db().prepare("UPDATE property_images SET sort_order=? WHERE property_id=? AND object_key=?").bind(index,id,key));else{const info=addedInfo[added.indexOf(key)]!;statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,"r2",bucket!,key,info.contentType,info.size,info.checksum,index,updatedAt));}});
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=COALESCE(published_at,?) WHERE id=?").bind(updatedAt,id));
+  if(presentation.videoId&&presentation.videoId!==previousVideo)statements.push(attachVideoStatement(db(),presentation.videoId,String(row.owner_id),id));
   if(Number(row.price)!==price||String(row.currency)!==currency||row.purpose!==purpose)statements.push(db().prepare("INSERT INTO price_history(id,listing_id,old_price,new_price,currency,purpose,changed_at) VALUES(?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,Number(row.currency===currency&&row.purpose===purpose?row.price:price),price,currency,purpose,updatedAt));
   await db().batch(statements);
   const actual=await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{status:string}>();
   if(actual?.status==='published')scheduleListingTranslations(id);
-  if(previousVideo&&previousVideo!==presentation.streamVideo)await deleteStreamVideo(previousVideo);
+  // Replaced or removed video: its files go (mirrors the photos below).
+  if(previousVideo&&previousVideo!==presentation.videoId&&videoFeatureEnabled())await removeVideoById(db() as unknown as VideoDatabase,previousVideo);
   await removeListingMedia([...previousKeys].filter(key=>!keys.includes(key)),removeMedia);
   return ok({success:true,id,status:actual?.status||status,updatedAt},{headers:{"Cache-Control":"private, no-store"}});
 }
@@ -110,7 +113,7 @@ export async function DELETE(request:Request,{params}:{params:Promise<{id:string
   if(!row) return error("İlan bulunamadı.",404);
   if(row.owner_id!==user.id&&!isAdmin(user)) return error("Yetkiniz yok.",403);
   await db().prepare("DELETE FROM listings WHERE id=?").bind(id).run();
-  const shown=JSON.parse(row.presentation||'{}'),video=String(shown.streamVideo||'');if(video)await deleteStreamVideo(video);
+  const shown=JSON.parse(row.presentation||'{}'),video=String(shown.videoId||'');if(video&&videoFeatureEnabled())await removeVideoById(db() as unknown as VideoDatabase,video);
   await removeListingMedia(listingMediaKeys(JSON.parse(row.images||'[]'),shown),removeMedia);
   return ok({success:true});
 }

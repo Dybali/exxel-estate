@@ -35,7 +35,7 @@ Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulma
 | Özel R2 (`env.BUCKET`, `exxel-estate-private`) | Belgeler, yedekler, tur kayıtları (`app/api/agent-verification`, `app/api/backup-storage`, `app/api/media/[...key]`, `lib/tour-capture.ts`) | **Yapıldı:** bağlama yoksa aynı kova S3 API ile (`lib/private-bucket.ts`) | — |
 | Fotoğraflar (R2 S3 API) | `lib/external-r2.ts`, `R2_*` gizli ayarları | Değişmez, Mittwald'dan da çalışır | Yok |
 | Cron (`wrangler.jsonc` `triggers`) | 06:00 UTC öne çıkarma bitişi + e-posta özeti, saat başı :07 sağlık kontrolü | **Yapıldı:** `/api/cron/health`, `/api/cron/daily` (`CRON_SECRET`); konteyner cronjob'u `node scripts/cron-call.mjs` | — |
-| Video (`lib/stream-server.ts`) | Cloudflare Stream (token yok, kapalı) | Sunucuda ffmpeg konteyneri: tus yükleme, MP4/H.264 dönüştürme, kapak; arayüz (`components/VideoUpload.tsx`) aynı kalır | Orta |
+| Video | Cloudflare Stream (token yok, kapalı; kod kaldırıldı) | **Yapıldı (2026-11-04):** kendi sistemimiz. Parçalı yükleme API üzerinden R2'ye (çok parçalı yükleme), konteyner içindeki işçi ffmpeg ile MP4 (H.264/AAC, en fazla 720p) + kapak üretir, HTML5 oynatıcı, Range destekli medya yolu; tablo `listing_videos` (019). Ayrıntı: [listing-videos.md](listing-videos.md). Cloudflare yayınında video kapalı | — |
 | Yayın | GitHub Actions → `wrangler deploy` | **Yapıldı (test):** `.github/workflows/mittwald.yml` → GHCR imajı → test konteyneri | — |
 
 Değişmeyenler: Resend, DeepL, Gemini.
@@ -71,7 +71,8 @@ Cloudflare yayını aynen çalışmaya devam eder (`npm run verify`); aynı kod 
 - **Docker + yayın:** `Dockerfile` (node:22.23.4-alpine3.23, çok aşamalı, `node` kullanıcısı, port 3000), `.github/workflows/mittwald.yml`: `main`'e her push → testler + tip kontrolü → `ghcr.io/dybali/exxel-estate:<commit>` ve `:main` → Mittwald test konteyneri güncellenir. Mittwald ayarları yokken yayın adımı uyarı yazıp başarılı biter. **Canlıya geçiş ayrı, elle başlatılan bir iş akışı olacak; henüz eklenmedi.**
 - **Başlangıç migrasyonları (2026-11-04):** Mittwald veritabanı yalnızca iç ağda olduğu için `postgres/migrations` dosyaları sunucu açılışında uygulanır: `instrumentation.ts` → `runStartupMigrations` (`lib/postgres-driver-node.ts`, mantık `lib/postgres-migrations.ts`). Yalnızca Node derlemesinde ve TCP PostgreSQL sürücüsü seçiliyken çalışır; Cloudflare derlemesinde `lib/postgres-driver.ts` boş yuvadır (postgres.js ve çalıştırıcı Workers paketine girmez). `schema_migrations` tablosu (sürüm = dosya adı), `pg_advisory_lock`, her dosya kendi işleminde. **BASELINE 018:** 001–017 kopyalanan üretim verisinde zaten var, asla yeniden çalıştırılmaz. Dosya adı `NNN_kucuk_harf.sql` olmalı. Hata sunucuyu durdurmaz, günlüğe `[migrations]` ile yazılır. Dockerfile klasörü `/app/postgres/migrations`'a kopyalar.
 - **Bireysel ilan kuralı (2026-11-04, sahibinin kararı):** bireysel üyeler (`role='individual'`) **45 günde 1 ilan** verebilir (önce 3 takvim ayı); yayın süresi 20 gün. Kod `lib/listing-policy.ts`, PostgreSQL tetikleyicisi `018_individual_listing_45_days.sql` (Mittwald'da açılışta otomatik uygulanır), D1/SQLite `drizzle/0025_individual_listing_45_days.sql`. **Neon'a uygulanmadı:** Cloudflare yayını kapanana kadar Neon'daki tetikleyici 3 ay kuralını uygular; gerekirse 018 sahibinin onayıyla Neon'a ayrıca uygulanmalı (`scripts/neon-migrate.mjs` dosyaları `;` ile böldüğü için `$$` fonksiyonunu bozar, bu dosya için uygun değil).
-- Node'da henüz olmayanlar: 5xx sayacı (`operations_events` `http`), Cloudflare Stream videoları, Neon Auth → Better Auth (Aşama 4).
+- **İlan videoları (2026-11-04, sahibinin kararı):** Cloudflare Stream yerine kendi sistemimiz (`docs/listing-videos.md`): en fazla 3 dakika ve 1 GB, ilan başına 1 video. `instrumentation.ts` migrasyonlardan sonra ffmpeg işçisini başlatır (`@/lib/video-worker` yuvası, Cloudflare'de boş); `Dockerfile` ffmpeg kurar. Yeni tablo `listing_videos`: `019_listing_videos.sql` (açılışta otomatik), `drizzle/0026_listing_videos.sql`; Neon'a uygulanmadı.
+- Node'da henüz olmayanlar: 5xx sayacı (`operations_events` `http`), Neon Auth → Better Auth (Aşama 4).
 
 ## Konteyner ortam değişkenleri
 
@@ -101,10 +102,11 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `GA_MEASUREMENT_ID`, `GOOGLE_SITE_VERIFICATION` | Hayır | Test ortamında boş bırakılması önerilir |
 | `SMS_PROVIDER`, `PHONE_CODE_SECRET` | Telefon doğrulaması için | |
 | `CAPTURE_WORKER_TOKEN`, `CAPTURE_WORKER_MODE` | Tur yakalama için | |
+| `VIDEO_WORKER` | Hayır | `0` ilan videosu işçisini (ffmpeg) ve video yüklemeyi kapatır; boşsa açık. Bkz. [listing-videos.md](listing-videos.md) |
 | `NODE_OPTIONS` | Hayır | Ör. `--max-old-space-size=768` (konteyner belleğine göre) |
 | `PORT`, `HOSTNAME`, `NODE_ENV` | — | İmajda hazır: `3000`, `0.0.0.0`, `production`; değiştirmeyin |
 
-Cloudflare'e özel `CLOUDFLARE_ACCOUNT_ID`/`STREAM_API_TOKEN` (video) Mittwald'da gerekmez.
+Cloudflare Stream (`STREAM_API_TOKEN`) artık kullanılmıyor; videolar konteynerde ffmpeg ile işlenir ve R2'de durur (aynı `R2_*` ayarları, `mittwald-site` token'ı üç kovaya da yetkili).
 
 ## Aşama 2: mStudio kontrol listesi (sahibi)
 

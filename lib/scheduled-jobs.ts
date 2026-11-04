@@ -5,6 +5,8 @@ import { expirePromotions, type OrderDatabase } from "./orders";
 import { alertOnFailure, runHealthChecks } from "./health";
 import { externalR2Ready, headExternalImage } from "./external-r2";
 import type { EmailSettings } from "./email";
+import { cleanupVideos, videoFeatureEnabled, videoStorageFromEnv } from "./listing-video-server";
+import type { VideoDatabase } from "./listing-video-store";
 
 // The scheduled jobs, shared by the Cloudflare cron triggers (build/sites-worker.ts scheduled())
 // and the protected HTTP endpoint /api/cron/[job] that a Mittwald cronjob calls.
@@ -28,11 +30,15 @@ export async function healthJob(settings: JobSettings) {
   return { checks, alert: await alertOnFailure(checks, withSiteUrl(settings)) };
 }
 
-// Daily 06:00 UTC: promotion expiry and the e-mail digest. Two independent tasks; one failing never
-// stops the other.
+// Daily 06:00 UTC: promotion expiry, the e-mail digest and (Mittwald container only) removal of
+// listing videos never attached to a listing or failed. Independent tasks; one failing never stops
+// the others.
 export function dailyJobs(settings: JobSettings) {
   return {
     promotions: expirePromotions(db() as unknown as OrderDatabase).then(() => true, (cause) => { console.error("promotion_expiry_failed", String(cause)); return false; }),
     digest: sendDailyDigests(db() as unknown as NotificationDatabase, withSiteUrl(settings)).then(() => true, (cause) => { console.error("daily_digest_failed", String(cause)); return false; }),
+    videos: videoFeatureEnabled()
+      ? cleanupVideos(db() as unknown as VideoDatabase, videoStorageFromEnv()).then((result) => { if (result.removed || result.failed) console.info("video_cleanup", JSON.stringify(result)); return true; }, (cause) => { console.error("video_cleanup_failed", String(cause)); return false; })
+      : Promise.resolve(true),
   };
 }

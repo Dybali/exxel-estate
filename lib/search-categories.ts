@@ -66,7 +66,7 @@ export function extraFilterSql(q:Query,now=Date.now()){
  const heating=heatingValues(q);if(heating.length){where.push(`l.heating IN (${heating.map(()=>'?').join(',')})`);values.push(...heating);}
  const from=q.get('from');if(from==='agent'||from==='owner')where.push(`${from==='owner'?'NOT ':''}EXISTS(SELECT 1 FROM users fu WHERE fu.id=l.owner_id AND fu.role='agent')`);
  const since=sinceDays(q,now);if(since){where.push('COALESCE(l.published_at,l.created_at)>=?');values.push(since);}
- if(q.get('video')==='1')where.push("(COALESCE(json_extract(l.presentation,'$.videoUrl'),'')<>'' OR COALESCE(json_extract(l.presentation,'$.streamVideo'),'')<>'')");
+ if(q.get('video')==='1')where.push("(COALESCE(json_extract(l.presentation,'$.videoUrl'),'')<>'' OR COALESCE(json_extract(l.presentation,'$.videoId'),'')<>'')");
  if(q.get('tour')==='1')where.push("COALESCE(json_extract(l.presentation,'$.tourUrl'),'')<>''");
  if(q.get('mapped')==='1')where.push('l.latitude IS NOT NULL');
  for(const key of ['zoning','deed','credit'] as const){const value=land(key,q.get(key));if(value){where.push(`json_extract(l.presentation,'$.land.${key}')=?`);values.push(value);}}
@@ -83,7 +83,7 @@ export function extraFilterMatches(q:Query,listing:Listing,now=Date.now()){
  const heating=heatingValues(q);if(heating.length&&!heating.includes(listing.heating||''))return false;
  const from=q.get('from');if(from==='agent'&&listing.ownerRole!=='agent'||from==='owner'&&listing.ownerRole==='agent')return false;
  const since=sinceDays(q,now);if(since&&!((listing.publishedAt||listing.createdAt||'')>=since))return false;
- if(q.get('video')==='1'&&!listing.presentation?.videoUrl&&!listing.presentation?.streamVideo||q.get('tour')==='1'&&!listing.presentation?.tourUrl||q.get('mapped')==='1'&&listing.latitude==null)return false;
+ if(q.get('video')==='1'&&!listing.presentation?.videoUrl&&!listing.presentation?.videoId||q.get('tour')==='1'&&!listing.presentation?.tourUrl||q.get('mapped')==='1'&&listing.latitude==null)return false;
  for(const key of ['zoning','deed','credit'] as const){const value=land(key,q.get(key));if(value&&listing.presentation?.land?.[key]!==value)return false;}
  for(const {field} of SUBTYPE_FIELDS){const value=subtype(field,q.get(field));if(value&&listing.presentation?.[field]!==value)return false;}
  for(const {form} of DETAIL_FIELDS){const value=q.get(form),key=detail(form,value);if(key&&listing.presentation?.details?.[key]!==value)return false;}

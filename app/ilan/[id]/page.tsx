@@ -13,7 +13,9 @@ import Link from "@/components/SafeLink";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Globe2, MapPin } from "lucide-react";
 import { typeLabel } from "@/lib/listings";
-import { listingById } from "@/lib/server";
+import { db, listingById } from "@/lib/server";
+import { readyListingVideo, type VideoDatabase } from "@/lib/listing-video-store";
+import { videoFeatureEnabled } from "@/lib/listing-video-server";
 import type { Metadata } from "next";
 import { ContactCard } from "@/components/ContactCard";
 import { T, Money } from "@/lib/i18n";
@@ -47,6 +49,8 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   if(foreignSaleApplies(listing.purpose,listing.propertyType))facts.push([FOREIGN_SALE.label,<T key="foreign-sale" id={foreignSale||"Belirtilmemiş"}/>]);
   if(listing.source!=='demo')facts.push(['Kimden',<T key="from" id={listing.ownerRole==='agent'?'Emlak Ofisinden':'Sahibinden'}/>]);
   const authorityNumber=listing.source==='demo'?null:await listingAuthorityNumber(listing.id),eids=listing.presentation?.eidsNumber;
+  // Uploaded video: shown only once processed (docs/listing-videos.md).
+  const videoId=listing.presentation?.videoId,video=videoId&&listing.source!=='demo'&&videoFeatureEnabled()?await readyListingVideo(db() as unknown as VideoDatabase,videoId,listing.id).catch(()=>null):null;
   const structured=listing.source==='demo'?null:listingStructuredData(listing,localizedListingText(listing,locale));
   return <main className="property-detail-page">{structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structured).replace(/</g,'\\u003c')}}/>}<ListingViewTracker id={listing.id}/><div className="container">
     <nav className="property-breadcrumb" aria-label={translate("Sayfa konumu",locale)}><Link href="/ilanlar"><ArrowLeft size={15}/><T id="İlanlar"/></Link><ChevronRight size={13}/><Link href={`/ilanlar?city=${encodeURIComponent(listing.city)}`}>{listing.city}</Link><ChevronRight size={13}/><span>{listing.district}</span></nav>
@@ -58,7 +62,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     <section className="property-section"><h2><T id="Gayrimenkul bilgileri"/></h2><dl className="property-facts-grid">{facts.map(([label,value])=><div key={label}><dt><T id={label}/></dt><dd>{value}</dd></div>)}</dl>{foreignSale==="Evet"&&<aside className="property-foreign-note"><Globe2 size={20} aria-hidden="true"/><div><strong><T id="Bu ilan, ilan verenin beyanına göre yabancılara satışa uygundur."/></strong><p><T id="Satın almadan önce uygunluğu tapu müdürlüğünden ve bağımsız bir avukattan teyit edin."/></p><div className="property-foreign-links"><Link href={FOREIGN_BUYER_PATH}><T id="Yabancı alıcılar için rehber"/><ArrowRight size={15}/></Link><Link href={CITIZENSHIP_PATH}><T id="Yatırım yoluyla vatandaşlık"/><ArrowRight size={15}/></Link></div></div></aside>}</section>
     <section className="property-section"><h2><T id="İlan açıklaması"/></h2><p className="property-description"><PropertyText listing={listing} field="description"/></p>{listing.source==='demo'&&<p className="property-example-note"><T id="Bu ilan patron sunumu için hazırlanmış örnek içeriktir. Konum, fiyat ve fotoğraflar gerçek bir satış teklifini temsil etmez."/></p>}</section>
     {listing.amenities.length>0&&<section className="property-section"><h2><T id="Öne çıkan imkânlar"/></h2><div className="property-amenities">{listing.amenities.map(a=><span key={a}><Check size={16}/><T id={a}/></span>)}</div></section>}
-    <PropertyPresentation value={listing.presentation}/>
+    <PropertyPresentation value={listing.presentation} video={video}/>
     <BuyerTools listing={listing}/>
     {(authorityNumber||eids)&&<section className="property-section property-legal"><h2><T id="Yasal bilgiler"/></h2><dl className="property-facts-grid">{authorityNumber&&<div><dt><T id="Taşınmaz ticareti yetki belgesi no"/></dt><dd>{authorityNumber}</dd></div>}{eids&&<div><dt><T id="EİDS doğrulama no (ilan verenin beyanı)"/></dt><dd>{eids}</dd></div>}</dl></section>}
     {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={translate("{name} haritası",locale).replace("{name}",listing.district)} src={map}/><p className="property-map-note"><MapPin size={14}/><T id="Haritadaki nokta yaklaşık konumu gösterir."/></p></section>}

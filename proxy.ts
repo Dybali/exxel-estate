@@ -21,6 +21,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Static assets never need the language context.
-  matcher: ["/((?!_next/static|_next/image|favicon.svg|icons/|brand/|flags/|fonts/|vendor/|sw.js|manifest.webmanifest).*)"],
+  // Static assets never need the language context. The video upload (api/video-upload) is skipped
+  // too: for requests the proxy sees, Next.js copies the body into memory and cuts it at 10 MB.
+  matcher: ["/((?!_next/static|_next/image|favicon.svg|icons/|brand/|flags/|fonts/|vendor/|sw.js|manifest.webmanifest|api/video-upload).*)"],
 };

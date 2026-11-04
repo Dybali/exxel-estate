@@ -5,7 +5,8 @@ import {nextIndividualSubmission} from '@/lib/listing-policy';
 import {categoryFilter,categoryMatches} from "@/lib/property-categories";
 import {extraFilterMatches,extraFilterSql} from "@/lib/search-categories";
 import {validRooms} from "@/lib/listing-details";
-import {claimStreamVideo} from "@/lib/stream-server";
+import {attachVideoStatement,videoAttachProblem,type VideoDatabase} from "@/lib/listing-video-store";
+import {videoFeatureEnabled} from "@/lib/listing-video-server";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
@@ -116,7 +117,7 @@ export async function POST(request:Request) {
   if(new Set(images).size!==images.length) return error("Aynı fotoğraf birden fazla eklenemez.");
   if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){return error((e as Error).message);}
-  if(presentation.streamVideo){try{const problem=await claimStreamVideo(presentation.streamVideo,user.id);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
+  if(presentation.videoId){if(!videoFeatureEnabled())return error("Video yükleme şu anda kullanılamıyor.",503);try{const problem=await videoAttachProblem(db() as unknown as VideoDatabase,presentation.videoId,user.id,null);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
   const imageKeys=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))].map((url)=>url.slice("/api/media/".length));
   if(imageKeys.some((key)=>!new RegExp(`^listings/${user.id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key))) return error("Yalnızca kendi yüklediğiniz fotoğrafları ekleyebilirsiniz.",403);
   const imageInfo=await Promise.all(imageKeys.map(headExternalImage));
@@ -143,6 +144,7 @@ export async function POST(request:Request) {
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
     .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,team?.id||null,...(team?[user.id,team.id]:[]),...(agentGuard?[user.id,createdAt,createdAt]:[]))];
   if(ticket)statements.push(submissionStatement(db(),ticket,id,createdAt));
+  if(presentation.videoId)statements.push(attachVideoStatement(db(),presentation.videoId,user.id,id));
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
   if(user.role==='agent'&&!isAdmin(user)&&!team)statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));

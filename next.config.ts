@@ -13,10 +13,12 @@ const nextConfig: NextConfig = {
     output: "standalone" as const,
     // lib/runtime.ts re-exports "cloudflare:workers"; on Node that module is lib/runtime-node.ts.
     // lib/postgres-driver.ts is an empty slot in the Cloudflare build; on Node it is the TCP
-    // PostgreSQL driver (postgres.js), so Workers never bundle it.
+    // PostgreSQL driver (postgres.js), so Workers never bundle it. lib/video-worker.ts is the same kind
+    // of slot for the ffmpeg video worker (docs/listing-videos.md).
     turbopack: { resolveAlias: {
       "cloudflare:workers": "./lib/runtime-node.ts",
       "@/lib/postgres-driver": "./lib/postgres-driver-node.ts",
+      "@/lib/video-worker": "./lib/video-worker-node.ts",
     } },
   } : {}),
 };

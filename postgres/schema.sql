@@ -177,3 +177,28 @@ CREATE TABLE IF NOT EXISTS listing_submissions (
  user_id TEXT NOT NULL, request_id TEXT NOT NULL, payload_hash TEXT NOT NULL,
  listing_id TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(user_id,request_id)
 );
+
+-- 019: self-hosted listing videos (docs/listing-videos.md).
+CREATE TABLE IF NOT EXISTS listing_videos (
+  id uuid PRIMARY KEY,
+  owner_id uuid NOT NULL,
+  listing_id uuid REFERENCES listings(id) ON DELETE SET NULL,
+  status text NOT NULL DEFAULT 'uploading' CHECK (status IN ('uploading','queued','processing','ready','failed')),
+  upload_id text,
+  raw_key text NOT NULL,
+  mp4_key text,
+  poster_key text,
+  content_type text NOT NULL,
+  size_bytes bigint NOT NULL,
+  duration_seconds double precision,
+  width integer,
+  height integer,
+  error text,
+  attempts integer NOT NULL DEFAULT 0,
+  locked_until text,
+  created_at text NOT NULL,
+  updated_at text NOT NULL
+);
+CREATE INDEX IF NOT EXISTS listing_videos_owner_idx ON listing_videos(owner_id, created_at);
+CREATE INDEX IF NOT EXISTS listing_videos_listing_idx ON listing_videos(listing_id);
+CREATE INDEX IF NOT EXISTS listing_videos_queue_idx ON listing_videos(status, updated_at);

@@ -13,8 +13,7 @@
   // Public base URL for canonical links, hreflang and the sitemap.
   // 06:00 UTC (09:00 in Türkiye): promotion expiry and digest emails. Minute 7 hourly: health check.
   "triggers": { "crons": ["0 6 * * *", "7 * * * *"] },
-  // CLOUDFLARE_ACCOUNT_ID is not secret; the Stream API also needs the STREAM_API_TOKEN secret.
-  "vars": { "SITE_URL": "https://exxel-estate.estatemarket24.workers.dev", "CLOUDFLARE_ACCOUNT_ID": "3df99ce483c1e55817e51df63c034615", "CONTACT_EMAIL": "estatemarket24@gmail.com", "EMAIL_FROM": "EstateMarket24 <onboarding@resend.dev>" },
+  "vars": { "SITE_URL": "https://exxel-estate.estatemarket24.workers.dev", "CONTACT_EMAIL": "estatemarket24@gmail.com", "EMAIL_FROM": "EstateMarket24 <onboarding@resend.dev>" },
   // No longer used by the live site: counters, translation cache and assistant quotas moved to the
   // main database (DATABASE_URL). Kept only as the local-development fallback when DATABASE_URL is
   // unset; drizzle/ stays as its history. See docs/mittwald-migration.md.

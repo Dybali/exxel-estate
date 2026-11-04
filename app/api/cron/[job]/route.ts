@@ -21,8 +21,9 @@ async function run(request: Request, { params }: Context) {
     return reply({ job, ok, alert, checks }, ok ? 200 : 503);
   }
   const jobs = dailyJobs(settings);
-  const [promotions, digest] = await Promise.all([jobs.promotions, jobs.digest]);
-  return reply({ job, ok: promotions && digest, promotions, digest }, promotions && digest ? 200 : 500);
+  const [promotions, digest, videos] = await Promise.all([jobs.promotions, jobs.digest, jobs.videos]);
+  const ok = promotions && digest && videos;
+  return reply({ job, ok, promotions, digest, videos }, ok ? 200 : 500);
 }
 
 type Context = { params: Promise<{ job: string }> };
