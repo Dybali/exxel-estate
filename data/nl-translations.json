@@ -2460,5 +2460,16 @@
  "Tüm alanlar, kurallar ve örnek için": "Alle velden, regels en een voorbeeld:",
  "Toplu ilan yükleme rehberi": "Handleiding bulkupload",
  "Videoyu izle": "Video bekijken",
- "Videoyu kapat": "Video sluiten"
+ "Videoyu kapat": "Video sluiten",
+ "Benzer ilanlar": "Vergelijkbare advertenties",
+ "Aynı türde, yakın fiyatlı ve mümkünse aynı bölgedeki ilanlar.": "Advertenties van hetzelfde type met een vergelijkbare prijs, waar mogelijk in dezelfde buurt.",
+ "Tümünü gör": "Alles bekijken",
+ "Fiyat geçmişi": "Prijsgeschiedenis",
+ "Fiyat değişiklikleri: {count}": "Prijswijzigingen: {count}",
+ "Tüm değişiklikler": "Alle wijzigingen",
+ "Eski fiyat": "Vorige prijs",
+ "Para birimi değişti": "Valuta gewijzigd",
+ "İlan türü değişti": "Advertentietype gewijzigd",
+ "Fiyat yeniden belirlendi": "Prijs opnieuw vastgesteld",
+ "İlk fiyat {start}, güncel fiyat {end}.": "Beginprijs {start}, huidige prijs {end}."
 }

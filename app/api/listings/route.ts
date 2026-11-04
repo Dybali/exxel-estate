@@ -1,3 +1,4 @@
+import {PRICE_DROP_SQL} from "@/lib/price-history";
 import {activeTeamCompany} from '@/lib/company-team-server';
 import {submissionTicket,submittedListing,submissionStatement,SubmissionError} from '@/lib/listing-submissions';
 import {textSearchSql,matchesSearchText} from '@/lib/text-search';
@@ -64,7 +65,7 @@ export async function GET(request:Request) {
   const mapRow=(l:Listing)=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province" as const:"approximate" as const,description:"",images:l.images.slice(0,1),translations:undefined});
   if(area){
     // The bounding box narrows the query in SQL; the polygon test runs here, so results are paged in memory.
-    const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT 500`).bind(...values).all<Record<string,unknown>>();
+    const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL},${PRICE_DROP_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT 500`).bind(...values).all<Record<string,unknown>>();
     const inside=[...(rows.results||[]).map(row=>publicListing(parseListing(row))).filter(l=>listingInArea(l,area)),...demo];
     const pageRows=inside.slice((page-1)*pageSize,page*pageSize);
     return ok({listings:q.get("map")==="1"?pageRows.map(mapRow):pageRows,total:inside.length,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
@@ -77,7 +78,7 @@ export async function GET(request:Request) {
   const realOffset=Math.min(ordered?Math.max(0,pageStart-demo.length):pageStart,realCount);
   const realLimit=Math.max(0,Math.min(ordered?pageStart+pageSize-realOffset:pageSize,realCount-realOffset));
   let real:Listing[]=[];
-  if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
+  if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL},${PRICE_DROP_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=ordered?[...real,...demo].sort(compareListings(sort,rates)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
   return ok({listings:q.get("map")==="1"?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});

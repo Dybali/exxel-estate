@@ -2,6 +2,8 @@ export type PropertyType = "daire" | "villa" | "mustakil" | "rezidans" | "ciftli
 export type Purpose = "satilik" | "kiralik" | "gunluk" | "devren";
 export type Listing = {
   statistics?: {views:number;favorites:number;messages:number};
+  /** Latest change was a price drop within the last 30 days (PRICE_DROP_SQL in lib/price-history.ts). */
+  priceDrop?: {from:number;at:string};
   presentation?:import("./presentation").Presentation;
   id: string; title: string; description: string; purpose: Purpose; propertyType: PropertyType;
   price: number; currency: string; city: string; district: string; neighborhood?: string; neighborhoodId?: number; postalCode?: string;

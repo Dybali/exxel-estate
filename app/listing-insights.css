@@ -1,0 +1,72 @@
+/* Listing page extras: price drop note, price history (components/PriceHistory.tsx) and similar
+   listings (components/SimilarListings.tsx). Logical properties throughout for Arabic and Persian. */
+:root{--insight-petrol:var(--brand-petrol,#0b5f63);--insight-gold:var(--brand-gold,#f2b84b);--insight-tint:#e8f2f2;--insight-line:#dce6e6;--insight-muted:#617a7c;--insight-down:#0b6b4f;--insight-up:#9a4b16}
+
+/* Next to the main price. */
+.price-drop-note{display:flex;flex-wrap:wrap;align-items:center;gap:6px 9px;margin:2px 0 0;font-size:12.5px;line-height:1.3}
+.price-drop-note b{display:inline-flex;align-items:center;gap:5px;padding-block:4px;padding-inline:8px;border-radius:999px;background:#fdf1d8;color:#6d4a07;font-weight:700;font-size:11.5px;box-shadow:inset 0 0 0 1px #f2b84b80}
+.price-drop-note em{font-style:normal;font-weight:700;color:var(--insight-down);direction:ltr;unicode-bidi:isolate}
+.price-drop-note del{color:var(--insight-muted);text-decoration-thickness:1px}
+
+/* Price history block under the key facts. */
+.price-history{margin-block:18px 0;padding-block:16px;padding-inline:18px;border:1px solid var(--insight-line);border-radius:10px;background:#fbfdfd}
+.price-history-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 9px;color:var(--insight-petrol)}
+.price-history-head h2{margin:0;font-family:var(--sans);font-size:15px;font-weight:700;letter-spacing:-.01em;color:#20353d}
+.price-history-head p{margin:0;margin-inline-start:auto;font-size:12px;color:var(--insight-muted)}
+.price-history-chart{margin:12px 0 0;max-width:420px}
+.price-history-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.price-history-chart .area{fill:var(--insight-petrol);fill-opacity:.08}
+.price-history-chart .line{fill:none;stroke:var(--insight-petrol);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.price-history-chart circle{fill:#fff;stroke:var(--insight-petrol);stroke-width:2}
+.price-history-chart circle.current{fill:var(--insight-gold);stroke:#b98419}
+/* The time axis runs left to right in every language, like the chart above it. */
+.price-history-chart figcaption{display:flex;justify-content:space-between;gap:12px;margin-top:4px;font-size:11px;color:var(--insight-muted);direction:ltr}
+.price-history-chart figcaption time{unicode-bidi:plaintext}
+.price-history-details{margin-top:10px}
+.price-history-details summary{display:inline-flex;align-items:center;gap:6px;min-height:32px;cursor:pointer;font-size:13px;font-weight:600;color:var(--insight-petrol);border-radius:6px;list-style:none}
+.price-history-details summary::-webkit-details-marker{display:none}
+.price-history-details summary:before{content:"";inline-size:7px;block-size:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s ease;margin-inline-end:3px}
+[dir=rtl] .price-history-details summary:before{transform:rotate(135deg)}
+.price-history-details[open] summary:before,[dir=rtl] .price-history-details[open] summary:before{transform:rotate(45deg)}
+.price-history-details summary:hover{text-decoration:underline;text-underline-offset:3px}
+.price-history-details summary:focus-visible{outline:2px solid var(--insight-gold);outline-offset:2px}
+.price-history-details ol{list-style:none;margin:6px 0 0;padding:0}
+.price-history-row{display:grid;grid-template-columns:minmax(92px,auto) minmax(0,1fr) auto;align-items:center;gap:4px 14px;padding-block:9px;border-top:1px solid #e6eeee;font-size:13px}
+.price-history-row time{color:var(--insight-muted);font-size:12px;white-space:nowrap}
+.price-history-row p{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;min-width:0}
+.price-history-row del{color:var(--insight-muted)}
+.price-history-row b{font-weight:650;color:#20353d}
+.price-history-row small{font-size:11.5px;color:var(--insight-muted)}
+.price-history-row em{display:inline-flex;align-items:center;gap:4px;font-style:normal;font-weight:700;font-size:12.5px;white-space:nowrap}
+.price-history-row.down em{color:var(--insight-down)}
+.price-history-row.up em{color:var(--insight-up)}
+.price-history-arrow{color:var(--insight-muted);flex:none}
+[dir=rtl] .price-history-arrow{transform:scaleX(-1)}
+
+/* Similar listings: a grid on wide screens, a swipeable row on phones. */
+.similar-listings{margin-top:44px;padding-top:36px;border-top:1px solid #e3e9e4}
+.similar-listings .similar-listings-head{margin-bottom:22px}
+.similar-listings .similar-listings-head h2{font-size:clamp(22px,2.4vw,28px)}
+.similar-listings .similar-listings-head p{margin:0;font-size:13px;color:#69766d}
+.similar-listings-more{flex:none}
+[dir=rtl] .similar-listings-more svg{transform:scaleX(-1)}
+.similar-listings .similar-listings-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.similar-listings .similar-listings-grid .listing-card{border-radius:8px}
+@media(max-width:1050px){.similar-listings .similar-listings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ .similar-listings{margin-top:32px;padding-top:28px}
+ .similar-listings .similar-listings-grid{position:relative;display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:min(78%,320px);gap:12px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:inline mandatory;scroll-padding-inline:calc(50vw - 50%);margin-inline:calc(50% - 50vw);padding-inline:calc(50vw - 50%);padding-block-end:8px;scrollbar-width:thin}
+ .similar-listings .similar-listings-grid>.listing-card{scroll-snap-align:start}
+ .similar-listings .similar-listings-grid[data-count="1"]{grid-auto-columns:100%}
+ .price-history{padding-inline:14px}
+ .price-history-row{grid-template-columns:minmax(0,1fr) auto}
+ .price-history-row time{grid-column:1/-1}
+}
+@media(max-width:380px){
+ .similar-listings .similar-listings-grid{grid-auto-columns:86%}
+ .similar-listings-more{inline-size:100%}
+ .price-history-head p{margin-inline-start:0;inline-size:100%}
+}
+
+/* Search results and other cards: latest change was a price drop within 30 days. */
+.listing-photo-meta .listing-drop-badge{background:#fff;color:var(--insight-petrol);box-shadow:inset 0 0 0 1px #0b5f6333}

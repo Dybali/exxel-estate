@@ -1,5 +1,6 @@
 import {publicationD1} from './d1-publication';
 import {listingExpired} from './listing-policy';
+import {recentPriceDrop} from './price-history';
 import { env } from "./runtime";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
 import { neonD1 } from "./neon-d1";
@@ -129,7 +130,8 @@ export function parseListing(row:Record<string,unknown>):Listing {
     rooms:row.rooms?String(row.rooms):undefined,bedrooms:row.bedrooms==null?undefined:Number(row.bedrooms),bathrooms:row.bathrooms==null?undefined:Number(row.bathrooms),
     buildingAge:row.building_age==null?undefined:Number(row.building_age),floor:row.floor==null?undefined:Number(row.floor),totalFloors:row.total_floors==null?undefined:Number(row.total_floors),
     heating:row.heating?String(row.heating):undefined,furnished:row.furnished==null?undefined:Boolean(row.furnished),amenities:JSON.parse(String(row.amenities||"[]")),images:JSON.parse(String(row.images||"[]")),
-    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:listingExpired(row.expires_at)?"expired":String(row.status),expiresAt:row.expires_at?String(row.expires_at):undefined,reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerVerified:Number(row.owner_verified)===1||row.owner_verified===true,ownerRole:row.owner_role?String(row.owner_role):undefined,ownerId:String(row.owner_id),createdAt:String(row.created_at),publishedAt:row.published_at?String(row.published_at):undefined,updatedAt:String(row.updated_at),source:"user"
+    translations:JSON.parse(String(row.translations||"{}")),featured:Boolean(row.featured),status:listingExpired(row.expires_at)?"expired":String(row.status),expiresAt:row.expires_at?String(row.expires_at):undefined,reviewNote:row.review_note?String(row.review_note):undefined,reviewedAt:row.reviewed_at?String(row.reviewed_at):undefined,ownerName:row.owner_name?String(row.owner_name):"Exxel Estate",ownerVerified:Number(row.owner_verified)===1||row.owner_verified===true,ownerRole:row.owner_role?String(row.owner_role):undefined,ownerId:String(row.owner_id),createdAt:String(row.created_at),publishedAt:row.published_at?String(row.published_at):undefined,updatedAt:String(row.updated_at),source:"user",
+    priceDrop:recentPriceDrop(row.price_drop,Number(row.price))
   };
 }
 export async function listingById(id:string):Promise<Listing|null> {

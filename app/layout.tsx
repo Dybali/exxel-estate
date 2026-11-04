@@ -38,6 +38,7 @@ import "./security.css";
 import "./pages.css";
 import "./brand-colors.css";
 import "./buttons.css";
+import "./listing-insights.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {GoogleAnalytics} from "@/components/GoogleAnalytics";
 import {gaMeasurementId,googleSiteVerification} from "@/lib/analytics";
