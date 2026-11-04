@@ -25,6 +25,8 @@ function readXml(text:string):RawImport[]{
  });
 }
 
+const HELP_STEPS=["Örnek dosyayı indirin ve kendi ilanlarınızla doldurun. Her ilan bir <listing> öğesidir ve size ait benzersiz bir ref kodu taşır.","Fotoğrafları herkese açık https adresleriyle ekleyin; sistem onları indirir, küçültür ve filigranlar.","Dosyayı aşağıdan seçin. İlanlar önce kontrol edilir; hatalı olanlar gerekçesiyle tabloda gösterilir.","Hazır ilanları aktar düğmesine basın ve aktarma bitene kadar sayfayı açık tutun. Aynı dosyayı tekrar yüklerseniz ilanlar ikinci kez oluşturulmaz."];
+
 // Bulk listing import from our XML format; each listing goes through the normal publish API.
 export function ListingImport(){
  const {t}=useLocale(),[rows,setRows]=useState<Row[]>([]),[error,setError]=useState(""),[running,setRunning]=useState(false);
@@ -66,6 +68,11 @@ export function ListingImport(){
  const ready=rows.filter(row=>row.state==="ready"||row.state==="failed").length;
  return <article className="listing-import"><h3><FileUp size={17}/>{t("XML ile toplu ilan aktarma")}</h3>
   <p>{t("İlanlarınızı belgelenmiş XML biçimimizle tek seferde aktarın. Her ilan normal ilan kurallarından geçer; fotoğraflar küçültülür ve filigranlanır.")} <Link href="/xml-ornek-ilanlar.xml">{t("Örnek XML dosyası")}</Link></p>
+  <details className="listing-import-help"><summary>{t("XML nedir, nasıl kullanılır?")}</summary>
+   <p>{t("XML, ilan bilgilerinizi bilgisayarların okuyabildiği düzenli bir metin dosyasıdır. Çoğu emlak yazılımı portföyünüzü XML olarak dışa aktarabilir; yazılım firmanızdan dosyayı aşağıdaki biçimde hazırlamasını isteyebilirsiniz.")}</p>
+   <ol>{HELP_STEPS.map(step=><li key={step}>{t(step)}</li>)}</ol>
+   <p>{t("Tüm alanlar, kurallar ve örnek için")} <Link href="/toplu-ilan">{t("Toplu ilan yükleme rehberi")} →</Link></p>
+  </details>
   <label className="outline-button listing-import-file"><input type="file" accept=".xml,application/xml,text/xml" disabled={running} onChange={e=>choose(e.target.files?.[0])}/>{t("XML dosyası seçin")}</label>
   {error&&<p className="form-error" role="alert">{t(error)}</p>}
   {rows.length>0&&<><table className="listing-import-table"><thead><tr><th>ref</th><th>{t("Başlık")}</th><th>{t("Durum")}</th></tr></thead><tbody>{rows.map(row=><tr key={row.ref||row.payload.title as string} className={`import-${row.state}`}><td>{row.ref}</td><td>{row.listingId?<Link href={`/ilan/${row.listingId}`}>{String(row.payload.title)}</Link>:String(row.payload.title)}</td><td>{t(label[row.state])}{(row.errors.length>0||row.message)&&<small>{[...row.errors,row.message].filter(Boolean).map(x=>t(String(x))).join(" · ")}</small>}</td></tr>)}</tbody></table>

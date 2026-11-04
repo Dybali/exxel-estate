@@ -2430,5 +2430,13 @@
  "Proje bilgilerini kontrol edin.": "Controleer de projectgegevens.",
  "Proje düzenlemek için onaylı emlakçı veya inşaat firması hesabı gerekir.": "Voor het bewerken van projecten is een goedgekeurd makelaars- of projectontwikkelaarsaccount vereist.",
  "Talep bilgilerini kontrol edin.": "Controleer de aanvraaggegevens.",
- "Kurlar bilgilendirme amaçlıdır; işlem kuru değildir.": "Koersen zijn uitsluitend ter informatie en geen transactiekoersen."
+ "Kurlar bilgilendirme amaçlıdır; işlem kuru değildir.": "Koersen zijn uitsluitend ter informatie en geen transactiekoersen.",
+ "XML nedir, nasıl kullanılır?": "Wat is XML en hoe gebruik ik het?",
+ "XML, ilan bilgilerinizi bilgisayarların okuyabildiği düzenli bir metin dosyasıdır. Çoğu emlak yazılımı portföyünüzü XML olarak dışa aktarabilir; yazılım firmanızdan dosyayı aşağıdaki biçimde hazırlamasını isteyebilirsiniz.": "XML is een gestructureerd tekstbestand dat uw advertentiegegevens leesbaar maakt voor computers. De meeste vastgoedsoftware kan uw portefeuille als XML exporteren; u kunt uw softwareleverancier vragen het bestand in het onderstaande formaat aan te leveren.",
+ "Örnek dosyayı indirin ve kendi ilanlarınızla doldurun. Her ilan bir <listing> öğesidir ve size ait benzersiz bir ref kodu taşır.": "Download het voorbeeldbestand en vul het met uw advertenties. Elke advertentie is een <listing>-element met uw eigen unieke ref-code.",
+ "Fotoğrafları herkese açık https adresleriyle ekleyin; sistem onları indirir, küçültür ve filigranlar.": "Voeg foto's toe als openbare https-adressen; het systeem downloadt ze, verkleint ze en voorziet ze van een watermerk.",
+ "Dosyayı aşağıdan seçin. İlanlar önce kontrol edilir; hatalı olanlar gerekçesiyle tabloda gösterilir.": "Kies hieronder het bestand. Advertenties worden eerst gecontroleerd; foutieve worden met de reden in de tabel getoond.",
+ "Hazır ilanları aktar düğmesine basın ve aktarma bitene kadar sayfayı açık tutun. Aynı dosyayı tekrar yüklerseniz ilanlar ikinci kez oluşturulmaz.": "Klik op „Gereede advertenties importeren” en houd de pagina open tot de import klaar is. Als u hetzelfde bestand opnieuw uploadt, worden advertenties niet dubbel aangemaakt.",
+ "Tüm alanlar, kurallar ve örnek için": "Alle velden, regels en een voorbeeld:",
+ "Toplu ilan yükleme rehberi": "Handleiding bulkupload"
 }
