@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import {publishedListingEntries} from '@/lib/server';
+import {db,publishedListingEntries} from '@/lib/server';
+import {regionSitemapEntries,type RegionDatabase} from '@/lib/region-pages';
 import {editorialArticles} from '@/lib/editorial';
 import {companyDirectoryEntries} from '@/lib/company-seo';
 import {languageAlternates,localizedUrl} from '@/lib/request-context';
@@ -7,12 +8,14 @@ export const dynamic='force-dynamic';
 // One entry per page with every language variant listed as an hreflang alternate.
 const entry=(path:string,extra:Omit<MetadataRoute.Sitemap[number],'url'>)=>({url:localizedUrl(path,'tr'),alternates:{languages:languageAlternates(path)},...extra});
 export default async function sitemap():Promise<MetadataRoute.Sitemap> {
-  const [listings,companies]=await Promise.all([publishedListingEntries(),companyDirectoryEntries().catch(()=>[])]);
+  // Region pages (/emlak/...) only with at least one real listing (thin pages are noindex).
+  const [listings,companies,regions]=await Promise.all([publishedListingEntries(),companyDirectoryEntries().catch(()=>[]),(async()=>regionSitemapEntries(db() as unknown as RegionDatabase))().catch(()=>[])]);
   return [
     ...["/","/ilanlar","/sirketler","/projeler","/hakkimizda","/paketler","/kurumsal-uyelik","/blog","/asistan","/yabanci-alici","/yabanci-alici/vatandaslik"].map(path=>entry(path,{changeFrequency:'daily',priority:path==='/'?1:.7})),
     ...["/iletisim","/sss","/ilan-kurallari","/toplu-ilan"].map(path=>entry(path,{changeFrequency:'monthly',priority:.5})),
     ...editorialArticles.map(a=>entry('/blog/'+a.slug,{lastModified:new Date(a.date),changeFrequency:'monthly',priority:.6})),
     ...companies.map(c=>entry('/sirketler/'+c.id,{changeFrequency:'weekly',priority:.6})),
+    ...regions.map(region=>entry(region.path,{...(Number.isFinite(Date.parse(region.updatedAt))?{lastModified:new Date(region.updatedAt)}:{}),changeFrequency:'daily',priority:region.path.split('/').length<=3?.7:.6})),
     ...listings.map(item=>entry('/ilan/'+item.id,{...(Number.isFinite(Date.parse(item.updatedAt))?{lastModified:new Date(item.updatedAt)}:{}),changeFrequency:'weekly',priority:.8})),
   ];
 }

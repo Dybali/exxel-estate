@@ -1,0 +1,57 @@
+/* Region landing pages (/emlak/..., components/RegionLanding.tsx). Logical properties for Arabic and Persian. */
+.region-page{background:#fff;padding:0 0 56px;color:#263b37}
+.region-page>.container{max-width:1240px}
+.region-breadcrumb ol{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0;padding:0;list-style:none}
+.region-breadcrumb li{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.region-breadcrumb a{color:#254d42;font-weight:600}
+.region-breadcrumb a:hover{text-decoration:underline;text-underline-offset:3px}
+.region-breadcrumb [aria-current]{color:#647870}
+[dir=rtl] .region-breadcrumb svg{transform:scaleX(-1)}
+
+.region-hero{padding-block:18px 26px;border-bottom:1px solid #e3e9e4}
+.region-hero .market-overline{display:inline-flex;align-items:center;gap:6px;color:var(--brand-petrol,#0b5f63);font-size:12px;font-weight:700;letter-spacing:.04em}
+.region-hero h1{font-family:var(--sans);font-size:clamp(27px,3.2vw,40px);font-weight:700;line-height:1.18;letter-spacing:-.03em;margin:10px 0 12px;color:#1f3a35}
+.region-intro{max-width:760px;margin:0;font-size:14px;line-height:1.75;color:#5d7263}
+.region-facts{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 0}
+.region-facts>div{min-width:150px;padding-block:12px;padding-inline:16px;border:1px solid #dce6e6;border-radius:10px;background:#fbfdfd}
+.region-facts dt{font-size:11.5px;color:#617a7c}
+.region-facts dd{margin:4px 0 0;font-size:17px;font-weight:700;color:#20353d;line-height:1.35}
+.region-facts bdi{white-space:nowrap}
+.region-note{margin:12px 0 0;font-size:12px;color:#69766d}
+
+.region-section{padding-block:26px 4px}
+.region-section>h2,.region-listings-head h2{font-family:var(--sans);font-size:clamp(19px,2vw,23px);font-weight:700;letter-spacing:-.02em;margin:0 0 14px;color:#2e4b3a}
+.region-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.region-chip{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding-inline:14px 10px;border:1px solid #cdd9d6;border-radius:999px;background:#fff;color:#20484b;font-size:13px;font-weight:600;transition:background .15s,border-color .15s}
+.region-chip b{min-width:24px;padding:2px 7px;border-radius:999px;background:#e8f2f2;color:var(--brand-petrol,#0b5f63);font-size:11.5px;text-align:center}
+.region-chip:hover{border-color:var(--brand-petrol,#0b5f63);background:#f2f8f8}
+.region-chip.active{border-color:var(--brand-petrol,#0b5f63);background:var(--brand-petrol,#0b5f63);color:#fff}
+.region-chip.active b{background:var(--brand-gold,#f2b84b);color:#3b2a05}
+.region-chip:focus-visible,.region-page a:focus-visible{outline:2px solid var(--brand-gold,#f2b84b);outline-offset:2px}
+
+.region-listings-head{align-items:center;margin-bottom:18px}
+.region-listings-head h2{margin:0}
+.region-more{flex:none}
+[dir=rtl] .region-more svg,[dir=rtl] .region-up svg{transform:scaleX(-1)}
+.region-page .region-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.region-page .region-grid .listing-card{border-radius:8px}
+.region-empty{padding:22px;border:1px dashed #cdd9d6;border-radius:12px;background:#fbfdfd;font-size:14px;line-height:1.7;color:#4d6358}
+.region-empty p{margin:0 0 8px}
+.region-empty strong{color:#20353d}
+.region-empty-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.region-demos{margin-top:26px}
+.region-demos h3{font-family:var(--sans);font-size:17px;margin:0 0 6px;color:#2e4b3a}
+.region-up{margin:26px 0 0}
+.region-up a{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#20484b}
+
+@media(max-width:1050px){.region-page .region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ .region-hero{padding-block:10px 20px}
+ .region-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .region-facts>div{min-width:0;padding-inline:12px}
+ .region-facts dd{font-size:15px}
+ .region-facts bdi{white-space:normal}
+ .region-listings-head{flex-wrap:wrap;gap:10px}
+ .region-page .region-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+ .region-chip{min-height:36px;font-size:12.5px}
+}

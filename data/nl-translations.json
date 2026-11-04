@@ -2471,5 +2471,21 @@
  "Para birimi değişti": "Valuta gewijzigd",
  "İlan türü değişti": "Advertentietype gewijzigd",
  "Fiyat yeniden belirlendi": "Prijs opnieuw vastgesteld",
- "İlk fiyat {start}, güncel fiyat {end}.": "Beginprijs {start}, huidige prijs {end}."
+ "İlk fiyat {start}, güncel fiyat {end}.": "Beginprijs {start}, huidige prijs {end}.",
+ "Ana sayfa": "Home",
+ "Sayfa bulunamadı": "Pagina niet gevonden",
+ "{heading}: estatemarket24'te şu anda yayında olan ilanlar. Sayılar ve fiyatlar yalnızca bu ilanlardan hesaplanır; örnek ilanlar dahil edilmez.": "{heading}: advertenties die nu op estatemarket24 staan. Aantallen en prijzen worden alleen uit deze advertenties berekend; voorbeeldadvertenties tellen niet mee.",
+ "Aktif ilan": "Actieve advertenties",
+ "Medyan m² fiyatı": "Mediaanprijs per m²",
+ "En çok ilan verilen türler": "Meest aangeboden woningtypes",
+ "Fiyat bilgileri {currency} cinsinden fiyatlandırılmış ilanlardan hesaplanır (ilan sayısı: {count}).": "Prijsgegevens zijn berekend uit advertenties met een prijs in {currency} (aantal advertenties: {count}).",
+ "İlan türüne göre": "Per soort advertentie",
+ "Bu bölgedeki ilanlar": "Advertenties in dit gebied",
+ "Bu kriterlere uyan aktif ilan şu anda yok.": "Er zijn momenteel geen actieve advertenties die aan deze criteria voldoen.",
+ "Yeni ilanlar yayınlandığında burada listelenir. Aşağıdaki bağlantılarla diğer ilan türlerine ve ilçelere göz atabilir ya da tüm ilanlarda arama yapabilirsiniz.": "Nieuwe advertenties verschijnen hier zodra ze zijn gepubliceerd. Bekijk via de links hieronder andere soorten advertenties en districten, of zoek in alle advertenties.",
+ "Tüm ilanlarda ara": "Zoek in alle advertenties",
+ "{name} genelindeki ilanlar": "Alle advertenties in {name}",
+ "Bu bölgede gerçek ilan olmadığı için örnek ilanlar gösteriliyor. Örnek ilanlar gerçek bir satış veya kiralama teklifi değildir ve sayımlara dahil edilmez.": "Omdat er in dit gebied geen echte advertenties zijn, worden voorbeeldadvertenties getoond. Voorbeeldadvertenties zijn geen echt aanbod voor koop of huur en tellen niet mee.",
+ "İlçelere göre": "Per district",
+ "Popüler bölgeler": "Populaire regio’s"
 }
