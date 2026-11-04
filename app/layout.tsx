@@ -52,7 +52,8 @@ import { LocaleProvider } from "@/lib/i18n";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { isRtl } from "@/lib/i18n-dictionary";
 import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
-import { openGraphLocale, seoCopy } from "@/lib/seo-copy";
+import { seoCopy } from "@/lib/seo-copy";
+import { shareMetadata } from "@/lib/share-metadata";
 
 export const viewport: Viewport = { themeColor: "#0B5F63" };
 
@@ -65,7 +66,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: localizedUrl(path, locale), languages: languageAlternates(path) },
-    openGraph: { siteName: "estatemarket24", locale: openGraphLocale[locale], type: "website", title, description, url: localizedUrl(path, locale) },
+    // Default link preview; pages with their own title or image call shareMetadata themselves.
+    ...shareMetadata({ title, description, path, locale }),
     icons: {
       icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }, { url: "/favicon.svg" }],
       shortcut: "/icons/icon-192.png",

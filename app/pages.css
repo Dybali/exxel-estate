@@ -132,3 +132,56 @@
  .info-cta{padding:20px}
  .info-hero-actions .info-button,.info-cta-actions .info-button{width:100%}
 }
+
+/* Loading skeletons (components/PageSkeleton.tsx): neutral blocks with a soft shimmer. */
+.page-skeleton{min-height:70vh;padding-block:36px 64px}
+.skeleton-bone{border-radius:8px;background:linear-gradient(100deg,#eef2f2 25%,#f8fafa 50%,#eef2f2 75%);background-size:200% 100%;animation:skeleton-shimmer 1.6s ease-in-out infinite}
+@keyframes skeleton-shimmer{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.skeleton-bone{animation:none}}
+.page-skeleton .skeleton-title{height:34px;width:min(420px,70%);margin-bottom:22px}
+.page-skeleton .skeleton-line{height:14px;margin-top:12px}
+.page-skeleton .skeleton-line.short{width:55%}
+.skeleton-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:28px}
+.skeleton-field{height:46px}
+.skeleton-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.skeleton-card{border:1px solid #e6ecea;border-radius:10px;padding:0 0 18px;overflow:hidden}
+.skeleton-card .skeleton-photo{height:210px;border-radius:0}
+.skeleton-card .skeleton-line{margin-inline:16px}
+.skeleton-crumb{height:14px;width:220px;margin-bottom:18px}
+.skeleton-gallery{display:grid;grid-template-columns:2fr 1fr;gap:10px;height:430px}
+.skeleton-gallery>div{display:grid;gap:10px}
+.skeleton-gallery .skeleton-bone{height:100%}
+.skeleton-detail{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:36px;margin-top:30px}
+.skeleton-detail .skeleton-price{height:40px;width:220px;margin-top:22px}
+.skeleton-aside{height:320px}
+.skeleton-account{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px}
+.skeleton-menu .skeleton-line{height:38px;margin-top:10px}
+.skeleton-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.skeleton-stats .skeleton-bone{height:92px}
+.skeleton-panel{height:300px;margin-top:18px}
+@media(max-width:900px){
+ .skeleton-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .skeleton-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .skeleton-detail,.skeleton-account{grid-template-columns:1fr}
+ .skeleton-aside,.skeleton-menu{display:none}
+}
+@media(max-width:600px){
+ .page-skeleton{padding-block:22px 48px}
+ .skeleton-cards{grid-template-columns:1fr}
+ .skeleton-gallery{grid-template-columns:1fr;height:260px}
+ .skeleton-gallery>div{display:none}
+ .skeleton-stats{grid-template-columns:1fr 1fr}
+}
+
+/* 404 and error pages (app/not-found.tsx, app/error.tsx): brand signet, label, message and clear actions. */
+.site-state-page{max-width:720px;margin:64px auto 80px;padding:44px 28px;border:1px solid #e1e9e7;border-radius:16px;background:#fff;box-shadow:0 18px 50px -32px #0b5f6355}
+.site-state-mark{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px}
+.site-state-mark img{width:56px;height:56px;border-radius:14px}
+.site-state-mark b{font-size:clamp(46px,8vw,64px);line-height:1;font-weight:800;letter-spacing:-.03em;color:var(--brand-petrol,#0b5f63)}
+.site-state-page>span{display:inline-block;padding:6px 12px;border-radius:999px;background:#fdf3de;color:#7a5410}
+.site-state-page h1{color:var(--brand-ink,#15171c);margin:18px 0 12px}
+.site-state-page small{margin-top:10px;color:#6c7b77}
+@media(max-width:600px){
+ .site-state-page{margin:28px 16px 48px;padding:32px 18px}
+ .site-state-page>div:last-child>*{width:100%}
+}

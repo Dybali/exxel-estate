@@ -1,5 +1,6 @@
 "use client";
 
+import { ForwardArrow } from "@/components/DirectionalArrow";
 import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
 import { ArrowRight, Building2, HardHat, MapPin } from "lucide-react";
@@ -42,15 +43,15 @@ export function CompanyDirectory({ preview = false }: { preview?: boolean }) {
   }, [category, page, preview]);
 
   if (preview) return <div className="company-preview">
-    {loading ? <p className="directory-state">{t("Şirketler yükleniyor...")}</p> : failed ? <p className="directory-state">{t("Şirketler şu anda yüklenemedi.")}</p> : companies.length ? companies.slice(0, 3).map((company) => <CompanyCard key={company.id} company={company}/>) : <div className="company-empty"><Building2 size={28}/><strong>{t("Onaylı şirketler burada görünecek.")}</strong><p>{t("Emlak ofisleri ve inşaat firmaları onaylandıktan sonra portföyleriyle listelenir.")}</p><Link href="/giris?role=agent&next=%2Fhesabim">{t("Şirket hesabı oluştur")} <ArrowRight size={16}/></Link></div>}
+    {loading ? <p className="directory-state">{t("Şirketler yükleniyor...")}</p> : failed ? <p className="directory-state">{t("Şirketler şu anda yüklenemedi.")}</p> : companies.length ? companies.slice(0, 3).map((company) => <CompanyCard key={company.id} company={company}/>) : <div className="company-empty"><Building2 size={28}/><strong>{t("Onaylı şirketler burada görünecek.")}</strong><p>{t("Emlak ofisleri ve inşaat firmaları onaylandıktan sonra portföyleriyle listelenir.")}</p><Link className="outline-button" href="/giris?role=agent&next=%2Fhesabim">{t("Şirket hesabı oluştur")}<ForwardArrow/></Link></div>}
   </div>;
 
   return <main className="directory-page"><div className="container">
     <div className="directory-heading"><span className="market-overline">ESTATEMARKET24 / {t("İş ortakları")}</span><h1>{t("Emlak ofisleri ve inşaat firmaları")}</h1><p>{t("Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.")}</p></div>
-    <div className="company-enroll"><div><strong>{t("İnşaat firması mısınız?")}</strong><p>{t("Kurumsal hesabınızla firmanızı ve portföyünüzü tanıtın.")}</p></div><Link className="outline-button" href="/kurumsal-uyelik">{t("İnşaat firması üyeliği")} →</Link></div>
+    <div className="company-enroll"><div><strong>{t("İnşaat firması mısınız?")}</strong><p>{t("Kurumsal hesabınızla firmanızı ve portföyünüzü tanıtın.")}</p></div><Link className="outline-button" href="/kurumsal-uyelik">{t("İnşaat firması üyeliği")}<ForwardArrow/></Link></div>
     <div className="directory-tabs" role="group" aria-label={t("Şirket türü")}>
       {[{ value: "", label: "Tüm şirketler" }, { value: "agency", label: "Emlak ofisleri" }, { value: "developer", label: "İnşaat firmaları" }].map((item) => <button key={item.value} type="button" className={category === item.value ? "active" : ""} onClick={() => { setCategory(item.value); setPage(1); }}>{t(item.label)}</button>)}
     </div>
-    {loading ? <p className="directory-state">{t("Şirketler yükleniyor...")}</p> : failed ? <p className="directory-state">{t("Şirketler şu anda yüklenemedi.")}</p> : companies.length ? <><div className="directory-count">{total} {t("şirket ve örnek profil")}</div><div className="directory-company-list">{companies.map((company) => <CompanyRow key={company.id} company={company}/>)}</div><div className="directory-pagination"><button disabled={page === 1} onClick={() => setPage(page - 1)}>{t("Önceki")}</button><span>{page} / {Math.max(1, Math.ceil(total / 24))}</span><button disabled={page * 24 >= total} onClick={() => setPage(page + 1)}>{t("Sonraki")}</button></div></> : <div className="company-empty"><Building2 size={32}/><strong>{t("Henüz onaylı şirket yok.")}</strong><p>{t("Şirketler yönetici onayından sonra burada görünür.")}</p><Link href="/giris?role=agent&next=%2Fhesabim">{t("Şirket hesabı oluştur")} <ArrowRight size={16}/></Link></div>}
+    {loading ? <p className="directory-state">{t("Şirketler yükleniyor...")}</p> : failed ? <p className="directory-state">{t("Şirketler şu anda yüklenemedi.")}</p> : companies.length ? <><div className="directory-count">{total} {t("şirket ve örnek profil")}</div><div className="directory-company-list">{companies.map((company) => <CompanyRow key={company.id} company={company}/>)}</div><div className="directory-pagination"><button disabled={page === 1} onClick={() => setPage(page - 1)}>{t("Önceki")}</button><span>{page} / {Math.max(1, Math.ceil(total / 24))}</span><button disabled={page * 24 >= total} onClick={() => setPage(page + 1)}>{t("Sonraki")}</button></div></> : <div className="company-empty"><Building2 size={32}/><strong>{t("Henüz onaylı şirket yok.")}</strong><p>{t("Şirketler yönetici onayından sonra burada görünür.")}</p><Link className="outline-button" href="/giris?role=agent&next=%2Fhesabim">{t("Şirket hesabı oluştur")}<ForwardArrow/></Link></div>}
   </div></main>;
 }

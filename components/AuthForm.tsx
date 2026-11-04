@@ -1,4 +1,5 @@
 "use client";
+import { BackArrow } from "@/components/DirectionalArrow";
 import {apiJson} from '@/lib/api-client';
 
 import { useEffect, useState } from "react";
@@ -230,7 +231,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
             <LockKeyhole size={15} />
             {t("Üyelik, favoriler, mesajlar ve ilan fotoğrafları tek veritabanında güvenle saklanır.")}
           </div>
-          <Link href="/" className="back-link">← {t("Ana sayfaya dön")}</Link>
+          <Link href="/" className="back-link"><BackArrow/>{t("Ana sayfaya dön")}</Link>
         </div>
       </div>
     </main>

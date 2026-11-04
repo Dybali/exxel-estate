@@ -110,3 +110,20 @@ button.text-link{background:none;border-width:0 0 1px;border-style:solid;border-
   .btn,.primary-button,.outline-button{padding-inline:14px}
   .small-primary{padding-inline:12px}
 }
+
+/* Direction-aware link arrows (components/DirectionalArrow.tsx): mirrored for Arabic and Persian. */
+.dir-arrow{display:inline-block;flex:none;vertical-align:-.15em}
+.dir-arrow-forward{margin-inline-start:.3em}
+.dir-arrow-back{margin-inline-end:.3em}
+:is(.btn,.primary-button,.small-primary,.outline-button) .dir-arrow{margin-inline:0}
+[dir=rtl] .dir-arrow{transform:scaleX(-1)}
+/* Every lucide ArrowRight/ArrowLeft points along the reading direction (back links, "more" links). */
+[dir=rtl] svg.lucide-arrow-right,[dir=rtl] svg.lucide-arrow-left{transform:scaleX(-1)}
+
+/* Empty states: icon, short text and one clear button, centred like .panel-empty and .empty-results. */
+.company-empty{align-items:center;text-align:center;padding:40px 24px}
+.company-empty>a.outline-button{margin-top:8px;color:var(--btn-petrol);font-size:13.5px}
+.company-empty p{max-width:52ch}
+.discovery-empty .outline-button,.message-list-empty .outline-button{margin-top:4px}
+.message-list-empty .outline-button{display:inline-flex}
+[dir=rtl] .property-breadcrumb svg.lucide-chevron-right{transform:scaleX(-1)}

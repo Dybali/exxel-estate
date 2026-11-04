@@ -1,4 +1,5 @@
 "use client";
+import { ForwardArrow, BackArrow } from "@/components/DirectionalArrow";
 import {useCallback, useEffect, useRef, useState} from "react";
 import Link from "@/components/SafeLink";
 import {Building2, Pencil, Plus, Trash2, X} from "lucide-react";
@@ -83,7 +84,7 @@ function ProjectForm({project, onSaved, onCancel}: {project: Project | null; onS
     <fieldset className="project-amenity-picker"><legend>{t("Proje özellikleri")}</legend>{AMENITIES.map((item) => <label key={item}><input type="checkbox" checked={form.amenities.includes(item)} onChange={(event) => setForm((old) => ({...old, amenities: event.target.checked ? [...old.amenities, item] : old.amenities.filter((value) => value !== item)}))}/>{t(item)}</label>)}</fieldset>
     <fieldset className="project-photos"><legend>{t("Fotoğraflar")}</legend>
       <p>{t("İlk fotoğraf kapak olarak gösterilir. En fazla 30 fotoğraf ekleyebilirsiniz.")}</p>
-      <div className="project-photo-grid">{form.images.map((src, index) => <figure key={src}><img src={src} alt=""/><figcaption><button type="button" disabled={index === 0} onClick={() => move(index, -1)} aria-label={t("Öne al")}>←</button><button type="button" disabled={index === form.images.length - 1} onClick={() => move(index, 1)} aria-label={t("Geriye al")}>→</button><button type="button" onClick={() => setForm((old) => ({...old, images: old.images.filter((value) => value !== src)}))} aria-label={t("Fotoğrafı kaldır")}><Trash2 size={14}/></button></figcaption></figure>)}</div>
+      <div className="project-photo-grid">{form.images.map((src, index) => <figure key={src}><img src={src} alt=""/><figcaption><button type="button" disabled={index === 0} onClick={() => move(index, -1)} aria-label={t("Öne al")}><BackArrow size={14}/></button><button type="button" disabled={index === form.images.length - 1} onClick={() => move(index, 1)} aria-label={t("Geriye al")}><ForwardArrow size={14}/></button><button type="button" onClick={() => setForm((old) => ({...old, images: old.images.filter((value) => value !== src)}))} aria-label={t("Fotoğrafı kaldır")}><Trash2 size={14}/></button></figcaption></figure>)}</div>
       {form.images.length < MAX_PROJECT_IMAGES && <label className="outline-button project-upload">{t(uploading ? "Fotoğraflar yükleniyor..." : "Fotoğraf ekle")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={uploading} onChange={(event) => { void upload(event.target.files); event.target.value = ""; }}/></label>}
     </fieldset>
     {error && <p className="form-error" role="alert">{t(error)}</p>}
@@ -156,7 +157,7 @@ export function ProjectsPanel() {
         <small>{t("{n} talep").replace("{n}", String(project.reservations || 0))}{project.newReservations ? ` · ${t("{n} yeni").replace("{n}", String(project.newReservations))}` : ""}</small>
       </div>
       <div className="project-owner-actions"><Link className="outline-button" href={`/projeler/${project.id}`}>{t("Görüntüle")}</Link>{data.allowed && <button type="button" className="outline-button" onClick={() => { setNotice(""); setEditing(project); }}><Pencil size={14}/>{t("Düzenle")}</button>}<button type="button" className="outline-button danger" onClick={() => void remove(project)}><Trash2 size={14}/>{t("Sil")}</button></div>
-    </li>)}</ul> : data.allowed && !editing && <div className="panel-empty"><Building2 size={28}/><h3>{t("Henüz proje eklemediniz.")}</h3><button type="button" onClick={() => setEditing("new")}>{t("İlk projenizi ekleyin")} →</button></div>)}
+    </li>)}</ul> : data.allowed && !editing && <div className="panel-empty"><Building2 size={28}/><h3>{t("Henüz proje eklemediniz.")}</h3><button type="button" onClick={() => setEditing("new")}>{t("İlk projenizi ekleyin")}<ForwardArrow/></button></div>)}
     {data && (data.projects.length > 0 || reservations.length > 0) && <section className="leads-panel project-reservations">
       <h2>{t("Yer ayırtma talepleri")}</h2>
       <p className="leads-intro">{t("Projelerinize gelen talepler burada listelenir. Kişilerle telefon veya e-posta ile iletişime geçin ve durumu güncelleyin.")}</p>

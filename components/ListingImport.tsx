@@ -1,4 +1,5 @@
 "use client";
+import { ForwardArrow } from "@/components/DirectionalArrow";
 import {useState} from "react";
 import Link from "@/components/SafeLink";
 import {FileUp} from "lucide-react";
@@ -71,7 +72,7 @@ export function ListingImport(){
   <details className="listing-import-help"><summary>{t("XML nedir, nasıl kullanılır?")}</summary>
    <p>{t("XML, ilan bilgilerinizi bilgisayarların okuyabildiği düzenli bir metin dosyasıdır. Çoğu emlak yazılımı portföyünüzü XML olarak dışa aktarabilir; yazılım firmanızdan dosyayı aşağıdaki biçimde hazırlamasını isteyebilirsiniz.")}</p>
    <ol>{HELP_STEPS.map(step=><li key={step}>{t(step)}</li>)}</ol>
-   <p>{t("Tüm alanlar, kurallar ve örnek için")} <Link href="/toplu-ilan">{t("Toplu ilan yükleme rehberi")} →</Link></p>
+   <p>{t("Tüm alanlar, kurallar ve örnek için")} <Link href="/toplu-ilan">{t("Toplu ilan yükleme rehberi")}<ForwardArrow/></Link></p>
   </details>
   <label className="outline-button listing-import-file"><input type="file" accept=".xml,application/xml,text/xml" disabled={running} onChange={e=>choose(e.target.files?.[0])}/>{t("XML dosyası seçin")}</label>
   {error&&<p className="form-error" role="alert">{t(error)}</p>}

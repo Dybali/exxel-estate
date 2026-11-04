@@ -32,12 +32,15 @@ import { BuyerTools } from "@/components/BuyerTools";
 import { listingAuthorityNumber } from "@/lib/office-verification-server";
 import { listingStructuredData, localizedListingText } from "@/lib/listing-seo";
 import { pageAlternates, requestLocale } from "@/lib/request-context";
+import { shareMetadata } from "@/lib/share-metadata";
+import { listingShareImages } from "@/lib/share-image-policy";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params, listing=await listingById(id);
   if(!listing || listing.source==='user'&&listing.status!=='published')return {title:`${translate('İlan bulunamadı',await requestLocale())} | estatemarket24`,robots:{index:false,follow:false}};
   const locale=await requestLocale(),text=localizedListingText(listing,locale),description=text.description.slice(0,155);
-  return {title:`${text.title} | estatemarket24`,description,alternates:await pageAlternates(`/ilan/${listing.id}`),...(listing.source==='demo'?{robots:{index:false,follow:true}}:{}),openGraph:{title:text.title,description,images:listing.images[0]?[listing.images[0]]:[]}};
+  const path=`/ilan/${listing.id}`;
+  return {title:`${text.title} | estatemarket24`,description,alternates:await pageAlternates(path),...(listing.source==='demo'?{robots:{index:false,follow:true}}:{}),...shareMetadata({title:text.title,description,path,locale,image:listingShareImages(listing,locale)})};
 }
 export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const {id}=await params,original=await listingById(id),listing=original?publicListing(original):null,locale=await requestLocale();

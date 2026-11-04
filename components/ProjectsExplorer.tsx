@@ -1,4 +1,5 @@
 "use client";
+import { ForwardArrow } from "@/components/DirectionalArrow";
 import {useEffect, useState} from "react";
 import {useSearchParams} from "next/navigation";
 import Link from "@/components/SafeLink";
@@ -53,7 +54,7 @@ export function ProjectsExplorer() {
       <div className="directory-count">{t("{n} proje").replace("{n}", String(data.total))}</div>
       <div className="project-grid">{data.projects.map((project) => <ProjectCard key={project.id} project={project}/>)}</div>
       {pages > 1 && <div className="directory-pagination"><button disabled={page === 1} onClick={() => setPage(page - 1)}>{t("Önceki")}</button><span>{page} / {pages}</span><button disabled={page >= pages} onClick={() => setPage(page + 1)}>{t("Sonraki")}</button></div>}
-    </> : <div className="company-empty project-empty"><Building2 size={28}/><strong>{t("Bu filtrelere uygun proje bulunamadı.")}</strong><p>{t("Onaylanan projeler burada listelenir.")}</p></div>}
-    <div className="company-enroll"><div><strong><HardHat size={18}/> {t("Projenizi yayınlayın")}</strong><p>{t("Onaylı inşaat firmaları ve emlak ofisleri projelerini hesaplarındaki Projelerim bölümünden ekleyebilir.")}</p></div><Link className="outline-button" href="/hesabim?tab=projelerim">{t("Proje ekle")} →</Link></div>
+    </> : <div className="company-empty project-empty"><Building2 size={28}/><strong>{t("Bu filtrelere uygun proje bulunamadı.")}</strong><p>{t("Onaylanan projeler burada listelenir.")}</p><button type="button" className="outline-button" onClick={() => { setDraft(EMPTY); setFilters(EMPTY); setPage(1); }}>{t("Filtreleri temizle")}</button></div>}
+    <div className="company-enroll"><div><strong><HardHat size={18}/> {t("Projenizi yayınlayın")}</strong><p>{t("Onaylı inşaat firmaları ve emlak ofisleri projelerini hesaplarındaki Projelerim bölümünden ekleyebilir.")}</p></div><Link className="outline-button" href="/hesabim?tab=projelerim">{t("Proje ekle")}<ForwardArrow/></Link></div>
   </div></main>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { ForwardArrow } from "@/components/DirectionalArrow";
 import {draftHasContent} from "@/lib/listing-drafts";
 import {apiJson} from '@/lib/api-client';
 
@@ -105,7 +106,7 @@ export function Dashboard() {
         </div>
       </aside>
       <section className={`account-content ${tab === "mesajlar" ? "account-content-inbox" : ""}`}>
-        {draft&&draftHasContent(draft.payload)&&(tab==="genel"||tab==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")} →</Link></div>}
+        {draft&&draftHasContent(draft.payload)&&(tab==="genel"||tab==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")}<ForwardArrow/></Link></div>}
         {tab === "genel" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div><Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link></div>
           <div className="summary-cards"><div><Heart size={22}/><strong>{favorites.length}</strong><span>{t("Favori ilan")}</span></div><div><Bookmark size={22}/><strong>{mine.length}</strong><span>{t("İlanım")}</span></div><div><Mail size={22}/><strong>{conversations.length}</strong><span>{t("Görüşme")}</span></div></div>
@@ -113,13 +114,13 @@ export function Dashboard() {
         </>}
         {tab === "favoriler" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("KAYDETTİKLERİNİZ")}</span><h2>{t("Favori ilanlarım")}</h2></div></div>
-          {favorites.length ? <div className="favorite-dashboard-grid">{favorites.map(listing=><article className="favorite-dashboard-card" key={listing.id}><Link href={`/ilan/${listing.id}`}><img src={listing.images[0]} alt=""/><div><h3>{locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title}</h3><p>{listing.district}, {listing.city} · {listing.grossArea} m²</p><strong>{formatPrice(listing.price,listing.currency,locale)}</strong></div></Link><button type="button" onClick={()=>removeFavorite(listing.id)} aria-label={t("Favorilerden çıkar")}><Heart size={17} fill="currentColor"/>{t("Favorilerden çıkar")}</button></article>)}</div> : <div className="panel-empty"><Heart size={28}/><h3>{t("Henüz favori ilanınız yok.")}</h3><Link href="/ilanlar">{t("İlanlara göz atın")} →</Link></div>}
+          {favorites.length ? <div className="favorite-dashboard-grid">{favorites.map(listing=><article className="favorite-dashboard-card" key={listing.id}><Link href={`/ilan/${listing.id}`}><img src={listing.images[0]} alt=""/><div><h3>{locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title}</h3><p>{listing.district}, {listing.city} · {listing.grossArea} m²</p><strong>{formatPrice(listing.price,listing.currency,locale)}</strong></div></Link><button type="button" onClick={()=>removeFavorite(listing.id)} aria-label={t("Favorilerden çıkar")}><Heart size={17} fill="currentColor"/>{t("Favorilerden çıkar")}</button></article>)}</div> : <div className="panel-empty"><Heart size={28}/><h3>{t("Henüz favori ilanınız yok.")}</h3><Link href="/ilanlar">{t("İlanlara göz atın")}<ForwardArrow/></Link></div>}
 
         </>}
         {tab === "ilanlarim" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLAN YÖNETİMİ")}</span><h2>{t("İlanlarım")}</h2></div><Link href="/ilan-ver" className="small-primary">{t("İlan ver")}<Plus size={17}/></Link></div>
           {user.role==="individual"&&!user.isAdmin&&<IndividualPolicyNotice/>}{user.role==="agent"&&user.agent_status==="approved"&&<p className="profile-save-success">{t("Onaylı emlakçı hesabınızla ilanlarınız doğrudan yayımlanır.")}</p>}
-          {mine.length ? <ManagedListings listings={mine} onChange={setMine}/> : <div className="panel-empty"><Bookmark size={28}/><h3>{t("Henüz ilan eklemediniz.")}</h3><Link href="/ilan-ver">{t("İlk ilanınızı oluşturun")} →</Link></div>}
+          {mine.length ? <ManagedListings listings={mine} onChange={setMine}/> : <div className="panel-empty"><Bookmark size={28}/><h3>{t("Henüz ilan eklemediniz.")}</h3><Link href="/ilan-ver">{t("İlk ilanınızı oluşturun")}<ForwardArrow/></Link></div>}
 
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
