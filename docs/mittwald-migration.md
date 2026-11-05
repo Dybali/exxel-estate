@@ -38,7 +38,9 @@ Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulma
 | Video | Cloudflare Stream (token yok, kapalı; kod kaldırıldı) | **Yapıldı (2026-11-04):** kendi sistemimiz. Parçalı yükleme API üzerinden R2'ye (çok parçalı yükleme), konteyner içindeki işçi ffmpeg ile MP4 (H.264/AAC, en fazla 720p) + kapak üretir, HTML5 oynatıcı, Range destekli medya yolu; tablo `listing_videos` (019). Ayrıntı: [listing-videos.md](listing-videos.md). Cloudflare yayınında video kapalı | — |
 | Yayın | GitHub Actions → `wrangler deploy` | **Yapıldı (test):** `.github/workflows/mittwald.yml` → GHCR imajı → test konteyneri | — |
 
-Değişmeyenler: Resend, DeepL, Gemini.
+Değişmeyenler: DeepL, Gemini.
+
+**E-posta (2026-11-05, sahibinin kararı):** Şimdilik Mittwald posta kutusunun SMTP sunucusu üzerinden (`lib/email-smtp-node.ts`, nodemailer 10.2.1, yalnızca Node derlemesi; Cloudflare'de `@/lib/email-smtp` boş yuva). Resend ileride `RESEND_API_KEY` girilerek açılabilir, kod değişmez. SPF zaten `include:agenturserver.de` içeriyor; **mStudio'da alan adı için DKIM etkinleştirilmeli**. Kurulum ve test: [email-notifications.md](email-notifications.md) (yönetim paneli → Hizmet durumu → "Test e-postası gönder").
 
 ## Veritabanı ve giriş sistemi (sahibinin isteği, 2026-11-02)
 
@@ -51,7 +53,7 @@ Veritabanı da Mittwald'a alınacak. mStudio'da proje içinde **PostgreSQL konte
 
 ## Taşıma günü
 
-1. Mittwald'da proje ve Node.js uygulaması (veya konteyner) oluştur; bütün gizli ayarları ortam değişkeni olarak gir (`DATABASE_URL`, `R2_*`, `NEON_AUTH_*`, `GEMINI_API_KEY`, `DEEPL_API_KEY`, `RESEND_API_KEY`, `GOOGLE_CLIENT_*`, `EXXEL_ADMIN_EMAIL`, `BACKUP_READ_TOKEN`, `SITE_URL`).
+1. Mittwald'da proje ve Node.js uygulaması (veya konteyner) oluştur; bütün gizli ayarları ortam değişkeni olarak gir (`DATABASE_URL`, `R2_*`, `NEON_AUTH_*`, `GEMINI_API_KEY`, `DEEPL_API_KEY`, `SMTP_*` (veya `RESEND_API_KEY`), `GOOGLE_CLIENT_*`, `EXXEL_ADMIN_EMAIL`, `BACKUP_READ_TOKEN`, `SITE_URL`).
 2. Yukarıdaki tablodaki değişiklikleri bir dalda yap, `npm run verify` ve Mittwald'daki geçici adreste uçtan uca test et.
 3. Alan adını Mittwald'a yönlendir, HTTPS sertifikası.
 4. `SITE_URL`'i alan adına çevir; Better Auth (Neon Auth yerine) güvenilen adresleri, Google OAuth yönlendirme adresi, Resend alan adı doğrulaması (SPF/DKIM).
@@ -91,7 +93,10 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Google girişi için | Yönlendirme adresi test alan adıyla |
 | `GEMINI_API_KEY` (+ isteğe bağlı `GEMINI_MODEL`, `AI_DAILY_CALL_LIMIT`, `AI_MONTHLY_CALL_LIMIT`) | Asistan için | |
 | `DEEPL_API_KEY` (+ `DEEPL_DAILY_CHAR_LIMIT`, `DEEPL_MONTHLY_CHAR_LIMIT`) | Çeviri için | |
-| `RESEND_API_KEY`, `EMAIL_FROM` | E-posta için | `EMAIL_FROM` alan adı doğrulanana kadar `EstateMarket24 <onboarding@resend.dev>` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | E-posta için (şu anki yol) | Mittwald posta kutusu: `mail.agenturserver.de`, `465` (doğrudan TLS; `587` = STARTTLS zorunlu), kullanıcı `noreply@estatemarket24.com`, şifre gizli. Bkz. [email-notifications.md](email-notifications.md) |
+| `EMAIL_FROM` | E-posta için | `EstateMarket24 <noreply@estatemarket24.com>`. Mittwald yalnızca posta kutusunun adresiyle gönderir: adres `SMTP_USER`dan farklıysa kod `SMTP_USER` adresini kullanır, görünen adı korur |
+| `EMAIL_REPLY_TO` | Hayır | Boşsa `CONTACT_EMAIL` |
+| `RESEND_API_KEY` | Hayır | Girilirse SMTP yerine Resend kullanılır (alan adı Resend'de doğrulanmış olmalı) |
 | `CONTACT_EMAIL` | Evet | `info@estatemarket24.com` |
 | `EXXEL_ADMIN_EMAIL` | Evet | Yönetici hesabı |
 | `ADMIN_TOTP_KEY` | Evet | Yönetici iki adımlı girişi (Cloudflare'dekiyle aynı değer olmalı) |

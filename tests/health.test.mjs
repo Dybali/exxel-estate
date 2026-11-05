@@ -1,6 +1,6 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';import {emailUrl} from './email-module.mjs';
 const compile=p=>'data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64');
-const source=readFileSync(new URL('../lib/health.ts',import.meta.url),'utf8').replace('from "./email"',`from "${compile('email')}"`);
+const source=readFileSync(new URL('../lib/health.ts',import.meta.url),'utf8').replace('from "./email"',`from "${emailUrl()}"`);
 const {runHealthChecks,alertOnFailure}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpile(source,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64'));
 const db=(fail)=>({prepare(){return {bind(){return this},async first(){if(fail)throw Error('connection refused');return {n:7};},async run(){}}}});
 test('healthy services report ok with details',async()=>{const checks=await runHealthChecks(db(false),{imageStorageReady:()=>true,listImages:async()=>null,privateBucket:{head:async()=>null}});assert.deepEqual(checks.map(c=>[c.name,c.ok]),[['database',true],['listing-photos',true],['private-storage',true]]);assert.equal(checks[0].detail,'7 published');});

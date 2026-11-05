@@ -1,30 +1,52 @@
-// Transactional email through Resend. Without RESEND_API_KEY and EMAIL_FROM every send is a no-op.
-export type EmailSettings = { RESEND_API_KEY?: string; EMAIL_FROM?: string; SITE_URL?: string };
-export type EmailMessage = { to: string; subject: string; html: string; text: string; unsubscribeUrl?: string };
+// Transactional e-mail (docs/email-notifications.md). Provider choice:
+//   RESEND_API_KEY + EMAIL_FROM          → Resend HTTP API (every build)
+//   else SMTP_HOST/USER/PASSWORD set      → SMTP, e.g. the Mittwald mailbox (Node build only)
+//   else                                  → nothing is sent ("not_configured")
+import { smtpSend } from "@/lib/email-smtp";
+import { parseMailAddress, replyToAddress, smtpConfigured, smtpFrom, unsubscribeHeaders, type SendResult, type SmtpSettings } from "./email-smtp-config";
 
-export const emailReady = (settings: EmailSettings) => Boolean(settings.RESEND_API_KEY && settings.EMAIL_FROM);
+export { emailLayout, escapeHtml } from "./email-layout";
+export type { SendResult } from "./email-smtp-config";
 
-export const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+export type EmailSettings = SmtpSettings & { RESEND_API_KEY?: string; SITE_URL?: string };
+// `replyTo` overrides EMAIL_REPLY_TO / CONTACT_EMAIL for this message.
+export type EmailMessage = { to: string; subject: string; html: string; text: string; unsubscribeUrl?: string; replyTo?: string };
+export type EmailProvider = "resend" | "smtp";
 
-export async function sendEmail(settings: EmailSettings, message: EmailMessage) {
-  if (!emailReady(settings)) return { sent: false as const, reason: "not_configured" };
+const resendReady = (settings: EmailSettings) => Boolean(settings.RESEND_API_KEY && settings.EMAIL_FROM);
+
+export function emailProvider(settings: EmailSettings): EmailProvider | null {
+  if (resendReady(settings)) return "resend";
+  if (smtpSend && smtpConfigured(settings) && smtpFrom(settings)) return "smtp";
+  return null;
+}
+
+export const emailReady = (settings: EmailSettings) => emailProvider(settings) !== null;
+
+export async function sendEmail(settings: EmailSettings, message: EmailMessage): Promise<SendResult> {
+  const provider = emailProvider(settings);
+  if (!provider) return { sent: false, reason: "not_configured" };
+  if (!parseMailAddress(message.to)) return { sent: false, reason: "invalid_recipient" };
+  const replyTo = replyToAddress(settings, message.replyTo);
+  if (provider === "smtp") {
+    return smtpSend!(settings, {
+      from: smtpFrom(settings)!, to: message.to, replyTo, subject: message.subject, html: message.html, text: message.text,
+      headers: unsubscribeHeaders(message.unsubscribeUrl),
+    });
+  }
+  const headers = unsubscribeHeaders(message.unsubscribeUrl);
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${settings.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: settings.EMAIL_FROM, to: [message.to], subject: message.subject, html: message.html, text: message.text,
-      ...(message.unsubscribeUrl ? { headers: { "List-Unsubscribe": `<${message.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}),
+      ...(replyTo ? { reply_to: replyTo } : {}),
+      ...(Object.keys(headers).length ? { headers } : {}),
     }),
     signal: AbortSignal.timeout(10000),
   });
-  if (!response.ok) { await response.body?.cancel(); return { sent: false as const, reason: `provider_${response.status}` }; }
-  return { sent: true as const };
-}
-
-// Simple bilingual (Turkish / English) layout shared by all notifications.
-export function emailLayout(parts: { title: string; titleEn: string; lines: string[]; action?: { href: string; label: string }; unsubscribeUrl?: string }) {
-  const body = parts.lines.map((line) => `<p style="margin:0 0 10px;line-height:1.5">${line}</p>`).join("");
-  const action = parts.action ? `<p style="margin:18px 0"><a href="${escapeHtml(parts.action.href)}" style="background:#17334b;color:#fff;padding:12px 18px;text-decoration:none;font-weight:700;display:inline-block">${escapeHtml(parts.action.label)}</a></p>` : "";
-  const footer = parts.unsubscribeUrl ? `<p style="font-size:12px;color:#7c887f;margin-top:24px">Bu e-postaları almak istemiyorsanız / To stop these emails: <a href="${escapeHtml(parts.unsubscribeUrl)}" style="color:#7c887f">abonelikten çık / unsubscribe</a></p>` : "";
-  return `<!doctype html><html><body style="margin:0;background:#f4f5f1;padding:24px;font-family:Arial,sans-serif;color:#17334b"><div style="max-width:560px;margin:auto;background:#fff;padding:24px"><p style="font-weight:800;letter-spacing:.08em;font-size:12px;margin:0 0 16px">ESTATEMARKET24</p><h1 style="font-size:20px;margin:0 0 4px">${escapeHtml(parts.title)}</h1><p style="color:#7c887f;margin:0 0 16px">${escapeHtml(parts.titleEn)}</p>${body}${action}${footer}</div></body></html>`;
+  if (!response.ok) { await response.body?.cancel(); return { sent: false, reason: `provider_${response.status}` }; }
+  let data: { id?: unknown } | null = null;
+  try { data = await response.json() as { id?: unknown }; } catch { /* the id is only logged */ }
+  return { sent: true, provider: "resend", ...(typeof data?.id === "string" ? { messageId: data.id } : {}) };
 }

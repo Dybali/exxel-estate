@@ -1,7 +1,7 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {readFileSync} from 'node:fs';import ts from 'typescript';
+import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {readFileSync} from 'node:fs';import ts from 'typescript';import {emailUrl} from './email-module.mjs';
 const compile=p=>'data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64');
-const email=await import(compile('email'));
-const source=readFileSync(new URL('../lib/email-notifications.ts',import.meta.url),'utf8').replace('from "./email"',`from "${compile('email')}"`).replace('import { searchSql } from "./search-filters";','const searchSql=(q)=>({where:"l.status=\'published\' AND l.city=?",values:[new URLSearchParams(q).get("city")]});');
+const email=await import(emailUrl());
+const source=readFileSync(new URL('../lib/email-notifications.ts',import.meta.url),'utf8').replace('from "./email"',`from "${emailUrl()}"`).replace('import { searchSql } from "./search-filters";','const searchSql=(q)=>({where:"l.status=\'published\' AND l.city=?",values:[new URLSearchParams(q).get("city")]});');
 const notify=await import('data:text/javascript;base64,'+Buffer.from(ts.transpile(source,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64'));
 const settings={RESEND_API_KEY:'re_test',EMAIL_FROM:'Test <a@example.com>',SITE_URL:'https://site.example'};
 function fixture(){const sql=new DatabaseSync(':memory:');sql.exec("CREATE TABLE users(id TEXT,name TEXT,email TEXT,email_verified INTEGER);CREATE TABLE listings(id TEXT,title TEXT,status TEXT,city TEXT,published_at TEXT);CREATE TABLE saved_searches(user_id TEXT,name TEXT,query TEXT,enabled INTEGER);CREATE TABLE favorites(user_id TEXT,listing_id TEXT);CREATE TABLE price_history(listing_id TEXT,old_price INTEGER,new_price INTEGER,currency TEXT,changed_at TEXT)");

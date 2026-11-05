@@ -116,6 +116,14 @@
 .admin-contact-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:0 0 14px}
 .admin-contact-item.is-handled{opacity:.75}
 .admin-contact-actions{display:flex;flex-wrap:wrap;gap:10px}
+.admin-contact-replies{display:grid;gap:8px;margin:0 0 14px;padding:12px 14px;border-left:3px solid #cfe1dd;background:#f6faf9;border-radius:6px}
+.admin-contact-reply .admin-muted{margin:0 0 4px}
+.admin-contact-reply .admin-contact-text{margin:0}
+.admin-contact-reply-form{display:grid;gap:8px;margin-top:14px}
+.admin-contact-reply-form label{font-weight:600;font-size:13px}
+.admin-contact-reply-form textarea{width:100%;min-height:120px;resize:vertical;border:1px solid #d6e1dc;border-radius:7px;padding:10px 12px;font:inherit;font-size:14px;line-height:1.5}
+.admin-contact-reply-form .admin-muted{margin:0;font-size:12px}
+.admin-contact-reply-form .admin-notice{margin:0}
 .admin-contact-actions a,.admin-contact-actions button{display:inline-flex;align-items:center;gap:6px}
 
 @media(max-width:900px){

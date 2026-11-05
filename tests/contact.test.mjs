@@ -1,7 +1,7 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {readFileSync} from 'node:fs';import ts from 'typescript';
 const transpile=p=>ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022});
 const url=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
-let code=transpile('contact');assert.ok(code.includes('"./email"'));code=code.replace('"./email"',JSON.stringify(url(transpile('email'))));
+let code=transpile('contact');assert.ok(code.includes('"./email-layout"'));assert.ok(!code.includes('"./email"'),'lib/contact.ts must not import the e-mail transports (client components use it)');code=code.replace('"./email-layout"',JSON.stringify(url(transpile('email-layout'))));
 const C=await import(url(code));
 
 function fixture(){
