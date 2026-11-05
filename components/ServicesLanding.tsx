@@ -3,14 +3,14 @@ import { ArrowRight, BadgeCheck, CheckCircle2, MapPinned, Store } from "lucide-r
 import Link from "@/components/SafeLink";
 import { ServiceFinder } from "@/components/ServiceFinder";
 import { ServiceFirmCard } from "@/components/ServiceFirmCard";
+import { groupSearchHref, SERVICE_SIGNUP_HREF } from "@/components/ServiceHeader";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
-import { categoriesOf, SERVICE_GROUPS, type ServiceSlug } from "@/lib/service-categories";
+import { categoriesOf, SERVICE_CATEGORIES, SERVICE_GROUPS, type ServiceSlug } from "@/lib/service-categories";
+import { SERVICE_SEARCH_PATH } from "@/lib/service-search";
 import { servicePath, type ServiceFirm } from "@/lib/services";
 
-export const SERVICE_SIGNUP_HREF = "/hesabim?tab=hizmet";
-
-/** Hizmet veren firmalar için davet (landing and empty category pages). */
+/** Hizmet veren firmalar için davet (landing, results and category pages). */
 export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
   const { t } = useLocale();
   return <section className={compact ? "service-cta compact" : "service-cta"} aria-labelledby="service-cta-title">
@@ -27,10 +27,24 @@ export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
   </section>;
 }
 
-export function ServicesLanding({ counts, featured }: { counts: Record<ServiceSlug, number>; featured: ServiceFirm[] }) {
+function FirmSection({ id, title, text, firms, more }: { id: string; title: string; text: string; firms: ServiceFirm[]; more: string }) {
+  const { t } = useLocale();
+  if (!firms.length) return null;
+  return <section className="container services-featured" aria-labelledby={id}>
+    <div className="services-section-head svc-section-head">
+      <div><h2 id={id}>{title}</h2><p>{text}</p></div>
+      <Link href={more} className="svc-more">{t("Tümünü gör")}<ArrowRight size={15} aria-hidden="true"/></Link>
+    </div>
+    <div className="service-firm-grid">{firms.map((firm) => <ServiceFirmCard key={firm.id} firm={firm}/>)}</div>
+  </section>;
+}
+
+export type ServiceStats = { firms: number; cities: number };
+
+/** /hizmetler: search, figures, every group with its categories, featured and newest firms, provider invitation. */
+export function ServicesLanding({ counts, featured, newest, stats }: { counts: Record<ServiceSlug, number>; featured: ServiceFirm[]; newest: ServiceFirm[]; stats: ServiceStats }) {
   const { t, locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value);
-  const total = featured.length;
-  return <main className="services-page">
+  return <main className="services-page services-landing">
     <header className="services-hero">
       <div className="container services-hero-inner">
         <span className="service-kicker light">{t("ESTATEMARKET24 HİZMETLER")}</span>
@@ -45,13 +59,20 @@ export function ServicesLanding({ counts, featured }: { counts: Record<ServiceSl
       </div>
     </header>
 
-    <nav className="container services-group-nav" aria-label={t("Hizmet grupları")}>
-      {SERVICE_GROUPS.map((group) => <a key={group.id} href={`#${group.id}`}><ServiceIcon name={group.icon} size={16}/>{t(group.name)}</a>)}
-    </nav>
+    <div className="container">
+      <dl className="svc-stats">
+        <div><dt>{t("Onaylı firma")}</dt><dd>{number(stats.firms)}</dd></div>
+        <div><dt>{t("Hizmet kategorisi")}</dt><dd>{number(SERVICE_CATEGORIES.length)}</dd></div>
+        <div><dt>{t("Hizmet verilen il")}</dt><dd>{number(stats.cities)}<small> / 81</small></dd></div>
+      </dl>
+    </div>
 
     <div className="container services-groups">
       {SERVICE_GROUPS.map((group) => <section key={group.id} id={group.id} className="services-group" aria-labelledby={`${group.id}-title`}>
-        <h2 id={`${group.id}-title`}><span className="services-group-icon"><ServiceIcon name={group.icon} size={20}/></span>{t(group.name)}</h2>
+        <div className="svc-group-head">
+          <h2 id={`${group.id}-title`}><span className="services-group-icon"><ServiceIcon name={group.icon} size={20}/></span>{t(group.name)}</h2>
+          <Link href={groupSearchHref(group.id)} className="svc-more">{t("Tümünü gör")}<ArrowRight size={15} aria-hidden="true"/></Link>
+        </div>
         <ul className="services-tiles">{categoriesOf(group.id).map((category) => {
           const count = counts[category.slug as ServiceSlug] || 0;
           return <li key={category.slug}><Link href={servicePath(category.slug)} className="services-tile">
@@ -64,10 +85,8 @@ export function ServicesLanding({ counts, featured }: { counts: Record<ServiceSl
       </section>)}
     </div>
 
-    {total > 0 && <section className="container services-featured" aria-labelledby="services-featured-title">
-      <div className="services-section-head"><h2 id="services-featured-title">{t("Öne çıkan firmalar")}</h2><p>{t("Yönetici onayından geçmiş hizmet firmaları.")}</p></div>
-      <div className="service-firm-grid">{featured.map((firm) => <ServiceFirmCard key={firm.id} firm={firm}/>)}</div>
-    </section>}
+    <FirmSection id="services-featured-title" title={t("Öne çıkan firmalar")} text={t("Yönetici onayından geçmiş hizmet firmaları.")} firms={featured} more={SERVICE_SEARCH_PATH}/>
+    <FirmSection id="services-newest-title" title={t("Yeni eklenen firmalar")} text={t("Hizmetler bölümüne en son katılan onaylı firmalar.")} firms={newest} more={`${SERVICE_SEARCH_PATH}?sirala=yeni`}/>
 
     <div className="container"><ServiceProviderCta/></div>
     <p className="container services-disclaimer">{t("estatemarket24 firmaları yayınlamadan önce bilgilerini inceler; ancak sunulan hizmetin taraflarından biri değildir. Fiyat ve iş koşullarını firmayla yazılı olarak netleştirin.")}</p>

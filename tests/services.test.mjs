@@ -30,7 +30,7 @@ test('taxonomy: every requested category exists once, in its group, with icon, s
  for(const c of SERVICE_CATEGORIES){assert.match(c.slug,/^[a-z0-9]+(-[a-z0-9]+)*$/);assert.ok(SERVICE_GROUPS.some(g=>g.id===c.group),c.slug);assert.ok(c.description.length>20,c.slug);assert.equal(serviceCategory(c.slug),c);}
  for(const g of SERVICE_GROUPS)assert.ok(SERVICE_CATEGORIES.some(c=>c.group===g.id),g.id);
  // Static route segment of firm profiles must never be a category.
- assert.ok(!slugs.includes('firma'));assert.equal(serviceCategory('firma'),null);
+ assert.ok(!slugs.includes('firma'));assert.equal(serviceCategory('firma'),null);assert.ok(!slugs.includes('ara'));assert.equal(S.resolveServicePath(['ara']),null);
  const required=['Boyacı','Tesisatçı','Elektrikçi','Fayans','Marangoz','Çatı','PVC','Klima','Anahtar teslim','Bahçıvan','Havuz','İlaçlama','nakliyat','temizliği','Halı','depolama','Tapu takibi','avukatı','tercüman','ekspertiz','Mali müşavir','Konut kredisi','DASK','Mülk yönetimi','Kısa dönem','Oturma izni','Abonelik','İç mimar','Akıllı ev','beyaz eşya','drone'];
  for(const part of required)assert.ok(SERVICE_CATEGORIES.some(c=>c.name.includes(part)),part);
  const iconSource=readFileSync(path.join(root,'components/ServiceIcon.tsx'),'utf8'),mapped=new Set(iconSource.match(/SERVICE_ICONS: Record<string, LucideIcon> = \{([^}]+)\}/)[1].split(',').map(s=>s.trim()));
@@ -157,19 +157,20 @@ test('category and region pages: province-wide firms show on district pages, but
   const a=await S.createFirm(db,me,valid(owner,{categories:['evden-eve-nakliyat'],areas:[{city:'Muğla',district:''}]}));// whole province
   const b=await S.createFirm(db,them,valid(other,{name:'Bodrum Nakliyat',categories:['evden-eve-nakliyat'],areas:[{city:'Muğla',district:'Bodrum'},{city:'İzmir',district:'Urla'}]}));
   for(const firm of [a,b])await S.reviewFirm(db,admin,firm.id,'approve','');
-  const facets=await S.serviceFacets(db,'evden-eve-nakliyat');
-  const country=S.summarizeService({category:'evden-eve-nakliyat'},facets);
+  // The page's own count comes from the results query; the summary adds the place links and the local count.
+  const summary=async scope=>S.serviceSummary(db,scope,(await S.searchFirms(db,{categories:[scope.category],city:scope.city,district:scope.district})).total);
+  const country=await summary({category:'evden-eve-nakliyat'});
   assert.equal(country.count,2);assert.ok(S.serviceIndexable(country));
   assert.deepEqual(country.cities.map(l=>[l.path,l.count]),[['/hizmetler/evden-eve-nakliyat/mugla',2],['/hizmetler/evden-eve-nakliyat/izmir',1]]);
-  const mugla=S.summarizeService({category:'evden-eve-nakliyat',city:'Muğla'},facets);
+  const mugla=await summary({category:'evden-eve-nakliyat',city:'Muğla'});
   assert.equal(mugla.count,2);assert.deepEqual(mugla.districts.map(l=>l.path),['/hizmetler/evden-eve-nakliyat/mugla/bodrum']);
-  const bodrum=S.summarizeService({category:'evden-eve-nakliyat',city:'Muğla',district:'Bodrum'},facets);
+  const bodrum=await summary({category:'evden-eve-nakliyat',city:'Muğla',district:'Bodrum'});
   assert.deepEqual([bodrum.count,bodrum.local],[2,1]);assert.ok(S.serviceIndexable(bodrum));
-  const milas=S.summarizeService({category:'evden-eve-nakliyat',city:'Muğla',district:'Milas'},facets);
+  const milas=await summary({category:'evden-eve-nakliyat',city:'Muğla',district:'Milas'});
   assert.deepEqual([milas.count,milas.local],[1,0]);assert.equal(S.serviceIndexable(milas),false);
   assert.deepEqual((await S.publicFirms(db,{category:'evden-eve-nakliyat',city:'Muğla',district:'Milas'})).map(f=>f.id),[a.id]);
   assert.equal((await S.publicFirms(db,{category:'evden-eve-nakliyat',city:'Muğla',district:'Bodrum'})).length,2);
-  const empty=S.summarizeService({category:'havuz-bakimi',city:'Muğla'},await S.serviceFacets(db,'havuz-bakimi'));
+  const empty=await summary({category:'havuz-bakimi',city:'Muğla'});
   assert.deepEqual([empty.count,empty.local],[0,0]);assert.equal(S.serviceIndexable(empty),false);
  }finally{sql.close()}
 });
@@ -186,7 +187,7 @@ test('sitemap: approved firms and pages with their own firms only',async()=>{
   entries=await S.serviceSitemapEntries(db);
   assert.deepEqual(entries.pages.map(p=>[p.path,p.count]),[['/hizmetler/tapu-takibi',2],['/hizmetler/tapu-takibi/antalya',2],['/hizmetler/tapu-takibi/antalya/alanya',1],['/hizmetler/yeminli-tercuman',1],['/hizmetler/yeminli-tercuman/antalya',1],['/hizmetler/yeminli-tercuman/antalya/alanya',1]]);
   assert.ok(entries.pages.every(p=>p.updatedAt));assert.equal(entries.firms.length,2);
-  assert.equal(S.serviceSitemapPaths([{firm_id:'x',category:'bilinmeyen',city:'Antalya',district:''}]).length,0);
+  assert.equal(S.serviceSitemapPages([{category:'bilinmeyen',city:'Antalya',district:'',n:1}]).length,0);
  }finally{sql.close()}
 });
 

@@ -1,7 +1,7 @@
 import { ServicesLanding } from "@/components/ServicesLanding";
 import { SERVICE_CATEGORIES, type ServiceSlug } from "@/lib/service-categories";
 import { serviceCrumbs, serviceName } from "@/lib/service-copy";
-import { categoryCounts, featuredFirms, servicePath, type ServiceFirm } from "@/lib/services";
+import { categoryCounts, featuredFirms, newestFirms, servicePath, serviceStats, type ServiceFirm } from "@/lib/services";
 import { servicesDB } from "@/lib/services-server";
 import { localizedUrl, requestLocale } from "@/lib/request-context";
 import { translate } from "@/lib/i18n-dictionary";
@@ -10,11 +10,13 @@ import { translate } from "@/lib/i18n-dictionary";
 export const dynamic = "force-dynamic";
 
 export default async function ServicesPage() {
-  const locale = await requestLocale();
+  const locale = await requestLocale(), db = servicesDB();
   // A database problem leaves the category directory usable (every tile then invites the first firm).
-  const [counts, featured] = await Promise.all([
-    categoryCounts(servicesDB()).catch(() => Object.fromEntries(SERVICE_CATEGORIES.map((item) => [item.slug, 0])) as Record<ServiceSlug, number>),
-    featuredFirms(servicesDB()).catch(() => [] as ServiceFirm[]),
+  const [counts, featured, newest, stats] = await Promise.all([
+    categoryCounts(db).catch(() => Object.fromEntries(SERVICE_CATEGORIES.map((item) => [item.slug, 0])) as Record<ServiceSlug, number>),
+    featuredFirms(db).catch(() => [] as ServiceFirm[]),
+    newestFirms(db).catch(() => [] as ServiceFirm[]),
+    serviceStats(db).catch(() => ({ firms: 0, cities: 0 })),
   ]);
   const structured = [
     { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: serviceCrumbs({}, locale).map((crumb, index) => ({ "@type": "ListItem", position: index + 1, name: crumb.name, item: localizedUrl(crumb.path, locale) })) },
@@ -23,6 +25,6 @@ export default async function ServicesPage() {
   ];
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>
-    <ServicesLanding counts={counts} featured={featured}/>
+    <ServicesLanding counts={counts} featured={featured} newest={newest} stats={stats}/>
   </>;
 }

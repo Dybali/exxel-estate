@@ -7,7 +7,7 @@ import { translate } from "@/lib/i18n-dictionary";
 import { localizedUrl, pageAlternates, requestLocale } from "@/lib/request-context";
 import { serviceCategory } from "@/lib/service-categories";
 import { serviceName } from "@/lib/service-copy";
-import { firmById, firmDescription, firmPath, validFirmId } from "@/lib/services";
+import { firmById, firmDescription, firmPath, similarFirms, validFirmId, type ServiceFirm } from "@/lib/services";
 import { serviceActor, servicesDB } from "@/lib/services-server";
 import { currentUser } from "@/lib/server";
 import { coverShareImage } from "@/lib/share-image-policy";
@@ -42,6 +42,7 @@ export default async function ServiceFirmPage({ params }: Props) {
   const { id } = await params, firm = await load(id);
   if (!firm) notFound();
   const locale = await requestLocale(), url = localizedUrl(firmPath(firm.id), locale);
+  const similar = await similarFirms(servicesDB(), firm).catch(() => [] as ServiceFirm[]);
   // Legal and financial advice firms are ProfessionalService; trades and the rest LocalBusiness.
   const professional = firm.categories.every((slug) => serviceCategory(slug)?.group === "hukuk-finans");
   const structured = firm.status !== "approved" ? null : {
@@ -54,6 +55,6 @@ export default async function ServiceFirmPage({ params }: Props) {
   };
   return <>
     {structured && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>}
-    <ServiceFirmProfile firm={firm}/>
+    <ServiceFirmProfile firm={firm} similar={similar}/>
   </>;
 }

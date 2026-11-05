@@ -6,9 +6,11 @@
 // SQLite, with no migration file (the convention for feature tables, as projects, leads and orders).
 // Room for later phases: `plan` (paid packages) and `featured`; quote requests (teklif) and reviews
 // get their own tables keyed by firm_id; the one-firm-per-owner index can be dropped for teams.
+import { locales, translate } from "./i18n-dictionary";
 import { normalizeContactPhone } from "./phone";
 import { cityBySlug, districtBySlug, regionSlug } from "./region-pages";
-import { isServiceSlug, SERVICE_CATEGORIES, type ServiceSlug } from "./service-categories";
+import { isServiceSlug, SERVICE_CATEGORIES, serviceCategory, type ServiceSlug } from "./service-categories";
+import { serviceNameSortKey, serviceSearchKey, serviceSearchTokens } from "./service-text";
 import { CITIES, validDistrict } from "./turkey-locations";
 
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
@@ -20,11 +22,18 @@ export type ServiceStatus = typeof SERVICE_STATUSES[number];
 export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = { pending: "Onay bekliyor", approved: "Yayında", rejected: "Reddedildi", suspended: "Askıya alındı" };
 export const SERVICE_TRANSLATION_LOCALES = ["en", "de", "fr", "ru", "ar", "fa", "nl"] as const;
 export const SERVICE_LIMITS = { nameMin: 3, nameMax: 100, descriptionMin: 30, descriptionMax: 3000, categories: 8, areas: 30, photos: 12, noteMax: 1000 } as const;
-/** Firms on one category or region page (no pagination in the first release). */
-export const SERVICE_PAGE_LIMIT = 60;
+/** Firms per results page (/hizmetler/ara and the category and region pages, ?sayfa=2…). */
+export const SERVICE_PER_PAGE = 24;
+/** Highest page number accepted; with 24 per page this covers 240,000 firms. */
+export const SERVICE_MAX_PAGE = 10000;
 export const SERVICE_FEATURED_LIMIT = 8;
+export const SERVICE_SIMILAR_LIMIT = 6;
 /** Category/region URLs in the sitemap, most firms first. */
 export const SERVICE_SITEMAP_LIMIT = 5000;
+/** Firm profiles in the sitemap, most recently updated first (app/sitemap.ts keeps the file under 50,000 URLs). */
+export const SERVICE_SITEMAP_FIRM_LIMIT = 20000;
+/** Version of the folded search text; raising it rebuilds every firm's search row on the next start. */
+export const SERVICE_SEARCH_VERSION = 1;
 
 export const SERVICE_SCHEMA = [
   "CREATE TABLE IF NOT EXISTS service_firms(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL,translations TEXT NOT NULL DEFAULT '{}',phone TEXT NOT NULL,whatsapp TEXT,email TEXT,website TEXT,logo TEXT,cover TEXT,photos TEXT NOT NULL DEFAULT '[]',tax_office TEXT,tax_number TEXT,status TEXT NOT NULL DEFAULT 'pending',review_note TEXT NOT NULL DEFAULT '',verified INTEGER NOT NULL DEFAULT 0,featured INTEGER NOT NULL DEFAULT 0,plan TEXT NOT NULL DEFAULT 'free',reviewed_by TEXT,approved_at TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)",
@@ -36,6 +45,12 @@ export const SERVICE_SCHEMA = [
   // district '' = the whole province.
   "CREATE TABLE IF NOT EXISTS service_firm_areas(firm_id TEXT NOT NULL,city TEXT NOT NULL,district TEXT NOT NULL DEFAULT '',PRIMARY KEY(firm_id,city,district))",
   "CREATE INDEX IF NOT EXISTS service_firm_areas_place_idx ON service_firm_areas(city,district,firm_id)",
+  // Results order ("Öne çıkanlar", "En yeni") and the landing page lists.
+  "CREATE INDEX IF NOT EXISTS service_firms_public_idx ON service_firms(status,featured,verified,created_at)",
+  "CREATE INDEX IF NOT EXISTS service_firms_newest_idx ON service_firms(status,created_at)",
+  // Folded search text and Turkish A–Z key per firm (lib/service-text.ts), rewritten on every save.
+  "CREATE TABLE IF NOT EXISTS service_firm_search(firm_id TEXT PRIMARY KEY,name_key TEXT NOT NULL,body TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 0)",
+  "CREATE INDEX IF NOT EXISTS service_firm_search_name_idx ON service_firm_search(name_key,firm_id)",
 ];
 
 export class ServiceError extends Error { constructor(message: string, public status = 400) { super(message); } }
@@ -43,7 +58,10 @@ export class ServiceError extends Error { constructor(message: string, public st
 const ready = new WeakMap<object, Promise<unknown>>();
 export async function ensureServices(db: ServiceDatabase) {
   let promise = ready.get(db);
-  if (!promise) { promise = (async () => { for (const sql of SERVICE_SCHEMA) await db.prepare(sql).run(); })(); ready.set(db, promise); promise.catch(() => ready.delete(db)); }
+  if (!promise) {
+    promise = (async () => { for (const sql of SERVICE_SCHEMA) await db.prepare(sql).run(); await backfillSearch(db); })();
+    ready.set(db, promise); promise.catch(() => ready.delete(db));
+  }
   await promise;
 }
 
@@ -176,11 +194,38 @@ async function assertImagesFree(db: ServiceDatabase, images: string[], firmId: s
   }
 }
 
-async function writeRelations(db: ServiceDatabase, id: string, firm: Pick<CleanFirm, "categories" | "areas">) {
+async function writeRelations(db: ServiceDatabase, id: string, firm: Pick<CleanFirm, "name" | "description" | "translations" | "categories" | "areas">) {
   await db.prepare("DELETE FROM service_firm_categories WHERE firm_id=?").bind(id).run();
   await db.prepare("DELETE FROM service_firm_areas WHERE firm_id=?").bind(id).run();
   for (const category of firm.categories) await db.prepare("INSERT INTO service_firm_categories(firm_id,category) VALUES(?,?)").bind(id, category).run();
   for (const area of firm.areas) await db.prepare("INSERT INTO service_firm_areas(firm_id,city,district) VALUES(?,?,?)").bind(id, area.city, area.district).run();
+  await writeSearch(db, id, firm);
+}
+
+// --- Search text ------------------------------------------------------------------------------
+type SearchSource = { name: string; description: string; translations?: Record<string, unknown>; categories: readonly string[] };
+/** Name, description, the firm's own translations and its category names in every language, folded (lib/service-text.ts). */
+export function firmSearchText(firm: SearchSource) {
+  const names = firm.categories.flatMap((slug) => { const name = serviceCategory(slug)?.name; return name ? [name, ...locales.map((item) => translate(name, item.code))] : []; });
+  const translated = Object.values(firm.translations || {}).filter((text): text is string => typeof text === "string");
+  return serviceSearchKey([firm.name, firm.description, ...translated, ...new Set(names)].join(" "));
+}
+async function writeSearch(db: ServiceDatabase, id: string, firm: SearchSource) {
+  await db.prepare("INSERT INTO service_firm_search(firm_id,name_key,body,version) VALUES(?,?,?,?) ON CONFLICT(firm_id) DO UPDATE SET name_key=excluded.name_key,body=excluded.body,version=excluded.version")
+    .bind(id, serviceNameSortKey(firm.name), firmSearchText(firm), SERVICE_SEARCH_VERSION).run();
+}
+// Firms saved before the search table existed (or under an older version) get their row on the first start.
+async function backfillSearch(db: ServiceDatabase) {
+  for (let round = 0; round < 100; round++) {
+    const rows = (await db.prepare("SELECT f.id AS id,f.name AS name,f.description AS description,f.translations AS translations FROM service_firms f LEFT JOIN service_firm_search s ON s.firm_id=f.id WHERE s.firm_id IS NULL OR s.version<>? ORDER BY f.id LIMIT 200").bind(SERVICE_SEARCH_VERSION).all<Row>()).results || [];
+    if (!rows.length) return;
+    const ids = rows.map((row) => String(row.id));
+    const categories = (await db.prepare(`SELECT firm_id,category FROM service_firm_categories WHERE firm_id IN (${ids.map(() => "?").join(",")})`).bind(...ids).all<Row>()).results || [];
+    for (const row of rows) await writeSearch(db, String(row.id), {
+      name: String(row.name || ""), description: String(row.description || ""), translations: parse(row.translations, {}),
+      categories: categories.filter((item) => String(item.firm_id) === String(row.id)).map((item) => String(item.category)),
+    });
+  }
 }
 
 // --- Rows → objects ---------------------------------------------------------------------------
@@ -282,12 +327,20 @@ export async function deleteFirm(db: ServiceDatabase, actor: ServiceActor, id: s
   if (String(row.owner_id) !== actor.id && !actor.admin) throw new ServiceError("Bu firmayı silme yetkiniz yok.", 403);
   await db.prepare("DELETE FROM service_firm_categories WHERE firm_id=?").bind(id).run();
   await db.prepare("DELETE FROM service_firm_areas WHERE firm_id=?").bind(id).run();
+  await db.prepare("DELETE FROM service_firm_search WHERE firm_id=?").bind(id).run();
   await db.prepare("DELETE FROM service_firms WHERE id=?").bind(id).run();
   return { id, imageKeys: firmImageKeys({ logo: row.logo, cover: row.cover, photos: row.photos }) };
 }
 
 // --- Public reads (approved only) ---------------------------------------------------------------
-const PUBLIC_ORDER = "ORDER BY f.featured DESC,f.verified DESC,f.approved_at DESC,f.id ASC";
+export const SERVICE_SORTS = ["featured", "newest", "az"] as const;
+export type ServiceSort = typeof SERVICE_SORTS[number];
+// "Öne çıkanlar": featured, then verified, then newest. "A–Z" uses the Turkish sort key (lib/service-text.ts).
+const SORT_SQL: Record<ServiceSort, string> = {
+  featured: "f.featured DESC,f.verified DESC,f.created_at DESC,f.id ASC",
+  newest: "f.created_at DESC,f.id ASC",
+  az: "COALESCE(s.name_key,'') ASC,f.id ASC",
+};
 
 /** Approved firm, or for its owner and administrators any status (with private fields). */
 export async function firmById(db: ServiceDatabase, id: string, viewer: ServiceActor | null = null) {
@@ -298,32 +351,91 @@ export async function firmById(db: ServiceDatabase, id: string, viewer: ServiceA
   return (await withRelations(db, [row], privileged))[0];
 }
 
-function scopeWhere(scope: Partial<ServiceScope>) {
-  const where = ["f.status='approved'"], values: string[] = [];
-  if (scope.category) { where.push("EXISTS(SELECT 1 FROM service_firm_categories c WHERE c.firm_id=f.id AND c.category=?)"); values.push(scope.category); }
-  if (scope.city && scope.district) { where.push("EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=f.id AND a.city=? AND (a.district='' OR a.district=?))"); values.push(scope.city, scope.district); }
-  else if (scope.city) { where.push("EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=f.id AND a.city=?)"); values.push(scope.city); }
-  return { where: where.join(" AND "), values };
+/** Filters of the results pages; every field is optional. */
+export type ServiceQuery = {
+  q?: string; categories?: readonly string[]; city?: string; district?: string;
+  verified?: boolean; photos?: boolean; featured?: boolean; cities?: readonly string[]; excludeId?: string;
+  sort?: ServiceSort; page?: number; perPage?: number;
+};
+export type ServiceResults = { firms: ServiceFirm[]; total: number; page: number; pages: number; perPage: number };
+
+/** WHERE clause over service_firms f (and service_firm_search s when `search` is true). */
+function queryWhere(query: ServiceQuery) {
+  const where = ["f.status='approved'"], values: (string | number)[] = [];
+  const categories = (query.categories || []).filter(isServiceSlug);
+  if (categories.length) { where.push(`EXISTS(SELECT 1 FROM service_firm_categories c WHERE c.firm_id=f.id AND c.category IN (${categories.map(() => "?").join(",")}))`); values.push(...categories); }
+  // A district page also lists the firms serving the whole province (district '').
+  if (query.city && query.district) { where.push("EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=f.id AND a.city=? AND (a.district='' OR a.district=?))"); values.push(query.city, query.district); }
+  else if (query.city) { where.push("EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=f.id AND a.city=?)"); values.push(query.city); }
+  if (query.cities?.length) { where.push(`EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=f.id AND a.city IN (${query.cities.map(() => "?").join(",")}))`); values.push(...query.cities); }
+  if (query.verified) where.push("f.verified=1");
+  if (query.featured) where.push("f.featured=1");
+  if (query.photos) where.push("((f.cover IS NOT NULL AND f.cover<>'') OR f.photos<>'[]')");
+  if (query.excludeId) { where.push("f.id<>?"); values.push(query.excludeId); }
+  // Tokens are folded to letters, digits and spaces, so LIKE wildcards cannot appear in them.
+  const tokens = serviceSearchTokens(query.q);
+  for (const token of tokens) { where.push("s.body LIKE ?"); values.push(`%${token}%`); }
+  return { where: where.join(" AND "), values, search: tokens.length > 0 };
+}
+const pageNumber = (value: unknown) => { const page = Math.floor(Number(value)); return Number.isFinite(page) && page >= 1 ? Math.min(page, SERVICE_MAX_PAGE) : 1; };
+
+/** One page of approved firms plus the total (COUNT) for the result count and the page links. */
+export async function searchFirms(db: ServiceDatabase, query: ServiceQuery = {}): Promise<ServiceResults> {
+  await ensureServices(db);
+  const perPage = Math.max(1, Math.min(100, Math.floor(query.perPage || SERVICE_PER_PAGE))), page = pageNumber(query.page);
+  const sort: ServiceSort = (SERVICE_SORTS as readonly unknown[]).includes(query.sort) ? query.sort! : "featured";
+  const { where, values, search } = queryWhere(query);
+  const join = search || sort === "az" ? " LEFT JOIN service_firm_search s ON s.firm_id=f.id" : "";
+  const [count, rows] = await Promise.all([
+    db.prepare(`SELECT COUNT(*) AS n FROM service_firms f${join} WHERE ${where}`).bind(...values).first<Row>(),
+    db.prepare(`SELECT f.* FROM service_firms f${join} WHERE ${where} ORDER BY ${SORT_SQL[sort]} LIMIT ? OFFSET ?`).bind(...values, perPage, (page - 1) * perPage).all<Row>(),
+  ]);
+  const total = Number(count?.n) || 0;
+  return { firms: await withRelations(db, rows.results || []), total, page, pages: Math.max(1, Math.ceil(total / perPage)), perPage };
 }
 
-/** Approved firms of a category and place, featured and verified first. */
-export async function publicFirms(db: ServiceDatabase, scope: Partial<ServiceScope> = {}, limit = SERVICE_PAGE_LIMIT) {
-  await ensureServices(db);
-  const { where, values } = scopeWhere(scope);
-  const rows = await db.prepare(`SELECT f.* FROM service_firms f WHERE ${where} ${PUBLIC_ORDER} LIMIT ?`).bind(...values, Math.max(1, Math.min(200, limit))).all<Row>();
-  return withRelations(db, rows.results || []);
+/** First firms of a category and place (featured and verified first); kept for callers that need no page count. */
+export async function publicFirms(db: ServiceDatabase, scope: Partial<ServiceScope> = {}, limit = SERVICE_PER_PAGE) {
+  return (await searchFirms(db, { categories: scope.category ? [scope.category] : [], city: scope.city, district: scope.district, perPage: limit })).firms;
+}
+/** Landing page: firms an administrator marked as featured. */
+export const featuredFirms = async (db: ServiceDatabase, limit = SERVICE_FEATURED_LIMIT) => (await searchFirms(db, { featured: true, perPage: limit })).firms;
+/** Landing page: the most recently added approved firms. */
+export const newestFirms = async (db: ServiceDatabase, limit = SERVICE_FEATURED_LIMIT) => (await searchFirms(db, { sort: "newest", perPage: limit })).firms;
+
+/** "Benzer firmalar": same main category in one of the firm's provinces, else the same category anywhere. */
+export async function similarFirms(db: ServiceDatabase, firm: Pick<ServiceFirm, "id" | "categories" | "areas">, limit = SERVICE_SIMILAR_LIMIT) {
+  const category = firm.categories[0];
+  if (!category) return [];
+  const cities = [...new Set(firm.areas.map((area) => area.city))];
+  const near = cities.length ? (await searchFirms(db, { categories: [category], cities, excludeId: firm.id, perPage: limit })).firms : [];
+  if (near.length >= limit) return near;
+  const wider = (await searchFirms(db, { categories: [category], excludeId: firm.id, perPage: limit + near.length })).firms;
+  const seen = new Set(near.map((item) => item.id));
+  return [...near, ...wider.filter((item) => !seen.has(item.id))].slice(0, limit);
 }
 
-/** Landing page: featured firms first, otherwise the newest approved ones. */
-export const featuredFirms = (db: ServiceDatabase, limit = SERVICE_FEATURED_LIMIT) => publicFirms(db, {}, limit);
-
-/** Approved firms per category (landing tiles). Categories without firms are 0. */
-export async function categoryCounts(db: ServiceDatabase) {
+/**
+ * Approved firms per category in one grouped query, under the same filters as the results (except
+ * the category itself), for the filter sidebar and the landing tiles. Categories without firms are 0.
+ */
+export async function categoryCounts(db: ServiceDatabase, query: Omit<ServiceQuery, "categories" | "sort" | "page" | "perPage"> = {}) {
   await ensureServices(db);
-  const rows = await db.prepare("SELECT c.category AS category,COUNT(*) AS n FROM service_firm_categories c JOIN service_firms f ON f.id=c.firm_id WHERE f.status='approved' GROUP BY c.category").bind().all<Row>();
+  const { where, values, search } = queryWhere(query);
+  const rows = await db.prepare(`SELECT c.category AS category,COUNT(*) AS n FROM service_firm_categories c JOIN service_firms f ON f.id=c.firm_id${search ? " LEFT JOIN service_firm_search s ON s.firm_id=f.id" : ""} WHERE ${where} GROUP BY c.category`).bind(...values).all<Row>();
   const counts = Object.fromEntries(SERVICE_CATEGORIES.map((category) => [category.slug, 0])) as Record<ServiceSlug, number>;
   for (const row of rows.results || []) if (isServiceSlug(row.category)) counts[row.category] = Number(row.n) || 0;
   return counts;
+}
+
+/** Landing page figures: approved firms, categories with at least one firm, provinces served. */
+export async function serviceStats(db: ServiceDatabase) {
+  await ensureServices(db);
+  const [firms, places] = await Promise.all([
+    db.prepare("SELECT COUNT(*) AS n FROM service_firms WHERE status='approved'").bind().first<Row>(),
+    db.prepare("SELECT COUNT(DISTINCT a.city) AS n FROM service_firm_areas a JOIN service_firms f ON f.id=a.firm_id WHERE f.status='approved'").bind().first<Row>(),
+  ]);
+  return { firms: Number(firms?.n) || 0, cities: Number(places?.n) || 0 };
 }
 
 export type ServicePlaceLink = { city: string; district: string; path: string; count: number };
@@ -334,31 +446,31 @@ export type ServiceSummary = {
   local: number;
   cities: ServicePlaceLink[]; districts: ServicePlaceLink[];
 };
-/** (firm, city, district) rows of approved firms in one category, for the counts and place links. */
-export const SERVICE_FACETS_SQL = "SELECT DISTINCT f.id AS firm_id,a.city AS city,a.district AS district FROM service_firms f JOIN service_firm_categories c ON c.firm_id=f.id JOIN service_firm_areas a ON a.firm_id=f.id WHERE f.status='approved' AND c.category=? LIMIT 20000";
-export async function serviceFacets(db: ServiceDatabase, category: ServiceSlug) {
-  await ensureServices(db);
-  return ((await db.prepare(SERVICE_FACETS_SQL).bind(category).all<Row>()).results || []).map((row) => ({ firm: String(row.firm_id), city: String(row.city), district: String(row.district || "") }));
+export type ServicePlaceCount = { city: string; district: string; count: number };
+/** Province links (no province chosen) or district links (in a province), most firms first. */
+export function servicePlaceLinks(category: ServiceSlug, rows: ServicePlaceCount[]) {
+  return rows.map((row) => ({ ...row, path: servicePath(category, row.city, row.district || null) }))
+    .filter((link) => link.path.split("/").length === (link.district ? 5 : 4))
+    .sort((a, b) => b.count - a.count || (a.district || a.city).localeCompare(b.district || b.city, "tr"));
 }
-/** Counts and place links for a category page from its facet rows. */
-export function summarizeService(scope: ServiceScope, facets: { firm: string; city: string; district: string }[]): ServiceSummary {
-  const set = (filter: (facet: { city: string; district: string }) => boolean) => new Set(facets.filter(filter).map((facet) => facet.firm));
-  const shown = !scope.city ? set(() => true) : scope.district ? set((f) => f.city === scope.city && (!f.district || f.district === scope.district)) : set((f) => f.city === scope.city);
-  const local = !scope.city ? shown : scope.district ? set((f) => f.city === scope.city && f.district === scope.district) : shown;
-  const perCity = new Map<string, Set<string>>(), perDistrict = new Map<string, Set<string>>();
-  for (const facet of facets) {
-    if (!perCity.has(facet.city)) perCity.set(facet.city, new Set());
-    perCity.get(facet.city)!.add(facet.firm);
-    if (scope.city && facet.city === scope.city && facet.district) {
-      if (!perDistrict.has(facet.district)) perDistrict.set(facet.district, new Set());
-      perDistrict.get(facet.district)!.add(facet.firm);
-    }
+/**
+ * Counts and place links of a category or region page, from grouped queries (one per list) so the
+ * cost does not grow with the number of firms. `count` is the result total of the same page.
+ */
+export async function serviceSummary(db: ServiceDatabase, scope: ServiceScope, count: number): Promise<ServiceSummary> {
+  await ensureServices(db);
+  const base = "FROM service_firms f JOIN service_firm_categories c ON c.firm_id=f.id JOIN service_firm_areas a ON a.firm_id=f.id WHERE f.status='approved' AND c.category=?";
+  const grouped = async (sql: string, values: string[]) => ((await db.prepare(sql).bind(...values).all<Row>()).results || [])
+    .map((row) => ({ city: String(row.city || ""), district: String(row.district || ""), count: Number(row.n) || 0 }));
+  if (!scope.city) {
+    const cities = await grouped(`SELECT a.city AS city,COUNT(DISTINCT f.id) AS n ${base} GROUP BY a.city`, [scope.category]);
+    return { count, local: count, cities: servicePlaceLinks(scope.category, cities), districts: [] };
   }
-  const links = (map: Map<string, Set<string>>, place: (key: string) => [string, string]) => [...map].map(([key, firms]) => {
-    const [city, district] = place(key);
-    return { city, district, path: servicePath(scope.category, city, district || null), count: firms.size };
-  }).filter((link) => link.path.split("/").length > 3).sort((a, b) => b.count - a.count || (a.district || a.city).localeCompare(b.district || b.city, "tr"));
-  return { count: shown.size, local: local.size, cities: links(perCity, (city) => [city, ""]), districts: links(perDistrict, (district) => [scope.city!, district]) };
+  const [districts, local] = await Promise.all([
+    grouped(`SELECT a.city AS city,a.district AS district,COUNT(DISTINCT f.id) AS n ${base} AND a.city=? AND a.district<>'' GROUP BY a.city,a.district`, [scope.category, scope.city]),
+    scope.district ? db.prepare(`SELECT COUNT(DISTINCT f.id) AS n ${base} AND a.city=? AND a.district=?`).bind(scope.category, scope.city, scope.district).first<Row>() : null,
+  ]);
+  return { count, local: scope.district ? Number(local?.n) || 0 : count, cities: [], districts: servicePlaceLinks(scope.category, districts) };
 }
 /**
  * Pages without a firm are thin content: noindex and never in the sitemap. A district page needs a
@@ -368,33 +480,31 @@ export function summarizeService(scope: ServiceScope, facets: { firm: string; ci
 export const serviceIndexable = (summary: Pick<ServiceSummary, "local">) => summary.local > 0;
 
 // --- Sitemap ------------------------------------------------------------------------------------
-export const SERVICE_SITEMAP_SQL = "SELECT f.id AS firm_id,f.updated_at AS updated_at,c.category AS category,a.city AS city,a.district AS district FROM service_firms f JOIN service_firm_categories c ON c.firm_id=f.id JOIN service_firm_areas a ON a.firm_id=f.id WHERE f.status='approved' LIMIT 50000";
-/** Category and region pages with at least one firm of their own (serviceIndexable), newest update first among equals. */
-export function serviceSitemapPaths(rows: Row[], limit = SERVICE_SITEMAP_LIMIT) {
-  const pages = new Map<string, { path: string; firms: Set<string>; updatedAt: string }>();
-  const add = (path: string, firm: string, updatedAt: string) => {
-    if (path === SERVICE_BASE) return;
-    const page = pages.get(path) ?? { path, firms: new Set<string>(), updatedAt: "" };
-    page.firms.add(firm); if (updatedAt > page.updatedAt) page.updatedAt = updatedAt;
-    pages.set(path, page);
-  };
+/** Grouped page counts for the sitemap: category, category+province, category+district (own firms only). */
+export const SERVICE_SITEMAP_SQL = {
+  categories: "SELECT c.category AS category,'' AS city,'' AS district,COUNT(*) AS n,MAX(f.updated_at) AS updated_at FROM service_firm_categories c JOIN service_firms f ON f.id=c.firm_id WHERE f.status='approved' GROUP BY c.category",
+  cities: "SELECT c.category AS category,a.city AS city,'' AS district,COUNT(DISTINCT f.id) AS n,MAX(f.updated_at) AS updated_at FROM service_firms f JOIN service_firm_categories c ON c.firm_id=f.id JOIN service_firm_areas a ON a.firm_id=f.id WHERE f.status='approved' GROUP BY c.category,a.city",
+  districts: "SELECT c.category AS category,a.city AS city,a.district AS district,COUNT(DISTINCT f.id) AS n,MAX(f.updated_at) AS updated_at FROM service_firms f JOIN service_firm_categories c ON c.firm_id=f.id JOIN service_firm_areas a ON a.firm_id=f.id WHERE f.status='approved' AND a.district<>'' GROUP BY c.category,a.city,a.district",
+  firms: "SELECT id,updated_at FROM service_firms WHERE status='approved' ORDER BY updated_at DESC,id ASC LIMIT ?",
+};
+/** Category and region pages with at least one firm of their own (serviceIndexable), most firms first. */
+export function serviceSitemapPages(rows: Row[], limit = SERVICE_SITEMAP_LIMIT) {
+  const pages: { path: string; count: number; updatedAt: string }[] = [];
   for (const row of rows) {
     if (!isServiceSlug(row.category)) continue;
-    const firm = String(row.firm_id), at = String(row.updated_at || ""), city = String(row.city), district = String(row.district || "");
-    add(servicePath(row.category), firm, at);
-    const cityPath = servicePath(row.category, city);
-    if (cityPath.split("/").length === 4) add(cityPath, firm, at);
-    if (district) { const path = servicePath(row.category, city, district); if (path.split("/").length === 5) add(path, firm, at); }
+    const city = String(row.city || ""), district = String(row.district || ""), count = Number(row.n) || 0;
+    const path = servicePath(row.category, city || null, district || null);
+    // Unknown places fall back to a shorter path; those rows are skipped instead of duplicating it.
+    if (count < 1 || path.split("/").length !== 3 + (city ? 1 : 0) + (district ? 1 : 0)) continue;
+    pages.push({ path, count, updatedAt: String(row.updated_at || "") });
   }
-  return [...pages.values()].map((page) => ({ path: page.path, count: page.firms.size, updatedAt: page.updatedAt }))
-    .sort((a, b) => b.count - a.count || a.path.localeCompare(b.path)).slice(0, limit);
+  return pages.sort((a, b) => b.count - a.count || a.path.localeCompare(b.path)).slice(0, limit);
 }
-export async function serviceSitemapEntries(db: ServiceDatabase, limit = SERVICE_SITEMAP_LIMIT) {
+export async function serviceSitemapEntries(db: ServiceDatabase, limit = SERVICE_SITEMAP_LIMIT, firmLimit = SERVICE_SITEMAP_FIRM_LIMIT) {
   await ensureServices(db);
-  const rows = (await db.prepare(SERVICE_SITEMAP_SQL).bind().all<Row>()).results || [];
-  const firms = new Map<string, string>();
-  for (const row of rows) { const id = String(row.firm_id), at = String(row.updated_at || ""); if (!firms.has(id) || at > firms.get(id)!) firms.set(id, at); }
-  return { pages: serviceSitemapPaths(rows, limit), firms: [...firms].map(([id, updatedAt]) => ({ path: firmPath(id), updatedAt })) };
+  const all = async (sql: string, ...values: number[]) => (await db.prepare(sql).bind(...values).all<Row>()).results || [];
+  const [categories, cities, districts, firms] = await Promise.all([all(SERVICE_SITEMAP_SQL.categories), all(SERVICE_SITEMAP_SQL.cities), all(SERVICE_SITEMAP_SQL.districts), all(SERVICE_SITEMAP_SQL.firms, firmLimit)]);
+  return { pages: serviceSitemapPages([...categories, ...cities, ...districts], limit), firms: firms.map((row) => ({ path: firmPath(String(row.id)), updatedAt: String(row.updated_at || "") })) };
 }
 
 // --- Administration -----------------------------------------------------------------------------

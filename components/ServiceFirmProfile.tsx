@@ -1,7 +1,7 @@
 "use client";
 import { ArrowRight, ChevronRight, Clock, ExternalLink, Flag, Globe, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import Link from "@/components/SafeLink";
-import { ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
+import { ServiceFirmCard, ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
 import { whatsappHref } from "@/lib/phone";
@@ -9,7 +9,7 @@ import { serviceCategory } from "@/lib/service-categories";
 import { firmDescription, SERVICE_BASE, SERVICE_STATUS_LABELS, servicePath, type ServiceFirm } from "@/lib/services";
 
 /** Public firm profile (/hizmetler/firma/{id}); the owner and administrators also see it before approval. */
-export function ServiceFirmProfile({ firm }: { firm: ServiceFirm }) {
+export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; similar?: ServiceFirm[] }) {
   const { t, locale } = useLocale();
   const first = serviceCategory(firm.categories[0]), text = firmDescription(firm, locale);
   const whatsapp = firm.whatsapp ? `${whatsappHref(firm.whatsapp)}?text=${encodeURIComponent(t("Merhaba, firmanızı estatemarket24'te gördüm."))}` : null;
@@ -57,6 +57,10 @@ export function ServiceFirmProfile({ firm }: { firm: ServiceFirm }) {
         <Link className="service-report" href="/iletisim"><Flag size={14} aria-hidden="true"/>{t("Bu profille ilgili sorun bildir")}</Link>
       </aside>
     </div>
+    {similar.length > 0 && <section className="container services-featured svc-similar" aria-labelledby="svc-similar-title">
+      <div className="services-section-head"><h2 id="svc-similar-title">{t("Benzer firmalar")}</h2>{first && <p>{t(first.name)}</p>}</div>
+      <div className="service-firm-grid">{similar.map((item) => <ServiceFirmCard key={item.id} firm={item} highlight={first?.slug}/>)}</div>
+    </section>}
     <div className="container"><p className="region-up"><Link href={SERVICE_BASE}>{t("Tüm hizmet kategorileri")}<ArrowRight size={15} aria-hidden="true"/></Link></p></div>
   </main>;
 }
