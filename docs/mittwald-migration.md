@@ -92,7 +92,7 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `GEMINI_API_KEY` (+ isteğe bağlı `GEMINI_MODEL`, `AI_DAILY_CALL_LIMIT`, `AI_MONTHLY_CALL_LIMIT`) | Asistan için | |
 | `DEEPL_API_KEY` (+ `DEEPL_DAILY_CHAR_LIMIT`, `DEEPL_MONTHLY_CHAR_LIMIT`) | Çeviri için | |
 | `RESEND_API_KEY`, `EMAIL_FROM` | E-posta için | `EMAIL_FROM` alan adı doğrulanana kadar `EstateMarket24 <onboarding@resend.dev>` |
-| `CONTACT_EMAIL` | Evet | `estatemarket24@gmail.com` |
+| `CONTACT_EMAIL` | Evet | `info@estatemarket24.com` |
 | `EXXEL_ADMIN_EMAIL` | Evet | Yönetici hesabı |
 | `ADMIN_TOTP_KEY` | Evet | Yönetici iki adımlı girişi (Cloudflare'dekiyle aynı değer olmalı) |
 | `SITE_URL` | Evet | Test: `https://test.estatemarket24.com`, canlı: `https://estatemarket24.com` |

@@ -33,8 +33,8 @@ export const FAQ_GROUPS: Group[] = [
     {q: "Çok sayıda ilanı tek seferde yükleyebilir miyim?", a: "Evet. İlan veren hesaplar, Hesabım → Müşteri talepleri bölümünden bir XML dosyasıyla tek seferde en fazla 100 ilan aktarabilir. Her ilan, ilan formundaki kurallarla aynı şekilde kontrol edilir; aynı dosya tekrar yüklendiğinde ilanlar ikinci kez oluşturulmaz.", link: ["/toplu-ilan", "Toplu ilan yükleme"]},
   ]},
   {title: "Hesap, gizlilik ve iletişim", items: [
-    {q: "Hesabımı ve kişisel verilerimi nasıl sildirebilirim?", a: "Hesabınızın silinmesi veya KVKK ve GDPR kapsamındaki diğer haklarınız için İletişim sayfasındaki formda “Kişisel veriler (KVKK)” konusunu seçin ya da info@exxelmedia.de adresine yazın. Talebinizi hesabınızda kayıtlı e-posta adresinden gönderin; şifre veya kimlik belgesi göndermeyin. Ayrıntılar Gizlilik politikasında yer alır.", link: ["/gizlilik-politikasi", "Gizlilik politikası"]},
-    {q: "Size nasıl ulaşabilirim?", a: "İletişim sayfasındaki formu kullanabilir veya info@exxelmedia.de adresine e-posta gönderebilirsiniz. Bir ilanla ilgili sorularınızı doğrudan ilan sahibine mesajla iletmeniz daha hızlı sonuç verir.", link: ["/iletisim", "İletişim"]},
+    {q: "Hesabımı ve kişisel verilerimi nasıl sildirebilirim?", a: "Hesabınızın silinmesi veya KVKK ve GDPR kapsamındaki diğer haklarınız için İletişim sayfasındaki formda “Kişisel veriler (KVKK)” konusunu seçin ya da info@estatemarket24.com adresine yazın. Talebinizi hesabınızda kayıtlı e-posta adresinden gönderin; şifre veya kimlik belgesi göndermeyin. Ayrıntılar Gizlilik politikasında yer alır.", link: ["/gizlilik-politikasi", "Gizlilik politikası"]},
+    {q: "Size nasıl ulaşabilirim?", a: "İletişim sayfasındaki formu kullanabilir veya info@estatemarket24.com adresine e-posta gönderebilirsiniz. Bir ilanla ilgili sorularınızı doğrudan ilan sahibine mesajla iletmeniz daha hızlı sonuç verir.", link: ["/iletisim", "İletişim"]},
   ]},
 ];
 

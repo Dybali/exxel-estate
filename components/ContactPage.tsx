@@ -34,7 +34,7 @@ export function ContactPage() {
           <h2><MapPin size={19}/>{t("Platform işletmecisi")}</h2>
           <address><strong>eXXelmedia GmbH &amp; Co. KG</strong><br/>Dornacherstraße 3<br/>D-85622 Feldkirchen</address>
           <dl className="contact-facts"><dt>{t("Ticaret sicili")}</dt><dd>Amtsgericht München HRA 105867</dd><dt>{t("Yönetici")}</dt><dd>Eyup Aydin</dd></dl>
-          <p className="contact-mail"><Mail size={17}/><a href="mailto:info@exxelmedia.de">info@exxelmedia.de</a></p>
+          <p className="contact-mail"><Mail size={17}/><a href="mailto:info@estatemarket24.com">info@estatemarket24.com</a></p>
           <Link href="/impressum" className="info-text-link">{t("Yasal künye")}<ArrowRight size={15}/></Link>
         </section>
         <section className="info-card contact-shortcuts">
