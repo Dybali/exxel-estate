@@ -53,6 +53,21 @@
   .site-header .main-nav a[href^="/blog"]{display:none!important}
   .site-header .header-inner{gap:14px}
 }
+/* Longer menu labels in the other languages (e.g. German "Dienstleistungen"): the logo already leads home and
+   "İlanlar" covers sale and rent, so those links go first; then Blog, then the inbox label (its icon stays and
+   the label remains for screen readers). Turkish keeps the full menu, slightly tighter just above 1250px. */
+@media(min-width:1251px) and (max-width:1300px){.site-header .main-nav{gap:11px!important}}
+@media(min-width:990px) and (max-width:1700px){
+  html:not([lang=tr]) .site-header .main-nav{gap:12px!important}
+  html:not([lang=tr]) .site-header .main-nav a[href="/"],html:not([lang=tr]) .site-header .main-nav a[href="/ilanlar?purpose=satilik"],html:not([lang=tr]) .site-header .main-nav a[href="/ilanlar?purpose=kiralik"]{display:none!important}
+}
+@media(min-width:990px) and (max-width:1400px){
+  html:not([lang=tr]) .site-header .main-nav a[href^="/blog"]{display:none!important}
+  html:not([lang=tr]) .site-header .main-nav a{font-size:12px}
+}
+@media(min-width:990px) and (max-width:1250px){
+  html:not([lang=tr]) .site-header .main-messages-link span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
 /* Tablets (768–989px): menu stays behind the hamburger, but "İlan Ver" sits in the header row too.
    The full-width centred "İlan Ver" bar is for phones (under 768px) only. */
 @media(min-width:768px) and (max-width:989px){

@@ -4,7 +4,7 @@
 // substr(created_at,1,10) is the UTC day bucket in both PostgreSQL and SQLite.
 // Demo and sample listings live in code (ids "ex-…" and "sample-…"), never in the database; the
 // id filters below make sure that, should one ever be stored, it is still never counted.
-// Tables that are created on first use (views, orders, projects, reports, office documents,
+// Tables that are created on first use (views, orders, projects, service firms, reports, office documents,
 // contact messages) are optional: if one is missing or fails, its metric is null and listed
 // in `unavailable` instead of failing the whole report.
 
@@ -60,11 +60,11 @@ const split = (column: string) => `SUM(CASE WHEN ${column}>=? AND ${column}<? TH
 
 export const ROLE_KINDS = ["individual", "agent", "developer", "buyer"] as const;
 export type RoleKind = typeof ROLE_KINDS[number];
-export const PENDING_KINDS = ["listings", "officeDocuments", "companyApplications", "projects", "reports", "contact", "orders"] as const;
+export const PENDING_KINDS = ["listings", "officeDocuments", "companyApplications", "projects", "services", "reports", "contact", "orders"] as const;
 export type PendingKind = typeof PENDING_KINDS[number];
 export const PENDING_LINKS: Record<PendingKind, string> = {
   listings: "/yonetim?view=listings", officeDocuments: "/yonetim?view=applications", companyApplications: "/yonetim?view=applications",
-  projects: "/yonetim?view=projects", reports: "/yonetim?view=reports", contact: "/yonetim?view=contact", orders: "/yonetim?view=orders",
+  projects: "/yonetim?view=projects", services: "/yonetim?view=services", reports: "/yonetim?view=reports", contact: "/yonetim?view=contact", orders: "/yonetim?view=orders",
 };
 
 export type AdminInsights = {
@@ -120,6 +120,7 @@ export async function adminInsights(db: InsightsDatabase, period: InsightPeriod,
       pendingCount("officeDocuments", "SELECT COUNT(*) AS n FROM office_verifications WHERE state='pending'"),
       pendingCount("companyApplications", "SELECT COUNT(*) AS n FROM users WHERE role='agent' AND agent_status='pending'"),
       pendingCount("projects", "SELECT COUNT(*) AS n FROM projects WHERE moderation='pending'"),
+      pendingCount("services", "SELECT COUNT(*) AS n FROM service_firms WHERE status='pending'"),
       pendingCount("reports", `SELECT COUNT(*) AS n FROM listing_reports WHERE state IN ('open','reviewing') AND ${notDemo("listing_id")}`),
       pendingCount("contact", "SELECT COUNT(*) AS n FROM contact_messages WHERE status='new'"),
       pendingCount("orders", "SELECT COUNT(*) AS n FROM orders WHERE status='awaiting_payment'"),

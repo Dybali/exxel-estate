@@ -9,7 +9,7 @@ CREATE TABLE agencies(id TEXT,owner_id TEXT,category TEXT);
 CREATE TABLE listings(id TEXT PRIMARY KEY,owner_id TEXT,title TEXT,city TEXT,district TEXT,status TEXT,expires_at TEXT,created_at TEXT);
 CREATE TABLE messages(id TEXT PRIMARY KEY,listing_id TEXT,sender_id TEXT,recipient_id TEXT,body TEXT,created_at TEXT);`;
 const OPTIONAL=`CREATE TABLE listing_view_daily(listing_id TEXT,day TEXT,visitor_hash TEXT,created_at TEXT,PRIMARY KEY(listing_id,day,visitor_hash));
-CREATE TABLE projects(id TEXT PRIMARY KEY,moderation TEXT);CREATE TABLE project_reservations(id TEXT PRIMARY KEY,project_id TEXT,created_at TEXT);
+CREATE TABLE projects(id TEXT PRIMARY KEY,moderation TEXT);CREATE TABLE service_firms(id TEXT PRIMARY KEY,status TEXT);CREATE TABLE project_reservations(id TEXT PRIMARY KEY,project_id TEXT,created_at TEXT);
 CREATE TABLE orders(id TEXT PRIMARY KEY,user_id TEXT,amount INTEGER,currency TEXT,status TEXT,created_at TEXT,fulfilled_at TEXT);
 CREATE TABLE office_verifications(user_id TEXT,state TEXT);CREATE TABLE listing_reports(id TEXT,listing_id TEXT,state TEXT);CREATE TABLE contact_messages(id TEXT,status TEXT);`;
 // Current 7-day window: 2026-10-30T00:00Z … 2026-11-05T12:00Z. Previous: 2026-10-23T00:00Z … 2026-10-29T12:00Z.
@@ -41,6 +41,7 @@ INSERT INTO messages VALUES
  ('m7','ex-1001','buy','admin','Demo mesaj','2026-11-02T11:00:00.000Z');
 INSERT INTO listing_view_daily VALUES('l1','2026-11-02','a','x'),('l1','2026-11-02','b','x'),('l1','2026-11-03','a','x'),('l2','2026-11-05','a','x'),('l5','2026-10-25','a','x'),('l4','2026-10-30','c','x'),('ex-1001','2026-11-02','a','x'),('ex-1001','2026-11-03','a','x'),('ex-1001','2026-11-04','a','x'),('ex-1001','2026-11-05','a','x');
 INSERT INTO projects VALUES('p1','published'),('p2','pending');
+INSERT INTO service_firms VALUES('s1','pending'),('s2','pending'),('s3','approved'),('s4','suspended');
 INSERT INTO project_reservations VALUES('r1','p1','2026-11-01T10:00:00.000Z'),('r2','p1','2026-10-24T10:00:00.000Z'),('r3','p1','2026-10-26T10:00:00.000Z'),('r4','sample-p','2026-11-01T10:00:00.000Z');
 INSERT INTO orders VALUES('o1','agt',790,'TRY','fulfilled','2026-11-01T10:00:00.000Z','2026-11-02T10:00:00.000Z'),('o2','agt',250,'TRY','awaiting_payment','2026-11-03T10:00:00.000Z',NULL),('o3','dev',1490,'TRY','fulfilled','2026-10-24T10:00:00.000Z','2026-10-24T11:00:00.000Z');
 INSERT INTO office_verifications VALUES('agt','pending'),('dev','approved');
@@ -78,7 +79,7 @@ test('aggregates each metric per period and excludes demo and sample listings',a
   assert.deepEqual(k.views,{current:5,previous:1,change:400});// day buckets 10-30..11-05 vs 10-23..10-29
   assert.deepEqual(k.reservations,{current:1,previous:2,change:-50});// r4 belongs to no stored project
   assert.deepEqual(k.orders.created,{current:2,previous:1,change:100});assert.deepEqual(k.orders.fulfilled,{current:1,previous:1,change:0});assert.deepEqual(k.orders.revenue,{current:790,previous:1490,change:-47});
-  assert.deepEqual(Object.fromEntries(r.pending.map(p=>[p.kind,p.count])),{listings:1,officeDocuments:1,companyApplications:1,projects:1,reports:2,contact:1,orders:1});
+  assert.deepEqual(Object.fromEntries(r.pending.map(p=>[p.kind,p.count])),{listings:1,officeDocuments:1,companyApplications:1,projects:1,services:2,reports:2,contact:1,orders:1});
   assert.equal(r.pending.find(p=>p.kind==='reports').href,'/yonetim?view=reports');
   assert.equal(r.series.length,7);assert.deepEqual(r.series.find(d=>d.day==='2026-11-02'),{day:'2026-11-02',listings:1,users:1,messages:2});assert.equal(r.series.reduce((n,d)=>n+d.users,0),3);
   assert.deepEqual(r.top.viewed.map(v=>[v.id,v.views,v.live]),[['l1',3,true],['l2',1,true],['l4',1,false]]);
@@ -100,7 +101,7 @@ test('lazily created tables that do not exist yet are reported as unavailable, n
   const r=await adminInsights(db,'30d',NOW);
   assert.equal(r.kpis.views,null);assert.equal(r.kpis.orders,null);assert.equal(r.kpis.reservations,null);assert.equal(r.top.viewed,null);
   assert.ok(r.unavailable.includes('views')&&r.unavailable.includes('orders')&&r.unavailable.includes('pending.reports'));
-  assert.equal(r.pending.find(p=>p.kind==='listings').count,1);assert.equal(r.pending.find(p=>p.kind==='orders').count,null);
+  assert.equal(r.pending.find(p=>p.kind==='listings').count,1);assert.equal(r.pending.find(p=>p.kind==='orders').count,null);assert.equal(r.pending.find(p=>p.kind==='services').count,null);
   assert.equal(r.kpis.listings.current,6);
  }finally{sql.close();}
 });

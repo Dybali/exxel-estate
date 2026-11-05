@@ -30,6 +30,7 @@ import { ListingGallery } from "@/components/ListingGallery";
 import { PropertyText } from "@/components/PropertyText";
 import { ExternalMap } from "@/components/ExternalMap";
 import { BuyerTools } from "@/components/BuyerTools";
+import { ServiceSuggestions } from "@/components/ServiceSuggestions";
 import { listingAuthorityNumber } from "@/lib/office-verification-server";
 import { listingStructuredData, localizedListingText } from "@/lib/listing-seo";
 import { pageAlternates, requestLocale } from "@/lib/request-context";
@@ -82,6 +83,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     {listing.amenities.length>0&&<section className="property-section"><h2><T id="Öne çıkan imkânlar"/></h2><div className="property-amenities">{listing.amenities.map(a=><span key={a}><Check size={16}/><T id={a}/></span>)}</div></section>}
     <PropertyPresentation value={listing.presentation} video={video}/>
     <BuyerTools listing={listing}/>
+    <ServiceSuggestions city={listing.city} purpose={listing.purpose} foreignSale={foreignSale==="Evet"}/>
     {(authorityNumber||eids)&&<section className="property-section property-legal"><h2><T id="Yasal bilgiler"/></h2><dl className="property-facts-grid">{authorityNumber&&<div><dt><T id="Taşınmaz ticareti yetki belgesi no"/></dt><dd>{authorityNumber}</dd></div>}{eids&&<div><dt><T id="EİDS doğrulama no (ilan verenin beyanı)"/></dt><dd>{eids}</dd></div>}</dl></section>}
     {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={translate("{name} haritası",locale).replace("{name}",listing.district)} src={map}/><p className="property-map-note"><MapPin size={14}/><T id="Haritadaki nokta yaklaşık konumu gösterir."/></p></section>}
     </article><aside className="property-detail-aside"><ContactCard listing={listing}/></aside></div>

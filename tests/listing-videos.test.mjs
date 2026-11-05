@@ -219,7 +219,7 @@ test('upload API: availability, auth, limits, sniffing, ownership, resume and co
 
 function mediaRoute({db,user,storage,enabled=true}){
  const server={db:()=>db,currentUser:async()=>user,isAdmin:u=>u?.role==='admin',bucket:()=>null};
- return load('app/api/media/[...key]/route.ts',{'@/lib/server':server,'@/lib/external-r2':{getExternalImage:async()=>null},'@/lib/projects':{projectMediaPublic:async()=>false},'@/lib/projects-server':{projectsDB:()=>null},'@/lib/listing-video-server':{videoFeatureEnabled:()=>enabled,videoStorageFromEnv:()=>storage}});
+ return load('app/api/media/[...key]/route.ts',{'@/lib/server':server,'@/lib/external-r2':{getExternalImage:async()=>null},'@/lib/projects':{projectMediaPublic:async()=>false},'@/lib/projects-server':{projectsDB:()=>null},'@/lib/services':{serviceMediaPublic:async()=>false},'@/lib/services-server':{servicesDB:()=>null},'@/lib/listing-video-server':{videoFeatureEnabled:()=>enabled,videoStorageFromEnv:()=>storage}});
 }
 const media=(route,key,headers={},method='GET')=>route.GET(new Request('https://site.test/api/media/'+key,{method,headers}),{params:Promise.resolve({key:key.split('/')})});
 

@@ -2,6 +2,8 @@ import { bucket, currentUser, db, isAdmin } from "@/lib/server";
 import { getExternalImage } from "@/lib/external-r2";
 import { projectMediaPublic } from "@/lib/projects";
 import { projectsDB } from "@/lib/projects-server";
+import { serviceMediaPublic } from "@/lib/services";
+import { servicesDB } from "@/lib/services-server";
 import { VIDEO_MEDIA_KEY } from "@/lib/listing-video";
 import { videoMediaAccess, type VideoDatabase } from "@/lib/listing-video-store";
 import { videoFeatureEnabled, videoStorageFromEnv } from "@/lib/listing-video-server";
@@ -43,7 +45,9 @@ export async function GET(request:Request,{params}:{params:Promise<{key:string[]
   const profile=row?null:await db().prepare('SELECT id FROM users WHERE avatar_url=?').bind('/api/media/'+key).first();
   // Photos of approved projects (lib/projects.ts) are public as well.
   const project=row||profile?false:await projectMediaPublic(projectsDB(),key).catch(()=>false);
-  const isPublic=row?.status==="published"||Boolean(profile)||project;
+  // Logo, cover and work photos of approved service firms (lib/services.ts) as well.
+  const service=row||profile||project?false:await serviceMediaPublic(servicesDB(),key).catch(()=>false);
+  const isPublic=row?.status==="published"||Boolean(profile)||project||service;
   if(!isPublic) {
     const user=await currentUser(request);
     const uploaderId=key.split("/")[1];

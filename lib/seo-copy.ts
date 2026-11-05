@@ -44,6 +44,16 @@ export const seoCopy: Record<string, Copy> = {
     ru: ["Новые жилые комплексы | estatemarket24", "Новые жилые комплексы в Турции: типы квартир и стартовые цены. Отправьте бесплатную заявку на бронирование."],
     nl: ["Nieuwbouwprojecten | estatemarket24", "Ontdek nieuwbouwprojecten in Turkije met woningtypes en vanafprijzen, en verstuur gratis een reserveringsaanvraag."],
   },
+  "/hizmetler": {
+    tr: ["Ev ve Gayrimenkul Hizmetleri: Tadilat, Nakliyat, Tapu | estatemarket24", "Boyacı, tesisatçı, nakliyat, temizlik, tapu takibi, avukat ve tercüman: Türkiye'nin 81 ilinde yönetici onaylı hizmet firmalarını bulun."],
+    de: ["Dienstleister rund um Haus und Immobilie in der Türkei | estatemarket24", "Maler, Installateure, Umzug, Reinigung, Grundbuchservice, Anwälte und Dolmetscher: geprüfte Firmen in allen 81 Provinzen der Türkei."],
+    fr: ["Services pour la maison et l’immobilier en Turquie | estatemarket24", "Peintres, plombiers, déménagement, ménage, titre de propriété, avocats et traducteurs : des entreprises vérifiées dans les 81 provinces de Turquie."],
+    en: ["Home and Property Services in Türkiye | estatemarket24", "Painters, plumbers, movers, cleaning, title deed services, lawyers and translators: approved firms in all 81 provinces of Türkiye."],
+    ar: ["خدمات المنازل والعقارات في تركيا | estatemarket24", "دهانون وسباكون ونقل أثاث وتنظيف ومتابعة الطابو ومحامون ومترجمون: شركات معتمدة في جميع الولايات الـ81 في تركيا."],
+    fa: ["خدمات خانه و املاک در ترکیه | estatemarket24", "نقاش، لوله‌کش، اسباب‌کشی، نظافت، پیگیری سند، وکیل و مترجم: شرکت‌های تأییدشده در همهٔ ۸۱ استان ترکیه."],
+    ru: ["Услуги для дома и недвижимости в Турции | estatemarket24", "Маляры, сантехники, переезд, уборка, оформление тапу, юристы и переводчики: проверенные компании во всех 81 провинции Турции."],
+    nl: ["Diensten voor huis en vastgoed in Turkije | estatemarket24", "Schilders, loodgieters, verhuizers, schoonmaak, eigendomsakte, advocaten en vertalers: goedgekeurde bedrijven in alle 81 provincies van Turkije."],
+  },
   "/blog": {
     tr: ["Blog ve Emlak Haberleri | estatemarket24", "Resmî kaynaklara dayanan emlak haberleri, piyasa verileri ve Türkiye'de ev alma rehberleri."],
     de: ["Blog und Immobiliennachrichten | estatemarket24", "Immobiliennachrichten aus offiziellen Quellen, Marktdaten und Ratgeber zum Hauskauf in der Türkei."],
