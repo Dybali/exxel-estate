@@ -31,6 +31,7 @@ import "./fixed-exchange.css";
 import "./company-directory-list.css";
 import "./foreign-buyer-guide.css";
 import "./admin-workspace.css";
+import "./admin-insights.css";
 import "./company-portfolio.css";
 import "./company-team.css";
 import "./projects.css";
