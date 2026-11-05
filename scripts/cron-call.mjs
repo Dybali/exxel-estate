@@ -1,9 +1,9 @@
 // Runs a scheduled job of the site (app/api/cron/[job]) from inside the container, for Mittwald
 // container cronjobs (they run a command in the container; URL cronjobs cannot send the bearer
-// token). Usage: node scripts/cron-call.mjs health|daily
+// token). Usage: node scripts/cron-call.mjs health|daily|backup
 // Uses CRON_SECRET and PORT from the container environment; exit code 0 only when the job succeeded.
 const job = process.argv[2];
-if (!["health", "daily"].includes(job)) { console.error("usage: node scripts/cron-call.mjs health|daily"); process.exit(2); }
+if (!["health", "daily", "backup"].includes(job)) { console.error("usage: node scripts/cron-call.mjs health|daily|backup"); process.exit(2); }
 const secret = process.env.CRON_SECRET;
 if (!secret) { console.error("CRON_SECRET is not set"); process.exit(2); }
 try {

@@ -7,11 +7,13 @@ import { externalR2Ready, headExternalImage } from "./external-r2";
 import type { EmailSettings } from "./email";
 import { cleanupVideos, videoFeatureEnabled, videoStorageFromEnv } from "./listing-video-server";
 import type { VideoDatabase } from "./listing-video-store";
+// Through the alias: in the Node build lib/db-backup-node.ts, on Cloudflare a null slot.
+import { runDatabaseBackup, type BackupReport } from "@/lib/db-backup";
 
 // The scheduled jobs, shared by the Cloudflare cron triggers (build/sites-worker.ts scheduled())
 // and the protected HTTP endpoint /api/cron/[job] that a Mittwald cronjob calls.
 export type JobSettings = EmailSettings & { ALERT_EMAIL?: string; EXXEL_ADMIN_EMAIL?: string };
-export const CRON_JOBS = ["health", "daily"] as const;
+export const CRON_JOBS = ["health", "daily", "backup"] as const;
 export type CronJob = typeof CRON_JOBS[number];
 
 const withSiteUrl = (settings: JobSettings) => ({ ...settings, SITE_URL: siteUrl() });
@@ -30,9 +32,26 @@ export async function healthJob(settings: JobSettings) {
   return { checks, alert: await alertOnFailure(checks, withSiteUrl(settings)) };
 }
 
-// Daily 06:00 UTC: promotion expiry, the e-mail digest and (Mittwald container only) removal of
-// listing videos never attached to a listing or failed. Independent tasks; one failing never stops
-// the others.
+// Encrypted offsite database backup (Mittwald container only, docs/backups-monitoring.md). Never
+// rejects; a failed backup e-mails the admin like a failed health check.
+export async function backupJob(settings: JobSettings, run = runDatabaseBackup): Promise<BackupReport> {
+  const started = Date.now();
+  let report: BackupReport;
+  try {
+    report = run ? await run(settings as unknown as Record<string, string | undefined>) : { status: "skipped", reason: "not available in this build", ms: 0 };
+  } catch (cause) {
+    report = { status: "failed", error: String((cause as Error)?.message || cause).slice(0, 400), ms: Date.now() - started };
+  }
+  if (report.status === "failed") {
+    const check = { name: "offsite-backup", ok: false, ms: report.ms, detail: `${report.stage ? `${report.stage}: ` : ""}${report.error || "failed"}`.slice(0, 200) };
+    report.alert = await alertOnFailure([check], withSiteUrl(settings)).catch(() => "alert_not_sent");
+  }
+  return report;
+}
+
+// Daily: promotion expiry, the e-mail digest and (Mittwald container only) removal of listing videos
+// never attached to a listing or failed, plus the offsite database backup. Independent tasks; one
+// failing never stops the others.
 export function dailyJobs(settings: JobSettings) {
   return {
     promotions: expirePromotions(db() as unknown as OrderDatabase).then(() => true, (cause) => { console.error("promotion_expiry_failed", String(cause)); return false; }),
@@ -40,5 +59,6 @@ export function dailyJobs(settings: JobSettings) {
     videos: videoFeatureEnabled()
       ? cleanupVideos(db() as unknown as VideoDatabase, videoStorageFromEnv()).then((result) => { if (result.removed || result.failed) console.info("video_cleanup", JSON.stringify(result)); return true; }, (cause) => { console.error("video_cleanup_failed", String(cause)); return false; })
       : Promise.resolve(true),
+    backup: backupJob(settings),
   };
 }

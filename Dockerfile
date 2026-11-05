@@ -18,15 +18,23 @@ FROM node:22.23.4-alpine3.23 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 # ffmpeg/ffprobe for listing videos (lib/video-transcode.ts, docs/listing-videos.md).
-RUN apk add --no-cache ffmpeg
+# PostgreSQL 18 client (pg_dump/pg_restore, Alpine main repo, /usr/libexec/postgresql18) for the daily
+# offsite database backup (lib/db-backup-node.ts, docs/backups-monitoring.md). It must match the
+# server's major version (postgres 18 container); the build fails here if the package changes.
+RUN apk add --no-cache ffmpeg postgresql18-client \
+  && /usr/libexec/postgresql18/pg_dump --version | grep -q " 18\." \
+  && /usr/libexec/postgresql18/pg_restore --version | grep -q " 18\."
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
-# Mittwald container cronjobs run: node scripts/cron-call.mjs health|daily
+# Mittwald container cronjobs run: node scripts/cron-call.mjs health|daily (manually: backup)
 COPY --from=build --chown=node:node /app/scripts/cron-call.mjs ./scripts/cron-call.mjs
 # Applied at startup from 018 on (instrumentation.ts -> lib/postgres-migrations.ts); read from
 # process.cwd()/postgres/migrations, i.e. /app/postgres/migrations.
 COPY --from=build --chown=node:node /app/postgres/migrations ./postgres/migrations
+# Commit of this image, recorded in the backup manifest (mittwald.yml passes it; empty elsewhere).
+ARG APP_COMMIT=""
+ENV APP_COMMIT=$APP_COMMIT
 # The official image's unprivileged user (uid 1000).
 USER node
 EXPOSE 3000

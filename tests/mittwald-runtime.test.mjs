@@ -134,7 +134,7 @@ test('private bucket: binding first, S3 adapter only without it',()=>{
 });
 
 const secret='s'.repeat(40);
-function cronRoute(env,jobs={}){const calls=[];const route=load('app/api/cron/[job]/route.ts',{'@/lib/runtime':{env},'@/lib/cron-auth':load('lib/cron-auth.ts',{'./server':{sha256:async v=>Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v))).toString('hex')}}),'@/lib/scheduled-jobs':{CRON_JOBS:['health','daily'],healthJob:async s=>{calls.push(['health',s]);return jobs.health||{checks:[{name:'database',ok:true}],alert:'healthy'};},dailyJobs:s=>{calls.push(['daily',s]);return {promotions:Promise.resolve(jobs.promotions??true),digest:Promise.resolve(true),videos:Promise.resolve(jobs.videos??true)};}}});return {route,calls};}
+function cronRoute(env,jobs={}){const calls=[];const route=load('app/api/cron/[job]/route.ts',{'@/lib/runtime':{env},'@/lib/cron-auth':load('lib/cron-auth.ts',{'./server':{sha256:async v=>Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v))).toString('hex')}}),'@/lib/scheduled-jobs':{CRON_JOBS:['health','daily','backup'],backupJob:async s=>{calls.push(['backup',s]);return jobs.backup??{status:'ok',ms:1};},healthJob:async s=>{calls.push(['health',s]);return jobs.health||{checks:[{name:'database',ok:true}],alert:'healthy'};},dailyJobs:s=>{calls.push(['daily',s]);return {promotions:Promise.resolve(jobs.promotions??true),digest:Promise.resolve(true),videos:Promise.resolve(jobs.videos??true),backup:Promise.resolve(jobs.backup??{status:'skipped',reason:'r',ms:0})};}}});return {route,calls};}
 const cron=(route,job,token,method='GET')=>route[method](new Request('https://site.test/api/cron/'+job,{method,headers:token===undefined?{}:{Authorization:token}}),{params:Promise.resolve({job})});
 test('cron endpoint: disabled without a long CRON_SECRET, 401 on wrong token, runs the shared jobs',async()=>{
  for(const env of [{},{CRON_SECRET:''},{CRON_SECRET:'short'}]){const {route,calls}=cronRoute(env);assert.equal((await cron(route,'health','Bearer short')).status,404);assert.equal(calls.length,0);}
@@ -143,11 +143,14 @@ test('cron endpoint: disabled without a long CRON_SECRET, 401 on wrong token, ru
  for(const token of [undefined,'','Bearer ','Bearer '+secret.slice(1),'Bearer '+secret+'x',secret,'Basic '+secret])assert.equal((await cron(route,'health',token)).status,401,String(token));
  assert.equal(calls.length,0);
  const health=await cron(route,'health','Bearer '+secret);assert.equal(health.status,200);assert.equal(health.headers.get('cache-control'),'no-store');assert.equal((await health.json()).ok,true);
- const daily=await cron(route,'daily','Bearer '+secret,'POST');assert.equal(daily.status,200);assert.deepEqual(await daily.json(),{job:'daily',ok:true,promotions:true,digest:true,videos:true});
+ const daily=await cron(route,'daily','Bearer '+secret,'POST');assert.equal(daily.status,200);assert.deepEqual(await daily.json(),{job:'daily',ok:true,promotions:true,digest:true,videos:true,backup:{status:'skipped',reason:'r',ms:0}});
  assert.deepEqual(calls.map(c=>c[0]),['health','daily']);assert.equal(calls[0][1].ALERT_EMAIL,'ops@example.invalid');
  const failing=cronRoute({CRON_SECRET:secret},{health:{checks:[{name:'database',ok:false}],alert:'alerted'},promotions:false});
  assert.equal((await cron(failing.route,'health','Bearer '+secret)).status,503);assert.equal((await cron(failing.route,'daily','Bearer '+secret)).status,500);
  const videoFailure=cronRoute({CRON_SECRET:secret},{videos:false});assert.equal((await cron(videoFailure.route,'daily','Bearer '+secret)).status,500);
+ const backupFailure=cronRoute({CRON_SECRET:secret},{backup:{status:'failed',error:'x',ms:1}});assert.equal((await cron(backupFailure.route,'daily','Bearer '+secret)).status,500);
+ const manual=await cron(backupFailure.route,'backup','Bearer '+secret,'POST');assert.equal(manual.status,500);assert.deepEqual(await manual.json(),{job:'backup',ok:false,backup:{status:'failed',error:'x',ms:1}});assert.equal(backupFailure.calls.filter(c=>c[0]==='backup').length,1);
+ const manualOk=cronRoute({CRON_SECRET:secret});assert.equal((await cron(manualOk.route,'backup','Bearer '+secret)).status,200);assert.equal((await cron(manualOk.route,'backup','Bearer wrong')).status,401);
 });
 test('Cloudflare cron and the endpoint share one implementation',()=>{
  const worker=read('build/sites-worker.ts');assert.match(worker,/healthJob\(settings\)/);assert.match(worker,/dailyJobs\(settings\)/);assert.doesNotMatch(worker,/runHealthChecks|sendDailyDigests|expirePromotions/);

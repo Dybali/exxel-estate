@@ -1,5 +1,6 @@
 name: Uptime check
 # Read-only checks of the public site every 3 hours. A failed run makes GitHub email the repository owner.
+# Default target: the Mittwald container (docs/mittwald-migration.md); override with the SITE_URL variable.
 on:
   schedule:
     - cron: '23 */3 * * *'
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
-      SITE_URL: ${{ vars.SITE_URL || 'https://exxel-estate.estatemarket24.workers.dev' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://p-r9al26.project.space' }}
     steps:
       - name: Public pages, API, photo and headers
         run: |
@@ -28,6 +29,11 @@ jobs:
           check /api/account 200
           check /api/admin 403
           check /api/messages 401
+          check '/api/agent-verification?download=1' 401
+          check /api/export 403
+          check /api/backup-storage 401
+          check /api/listings/ex-1002 404
+          check /api/health/live 200
           headers=$(curl -s -D - -o /dev/null --max-time 25 "$SITE_URL/")
           echo "$headers" | grep -qi '^x-content-type-options: nosniff' || { echo "::error::Missing X-Content-Type-Options"; failed=1; }
           listings=$(curl -s --max-time 25 "$SITE_URL/api/listings?page=1")

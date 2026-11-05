@@ -99,6 +99,8 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `CRON_SECRET` | Evet | En az 32 karakter rastgele (ör. `openssl rand -hex 32`) |
 | `ALERT_EMAIL` | Hayır | Sağlık uyarıları; yoksa `EXXEL_ADMIN_EMAIL` |
 | `BACKUP_READ_TOKEN` | Yedek okuma için | En az 48 karakter |
+| `BACKUP_ENCRYPTION_KEY` | Evet | Günlük şifreli veritabanı yedeği (R2 `estatemarket24-backups/mittwald-db/`): 32 rastgele bayt, base64 (`openssl rand -base64 32`). Ayrıca güvenli yerde saklanmalı. Bkz. [backups-monitoring.md](backups-monitoring.md) |
+| `R2_BACKUP_BUCKET`, `BACKUP_MIN_TABLES`, `PG_BIN_DIR` | Hayır | Yedek kovası (varsayılan `estatemarket24-backups`), en az tablo sayısı (30), `pg_dump` klasörü (`/usr/libexec/postgresql18`) |
 | `GA_MEASUREMENT_ID`, `GOOGLE_SITE_VERIFICATION` | Hayır | Test ortamında boş bırakılması önerilir |
 | `SMS_PROVIDER`, `PHONE_CODE_SECRET` | Telefon doğrulaması için | |
 | `CAPTURE_WORKER_TOKEN`, `CAPTURE_WORKER_MODE` | Tur yakalama için | |
@@ -118,7 +120,7 @@ Menü adları mittwald geliştirici belgelerinden (developer.mittwald.de, 2026-1
 4. **Alt alan adı:** Kenar menü **Domains** → **Add** → **Subdomain** → `test.estatemarket24.com`, hedef 3. adımdaki konteyner, port `3000` → **Create**. SSL sertifikası *(otomatik Let's Encrypt olduğu doğrulanmadı)*. Deneme: `https://test.estatemarket24.com/api/health/live` → `{"ok":true}`.
 5. **Cronjob'lar:** mittwald'da URL cronjob'ları başlık (Authorization) gönderemez ve konteynere bağlı cronjob'lar URL değil komut çalıştırır; bu yüzden **konteyner cronjob'u** kullanılır. Saat dilimi varsayılan UTC.
    - Sağlık, saatte bir: zamanlama `7 * * * *`, konteyner `site`, komut `node scripts/cron-call.mjs health`
-   - Günlük: zamanlama `0 6 * * *`, aynı konteyner, komut `node scripts/cron-call.mjs daily`
+   - Günlük: zamanlama `0 6 * * *`, aynı konteyner, komut `node scripts/cron-call.mjs daily` (şifreli veritabanı dış yedeği de bu işin içinde; elle: `node /app/scripts/cron-call.mjs backup`, bkz. [backups-monitoring.md](backups-monitoring.md))
    - CLI karşılığı: `mw cronjob create --description "estatemarket24 health" --interval "7 * * * *" --container-id <konteyner-id> --command "node scripts/cron-call.mjs health"` *(mStudio'daki cronjob menüsünün yeri ve komutun konteyner ortam değişkenlerini görüp görmediği doğrulanmadı; ilk çalıştırma kaydında `cron health: 200` görünmeli, `CRON_SECRET is not set` görünürse bana bildirin)*.
 6. **API token:** mStudio → profil ayarları → API token'ları → yeni token, yazma yetkili *(menü adı doğrulanmadı)*.
 7. **GitHub ayarları:** Repo → Settings → Secrets and variables → Actions:
