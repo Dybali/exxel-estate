@@ -25,17 +25,28 @@ const rejects=(promise,status,pattern)=>assert.rejects(promise,e=>e instanceof S
 const LOCALES=['de','fr','en','ar','fa','ru','nl'];
 
 test('taxonomy: every requested category exists once, in its group, with icon, slug and all translations',()=>{
- assert.equal(SERVICE_GROUPS.length,6);assert.equal(SERVICE_CATEGORIES.length,31);
+ assert.equal(SERVICE_GROUPS.length,8);assert.equal(SERVICE_CATEGORIES.length,51);
+ // Published slugs never change (URLs may be indexed): the first 31 must all still exist.
+ const ORIGINAL=['boyaci-badanaci','tesisatci','elektrikci','fayans-parke-zemin','marangoz-mutfak-dolap','cati-yalitim','pencere-kapi','klima','anahtar-teslim-tadilat','bahcivan-peyzaj','havuz-bakimi','ilaclama','evden-eve-nakliyat','temizlik','hali-koltuk-yikama','esya-depolama','tapu-takibi','gayrimenkul-avukati','yeminli-tercuman','ekspertiz-degerleme','mali-musavir','konut-kredisi','sigorta','mulk-yonetimi','kisa-donem-kiralama','oturma-izni-vatandaslik','abonelik-islemleri','ic-mimar-dekorasyon','akilli-ev-guvenlik','mobilya-beyaz-esya','emlak-fotografciligi'];
+ for(const slug of ORIGINAL)assert.ok(serviceCategory(slug),`published slug removed: ${slug}`);
+ for(const id of ['tadilat-bakim','bahce-dis-mekan','tasinma-temizlik','hukuk-finans','yabanci-tatil','tasarim-guvenlik'])assert.ok(SERVICE_GROUPS.some(g=>g.id===id),`group id removed: ${id}`);
+ // Each group stays a sensible size for the mega-menu and footer.
+ for(const g of SERVICE_GROUPS){const n=SERVICE_CATEGORIES.filter(c=>c.group===g.id).length;assert.ok(n>=3&&n<=10,`${g.id}: ${n}`);}
+ // A category slug must never look like a province (the second path segment is the province).
+ for(const c of SERVICE_CATEGORIES)assert.ok(!Object.keys(DISTRICTS).some(city=>S.servicePath('temizlik',city).endsWith('/'+c.slug)),c.slug);
+ assert.equal(new Set(SERVICE_CATEGORIES.map(c=>c.name)).size,SERVICE_CATEGORIES.length,'category names are unique');
  const slugs=SERVICE_CATEGORIES.map(c=>c.slug);assert.equal(new Set(slugs).size,slugs.length);
  for(const c of SERVICE_CATEGORIES){assert.match(c.slug,/^[a-z0-9]+(-[a-z0-9]+)*$/);assert.ok(SERVICE_GROUPS.some(g=>g.id===c.group),c.slug);assert.ok(c.description.length>20,c.slug);assert.equal(serviceCategory(c.slug),c);}
  for(const g of SERVICE_GROUPS)assert.ok(SERVICE_CATEGORIES.some(c=>c.group===g.id),g.id);
  // Static route segment of firm profiles must never be a category.
  assert.ok(!slugs.includes('firma'));assert.equal(serviceCategory('firma'),null);assert.ok(!slugs.includes('ara'));assert.equal(S.resolveServicePath(['ara']),null);
- const required=['Boyacı','Tesisatçı','Elektrikçi','Fayans','Marangoz','Çatı','PVC','Klima','Anahtar teslim','Bahçıvan','Havuz','İlaçlama','nakliyat','temizliği','Halı','depolama','Tapu takibi','avukatı','tercüman','ekspertiz','Mali müşavir','Konut kredisi','DASK','Mülk yönetimi','Kısa dönem','Oturma izni','Abonelik','İç mimar','Akıllı ev','beyaz eşya','drone'];
+ const required=['Boyacı','Tesisatçı','Elektrikçi','Fayans','Marangoz','Çatı','PVC','Klima','Anahtar teslim','Bahçıvan','Havuz','İlaçlama','nakliyat','temizliği','Halı','depolama','Tapu takibi','avukatı','tercüman','ekspertiz','Mali müşavir','Konut kredisi','DASK','Mülk yönetimi','Kısa dönem','Oturma izni','Abonelik','İç mimar','Akıllı ev','beyaz eşya','drone',
+  'Beyaz eşya teknik servisi','Çilingir','Ev ustası','Uydu','hidrofor','Güneş enerjisi','Asansör','apartman yönetimi','Güvenlik görevlisi',
+  'Gündelikçi','Ütü','aşçısı','yaşlı bakımı','hasta bakımı','Çocuk bakıcısı','Evcil hayvan','Cam ve dış cephe','Baca','pergola','Perde'];
  for(const part of required)assert.ok(SERVICE_CATEGORIES.some(c=>c.name.includes(part)),part);
  const iconSource=readFileSync(path.join(root,'components/ServiceIcon.tsx'),'utf8'),mapped=new Set(iconSource.match(/SERVICE_ICONS: Record<string, LucideIcon> = \{([^}]+)\}/)[1].split(',').map(s=>s.trim()));
  for(const item of [...SERVICE_CATEGORIES,...SERVICE_GROUPS])assert.ok(mapped.has(item.icon),`${item.icon} is not mapped in ServiceIcon.tsx`);
- for(const key of [...SERVICE_GROUPS.map(g=>g.name),...SERVICE_CATEGORIES.flatMap(c=>[c.name,c.description]),...Object.values(S.SERVICE_STATUS_LABELS)])for(const locale of LOCALES)assert.ok(words[key]?.[locale]?.trim(),`Missing ${locale}: ${key}`);
+ for(const key of [...SERVICE_GROUPS.flatMap(g=>[g.name,g.nav]),...SERVICE_CATEGORIES.flatMap(c=>[c.name,c.description]),...Object.values(S.SERVICE_STATUS_LABELS)])for(const locale of LOCALES)assert.ok(words[key]?.[locale]?.trim(),`Missing ${locale}: ${key}`);
  for(const slug of [...listingServiceSlugs('kiralik',false),...listingServiceSlugs('satilik',true),...listingServiceSlugs('satilik',false),...FOREIGN_BUYER_SERVICES])assert.ok(serviceCategory(slug),slug);
  assert.ok(listingServiceSlugs('satilik',true).includes('yeminli-tercuman'));assert.ok(listingServiceSlugs('kiralik',false).includes('evden-eve-nakliyat'));assert.deepEqual(listingServiceSlugs('gunluk',true),[]);
 });

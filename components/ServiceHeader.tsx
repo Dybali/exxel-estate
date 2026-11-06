@@ -71,7 +71,7 @@ export function ServiceHeader() {
           const expanded = open === group.id;
           return <li key={group.id} className={`svc-nav-item${expanded ? " open" : ""}${activeGroup === group.id ? " active" : ""}`} onMouseLeave={() => setOpen((value) => value === group.id ? null : value)}>
             <button type="button" aria-expanded={expanded} aria-controls={`svc-menu-${group.id}`} onClick={() => setOpen(expanded ? null : group.id)}>
-              <ServiceIcon name={group.icon} size={16}/><span>{t(group.name)}</span><ChevronDown size={14} aria-hidden="true"/>
+              <span title={group.nav === group.name ? undefined : t(group.name)}>{t(group.nav)}</span><ChevronDown size={14} aria-hidden="true"/>
             </button>
             <div className="svc-mega" id={`svc-menu-${group.id}`}>
               <p className="svc-mega-title">{t(group.name)}</p>

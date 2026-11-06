@@ -2,15 +2,17 @@
 // what visitors search for and what firms choose, so a slug never changes once published.
 // Names and descriptions are Turkish source texts translated through the dictionary
 // (lib/portal-translations.ts, data/nl-translations.json); tests/services.test.mjs checks that
-// every one has all languages. `icon` is a lucide-react icon name (components/ServiceIcon.tsx).
+// every one has all languages. A group's `nav` is the short label of the desktop header tab. `icon` is a lucide-react icon name (components/ServiceIcon.tsx).
 
 export const SERVICE_GROUPS = [
-  { id: "tadilat-bakim", name: "Tadilat ve bakım", icon: "Hammer" },
-  { id: "bahce-dis-mekan", name: "Bahçe ve dış mekân", icon: "Trees" },
-  { id: "tasinma-temizlik", name: "Taşınma ve temizlik", icon: "Truck" },
-  { id: "hukuk-finans", name: "Hukuk, finans ve resmî işler", icon: "Scale" },
-  { id: "yabanci-tatil", name: "Yabancı alıcılar ve tatil evleri", icon: "Globe" },
-  { id: "tasarim-guvenlik", name: "Tasarım ve güvenlik", icon: "Palette" },
+  { id: "tadilat-bakim", name: "Tadilat ve bakım", nav: "Tadilat", icon: "Hammer" },
+  { id: "teknik-servis", name: "Teknik servis ve bina hizmetleri", nav: "Teknik servis", icon: "Toolbox" },
+  { id: "ev-hizmetleri", name: "Ev hizmetleri ve bakım", nav: "Ev hizmetleri", icon: "House" },
+  { id: "tasinma-temizlik", name: "Taşınma ve temizlik", nav: "Taşınma ve temizlik", icon: "Truck" },
+  { id: "bahce-dis-mekan", name: "Bahçe ve dış mekân", nav: "Bahçe ve dış mekân", icon: "Trees" },
+  { id: "hukuk-finans", name: "Hukuk, finans ve resmî işler", nav: "Hukuk ve finans", icon: "Scale" },
+  { id: "yabanci-tatil", name: "Yabancı alıcılar ve tatil evleri", nav: "Yabancı alıcılar", icon: "Globe" },
+  { id: "tasarim-guvenlik", name: "Tasarım ve güvenlik", nav: "Tasarım ve güvenlik", icon: "Palette" },
 ] as const;
 export type ServiceGroupId = typeof SERVICE_GROUPS[number]["id"];
 
@@ -27,15 +29,36 @@ export const SERVICE_CATEGORIES = [
   { slug: "pencere-kapi", group: "tadilat-bakim", icon: "DoorOpen", name: "Alüminyum ve PVC pencere, kapı", description: "PVC ve alüminyum doğrama, cam balkon, sineklik ve çelik kapı." },
   { slug: "klima", group: "tadilat-bakim", icon: "AirVent", name: "Klima montaj ve servis", description: "Klima satışı, montajı, bakımı, gaz dolumu ve arıza servisi." },
   { slug: "anahtar-teslim-tadilat", group: "tadilat-bakim", icon: "KeyRound", name: "Anahtar teslim tadilat", description: "Projelendirmeden teslime kadar tüm ev ve iş yeri tadilatı tek elden." },
+  // Teknik servis ve bina hizmetleri
+  { slug: "beyaz-esya-servisi", group: "teknik-servis", icon: "WashingMachine", name: "Beyaz eşya teknik servisi", description: "Çamaşır ve bulaşık makinesi, buzdolabı, fırın ve kurutucu arızası, bakım ve montaj." },
+  { slug: "cilingir", group: "teknik-servis", icon: "LockKeyhole", name: "Çilingir", description: "Kapı açma, kilit ve barel değişimi, çelik kapı kilidi ve kasa çilingirliği." },
+  { slug: "ev-ustasi", group: "teknik-servis", icon: "Drill", name: "Ev ustası ve küçük tamirat", description: "Mobilya kurulumu, raf, TV ve perde askısı montajı, musluk ve kapı kolu değişimi gibi küçük işler." },
+  { slug: "uydu-anten-internet", group: "teknik-servis", icon: "SatelliteDish", name: "Uydu, anten ve internet kurulumu", description: "Çanak anten ve merkezi uydu sistemi, ev içi ağ kablolaması, modem ve Wi-Fi kurulumu." },
+  { slug: "su-deposu-hidrofor", group: "teknik-servis", icon: "Droplets", name: "Su deposu ve hidrofor", description: "Su deposu montajı ve temizliği, hidrofor kurulumu, bakımı ve arıza servisi." },
+  { slug: "gunes-enerjisi-jenerator", group: "teknik-servis", icon: "SolarPanel", name: "Güneş enerjisi ve jeneratör", description: "Çatı güneş paneli, güneş enerjili su ısıtıcı, akü sistemi ve jeneratör kurulumu." },
+  { slug: "asansor-bakimi", group: "teknik-servis", icon: "ArrowUpDown", name: "Asansör bakım ve servis", description: "Apartman ve site asansörlerinde periyodik bakım, arıza servisi ve modernizasyon." },
+  { slug: "site-apartman-yonetimi", group: "teknik-servis", icon: "Building", name: "Site ve apartman yönetimi", description: "Profesyonel site yönetimi, aidat takibi, ortak alan bakımı ve kat malikleri kurulu işleri." },
+  { slug: "guvenlik-gorevlisi", group: "teknik-servis", icon: "ShieldUser", name: "Güvenlik görevlisi ve bekçi", description: "Site, şantiye ve villalar için özel güvenlik görevlisi, kapı görevlisi ve devriye hizmeti." },
+  // Ev hizmetleri ve bakım
+  { slug: "gundelikci", group: "ev-hizmetleri", icon: "BrushCleaning", name: "Gündelikçi ve düzenli ev temizliği", description: "Haftalık veya aylık düzenli ev temizliği, gündelikçi ve yatılı ev yardımcısı." },
+  { slug: "utu-camasir", group: "ev-hizmetleri", icon: "Shirt", name: "Ütü ve çamaşır hizmeti", description: "Evde ütü, çamaşır yıkama ve katlama; adresten alım ve teslimli kuru temizleme." },
+  { slug: "ev-asci", group: "ev-hizmetleri", icon: "ChefHat", name: "Ev aşçısı ve yemek hizmeti", description: "Evde günlük yemek yapan aşçı, davet ve özel gün yemekleri, haftalık yemek hazırlığı." },
+  { slug: "yasli-bakimi", group: "ev-hizmetleri", icon: "HeartHandshake", name: "Evde yaşlı bakımı", description: "Yaşlılar için gündüz veya yatılı bakıcı, refakat, kişisel bakım ve günlük yaşam desteği." },
+  { slug: "evde-hasta-bakimi", group: "ev-hizmetleri", icon: "Stethoscope", name: "Evde hasta bakımı ve evde sağlık", description: "Evde hemşirelik, fizyoterapi, yatağa bağımlı hasta bakımı ve ameliyat sonrası refakat." },
+  { slug: "cocuk-bakicisi", group: "ev-hizmetleri", icon: "Baby", name: "Çocuk bakıcısı ve dadı", description: "Bebek ve çocuk bakıcısı, gündüzlü veya yatılı dadı, okul sonrası ve saatlik bakım." },
+  { slug: "evcil-hayvan-bakimi", group: "ev-hizmetleri", icon: "PawPrint", name: "Evcil hayvan bakımı ve gezdirme", description: "Köpek gezdirme, evde kedi ve köpek bakımı, tatil süresince bakım ve evde pet kuaförü." },
+  // Taşınma ve temizlik ("temizlik" is the one-off deep clean; regular household cleaning is "gundelikci")
+  { slug: "evden-eve-nakliyat", group: "tasinma-temizlik", icon: "Truck", name: "Evden eve nakliyat", description: "Paketleme, asansörlü taşıma, şehir içi ve şehirler arası nakliyat." },
+  { slug: "temizlik", group: "tasinma-temizlik", icon: "Sparkles", name: "Detaylı ev temizliği ve inşaat sonrası temizlik", description: "Taşınma öncesi ve sonrası, inşaat sonrası ve sezon açılışında tek seferlik detaylı temizlik." },
+  { slug: "hali-koltuk-yikama", group: "tasinma-temizlik", icon: "Sofa", name: "Halı ve koltuk yıkama", description: "Halı, koltuk, yatak ve perde yıkama; yerinde veya fabrikada." },
+  { slug: "esya-depolama", group: "tasinma-temizlik", icon: "Warehouse", name: "Eşya depolama", description: "Kısa ve uzun süreli güvenli eşya depolama ve arşiv hizmetleri." },
+  { slug: "cam-cephe-temizligi", group: "tasinma-temizlik", icon: "AppWindow", name: "Cam ve dış cephe temizliği", description: "Pencere ve cam balkon silme, yüksek cephe, vitrin ve güneş paneli temizliği." },
+  { slug: "baca-temizligi", group: "tasinma-temizlik", icon: "Flame", name: "Baca ve şömine temizliği", description: "Soba, şömine ve kazan bacası temizliği, kurum alma ve baca çekiş kontrolü." },
   // Bahçe ve dış mekân
   { slug: "bahcivan-peyzaj", group: "bahce-dis-mekan", icon: "Trees", name: "Bahçıvan ve peyzaj", description: "Bahçe bakımı, çim ve ağaç budama, sulama sistemi ve peyzaj tasarımı." },
   { slug: "havuz-bakimi", group: "bahce-dis-mekan", icon: "Waves", name: "Havuz bakımı", description: "Düzenli havuz temizliği, kimyasal dengeleme, pompa ve filtre servisi." },
   { slug: "ilaclama", group: "bahce-dis-mekan", icon: "Bug", name: "İlaçlama ve haşere kontrolü", description: "Böcek, kemirgen ve haşere ilaçlaması; ev, bahçe ve site uygulamaları." },
-  // Taşınma ve temizlik
-  { slug: "evden-eve-nakliyat", group: "tasinma-temizlik", icon: "Truck", name: "Evden eve nakliyat", description: "Paketleme, asansörlü taşıma, şehir içi ve şehirler arası nakliyat." },
-  { slug: "temizlik", group: "tasinma-temizlik", icon: "Sparkles", name: "Ev temizliği ve inşaat sonrası temizlik", description: "Düzenli ev temizliği, taşınma öncesi ve inşaat sonrası detaylı temizlik." },
-  { slug: "hali-koltuk-yikama", group: "tasinma-temizlik", icon: "Sofa", name: "Halı ve koltuk yıkama", description: "Halı, koltuk, yatak ve perde yıkama; yerinde veya fabrikada." },
-  { slug: "esya-depolama", group: "tasinma-temizlik", icon: "Warehouse", name: "Eşya depolama", description: "Kısa ve uzun süreli güvenli eşya depolama ve arşiv hizmetleri." },
+  { slug: "tente-pergola", group: "bahce-dis-mekan", icon: "Sun", name: "Tente, pergola ve gölgelendirme", description: "Teras ve bahçe için tente, bioklimatik pergola, şemsiye ve gölgelendirme sistemleri." },
   // Hukuk, finans ve resmî işler
   { slug: "tapu-takibi", group: "hukuk-finans", icon: "FileCheck", name: "Tapu takibi", description: "Tapu devri, randevu, harç ve belge işlemlerinin takibi." },
   { slug: "gayrimenkul-avukati", group: "hukuk-finans", icon: "Scale", name: "Gayrimenkul avukatı", description: "Satış ve kira sözleşmeleri, tapu incelemesi ve gayrimenkul uyuşmazlıkları." },
@@ -53,6 +76,7 @@ export const SERVICE_CATEGORIES = [
   { slug: "ic-mimar-dekorasyon", group: "tasarim-guvenlik", icon: "Palette", name: "İç mimar ve dekorasyon", description: "İç mimari proje, dekorasyon, mobilya seçimi ve uygulama." },
   { slug: "akilli-ev-guvenlik", group: "tasarim-guvenlik", icon: "Cctv", name: "Akıllı ev, alarm ve kamera", description: "Alarm, güvenlik kamerası, görüntülü diyafon ve akıllı ev sistemleri." },
   { slug: "mobilya-beyaz-esya", group: "tasarim-guvenlik", icon: "Armchair", name: "Mobilya ve beyaz eşya", description: "Mobilya, beyaz eşya ve ev tekstili satışı, teslimat ve montaj." },
+  { slug: "perde-stor-jaluzi", group: "tasarim-guvenlik", icon: "Blinds", name: "Perde, stor ve jaluzi", description: "Ölçüye göre perde, stor, zebra perde ve jaluzi; ölçü alma, dikim ve montaj." },
   { slug: "emlak-fotografciligi", group: "tasarim-guvenlik", icon: "Camera", name: "Emlak fotoğrafçılığı, drone ve 360° tur", description: "Profesyonel ilan fotoğrafı, drone çekimi, video ve 360° sanal tur." },
 ] as const satisfies readonly ServiceCategory[];
 export type ServiceSlug = typeof SERVICE_CATEGORIES[number]["slug"];

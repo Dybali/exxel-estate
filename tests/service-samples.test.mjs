@@ -22,8 +22,9 @@ async function allPages(db,query,samples=SAMPLES){
  return {first,firms};
 }
 
-test('sample set: 2–3 firms in every category, ~75 in all, fictional and contact-free',()=>{
- assert.ok(SAMPLES.length>=70&&SAMPLES.length<=80,`${SAMPLES.length} samples`);
+test('sample set: 2–3 firms in every category, ~120 in all, fictional and contact-free',()=>{
+ assert.ok(SAMPLES.length>=110&&SAMPLES.length<=135,`${SAMPLES.length} samples`);
+ assert.ok(SAMPLES.every(f=>Date.parse(f.createdAt)<=Date.UTC(2026,10,6)),'sample dates lie in the past');
  const ids=SAMPLES.map(f=>f.id),names=SAMPLES.map(f=>f.name);
  assert.equal(new Set(ids).size,ids.length);assert.equal(new Set(names).size,names.length);
  for(const category of SERVICE_CATEGORIES){
