@@ -99,10 +99,10 @@ test('cache: no usable bulletin means no rates (TL only); a persisted bulletin i
 });
 
 test('display currency: language defaults, explicit choice wins, cookie and country shortcuts',()=>{
- assert.deepEqual(Object.fromEntries(['tr','de','fr','nl','en','ru','fa','ar'].map(l=>[l,defaultDisplayCurrency(l)])),{tr:'TRY',de:'EUR',fr:'EUR',nl:'EUR',en:'EUR',ru:'RUB',fa:'IRR',ar:'SAR'});
+ assert.deepEqual(Object.fromEntries(['tr','de','fr','nl','en','ru','fa','ar'].map(l=>[l,defaultDisplayCurrency(l)])),{tr:'TRY',de:'EUR',fr:'EUR',nl:'EUR',en:'GBP',ru:'RUB',fa:'IRR',ar:'SAR'});
  assert.equal(defaultDisplayCurrency('xx'),'TRY');
  assert.equal(resolveDisplayCurrency(null,'de'),'EUR');assert.equal(resolveDisplayCurrency('USD','de'),'USD');assert.equal(resolveDisplayCurrency('TRY','fa'),'TRY');
- assert.equal(resolveDisplayCurrency('IRR','tr'),'TRY','IRR is never an explicit choice');assert.equal(resolveDisplayCurrency('<script>','en'),'EUR');
+ assert.equal(resolveDisplayCurrency('IRR','tr'),'TRY','IRR is never an explicit choice');assert.equal(resolveDisplayCurrency('<script>','en'),'GBP');
  assert.equal(currencyFromCookies('a=1; em24_currency=GBP; b=2'),'GBP');assert.equal(currencyFromCookies('em24_currency=JPY'),null);assert.equal(currencyFromCookies(''),null);assert.equal(currencyFromCookies(null),null);
  assert.match(currencyCookie('USD'),/^em24_currency=USD; Path=\/; SameSite=Lax; Max-Age=31536000$/);assert.match(currencyCookie(null),/Max-Age=0$/);
  assert.deepEqual(['TR','GB','US','SA','AE','DE','FR','NL','AT','ES','BG'].map(c=>COUNTRY_CURRENCY[c]),['TRY','GBP','USD','SAR','AED','EUR','EUR','EUR','EUR','EUR','EUR']);
