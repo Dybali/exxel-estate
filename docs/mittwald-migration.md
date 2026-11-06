@@ -110,6 +110,7 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `SMS_PROVIDER`, `PHONE_CODE_SECRET` | Telefon doğrulaması için | |
 | `CAPTURE_WORKER_TOKEN`, `CAPTURE_WORKER_MODE` | Tur yakalama için | |
 | `VIDEO_WORKER` | Hayır | `0` ilan videosu işçisini (ffmpeg) ve video yüklemeyi kapatır; boşsa açık. Bkz. [listing-videos.md](listing-videos.md) |
+| `SERVICE_SAMPLES` | Hayır | Hizmetler bölümündeki örnek firmalar (`lib/service-samples.ts`, yalnızca kodda; "Örnek firma" etiketli, sayılmaz, indekslenmez, site haritasına girmez). Boşsa açık; lansmanda `0` yapın. Cloudflare'de `wrangler.jsonc` → `vars` içine `"SERVICE_SAMPLES": "0"` |
 | `NODE_OPTIONS` | Hayır | Ör. `--max-old-space-size=768` (konteyner belleğine göre) |
 | `PORT`, `HOSTNAME`, `NODE_ENV` | — | İmajda hazır: `3000`, `0.0.0.0`, `production`; değiştirmeyin |
 

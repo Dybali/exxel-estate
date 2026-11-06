@@ -70,6 +70,8 @@ export type ServiceFirm = {
   id: string; name: string; description: string; translations: Partial<Record<typeof SERVICE_TRANSLATION_LOCALES[number], string>>;
   categories: ServiceSlug[]; areas: ServiceArea[]; phone: string; whatsapp: string | null; email: string | null; website: string | null;
   logo: string | null; cover: string | null; photos: string[]; verified: boolean; featured: boolean; status: ServiceStatus; createdAt: string; updatedAt: string; approvedAt: string | null;
+  /** Code-only sample firm (lib/service-samples.ts): labelled everywhere, never counted, indexed or stored. */
+  sample?: boolean;
   // Owner and administrators only.
   ownerId?: string; reviewNote?: string; taxOffice?: string | null; taxNumber?: string | null; ownerName?: string; ownerEmail?: string;
 };
@@ -357,7 +359,8 @@ export type ServiceQuery = {
   verified?: boolean; photos?: boolean; featured?: boolean; cities?: readonly string[]; excludeId?: string;
   sort?: ServiceSort; page?: number; perPage?: number;
 };
-export type ServiceResults = { firms: ServiceFirm[]; total: number; page: number; pages: number; perPage: number };
+/** `total` counts real firms only; `samples` is the number of sample firms listed after them (lib/service-samples.ts). */
+export type ServiceResults = { firms: ServiceFirm[]; total: number; page: number; pages: number; perPage: number; samples?: number };
 
 /** WHERE clause over service_firms f (and service_firm_search s when `search` is true). */
 function queryWhere(query: ServiceQuery) {

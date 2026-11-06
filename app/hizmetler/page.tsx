@@ -1,8 +1,9 @@
 import { ServicesLanding } from "@/components/ServicesLanding";
 import { SERVICE_CATEGORIES, type ServiceSlug } from "@/lib/service-categories";
 import { serviceCrumbs, serviceName } from "@/lib/service-copy";
-import { categoryCounts, featuredFirms, newestFirms, servicePath, serviceStats, type ServiceFirm } from "@/lib/services";
-import { servicesDB } from "@/lib/services-server";
+import { fillWithSamples, matchSampleFirms, sampleCategoryCounts } from "@/lib/service-samples";
+import { categoryCounts, featuredFirms, newestFirms, SERVICE_FEATURED_LIMIT, servicePath, serviceStats, type ServiceFirm } from "@/lib/services";
+import { serviceSamples, servicesDB } from "@/lib/services-server";
 import { localizedUrl, requestLocale } from "@/lib/request-context";
 import { translate } from "@/lib/i18n-dictionary";
 
@@ -10,7 +11,7 @@ import { translate } from "@/lib/i18n-dictionary";
 export const dynamic = "force-dynamic";
 
 export default async function ServicesPage() {
-  const locale = await requestLocale(), db = servicesDB();
+  const locale = await requestLocale(), db = servicesDB(), samples = serviceSamples();
   // A database problem leaves the category directory usable (every tile then invites the first firm).
   const [counts, featured, newest, stats] = await Promise.all([
     categoryCounts(db).catch(() => Object.fromEntries(SERVICE_CATEGORIES.map((item) => [item.slug, 0])) as Record<ServiceSlug, number>),
@@ -23,8 +24,11 @@ export default async function ServicesPage() {
     { "@context": "https://schema.org", "@type": "ItemList", name: translate("Hizmetler", locale), numberOfItems: SERVICE_CATEGORIES.length,
       itemListElement: SERVICE_CATEGORIES.map((item, index) => ({ "@type": "ListItem", position: index + 1, url: localizedUrl(servicePath(item.slug), locale), name: serviceName(item.slug, locale) })) },
   ];
+  // Sample firms (lib/service-samples.ts) fill the firm lists after the real ones; counts and stats stay real.
   return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>
-    <ServicesLanding counts={counts} featured={featured} newest={newest} stats={stats}/>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\u003c") }}/>
+    <ServicesLanding counts={counts} stats={stats} sampleCounts={samples.length ? sampleCategoryCounts(samples) : undefined}
+      featured={fillWithSamples(featured, matchSampleFirms(samples, { featured: true }), SERVICE_FEATURED_LIMIT)}
+      newest={fillWithSamples(newest, matchSampleFirms(samples, { sort: "newest" }), SERVICE_FEATURED_LIMIT)}/>
   </>;
 }

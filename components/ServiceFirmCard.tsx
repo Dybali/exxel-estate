@@ -1,5 +1,5 @@
 "use client";
-import { BadgeCheck, MapPin, Star } from "lucide-react";
+import { BadgeCheck, FlaskConical, MapPin, Star } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
@@ -20,15 +20,22 @@ export function ServiceVerifiedBadge() {
   return <span className="service-verified" title={t("Firma bilgileri ve vergi kaydı yönetici tarafından kontrol edildi.")}><BadgeCheck size={15} aria-hidden="true"/>{t("Doğrulanmış firma")}</span>;
 }
 
+/** "Örnek firma" label of the code-only sample firms (lib/service-samples.ts). */
+export function ServiceSampleBadge({ className = "" }: { className?: string }) {
+  const { t } = useLocale();
+  return <span className={`service-sample-badge ${className}`.trim()}><FlaskConical size={13} aria-hidden="true"/>{t("Örnek firma")}</span>;
+}
+
 export function ServiceFirmCard({ firm, highlight }: { firm: ServiceFirm; highlight?: string }) {
   const { t, locale } = useLocale(), areaLabel = useAreaLabel();
   const first = serviceCategory(highlight && firm.categories.includes(highlight as never) ? highlight : firm.categories[0]);
   const text = firmDescription(firm, locale);
-  return <article className="service-firm-card">
-    <Link href={firmPath(firm.id)} className="service-firm-card-link" aria-label={firm.name}>
+  return <article className={firm.sample ? "service-firm-card is-sample" : "service-firm-card"}>
+    <Link href={firmPath(firm.id)} className="service-firm-card-link" aria-label={firm.sample ? `${firm.name} · ${t("Örnek firma")}` : firm.name}>
       <div className="service-firm-card-media">
         {firm.cover || firm.photos[0] ? <img src={firm.cover || firm.photos[0]} alt="" loading="lazy"/> : <span className="service-firm-card-placeholder">{first && <ServiceIcon name={first.icon} size={34}/>}</span>}
         {firm.featured && <span className="service-featured"><Star size={13} aria-hidden="true"/>{t("Öne çıkan")}</span>}
+        {firm.sample && <ServiceSampleBadge/>}
       </div>
       <div className="service-firm-card-body">
         <div className="service-firm-card-head">

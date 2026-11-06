@@ -433,3 +433,18 @@ a.svc-page-step:hover{border-color:var(--svc-petrol);background:var(--svc-tint)}
   .svc-brand-logo{height:19px}
   .svc-stats dd{font-size:21px}
 }
+
+/* Sample firms (lib/service-samples.ts): always visibly labelled. */
+.service-sample-badge{position:absolute;top:10px;inset-inline-end:10px;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:#3d2f6b;color:#fff;font-size:11px;font-weight:800;letter-spacing:.01em;box-shadow:0 2px 8px #0000002e}
+.service-sample-badge.inline{position:static;box-shadow:none;margin-top:4px}
+.service-firm-card.is-sample{border-style:dashed;border-color:#b9b2d6}
+.svc-sample-count{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:#efecf8;color:#3d2f6b;font-size:11.5px;font-weight:700}
+.services-tile-text .svc-sample-count{justify-self:start;margin-top:2px}
+.svc-sample-note{display:flex;align-items:flex-start;gap:8px;margin:0 0 14px;padding:10px 14px;border:1px dashed #b9b2d6;border-radius:10px;background:#f6f4fc;color:#3d2f6b;font-size:13px;line-height:1.5}
+.svc-sample-note svg{flex:none;margin-top:2px}
+.service-sample-banner{display:flex;align-items:flex-start;gap:10px;margin-top:12px;padding:14px 16px;border:2px dashed #8f84c4;border-radius:12px;background:#f6f4fc;color:#2e2457}
+.service-sample-banner svg{flex:none;margin-top:2px;color:#3d2f6b}
+.service-sample-banner p{margin:0;font-size:14px;line-height:1.55}
+.service-sample-contact{display:flex;align-items:flex-start;gap:8px;margin:0;padding:10px 12px;border-radius:10px;background:#f6f4fc;color:#3d2f6b;font-size:13.5px;font-weight:650}
+.service-sample-contact svg{flex:none;margin-top:2px}
+.service-contact-card .btn:disabled{opacity:.5;cursor:not-allowed}

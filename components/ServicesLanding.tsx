@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, BadgeCheck, CheckCircle2, MapPinned, Store } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, Info, MapPinned, Store } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { ServiceFinder } from "@/components/ServiceFinder";
 import { ServiceFirmCard } from "@/components/ServiceFirmCard";
@@ -27,6 +27,12 @@ export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
   </section>;
 }
 
+/** Explains the "Örnek firma" cards (lib/service-samples.ts) wherever they appear. */
+export function ServiceSampleNote() {
+  const { t } = useLocale();
+  return <p className="svc-sample-note" role="note"><Info size={16} aria-hidden="true"/><span>{t("Örnek firmalar, Hizmetler bölümünün nasıl görüneceğini göstermek içindir. Gerçek firma değildir, iletişim bilgisi yoktur ve sayımlara dahil edilmez.")}</span></p>;
+}
+
 function FirmSection({ id, title, text, firms, more }: { id: string; title: string; text: string; firms: ServiceFirm[]; more: string }) {
   const { t } = useLocale();
   if (!firms.length) return null;
@@ -35,14 +41,18 @@ function FirmSection({ id, title, text, firms, more }: { id: string; title: stri
       <div><h2 id={id}>{title}</h2><p>{text}</p></div>
       <Link href={more} className="svc-more">{t("Tümünü gör")}<ArrowRight size={15} aria-hidden="true"/></Link>
     </div>
+    {firms.some((firm) => firm.sample) && <ServiceSampleNote/>}
     <div className="service-firm-grid">{firms.map((firm) => <ServiceFirmCard key={firm.id} firm={firm}/>)}</div>
   </section>;
 }
 
 export type ServiceStats = { firms: number; cities: number };
 
-/** /hizmetler: search, figures, every group with its categories, featured and newest firms, provider invitation. */
-export function ServicesLanding({ counts, featured, newest, stats }: { counts: Record<ServiceSlug, number>; featured: ServiceFirm[]; newest: ServiceFirm[]; stats: ServiceStats }) {
+/**
+ * /hizmetler: search, figures, every group with its categories, featured and newest firms, provider invitation.
+ * `counts` and `stats` are real firms only; `sampleCounts` (when samples are on) is a separate "örnek" hint.
+ */
+export function ServicesLanding({ counts, featured, newest, stats, sampleCounts }: { counts: Record<ServiceSlug, number>; featured: ServiceFirm[]; newest: ServiceFirm[]; stats: ServiceStats; sampleCounts?: Record<ServiceSlug, number> }) {
   const { t, locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value);
   return <main className="services-page services-landing">
     <header className="services-hero">
@@ -74,11 +84,12 @@ export function ServicesLanding({ counts, featured, newest, stats }: { counts: R
           <Link href={groupSearchHref(group.id)} className="svc-more">{t("Tümünü gör")}<ArrowRight size={15} aria-hidden="true"/></Link>
         </div>
         <ul className="services-tiles">{categoriesOf(group.id).map((category) => {
-          const count = counts[category.slug as ServiceSlug] || 0;
+          const count = counts[category.slug as ServiceSlug] || 0, samples = sampleCounts?.[category.slug as ServiceSlug] || 0;
           return <li key={category.slug}><Link href={servicePath(category.slug)} className="services-tile">
             <span className="services-tile-icon"><ServiceIcon name={category.icon}/></span>
             <span className="services-tile-text"><strong>{t(category.name)}</strong><small>{t(category.description)}</small>
-              <em className={count ? "has-firms" : ""}>{count ? t("{n} onaylı firma").replace("{n}", number(count)) : t("Bu kategoride ilk firma siz olun")}</em></span>
+              <em className={count ? "has-firms" : ""}>{count ? t("{n} onaylı firma").replace("{n}", number(count)) : t("Bu kategoride ilk firma siz olun")}</em>
+              {samples > 0 && <span className="svc-sample-count">{t("{n} örnek firma").replace("{n}", number(samples))}</span>}</span>
             <ArrowRight className="services-tile-arrow" size={17} aria-hidden="true"/>
           </Link></li>;
         })}</ul>

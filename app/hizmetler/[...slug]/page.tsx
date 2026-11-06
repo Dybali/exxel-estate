@@ -7,7 +7,8 @@ import { localizedUrl, pageAlternates, requestLocale } from "@/lib/request-conte
 import { serviceCrumbs, serviceDescription, serviceHeading } from "@/lib/service-copy";
 import { servicePageParam } from "@/lib/service-search";
 import { categoryCounts, firmPath, resolveServicePath, searchFirms, serviceIndexable, servicePath, serviceSummary } from "@/lib/services";
-import { servicesDB } from "@/lib/services-server";
+import { realFirms, withSampleResults } from "@/lib/service-samples";
+import { serviceSamples, servicesDB } from "@/lib/services-server";
 import { coverShareImage } from "@/lib/share-image-policy";
 import { shareMetadata } from "@/lib/share-metadata";
 
@@ -16,14 +17,17 @@ type Props = { params: Promise<{ slug: string[] }>; searchParams: Promise<Record
 
 // One page of firms with its COUNT, the place links (grouped queries) and the sidebar's category
 // counts for this place; generateMetadata and the page share one load per request (React cache).
+// Sample firms (lib/service-samples.ts) follow the real ones and may add pages; every count, the
+// summary and the indexing decision stay real-only.
 const load = cache(async (key: string, page: number) => {
   const scope = resolveServicePath(key.split("/"));
   if (!scope) return null;
-  const db = servicesDB();
-  const [results, counts] = await Promise.all([
-    searchFirms(db, { categories: [scope.category], city: scope.city, district: scope.district, page }),
+  const db = servicesDB(), query = { categories: [scope.category], city: scope.city, district: scope.district, page };
+  const [real, counts] = await Promise.all([
+    searchFirms(db, query),
     categoryCounts(db, { city: scope.city, district: scope.district }),
   ]);
+  const results = withSampleResults(real, query, serviceSamples());
   // A page number past the last page does not exist (page 1 always does, also when empty).
   if (page > results.pages) return null;
   const summary = await serviceSummary(db, scope, results.total);
@@ -39,13 +43,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (!data) return { title: `${translate("Sayfa bulunamadı", locale)} | estatemarket24`, robots: { index: false, follow: false } };
   const { scope, path, summary, results } = data, heading = serviceHeading(scope.category, locale, scope.district || scope.city);
   const pageLabel = results.page > 1 ? ` · ${translate("Sayfa {n}", locale).replace("{n}", String(results.page))}` : "";
-  const description = serviceDescription(heading, summary.count, locale), cover = results.firms.find((firm) => firm.cover || firm.photos[0]);
+  const description = serviceDescription(heading, summary.count, locale), cover = realFirms(results.firms).find((firm) => firm.cover || firm.photos[0]);
   return {
     title: `${heading}${pageLabel} | estatemarket24`, description,
     // Later pages are their own canonical (?sayfa=n), so their firms stay reachable for search engines.
     alternates: await pageAlternates(path),
     // Thin content: no firm of its own → kept out of search results (and the sitemap), links still followed.
-    ...(serviceIndexable(summary) ? {} : { robots: { index: false, follow: true } }),
+    // A page listing only sample firms (e.g. a later page after the real ones) is thin content too.
+    ...(serviceIndexable(summary) && realFirms(results.firms).length > 0 ? {} : { robots: { index: false, follow: true } }),
     ...shareMetadata({ title: heading, description, path, locale, image: coverShareImage(cover?.cover || cover?.photos[0], heading) }),
   };
 }
@@ -54,7 +59,8 @@ export default async function ServiceCategoryRoute(props: Props) {
   const data = await load(await keyOf(props), await pageOf(props));
   if (!data) notFound();
   const locale = await requestLocale(), { scope, summary, results, counts } = data;
-  const firms = results.firms, offset = (results.page - 1) * results.perPage;
+  // ItemList: real firms only (they come first, so their positions are unchanged).
+  const firms = realFirms(results.firms), offset = (results.page - 1) * results.perPage;
   const structured = [
     { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: serviceCrumbs(scope, locale).map((crumb, index) => ({ "@type": "ListItem", position: index + 1, name: crumb.name, item: localizedUrl(crumb.path, locale) })) },
     ...(firms.length ? [{ "@context": "https://schema.org", "@type": "ItemList", name: serviceHeading(scope.category, locale, scope.district || scope.city), numberOfItems: results.total,

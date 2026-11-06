@@ -6,7 +6,8 @@ import { translate } from "@/lib/i18n-dictionary";
 import { pageAlternates, requestLocale } from "@/lib/request-context";
 import { isCanonicalServiceScope, parseServiceFilters, SERVICE_SEARCH_PATH, serviceQuery, serviceSearchHref, withLang } from "@/lib/service-search";
 import { categoryCounts, searchFirms } from "@/lib/services";
-import { servicesDB } from "@/lib/services-server";
+import { withSampleResults } from "@/lib/service-samples";
+import { serviceSamples, servicesDB } from "@/lib/services-server";
 
 export const dynamic = "force-dynamic";
 type Search = Record<string, string | string[] | undefined>;
@@ -18,8 +19,9 @@ const load = cache(async (key: string) => {
   const filters = parseServiceFilters(new URLSearchParams(key)), db = servicesDB();
   const query = serviceQuery(filters);
   // Category counts follow every other filter, so each checkbox shows what choosing it would add.
-  const [results, counts] = await Promise.all([searchFirms(db, query), categoryCounts(db, { q: query.q, city: query.city, district: query.district, verified: query.verified, photos: query.photos })]);
-  return { filters, results, counts };
+  const [real, counts] = await Promise.all([searchFirms(db, query), categoryCounts(db, { q: query.q, city: query.city, district: query.district, verified: query.verified, photos: query.photos })]);
+  // Sample firms (lib/service-samples.ts) match the same filters and follow the real ones; counts stay real.
+  return { filters, results: withSampleResults(real, query, serviceSamples()), counts };
 });
 const keyOf = async ({ searchParams }: Props) => {
   const params = new URLSearchParams();

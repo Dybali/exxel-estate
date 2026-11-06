@@ -1,7 +1,7 @@
 "use client";
-import { ArrowRight, ChevronRight, Clock, ExternalLink, Flag, Globe, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, ChevronRight, Clock, ExternalLink, FlaskConical, Flag, Globe, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import Link from "@/components/SafeLink";
-import { ServiceFirmCard, ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
+import { ServiceFirmCard, ServiceSampleBadge, ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
 import { whatsappHref } from "@/lib/phone";
@@ -21,6 +21,7 @@ export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; 
         {first && <li><ChevronRight size={13} aria-hidden="true"/><Link href={servicePath(first.slug)}>{t(first.name)}</Link></li>}
         <li><ChevronRight size={13} aria-hidden="true"/><span aria-current="page">{firm.name}</span></li>
       </ol></nav>
+      {firm.sample && <div className="service-sample-banner" role="note"><FlaskConical size={20} aria-hidden="true"/><p><strong>{t("Örnek firma — bu profil sitenin nasıl görüneceğini göstermek içindir.")}</strong> {t("Gerçek bir firma değildir; iletişim bilgisi yoktur ve sayımlara dahil edilmez.")}</p></div>}
       {firm.status !== "approved" && <div className="service-preview-note" role="status"><Clock size={17} aria-hidden="true"/>{t("Önizleme: bu profil herkese açık değil.")} <strong>{t(SERVICE_STATUS_LABELS[firm.status])}</strong></div>}
     </div>
     <header className="service-profile-head container">
@@ -29,7 +30,7 @@ export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; 
         <span className="service-profile-logo">{firm.logo ? <img src={firm.logo} alt={firm.name}/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>
         <div>
           <h1>{firm.name}</h1>
-          <div className="service-profile-badges">{firm.verified && <ServiceVerifiedBadge/>}{firm.status === "approved" && <span className="service-approved-note">{t("Yönetici onaylı profil")}</span>}</div>
+          <div className="service-profile-badges">{firm.sample && <ServiceSampleBadge className="inline"/>}{firm.verified && <ServiceVerifiedBadge/>}{firm.status === "approved" && !firm.sample && <span className="service-approved-note">{t("Yönetici onaylı profil")}</span>}</div>
         </div>
       </div>
     </header>
@@ -49,12 +50,18 @@ export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; 
       </article>
       <aside className="service-contact-card" aria-labelledby="service-contact-title">
         <h2 id="service-contact-title">{t("Firmayla iletişim")}</h2>
+        {firm.sample ? <>
+          <p className="service-sample-contact"><FlaskConical size={16} aria-hidden="true"/>{t("Örnek firma — iletişim bilgisi yok")}</p>
+          <button type="button" className="btn btn-primary btn-block" disabled aria-disabled="true"><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span></button>
+          {first && <Link className="btn btn-secondary btn-block" href={servicePath(first.slug)}><ServiceIcon name={first.icon} size={17}/>{t(first.name)}</Link>}
+        </> : <>
         <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
         {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
         {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
         {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc"><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
         <p className="service-contact-note">{t("Fiyat ve iş koşullarını firmayla yazılı olarak netleştirin. estatemarket24 hizmetin tarafı değildir.")}</p>
         <Link className="service-report" href="/iletisim"><Flag size={14} aria-hidden="true"/>{t("Bu profille ilgili sorun bildir")}</Link>
+        </>}
       </aside>
     </div>
     {similar.length > 0 && <section className="container services-featured svc-similar" aria-labelledby="svc-similar-title">

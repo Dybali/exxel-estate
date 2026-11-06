@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
 import { ServiceFirmCard } from "@/components/ServiceFirmCard";
 import { ServiceIcon } from "@/components/ServiceIcon";
+import { ServiceSampleNote } from "@/components/ServicesLanding";
 import { useLocale } from "@/lib/i18n";
 import { categoriesOf, SERVICE_GROUPS, type ServiceSlug } from "@/lib/service-categories";
 import { EMPTY_SERVICE_FILTERS, SERVICE_SEARCH_PATH, serviceSearchHref, servicePageList, withLang, type ServiceFilters } from "@/lib/service-search";
@@ -68,7 +69,8 @@ function Pagination({ filters, page, pages }: { filters: ServiceFilters; page: n
   </nav>;
 }
 
-export type ServiceResultsData = { firms: ServiceFirm[]; total: number; page: number; pages: number; perPage: number };
+/** `total` is real firms only; `samples` counts the sample firms listed after them (lib/service-samples.ts). */
+export type ServiceResultsData = { firms: ServiceFirm[]; total: number; page: number; pages: number; perPage: number; samples?: number };
 
 /**
  * Results of /hizmetler/ara and of every category/region page: filter sidebar, count, sort, firm
@@ -85,7 +87,7 @@ export function ServiceResults({ filters, results, counts, highlight, empty }: {
     return () => { document.removeEventListener("keydown", escape); document.body.classList.remove("svc-drawer-open"); };
   }, [drawer]);
   const active = filters.categories.length + (filters.city ? 1 : 0) + (filters.verified ? 1 : 0) + (filters.photos ? 1 : 0) + (filters.q ? 1 : 0);
-  const first = (results.page - 1) * results.perPage + 1, last = first + results.firms.length - 1;
+  const first = (results.page - 1) * results.perPage + 1, last = first + results.firms.length - 1, samples = results.samples || 0;
   return <div className="svc-results-layout">
     <aside className="svc-results-aside" aria-label={t("Filtreler")}><ServiceFilterForm filters={filters} counts={counts}/></aside>
     {drawer && <div className="svc-drawer-backdrop" onClick={() => setDrawer(false)} aria-hidden="true"/>}
@@ -98,7 +100,9 @@ export function ServiceResults({ filters, results, counts, highlight, empty }: {
       <div className="svc-results-toolbar">
         <p id="svc-results-count" className="svc-results-count" aria-live="polite">
           <strong>{t("{n} firma").replace("{n}", number(results.total))}</strong>
-          {results.total > 0 && results.firms.length > 0 && <span>{t("{from}–{to} arası gösteriliyor").replace("{from}", number(first)).replace("{to}", number(last))}</span>}
+          {/* The range counts positions; with samples after the real firms it would not match the real total. */}
+          {samples === 0 && results.total > 0 && results.firms.length > 0 && <span>{t("{from}–{to} arası gösteriliyor").replace("{from}", number(first)).replace("{to}", number(last))}</span>}
+          {samples > 0 && <span className="svc-sample-count">{t("{n} örnek firma").replace("{n}", number(samples))}</span>}
         </p>
         <button type="button" className="btn btn-secondary btn-sm svc-filter-button" onClick={() => setDrawer(true)} aria-haspopup="dialog">
           <SlidersHorizontal size={16} aria-hidden="true"/>{t("Filtreler")}{active > 0 && <b>{active}</b>}
@@ -108,6 +112,7 @@ export function ServiceResults({ filters, results, counts, highlight, empty }: {
             {(Object.keys(SORT_LABELS) as ServiceSort[]).map((sort) => <option key={sort} value={sort}>{t(SORT_LABELS[sort])}</option>)}
           </select></label>
       </div>
+      {results.firms.some((firm) => firm.sample) && <ServiceSampleNote/>}
       {results.firms.length > 0
         ? <div className="service-firm-grid svc-results-grid">{results.firms.map((firm) => <ServiceFirmCard key={firm.id} firm={firm} highlight={highlight}/>)}</div>
         : <div className="service-empty">

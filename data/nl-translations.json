@@ -2786,5 +2786,10 @@
  "Benzer firmalar": "Vergelijkbare bedrijven",
  "Firma profili kaldırılmış veya bağlantı değişmiş olabilir. Hizmet firmalarında aramaya devam edebilirsiniz.": "Het bedrijfsprofiel is mogelijk verwijderd of de link is gewijzigd. U kunt verder zoeken tussen dienstverleners.",
  "En yeni": "Nieuwste",
- "A–Z": "A–Z"
+ "A–Z": "A–Z",
+ "{n} örnek firma": "{n} voorbeeldbedrijven",
+ "Örnek firmalar, Hizmetler bölümünün nasıl görüneceğini göstermek içindir. Gerçek firma değildir, iletişim bilgisi yoktur ve sayımlara dahil edilmez.": "Voorbeeldbedrijven laten zien hoe de rubriek Diensten eruit zal zien. Het zijn geen echte bedrijven, ze hebben geen contactgegevens en worden niet meegeteld.",
+ "Örnek firma — bu profil sitenin nasıl görüneceğini göstermek içindir.": "Voorbeeldbedrijf – dit profiel laat zien hoe de site eruit zal zien.",
+ "Gerçek bir firma değildir; iletişim bilgisi yoktur ve sayımlara dahil edilmez.": "Het is geen echt bedrijf; er zijn geen contactgegevens en het wordt niet meegeteld.",
+ "Örnek firma — iletişim bilgisi yok": "Voorbeeldbedrijf – geen contactgegevens"
 }
