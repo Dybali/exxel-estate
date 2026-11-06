@@ -43,6 +43,7 @@ import "./listing-insights.css";
 import "./region-pages.css";
 import "./services.css";
 import "./map-features.css";
+import "./ai-search.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {GoogleAnalytics} from "@/components/GoogleAnalytics";
 import {gaMeasurementId,googleSiteVerification} from "@/lib/analytics";

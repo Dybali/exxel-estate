@@ -6,6 +6,8 @@ import Link from "@/components/SafeLink";
 import { ArrowLeft, Check, RotateCcw, ShieldCheck, X } from "lucide-react";
 import { formatPrice, type Listing, typeLabel } from "@/lib/listings";
 import { useLocale } from "@/lib/i18n";
+import type { AdminRiskView } from "@/lib/listing-risk";
+import { RiskReasonList, RiskScore } from "./RiskReasons";
 
 type Owner = { name: string; email: string; role: string; company?: string | null };
 
@@ -13,6 +15,7 @@ export function AdminListingReview({ listingId }: { listingId: string }) {
   const { t } = useLocale();
   const [listing, setListing] = useState<Listing | null>(null);
   const [owner, setOwner] = useState<Owner | null>(null);
+  const [risk, setRisk] = useState<AdminRiskView | null>(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -22,10 +25,11 @@ export function AdminListingReview({ listingId }: { listingId: string }) {
   const load = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin?listingId=${encodeURIComponent(listingId)}`, { cache: "no-store" });
-      const result = await response.json() as { listing?: Listing; owner?: Owner; error?: string };
+      const result = await response.json() as { listing?: Listing; owner?: Owner; risk?: AdminRiskView | null; error?: string };
       if (!response.ok || !result.listing || !result.owner) throw new Error(result.error || "İlan yüklenemedi.");
       setListing(result.listing);
       setOwner(result.owner);
+      setRisk(result.risk || null);
       setError("");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "İlan yüklenemedi.");
@@ -86,6 +90,7 @@ export function AdminListingReview({ listingId }: { listingId: string }) {
         {listing.translations && Object.entries(listing.translations).length > 0 && <div className="admin-review-section"><span className="eyebrow dark-eyebrow">{t("ÇEVİRİLER")}</span>{Object.entries(listing.translations).map(([locale, translation]) => <div className="admin-review-translation" key={locale}><strong>{locale.toUpperCase()} · {translation?.title}</strong><p>{translation?.description}</p></div>)}</div>}
       </article>
       <aside className="admin-review-aside">
+        {risk && (risk.flag || risk.reasons.length > 0) && <div className="admin-review-card risk-review-card"><span className="eyebrow dark-eyebrow">{t("SAHTE VE TEKRAR İLAN KONTROLÜ")}</span><p><RiskScore score={risk.score} level={risk.flag || "low"}/>{!risk.flag && <small className="admin-muted"> {t(risk.review ? "Yönetici sorun yok dedi." : "Açık uyarı yok.")}</small>}</p>{risk.reasons.length > 0 && <RiskReasonList reasons={risk.reasons}/>}{risk.matches.length > 0 && <p className="risk-review-links">{t("Benzer ilanlar")}: {risk.matches.map((match, index) => <Link key={match.id} href={`/yonetim/ilan/${match.id}`}>{index + 1}</Link>)}</p>}{risk.flag && <Link className="admin-text-button" href="/yonetim?view=suspicious">{t("Şüpheli ilanlarda karşılaştır")}</Link>}</div>}
         <div className="admin-review-card"><span className={`admin-review-status ${listing.status || "pending"}`}>{t(listing.status === "published" ? "Yayında" : listing.status === "rejected" ? "Reddedildi" : "Onay bekliyor")}</span><h2>{t("Yayın kararı")}</h2><p>{t("Bireysel ilanlar yönetici onayıyla yayımlanır. Onaylı emlakçıların ilanları doğrudan yayımlanabilir; yönetim gerektiğinde ilanı yayından kaldırabilir.")}</p><div className="admin-review-owner"><span>{t("İlanı gönderen")}</span><strong>{owner.name}</strong><small>{owner.company || owner.email}</small><small>{t(owner.role === "agent" ? "Emlakçı" : "Bireysel mal sahibi")}</small></div><label htmlFor="review-note">{t("Karar notu")} {listing.status !== "published" && <small>{t("(ret için zorunlu)")}</small>}<textarea id="review-note" value={note} onChange={(event) => setNote(event.target.value)} maxLength={1000} rows={4} placeholder={t("İlan sahibine gösterilecek açıklama")}/></label>
           <div className="admin-review-actions">{listing.status !== "published" && <button className="approve" type="button" onClick={() => decide("published")} disabled={busy}><Check size={17}/> {t("Onayla ve yayınla")}</button>}{listing.status !== "rejected" && <button className="reject" type="button" onClick={() => decide("rejected")} disabled={busy}><X size={17}/> {t("Reddet")}</button>}{listing.status !== "pending" && <button type="button" onClick={() => decide("pending")} disabled={busy}><RotateCcw size={16}/> {t("İncelemeye geri al")}</button>}</div>
           {listing.reviewNote && <p className="admin-review-previous"><strong>{t("Son karar notu:")}</strong> {listing.reviewNote}</p>}{success && <p className="form-status" role="status">{t(success)}</p>}{error && <p className="form-error" role="alert">{t(error)}</p>}

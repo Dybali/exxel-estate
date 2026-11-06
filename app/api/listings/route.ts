@@ -12,6 +12,8 @@ import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
+import {assessListingSave,type RiskDatabase} from "@/lib/listing-risk-server";
+import {RISK_REVIEW_NOTE} from "@/lib/listing-risk";
 import {listingCurrencyAllowed,tlPriceRange,TL_ONLY_MESSAGE} from "@/lib/price-filters";
 import { areaBounds,listingInArea,mapBoundsSql,validArea,validBounds } from "@/lib/search-filters";
 import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
@@ -166,7 +168,11 @@ export async function POST(request:Request) {
   }
   const optional=(value:unknown)=>value!==""&&value!==null&&value!==undefined&&Number.isFinite(num(value))&&num(value)>=0?num(value):null;
   const id=crypto.randomUUID(),createdAt=now();
-  const status=team?(await officePublicationAllowed(team.owner_id)?'published':'pending'):isAdmin(user)||user.role==='individual'||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
+  // Fraud and duplicate check (lib/listing-risk.ts, docs/listing-risk.md): advisory. Only a high score sends a
+  // non-admin's listing to review instead of publishing it; a failing check never blocks the listing.
+  let risk={route:false};
+  try{risk=await assessListingSave(db() as unknown as RiskDatabase,{id,ownerId:user.id,title,description,purpose,propertyType,city,district,price,currency:'TRY',grossArea,photoHashes:[],checksums:imageInfo.map(item=>item?.checksum||''),images,hashes:Object.fromEntries(imageKeys.map((key,index)=>['/api/media/'+key,imageInfo[index]?.photoHash||'']))},presentation as unknown as Record<string,unknown>,null,isAdmin(user));}catch{}
+  const status=risk.route?'pending':team?(await officePublicationAllowed(team.owner_id)?'published':'pending'):isAdmin(user)||user.role==='individual'||user.role==='agent'&&await officePublicationAllowed(user.id)?'published':'pending';
   const agentGuard=AGENT_PLANS_ENABLED&&user.role==='agent'&&!isAdmin(user)&&!team;
   const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at,agency_id) "+(team?`SELECT ${Array(34).fill('?').join(',')} WHERE EXISTS(SELECT 1 FROM company_team_memberships m JOIN agencies a ON a.id=m.agency_id JOIN users owner ON owner.id=a.owner_id JOIN users member ON member.id=m.user_id WHERE member.role='buyer' AND m.user_id=? AND m.agency_id=? AND m.ended_at IS NULL AND a.status='approved' AND owner.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications v WHERE v.user_id=CAST(owner.id AS TEXT) AND v.state='approved' AND v.company_snapshot=owner.company))`:agentGuard?`SELECT ${Array(34).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(34).fill('?').join(',')})`);
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
@@ -177,6 +183,7 @@ export async function POST(request:Request) {
     .bind(crypto.randomUUID(),id,"r2",storageBucket,key,imageInfo[index]!.contentType,imageInfo[index]!.size,imageInfo[index]!.checksum,index,createdAt)));
   if(user.role==='agent'&&!isAdmin(user)&&!team)statements.push(db().prepare("UPDATE listings SET status='pending' WHERE id=? AND NOT EXISTS(SELECT 1 FROM users u JOIN office_verifications v ON v.user_id=CAST(u.id AS TEXT) WHERE u.id=? AND u.role='agent' AND u.agent_status='approved' AND v.state='approved' AND v.company_snapshot=u.company)").bind(id,user.id));
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=? WHERE id=? AND status='published'").bind(createdAt,id));
+  if(risk.route)statements.push(db().prepare("UPDATE listings SET review_note=? WHERE id=? AND status='pending'").bind(RISK_REVIEW_NOTE,id));
   try{await db().batch(statements);}catch(cause){if(ticket){try{const existing=await submittedListing(db(),ticket);if(existing)return ok(existing,{headers:{'Cache-Control':'private, no-store'}});}catch(replayError){if(replayError instanceof SubmissionError)return error(replayError.message,replayError.status);throw replayError;}}if(String((cause as Error).message).includes('individual_listing_quota'))return error('Bireysel üyeler 45 günde bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);if(agentGuard&&String((cause as Error).message).includes('foreign key'))return error('Paket hakkınız değişti. Sayfayı yenileyip tekrar deneyin.',409);throw cause;}
   const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
   if(!saved)return error('Ekip üyeliğiniz değişti. Sayfayı yenileyin.',409);

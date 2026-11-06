@@ -1,3 +1,4 @@
+import { dHashFromGray } from "./listing-risk";
 // Browser-side photo preparation before upload: resize, re-encode and watermark.
 // Re-encoding also drops EXIF metadata such as GPS coordinates.
 export const MAX_PHOTO_EDGE = 2560;
@@ -48,5 +49,35 @@ export async function optimizeListingPhoto(file: File, { watermark = true } = {}
     return new File([blob], name, { type: blob.type, lastModified: file.lastModified });
   } finally {
     bitmap.close();
+  }
+}
+
+// Perceptual fingerprint (dHash, 16 hex digits) of the prepared photo for the duplicate check
+// (lib/listing-risk.ts). Computed here because the Workers runtime cannot decode images; the
+// admin backfill uses the same function on stored photos, so both sides hash identical bytes.
+// Drawn first at 36×32 and averaged in 4×4 blocks so the result does not depend on how a browser
+// samples a large downscale. Returns null when the image cannot be decoded.
+export async function photoFingerprint(file: Blob): Promise<string | null> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 36;
+      canvas.height = 32;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return null;
+      context.imageSmoothingQuality = "high";
+      context.drawImage(bitmap, 0, 0, 36, 32);
+      const { data } = context.getImageData(0, 0, 36, 32), gray = new Array<number>(72).fill(0);
+      for (let y = 0; y < 32; y++) for (let x = 0; x < 36; x++) {
+        const i = (y * 36 + x) * 4;
+        gray[(y >> 2) * 9 + (x >> 2)] += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      }
+      return dHashFromGray(gray);
+    } finally {
+      bitmap.close();
+    }
+  } catch {
+    return null;
   }
 }

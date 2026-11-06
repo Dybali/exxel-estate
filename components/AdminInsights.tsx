@@ -7,7 +7,7 @@ import type {AdminInsights as Insights,InsightPeriod,Metric,PendingKind,RoleKind
 
 const PERIODS:[InsightPeriod,string][]=[['today','Bugün'],['7d','7 gün'],['30d','30 gün'],['90d','90 gün']];
 const ROLES:Record<RoleKind|'admin',string>={individual:'Bireysel',agent:'Emlakçı',developer:'İnşaat firması',buyer:'Alıcı',admin:'Yönetici'};
-const PENDING:Record<PendingKind,string>={listings:'Onay bekleyen ilanlar',officeDocuments:'Ofis belgeleri',companyApplications:'Şirket başvuruları',projects:'Onay bekleyen projeler',services:'Onay bekleyen hizmet firmaları',reports:'İlan bildirimleri',contact:'Yeni iletişim mesajları',orders:'Ödeme bekleyen siparişler'};
+const PENDING:Record<PendingKind,string>={listings:'Onay bekleyen ilanlar',suspicious:'Şüpheli ilanlar',officeDocuments:'Ofis belgeleri',companyApplications:'Şirket başvuruları',projects:'Onay bekleyen projeler',services:'Onay bekleyen hizmet firmaları',reports:'İlan bildirimleri',contact:'Yeni iletişim mesajları',orders:'Ödeme bekleyen siparişler'};
 const SERIES:[ 'listings'|'users'|'messages',string][]=[['listings','Yeni ilanlar'],['users','Yeni üyeler'],['messages','Mesajlar']];
 const intlLocale=(locale:string)=>locale==='tr'?'tr-TR':locale;
 

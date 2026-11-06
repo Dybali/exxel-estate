@@ -8,7 +8,7 @@ import {useLocale} from "@/lib/i18n";
 import {AMENITIES,PROPERTY_TYPES} from "@/lib/listings";
 import {LISTING_CURRENCY} from "@/lib/price-filters";
 import {importSubmissionId,matchNeighborhood,MAX_IMPORT_LISTINGS,normalizeImport,type ImportCandidate,type RawImport} from "@/lib/listing-import";
-import {optimizeListingPhoto} from "@/lib/photo-optimize";
+import {optimizeListingPhoto,photoFingerprint} from "@/lib/photo-optimize";
 
 type Row=ImportCandidate&{state:"ready"|"invalid"|"working"|"published"|"pending"|"existing"|"failed";message?:string;listingId?:string};
 const childText=(parent:Element,name:string)=>parent.getElementsByTagName(name)[0]?.textContent||"";
@@ -41,7 +41,7 @@ export function ListingImport(){
   if(!r.ok){const data=await apiJson<{error?:string}>(r).catch(()=>({error:""}));throw Error(data.error||"Fotoğraf indirilemedi.");}
   const blob=await r.blob(),original=new File([blob],url.split("/").pop()||"photo",{type:blob.type});
   const prepared=await optimizeListingPhoto(original).catch(()=>original);
-  const form=new FormData();form.append("file",prepared);
+  const form=new FormData();form.append("file",prepared);const hash=await photoFingerprint(prepared);if(hash)form.append("photoHash",hash);
   const upload=await fetch("/api/media",{method:"POST",body:form}),data=await apiJson<{url?:string;error?:string}>(upload);
   if(!upload.ok||!data.url)throw Error(data.error||"Fotoğraf yüklenemedi.");return data.url;}
  async function run(){

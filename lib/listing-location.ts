@@ -1,4 +1,5 @@
 import provinceCenters from "@/data/province-centers.json";
+import { withoutRiskData } from "./listing-risk";
 // Map pin of a listing (docs/listing-map.md).
 //
 // Storage: the listings.latitude/longitude columns always hold the PUBLIC point, the one every
@@ -96,8 +97,9 @@ export function storedLocation(value: unknown): StoredLocation | null {
     ? { precision, exact: { lat: Number(exact.lat), lng: Number(exact.lng) } } : { precision };
 }
 
-/** Presentation without the private exact pin: the only shape that may leave the server. */
-export function publicPresentation<T extends Record<string, unknown>>(presentation: T): T {
+/** Presentation without the private exact pin and the fraud check data (lib/listing-risk.ts): the only shape that may leave the server. */
+export function publicPresentation<T extends Record<string, unknown>>(stored: T): T {
+  const presentation = withoutRiskData(stored);
   const location = storedLocation(presentation?.location);
   if (!presentation || !("location" in presentation)) return presentation;
   const { location: _hidden, ...rest } = presentation;

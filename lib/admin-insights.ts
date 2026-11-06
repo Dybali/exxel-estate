@@ -60,10 +60,10 @@ const split = (column: string) => `SUM(CASE WHEN ${column}>=? AND ${column}<? TH
 
 export const ROLE_KINDS = ["individual", "agent", "developer", "buyer"] as const;
 export type RoleKind = typeof ROLE_KINDS[number];
-export const PENDING_KINDS = ["listings", "officeDocuments", "companyApplications", "projects", "services", "reports", "contact", "orders"] as const;
+export const PENDING_KINDS = ["listings", "suspicious", "officeDocuments", "companyApplications", "projects", "services", "reports", "contact", "orders"] as const;
 export type PendingKind = typeof PENDING_KINDS[number];
 export const PENDING_LINKS: Record<PendingKind, string> = {
-  listings: "/yonetim?view=listings", officeDocuments: "/yonetim?view=applications", companyApplications: "/yonetim?view=applications",
+  listings: "/yonetim?view=listings", suspicious: "/yonetim?view=suspicious", officeDocuments: "/yonetim?view=applications", companyApplications: "/yonetim?view=applications",
   projects: "/yonetim?view=projects", services: "/yonetim?view=services", reports: "/yonetim?view=reports", contact: "/yonetim?view=contact", orders: "/yonetim?view=orders",
 };
 
@@ -117,6 +117,8 @@ export async function adminInsights(db: InsightsDatabase, period: InsightPeriod,
     optional("orders", () => first(`SELECT ${split("o.created_at")},SUM(CASE WHEN o.status='fulfilled' AND o.fulfilled_at>=? AND o.fulfilled_at<? THEN 1 ELSE 0 END) AS fulfilled_current,SUM(CASE WHEN o.status='fulfilled' AND o.fulfilled_at>=? AND o.fulfilled_at<? THEN 1 ELSE 0 END) AS fulfilled_previous,SUM(CASE WHEN o.status='fulfilled' AND o.currency='TRY' AND o.fulfilled_at>=? AND o.fulfilled_at<? THEN o.amount ELSE 0 END) AS revenue_current,SUM(CASE WHEN o.status='fulfilled' AND o.currency='TRY' AND o.fulfilled_at>=? AND o.fulfilled_at<? THEN o.amount ELSE 0 END) AS revenue_previous FROM orders o WHERE (o.created_at>=? AND o.created_at<?) OR (o.fulfilled_at>=? AND o.fulfilled_at<?)`, ...range.slice(0, 4), w.start, w.end, w.previousStart, w.previousEnd, w.start, w.end, w.previousStart, w.previousEnd, w.previousStart, w.end, w.previousStart, w.end)),
     Promise.all([
       pendingCount("listings", `SELECT COUNT(*) AS n FROM listings l WHERE l.status='pending' AND ${notDemo(LISTING_ID)}`),
+      // Open fraud/duplicate flags (lib/listing-risk-server.ts) on live or waiting listings.
+      pendingCount("suspicious", `SELECT COUNT(*) AS n FROM listings l WHERE json_extract(l.presentation,'$.riskFlag') IS NOT NULL AND l.status IN ('published','pending') AND ${notDemo(LISTING_ID)}`),
       pendingCount("officeDocuments", "SELECT COUNT(*) AS n FROM office_verifications WHERE state='pending'"),
       pendingCount("companyApplications", "SELECT COUNT(*) AS n FROM users WHERE role='agent' AND agent_status='pending'"),
       pendingCount("projects", "SELECT COUNT(*) AS n FROM projects WHERE moderation='pending'"),

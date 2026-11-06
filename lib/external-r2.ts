@@ -25,11 +25,13 @@ function objectUrl(endpoint: string, key: string) {
 export function externalR2Ready() { return config() !== null; }
 export function externalR2BucketName() { return config()?.bucket || null; }
 
-export async function putExternalImage(key: string, bytes: Uint8Array, contentType: string, checksum: string) {
+// photoHash: the dHash computed in the uploader's browser (lib/listing-risk.ts); kept as object metadata
+// so the listing routes read it with the HEAD request they already make.
+export async function putExternalImage(key: string, bytes: Uint8Array, contentType: string, checksum: string, photoHash?: string | null) {
   const storage = config();
   if (!storage) throw new Error("External R2 is not configured");
   const response = await storage.client.fetch(objectUrl(storage.endpoint, key), {
-    method: "PUT", headers: { "Content-Type": contentType, "x-amz-meta-sha256": checksum }, body: bytes as unknown as BodyInit,
+    method: "PUT", headers: { "Content-Type": contentType, "x-amz-meta-sha256": checksum, ...(photoHash ? { "x-amz-meta-phash": photoHash } : {}) }, body: bytes as unknown as BodyInit,
   });
   if (!response.ok) throw new Error(`R2 upload failed (${response.status})`);
 }
@@ -40,7 +42,7 @@ export async function headExternalImage(key: string) {
   const response = await storage.client.fetch(objectUrl(storage.endpoint, key), { method: "HEAD" });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`R2 metadata failed (${response.status})`);
-  return { contentType: response.headers.get("content-type") || "image/jpeg", size: Number(response.headers.get("content-length") || 0), checksum: response.headers.get("x-amz-meta-sha256") };
+  return { contentType: response.headers.get("content-type") || "image/jpeg", size: Number(response.headers.get("content-length") || 0), checksum: response.headers.get("x-amz-meta-sha256"), photoHash: response.headers.get("x-amz-meta-phash") };
 }
 
 export async function deleteExternalImage(key: string) {

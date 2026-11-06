@@ -49,6 +49,8 @@ INSERT INTO listing_reports VALUES('rep1','l1','open'),('rep2','l2','reviewing')
 INSERT INTO contact_messages VALUES('c1','new'),('c2','handled');`;
 
 function fixture({optional=true}={}){const sql=new DatabaseSync(':memory:');sql.exec(CORE+(optional?OPTIONAL:'')+(optional?DATA:DATA.split('INSERT INTO listing_view_daily')[0]));
+ // Fraud/duplicate flags live in presentation (lib/listing-risk.ts): one live flag counts; rejected and sample listings do not.
+ sql.exec("ALTER TABLE listings ADD COLUMN presentation TEXT NOT NULL DEFAULT '{}';UPDATE listings SET presentation='{\"riskFlag\":\"high\"}' WHERE id IN ('l1','l6','sample-konut-01');UPDATE listings SET presentation='{\"risk\":{}}' WHERE id='l2'");
  const db={prepare(query){let values=[];return {bind(...v){values=v;return this;},async first(){return sql.prepare(query).get(...values)||null;},async all(){return {results:sql.prepare(query).all(...values)};},async run(){return sql.prepare(query).run(...values);}};}};return {sql,db};}
 
 test('periods: UTC day windows, equal-length previous period, invalid values rejected',()=>{
@@ -79,7 +81,7 @@ test('aggregates each metric per period and excludes demo and sample listings',a
   assert.deepEqual(k.views,{current:5,previous:1,change:400});// day buckets 10-30..11-05 vs 10-23..10-29
   assert.deepEqual(k.reservations,{current:1,previous:2,change:-50});// r4 belongs to no stored project
   assert.deepEqual(k.orders.created,{current:2,previous:1,change:100});assert.deepEqual(k.orders.fulfilled,{current:1,previous:1,change:0});assert.deepEqual(k.orders.revenue,{current:790,previous:1490,change:-47});
-  assert.deepEqual(Object.fromEntries(r.pending.map(p=>[p.kind,p.count])),{listings:1,officeDocuments:1,companyApplications:1,projects:1,services:2,reports:2,contact:1,orders:1});
+  assert.deepEqual(Object.fromEntries(r.pending.map(p=>[p.kind,p.count])),{listings:1,suspicious:1,officeDocuments:1,companyApplications:1,projects:1,services:2,reports:2,contact:1,orders:1});
   assert.equal(r.pending.find(p=>p.kind==='reports').href,'/yonetim?view=reports');
   assert.equal(r.series.length,7);assert.deepEqual(r.series.find(d=>d.day==='2026-11-02'),{day:'2026-11-02',listings:1,users:1,messages:2});assert.equal(r.series.reduce((n,d)=>n+d.users,0),3);
   assert.deepEqual(r.top.viewed.map(v=>[v.id,v.views,v.live]),[['l1',3,true],['l2',1,true],['l4',1,false]]);

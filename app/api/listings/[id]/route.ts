@@ -5,6 +5,8 @@ import {publicListing} from '@/lib/listings';
 import {reportsDB} from '@/lib/reports-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
+import {assessListingSave,keptPhotoHashes,type RiskDatabase} from "@/lib/listing-risk-server";
+import {RISK_REVIEW_NOTE} from "@/lib/listing-risk";
 import {validRooms} from "@/lib/listing-details";
 import {attachVideoStatement,videoAttachProblem,type VideoDatabase} from "@/lib/listing-video-store";
 import {removeVideoById,videoFeatureEnabled} from "@/lib/listing-video-server";
@@ -107,13 +109,23 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   for(const locale of ["de","fr","en","ar","fa","ru","nl"]){const entry=(translations as Record<string,unknown>)[locale];if(!entry)continue;if(typeof entry!=="object"||Array.isArray(entry))return error("Çevirileri kontrol edin.");const item=entry as Record<string,unknown>,translatedTitle=str(item.title,150),translatedDescription=str(item.description,5000);if(!translatedTitle&&!translatedDescription)continue;if(translatedTitle.length<12||translatedDescription.length<30)return error("Çeviri başlığı ve açıklaması eksiksiz olmalıdır.");cleanTranslations[locale]={title:translatedTitle,description:translatedDescription};}
   await reportsDB();
   const team=row.agency_id?await activeTeamCompany(user.id):null;
-  const status=(team&&team.id===String(row.agency_id)&&await officePublicationAllowed(team.owner_id))||user.role==='agent'&&await officePublicationAllowed(user.id)||isAdmin(user)?"published":"pending";
+  // Fraud and duplicate check (lib/listing-risk.ts): kept photos keep their fingerprints, new ones bring theirs from
+  // the upload. A high score sends a non-admin's edit to review; an administrator's "Sorun yok" is remembered.
+  let risk={route:false};
+  for(const key of ["photoHashes","risk","riskFlag"])if(storedPresentation[key]!==undefined)(presentation as unknown as Record<string,unknown>)[key]=storedPresentation[key];
+  try{
+    const hashes={...keptPhotoHashes(storedPresentation,images),...Object.fromEntries(added.map((key,index)=>["/api/media/"+key,addedInfo[index]?.photoHash||""]).filter(([,hash])=>hash))};
+    const kept=(await db().prepare("SELECT checksum_sha256 FROM property_images WHERE property_id=?").bind(id).all<{checksum_sha256:string|null}>()).results.map(item=>String(item.checksum_sha256||""));
+    risk=await assessListingSave(db() as unknown as RiskDatabase,{id,ownerId:String(row.owner_id),title,description,purpose,propertyType,city,district,price,currency,grossArea,photoHashes:[],checksums:[...kept,...addedInfo.map(item=>item?.checksum||"")],images,hashes},presentation as unknown as Record<string,unknown>,storedPresentation,isAdmin(user));
+  }catch{}
+  const status=risk.route?"pending":(team&&team.id===String(row.agency_id)&&await officePublicationAllowed(team.owner_id))||user.role==='agent'&&await officePublicationAllowed(user.id)||isAdmin(user)?"published":"pending";
   const updatedAt=now();
   const statements=[db().prepare("UPDATE listings SET title=?,description=?,purpose=?,property_type=?,price=?,currency=?,city=?,district=?,neighborhood=?,neighborhood_id=?,postal_code=?,latitude=?,longitude=?,gross_area=?,net_area=?,rooms=?,bedrooms=?,bathrooms=?,building_age=?,floor=?,total_floors=?,heating=?,furnished=?,amenities=?,images=?,translations=?,presentation=?,status=CASE WHEN listings.status<>'published' OR EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN 'pending' ELSE ? END,review_note=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN review_note ELSE NULL END,reviewed_by=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_by ELSE NULL END,reviewed_at=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_at ELSE NULL END,updated_at=? WHERE id=?")
     .bind(title,description,purpose,propertyType,price,currency,city,district,neighborhood?.name??row.neighborhood??null,neighborhood?.id??row.neighborhood_id??null,neighborhood?.postalCode??row.postal_code??null,point?point.latitude:before.latitude,point?point.longitude:before.longitude,grossArea,...optionalFields.slice(0,1),value("rooms","rooms",10)||null,...optionalFields.slice(1),value("heating","heating",50)||null,Object.hasOwn(data,"furnished")?data.furnished?1:0:Number(row.furnished)||0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(cleanTranslations),JSON.stringify(presentation),status,updatedAt,id)];
   [...new Set([...originalImages,...originalPanoramas.map(scene=>scene.url),...(originalFloorPlan?[originalFloorPlan]:[])])].forEach((image)=>{const key=image.slice("/api/media/".length);if(!keys.includes(key))statements.push(db().prepare("DELETE FROM property_images WHERE property_id=? AND object_key=?").bind(id,key));});
   keys.forEach((key,index)=>{if(previousKeys.has(key))statements.push(db().prepare("UPDATE property_images SET sort_order=? WHERE property_id=? AND object_key=?").bind(index,id,key));else{const info=addedInfo[added.indexOf(key)]!;statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,"r2",bucket!,key,info.contentType,info.size,info.checksum,index,updatedAt));}});
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=COALESCE(published_at,?) WHERE id=?").bind(updatedAt,id));
+  if(risk.route)statements.push(db().prepare("UPDATE listings SET review_note=? WHERE id=? AND status='pending' AND review_note IS NULL").bind(RISK_REVIEW_NOTE,id));
   if(presentation.videoId&&presentation.videoId!==previousVideo)statements.push(attachVideoStatement(db(),presentation.videoId,String(row.owner_id),id));
   if(Number(row.price)!==price||String(row.currency)!==currency||row.purpose!==purpose)statements.push(db().prepare("INSERT INTO price_history(id,listing_id,old_price,new_price,currency,purpose,changed_at) VALUES(?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,Number(row.currency===currency&&row.purpose===purpose?row.price:price),price,currency,purpose,updatedAt));
   await db().batch(statements);

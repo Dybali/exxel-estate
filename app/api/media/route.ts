@@ -1,6 +1,7 @@
 import { bucket, currentUser, error, ok, sameOrigin } from "@/lib/server";
 import { externalR2Ready, putExternalImage } from "@/lib/external-r2";
 import {panoramaDimensions} from '@/lib/panoramas';
+import {validPhotoHash} from '@/lib/listing-risk';
 
 export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
@@ -25,6 +26,9 @@ export async function POST(request:Request) {
   const bytes=new Uint8Array(await file.arrayBuffer());
   if(new URL(request.url).searchParams.get('purpose')==='panorama'){try{if(file.type!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(bytes);}catch(cause){return error((cause as Error).message);}}
   const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map((item)=>item.toString(16).padStart(2,"0")).join("");
-  await putExternalImage(key,bytes,file.type,digest);
+  // Listing photos carry a dHash computed in the browser (Workers cannot decode WebP/JPEG; docs/listing-risk.md).
+  // It is advisory only: a malformed value is dropped, never an error.
+  const photoHash=form.get("photoHash"),hash=typeof photoHash==="string"&&validPhotoHash(photoHash.trim().toLowerCase())?photoHash.trim().toLowerCase():null;
+  await putExternalImage(key,bytes,file.type,digest,purpose?null:hash);
   return ok({url:`/api/media/${key}`},{status:201});
 }

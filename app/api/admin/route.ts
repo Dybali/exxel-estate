@@ -2,6 +2,8 @@ import {listingExpired} from '@/lib/listing-policy';
 import {officeDB} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {reportsDB} from '@/lib/reports-server';
+import {clearRiskFlag,type RiskDatabase} from '@/lib/listing-risk-server';
+import {adminRiskView} from '@/lib/listing-risk';
 import { body, currentUser, db, error, isAdmin, now, ok, parseListing, sameOrigin, str } from "@/lib/server";
 
 export async function GET(request: Request) {
@@ -18,6 +20,8 @@ export async function GET(request: Request) {
     return ok({
       listing: parseListing(row),
       owner: { name: row.owner_name, email: row.owner_email, role: row.owner_role, company: row.owner_company },
+      // Fraud and duplicate check for the admin badge (parseListing strips it from the listing itself).
+      risk: adminRiskView(row.presentation),
     }, { headers: { "Cache-Control": "no-store" } });
   }
   const requestedPage = Number(new URL(request.url).searchParams.get("page") || 1);
@@ -58,6 +62,8 @@ export async function POST(request: Request) {
     await db().batch([db().prepare("UPDATE listings SET status=?,review_note=?,reviewed_by=?,reviewed_at=?,updated_at=?,published_at=CASE WHEN ?='published' THEN COALESCE(published_at,?) ELSE published_at END WHERE id=?")
       .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(),status,now(), id),audit("listing",id,status+(note?" · "+note:"")),...(status==="published"?[db().prepare("UPDATE listing_moderation_holds SET active=0,released_at=? WHERE listing_id=?").bind(now(),id)]:[])]);
     if(status==='published')scheduleListingTranslations(id);
+    // Publishing after review also answers an open fraud/duplicate flag (already audited above as "listing").
+    if(status==='published'){try{await clearRiskFlag(db() as unknown as RiskDatabase,id,{id:user!.id,name:user!.name},{audit:false});}catch{}}
     return ok({ success: true, status });
   }
   if (kind === "agent" && ["approved", "rejected", "pending"].includes(status)) {

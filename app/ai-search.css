@@ -1,0 +1,33 @@
+/* Natural-language search box (components/NaturalSearch.tsx): home hero and the /ilanlar top.
+   Mobile first, logical properties for RTL, brand petrol/gold from brand-colors.css and buttons.css. */
+.nl-search{width:min(100%,1120px);margin-inline:auto;color:var(--brand-ink,#15171c)}
+.nl-search-form{display:grid;gap:6px;padding:10px;background:#fffffff5;border:1px solid #dae5e8;border-radius:12px;box-shadow:0 10px 30px #24434b14}
+.nl-search-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--brand-petrol,#0b5f63)}
+.nl-search-label svg{color:var(--brand-gold-dark,#e3a634)}
+.nl-search-label small{margin-inline-start:auto;padding:2px 8px;border-radius:999px;background:#e8f2f2;color:var(--brand-petrol,#0b5f63);font-size:10px;font-weight:700;letter-spacing:.04em}
+.nl-search-field{position:relative;display:flex;gap:8px;align-items:stretch}
+.nl-search-icon{position:absolute;inset-inline-start:12px;top:50%;transform:translateY(-50%);color:var(--brand-gold-dark,#e3a634);pointer-events:none}
+.nl-search-field input{flex:1;min-width:0;min-height:48px;padding-block:10px;padding-inline:40px 12px;border:1px solid #cfdcdf;border-radius:var(--btn-radius,8px);background:#fff;color:#1f2f35;font-size:16px;line-height:1.3}
+.nl-search-field input::placeholder{color:#7b8c92;font-size:14px}
+.nl-search-field input:focus-visible{outline:2px solid var(--brand-gold,#f2b84b);outline-offset:1px;border-color:var(--brand-petrol,#0b5f63)}
+.nl-search-submit{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:48px;min-height:48px;padding-inline:16px;border:1px solid var(--brand-petrol,#0b5f63);border-radius:var(--btn-radius,8px);background:var(--brand-petrol,#0b5f63);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.nl-search-submit:hover:not(:disabled){background:var(--brand-petrol-dark,#09494c)}
+.nl-search-submit:disabled{opacity:.6;cursor:not-allowed}
+.nl-search-spin{animation:nl-search-spin 1s linear infinite}
+@keyframes nl-search-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.nl-search-spin{animation:none}}
+.nl-search-hint{margin:0;font-size:11px;line-height:1.4;color:#667982}
+.nl-search-error{margin:8px 0 0;padding:8px 12px;border-radius:8px;background:#fdf1ef;border:1px solid #e8c4bf;color:#8a2a22;font-size:13px}
+.nl-search-summary{display:grid;gap:8px;margin-top:8px;padding:10px 12px;background:#fff;border:1px solid #dae5e8;border-radius:10px}
+.nl-search-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.nl-search-chips li{padding:5px 10px;border-radius:999px;background:#e8f2f2;color:var(--brand-petrol,#0b5f63);font-size:12px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.nl-search-note,.nl-search-ai{margin:0;font-size:12px;line-height:1.45;color:#5b6d73}
+.nl-search-ai{display:inline-flex;align-items:center;gap:5px;color:#8a6412}
+.nl-search-actions{display:flex;flex-wrap:wrap;gap:8px}
+.nl-search-actions .btn{min-height:36px}
+@media(max-width:560px){.nl-search-submit span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.nl-search-submit{padding-inline:12px}}
+/* Home hero: sits above the category search with the same width. */
+.market-home .nl-search-home{margin-bottom:12px}
+.market-home .nl-search-home .nl-search-summary{background:#fffffff5}
+/* /ilanlar: between the intro and the quick search. */
+.explore-top .nl-search-listings{margin-inline:0;margin-top:18px;max-width:1030px}

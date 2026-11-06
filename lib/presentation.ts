@@ -7,7 +7,9 @@ export type Presentation={floorPlan:string;videoUrl:string;tourUrl:string;garden
  /** Map pin precision (lib/listing-location.ts); `exact` (the private pin) never leaves the server. */
  location?:import('./listing-location').StoredLocation;
  /** Neighbourhood block (lib/neighborhood-info.ts), written by the server only. */
- nearby?:import('./neighborhood-info').NearbyInfo};
+ nearby?:import('./neighborhood-info').NearbyInfo;
+ /** Fraud and duplicate check (lib/listing-risk.ts), written by the server only and never sent to visitors. */
+ photoHashes?:Record<string,string>;risk?:import('./listing-risk').StoredRisk;riskFlag?:import('./listing-risk').RiskLevel};
 export function videoEmbed(value:string){
  try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port)return null;const host=url.hostname.replace(/^www\./,'');if(host==='youtu.be'||host==='youtube.com'){const id=host==='youtu.be'?url.pathname.slice(1):url.pathname==='/watch'?url.searchParams.get('v'):url.pathname.match(/^\/(?:shorts|embed)\/([A-Za-z0-9_-]{11})$/)?.[1];return id&&/^[A-Za-z0-9_-]{11}$/.test(id)?`https://www.youtube-nocookie.com/embed/${id}`:null;}if(host==='vimeo.com'&&/^\/\d{5,12}$/.test(url.pathname))return `https://player.vimeo.com/video/${url.pathname.slice(1)}`;}catch{}return null;
 }
