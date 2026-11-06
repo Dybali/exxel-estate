@@ -21,14 +21,17 @@ import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
 import { ArrowLeft, ArrowRight, CloudUpload, X } from "lucide-react";
 import { useLocale, locales } from "@/lib/i18n";
-import { AMENITIES, CITIES, PROPERTY_TYPES, type Listing } from "@/lib/listings";
+import { AMENITIES, CITIES, PROPERTY_TYPES, formatPrice, type Listing } from "@/lib/listings";
+import { useDisplayCurrency } from "./DisplayCurrency";
+import { formatRateDate, priceInTl } from "@/lib/display-currency";
 import { districtsFor } from "@/lib/turkey-locations";
 
 type Neighborhood = {id:number;name:string;postalCode:string;label:string};
 type Profile = {id:string;role:string;agent_status:string;isAdmin?:boolean};
 
 export function ListingEditor({id}:{id:string}) {
-  const {t}=useLocale();
+  const {t,locale}=useLocale();
+  const {rates}=useDisplayCurrency();
   const [listing,setListing]=useState<Listing|null>(null);
   const [profile,setProfile]=useState<Profile|null>(null);
   const [loading,setLoading]=useState(true);
@@ -85,7 +88,7 @@ export function ListingEditor({id}:{id:string}) {
     const form=new FormData(event.currentTarget);
     const translations:Record<string,{title:string;description:string}>={};
     for(const {code} of locales){if(code==="tr")continue;const title=String(form.get(`title_${code}`)||"").trim(),description=String(form.get(`description_${code}`)||"").trim();if(title||description)translations[code]={title,description};}
-    const payload={...presentation,title:form.get("title"),description:form.get("description"),purpose:form.get("purpose"),propertyType:form.get("propertyType"),price:form.get("price"),currency:form.get("currency"),city,district,neighborhoodId, gardenArea:form.get("gardenArea"),plotArea:form.get("plotArea"),grossArea:form.get("grossArea"),netArea:form.get("netArea"),rooms:form.get("rooms"),bedrooms:form.get("bedrooms"),bathrooms:form.get("bathrooms"),buildingAge:form.get("buildingAge"),floor:form.get("floor"),totalFloors:form.get("totalFloors"),heating:form.get("heating"),furnished:form.get("furnished")==="1",...Object.fromEntries(SUBTYPE_FIELDS.map(item=>[item.field,String(form.get(item.field)||"")])),...Object.fromEntries(Object.keys(LAND_FIELDS).map(field=>[field,String(form.get(field)||"")])),...(form.get("propertyType")==="arsa"?{rooms:'',bedrooms:'',bathrooms:'',buildingAge:'',floor:'',totalFloors:'',heating:'',netArea:'',plotArea:'',gardenArea:'',furnished:false}:{}),amenities,images,translations,...Object.fromEntries(DETAIL_FIELDS.map(field=>[field.form,String(form.get(field.form)||"")])),[FOREIGN_SALE.form]:String(form.get(FOREIGN_SALE.form)||""),expectedUpdatedAt:listing.updatedAt};
+    const payload={...presentation,title:form.get("title"),description:form.get("description"),purpose:form.get("purpose"),propertyType:form.get("propertyType"),price:form.get("price"),currency:"TRY",city,district,neighborhoodId, gardenArea:form.get("gardenArea"),plotArea:form.get("plotArea"),grossArea:form.get("grossArea"),netArea:form.get("netArea"),rooms:form.get("rooms"),bedrooms:form.get("bedrooms"),bathrooms:form.get("bathrooms"),buildingAge:form.get("buildingAge"),floor:form.get("floor"),totalFloors:form.get("totalFloors"),heating:form.get("heating"),furnished:form.get("furnished")==="1",...Object.fromEntries(SUBTYPE_FIELDS.map(item=>[item.field,String(form.get(item.field)||"")])),...Object.fromEntries(Object.keys(LAND_FIELDS).map(field=>[field,String(form.get(field)||"")])),...(form.get("propertyType")==="arsa"?{rooms:'',bedrooms:'',bathrooms:'',buildingAge:'',floor:'',totalFloors:'',heating:'',netArea:'',plotArea:'',gardenArea:'',furnished:false}:{}),amenities,images,translations,...Object.fromEntries(DETAIL_FIELDS.map(field=>[field.form,String(form.get(field.form)||"")])),[FOREIGN_SALE.form]:String(form.get(FOREIGN_SALE.form)||""),expectedUpdatedAt:listing.updatedAt};
     setSaving(true);setError("");
     try{const response=await fetch(`/api/listings/${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await response.json() as {error?:string};if(!response.ok)throw new Error(data.error||"İlan güncellenemedi.");window.location.assign("/hesabim?tab=ilanlarim");}
     catch(cause){setError(cause instanceof Error?cause.message:"İlan güncellenemedi.");setSaving(false);}
@@ -94,6 +97,9 @@ export function ListingEditor({id}:{id:string}) {
   if(loading)return <main className="form-page"><div className="container section">{t("İlan yükleniyor…")}</div></main>;
   if(!listing||!profile||listing.source!=="user"||listing.ownerId!==profile.id&&!profile.isAdmin)return <main className="form-page"><div className="container form-gate"><h1>{t("İlan düzenlenemiyor.")}</h1><p>{t("İlanı düzenlemek için ilan sahibi hesabınızla giriş yapın.")}</p><Link className="primary-button" href="/hesabim?tab=ilanlarim">{t("İlanlarıma dön")} <ArrowRight size={17}/></Link></div></main>;
   const direct=(profile.role==="agent"&&profile.agent_status==="approved"||profile.isAdmin)&&listing.status==="published";
+  // Legacy EUR/USD/GBP listing: the price must be entered again in TL; the TCMB amount is only a hint.
+  const legacyPrice=listing.currency!=="TRY",legacyTlValue=legacyPrice?priceInTl(listing.price,listing.currency,rates):undefined;
+  const legacyTl=legacyTlValue!==undefined&&rates?{amount:Math.round(legacyTlValue),date:formatRateDate(rates.date,locale)}:null;
   return <main className="form-page listing-editor-page">
     <div className="form-hero"><div className="container"><Link className="company-back" href="/hesabim?tab=ilanlarim"><ArrowLeft size={16}/> {t("İlanlarıma dön")}</Link><span className="eyebrow dark-eyebrow">ESTATEMARKET24 · {t("İLAN YÖNETİMİ")}</span><h1>{t("İlanı düzenle")}</h1><p>{t("Değişiklikleri kaydettikten sonra ilan durumunu hesabınızdan takip edebilirsiniz.")}</p></div></div>
     <nav className="container listing-step-nav" aria-label={t("İlan düzenleme adımları")}><a href="#edit-basics"><span>01</span>{t("Temel bilgiler")}</a><a href="#edit-location"><span>02</span>{t("Konum")}</a><a href="#edit-features"><span>03</span>{t("Özellikler")}</a><a href="#edit-images"><span>04</span>{t("Fotoğraflar")}</a></nav>
@@ -104,8 +110,9 @@ export function ListingEditor({id}:{id:string}) {
         {SUBTYPES[editType||listing.propertyType]&&(({field,label,options})=><label key={field}>{t(label)}<select name={field} defaultValue={listing.presentation?.[field]||""} required><option value="">{t("Seçin")}</option>{options.map(x=><option key={x} value={x}>{t(x)}</option>)}</select></label>)(SUBTYPES[editType||listing.propertyType])}
         <label className="span-2">{t("İlan başlığı")}<input name="title" required minLength={12} maxLength={150} defaultValue={listing.title}/></label>
         <label className="span-2">{t("Açıklama")}<textarea name="description" required minLength={30} maxLength={5000} rows={6} defaultValue={listing.description}/></label>
-        <label>{t("Fiyat")}<input name="price" type="number" required min="1" step="1" defaultValue={listing.price}/></label>
-        <label>{t("Para birimi")}<select name="currency" defaultValue={listing.currency}>{["TRY","EUR","USD","GBP"].map((item)=><option key={item}>{item}</option>)}</select></label>
+        <label>{t("Fiyat (TL)")}<input name="price" type="number" required min="1" step="1" defaultValue={legacyPrice?"":listing.price}/></label>
+        <div className="listing-currency-fixed"><span>{t("Para birimi")}</span><strong>TL (₺)</strong><small>{t("İlan fiyatı yalnızca TL olarak girilir. Ziyaretçiler başka para birimi seçerse TCMB kuruyla hesaplanan yaklaşık tutarı görür.")}</small></div>
+        {legacyPrice&&<p className="listing-currency-legacy span-2" role="note">{t("Bu ilanın fiyatı {price} olarak girilmişti. Fiyatlar artık yalnızca TL olarak girilir; kaydetmek için TL fiyatını yazın.").replace("{price}",formatPrice(listing.price,listing.currency,locale))}{legacyTl?<> {t("TCMB kuruyla yaklaşık karşılığı: {amount} ({date}).").replace("{amount}",formatPrice(legacyTl.amount,"TRY",locale)).replace("{date}",legacyTl.date)}</>:null}</p>}
         <details className="translation-fields span-2"><summary>{t("İlan metninin çevirileri")}</summary><p>{t("Mevcut çevirileri güncelleyebilir veya boşaltabilirsiniz.")}</p>{locales.filter((item)=>item.code!=="tr").map((item)=><div className="translation-language" key={item.code}><strong>{item.label}</strong><label>{t("İlan başlığı")}<input name={`title_${item.code}`} minLength={12} maxLength={150} defaultValue={listing.translations?.[item.code as keyof NonNullable<Listing["translations"]>]?.title||""}/></label><label>{t("Açıklama")}<textarea name={`description_${item.code}`} minLength={30} maxLength={5000} rows={3} defaultValue={listing.translations?.[item.code as keyof NonNullable<Listing["translations"]>]?.description||""}/></label></div>)}</details>
       </div></section>
       <section id="edit-location"><span className="form-section-no">02</span><h2>{t("Konum")}</h2><p>{t("İl, ilçe ve mahalleyi doğrulayın.")}</p><div className="form-grid"><label>{t("Şehir")}<select value={city} onChange={(event)=>{setCity(event.target.value);setDistrict("");setNeighborhoodId("");}} required><option value="">{t("Şehir seçin")}</option>{CITIES.map((item)=><option key={item}>{item}</option>)}</select></label><label>{t("İlçe")}<select value={district} onChange={(event)=>{setDistrict(event.target.value);setNeighborhoodId("");}} required disabled={!city}><option value="">{t("İlçe seçin")}</option>{districtsFor(city).map((item)=><option key={item}>{item}</option>)}</select></label><label className="span-2">{t("Mahalle")}<select value={neighborhoodId} onChange={(event)=>setNeighborhoodId(event.target.value)} required disabled={!district}><option value="">{t("Mahalle seçin")}</option>{neighborhoods.map((item)=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label></div></section>

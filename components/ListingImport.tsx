@@ -6,7 +6,7 @@ import {FileUp} from "lucide-react";
 import {apiJson} from "@/lib/api-client";
 import {useLocale} from "@/lib/i18n";
 import {AMENITIES,PROPERTY_TYPES} from "@/lib/listings";
-import {CURRENCIES} from "@/lib/price-filters";
+import {LISTING_CURRENCY} from "@/lib/price-filters";
 import {importSubmissionId,matchNeighborhood,MAX_IMPORT_LISTINGS,normalizeImport,type ImportCandidate,type RawImport} from "@/lib/listing-import";
 import {optimizeListingPhoto} from "@/lib/photo-optimize";
 
@@ -33,7 +33,7 @@ export function ListingImport(){
  const {t}=useLocale(),[rows,setRows]=useState<Row[]>([]),[error,setError]=useState(""),[running,setRunning]=useState(false);
  const update=(ref:string,patch:Partial<Row>)=>setRows(old=>old.map(row=>row.ref===ref?{...row,...patch}:row));
  async function choose(file:File|undefined){setError("");setRows([]);if(!file)return;if(file.size>2_000_000){setError("XML dosyası en fazla 2 MB olabilir.");return;}
-  try{const raw=readXml(await file.text());const options={propertyTypes:PROPERTY_TYPES.map(p=>p.value),amenities:AMENITIES,currencies:CURRENCIES};const seen=new Set<string>();
+  try{const raw=readXml(await file.text());const options={propertyTypes:PROPERTY_TYPES.map(p=>p.value),amenities:AMENITIES,currencies:[LISTING_CURRENCY]};const seen=new Set<string>();
    setRows(raw.map(item=>{const candidate=normalizeImport(item,options);if(seen.has(candidate.ref))candidate.errors.push("Aynı ref birden fazla kez kullanılmış.");seen.add(candidate.ref);return {...candidate,state:candidate.errors.length?"invalid":"ready"};}));}
   catch(cause){setError((cause as Error).message);}}
  async function photo(url:string){

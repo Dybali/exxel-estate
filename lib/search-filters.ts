@@ -1,9 +1,11 @@
 import {searchText,textSearchSql} from "./text-search";
 import {categoryFilter} from "./property-categories";
-import {priceCurrency} from "./price-filters";
+import {priceCurrency,tlPriceRange} from "./price-filters";
+import {tlPriceSql,tlRates} from "./listing-sort";
+import type {RateSnapshot} from "./tcmb";
 import provinceCenters from "@/data/province-centers.json";
 // Shared validation for saved searches, alerts and map queries.
-export const searchFields = {purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",currency:"currency",neighborhood:"neighborhood"};
+export const searchFields = {purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",neighborhood:"neighborhood"};
 export const searchRanges = [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const;
 export function cleanSearch(input: string) {
   if(input.length>3000) throw new Error("Arama çok uzun.");
@@ -11,6 +13,7 @@ export function cleanSearch(input: string) {
   const text=searchText(source.get("q")||"");if(text)result.set("q",text);
   const category=source.get("category");if(category&&category.length<30)result.set("category",category);
   for(const key of Object.keys(searchFields)) { const value=source.get(key); if(value&&value.length<80)result.set(key,value); }
+  // currency: the currency a price range was entered in (lib/price-filters.ts), kept only with a range.
   for(const [key] of searchRanges){const value=source.get(key);if(value&&/^\d{1,12}$/.test(value))result.set(key,value);}
   if(source.get("furnished")==="1")result.set("furnished","1");
   const amenities=(source.get("amenities")||"").split(",").filter(value=>value&&value.length<50).slice(0,12);
@@ -24,12 +27,20 @@ export function validBounds(value:string):number[]|null {
   const values=value.split(",").map(Number);
   return values.length===4&&values.every(Number.isFinite)&&values[0]>=-180&&values[2]<=180&&values[1]>=-90&&values[3]<=90&&values[0]<values[2]&&values[1]<values[3]?values:null;
 }
-export function searchSql(query:string) {
+/**
+ * Saved searches and alerts. A price range is compared with the TL base price; legacy EUR/USD/GBP
+ * rows and a range in another currency use `rates` (the caller's TCMB snapshot). Without a rate for
+ * the range's currency the range applies to listings stored in that currency only.
+ */
+export function searchSql(query:string,rates:RateSnapshot|null=null) {
   const q=new URLSearchParams(cleanSearch(query)),where=["l.status='published'"],values:(string|number)[]=[];
   const text=textSearchSql(q.get("q")||"");if(text.where){where.push(text.where);values.push(...text.values);}
   const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
   for(const [key,column] of Object.entries(searchFields)){const value=q.get(key);if(value){where.push(`l.${column}=?`);values.push(value);}}
-  for(const [key,column,op] of searchRanges){const value=q.get(key);if(value){where.push(`l.${column}${op}?`);values.push(Number(value));}}
+  const range=tlPriceRange(q,rates),tl=tlPriceSql(tlRates(rates));
+  if(range){if(range.min!==undefined){where.push(`${tl}>=?`);values.push(range.min);}if(range.max!==undefined){where.push(`${tl}<=?`);values.push(range.max);}}
+  else{where.push("l.currency=?");values.push(q.get("currency")||"TRY");for(const [key,column,op] of searchRanges.slice(0,2)){const value=q.get(key);if(value){where.push(`l.${column}${op}?`);values.push(Number(value));}}}
+  for(const [key,column,op] of searchRanges.slice(2)){const value=q.get(key);if(value){where.push(`l.${column}${op}?`);values.push(Number(value));}}
   if(q.get("furnished")==="1")where.push("l.furnished=1");
   for(const feature of (q.get("amenities")||"").split(",").filter(Boolean)){where.push("EXISTS (SELECT 1 FROM json_each(l.amenities) WHERE value=?)");values.push(feature);}
   const bounds=validBounds(q.get("bounds")||"");if(bounds){const filter=mapBoundsSql(bounds);where.push(filter.where);values.push(...filter.values);}

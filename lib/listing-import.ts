@@ -31,8 +31,9 @@ export function normalizeImport(raw: RawImport, options: { propertyTypes: readon
   if (!options.propertyTypes.includes(propertyType)) errors.push(`Geçersiz gayrimenkul tipi: ${propertyType || "-"}`);
   const price = Number(text("price", 20));
   if (!Number.isFinite(price) || price <= 0) errors.push("Fiyat pozitif bir sayı olmalı.");
-  const currency = (raw.currency || "TRY").trim().toUpperCase();
-  if (!options.currencies.includes(currency)) errors.push(`Geçersiz para birimi: ${currency}`);
+  // Prices are accepted only in Turkish lira: a missing currency attribute means TRY ("TL" is accepted too).
+  const currency = (raw.currency || "TRY").trim().toUpperCase().replace(/^TL$/, "TRY");
+  if (!options.currencies.includes(currency) || currency !== "TRY") errors.push(`Fiyat yalnızca TL (TRY) olarak kabul edilir: ${currency}`);
   const city = text("city", 70), district = text("district", 70), neighborhood = text("neighborhood", 120);
   if (!city || !district || !neighborhood) errors.push("İl, ilçe ve mahalle gerekli.");
   const numbers: Record<string, number | ""> = {};

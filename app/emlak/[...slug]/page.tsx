@@ -12,6 +12,8 @@ import { localizedUrl, pageAlternates, requestLocale } from "@/lib/request-conte
 import { coverShareImage } from "@/lib/share-image-policy";
 import { shareMetadata } from "@/lib/share-metadata";
 import { db, OWNER_VERIFIED_SQL, parseListing } from "@/lib/server";
+import { tlRates } from "@/lib/listing-sort";
+import { requestRates } from "@/lib/tcmb-server";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ slug: string[] }> };
@@ -21,9 +23,11 @@ const load = cache(async (key: string) => {
   const scope = resolveRegion(key.split("/"));
   if (!scope) return null;
   const database = db() as unknown as RegionDatabase;
+  // Legacy EUR/USD/GBP listings enter the TL statistics with the request's TCMB bulletin.
+  const rates = scope.purpose ? tlRates(await requestRates()) : undefined;
   const [facets, prices, listings] = await Promise.all([
     regionFacets(database, scope.city),
-    regionPrices(database, scope),
+    regionPrices(database, scope, rates),
     regionListings(database, scope, { parse: (row) => publicListing(parseListing(row)), columns: [OWNER_VERIFIED_SQL, PRICE_DROP_SQL] }),
   ]);
   const summary = summarizeRegion(scope, facets);

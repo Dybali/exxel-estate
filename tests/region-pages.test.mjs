@@ -85,7 +85,7 @@ test('region facets: one grouped query; counts, links and types exclude unpublis
  assert.equal(summarizeRegion({city:'Muğla',district:'Bodrum',purpose:'kiralik',type:'villa'},facets).count,0);
 });
 
-test('region price statistics: real listings only, one currency, at least three, per m² only for one type',async()=>{
+test('region price statistics: real listings only, in TL, at least three, per m² only for one type',async()=>{
  const {db,add}=fixture();
  add('a',{price:9000000,area:300});add('b',{price:12000000,area:200});
  assert.equal(await regionPrices(db,{city:'Muğla',district:'Bodrum',purpose:'satilik',type:'villa'}),null,'two listings are not enough');
@@ -96,8 +96,11 @@ test('region price statistics: real listings only, one currency, at least three,
  const mixed=await regionPrices(db,{city:'Muğla',purpose:'satilik'});
  assert.equal(mixed.medianPerSqm,null,'no m² median across property types');assert.equal(mixed.currency,'TRY');
  assert.equal(await regionPrices(db,{city:'Muğla'}),null,'no prices without a purpose (sale and rent never mix)');
- assert.equal(regionPriceStats([{price:1,currency:'EUR',gross_area:1},{price:2,currency:'EUR',gross_area:1},{price:3,currency:'USD',gross_area:1}],{perSqm:true}),null);
- assert.equal(regionPriceStats([{price:100,currency:'EUR',gross_area:1},{price:200,currency:'EUR',gross_area:1},{price:300,currency:'EUR',gross_area:1},{price:400,currency:'EUR',gross_area:2}],{perSqm:true}).medianPerSqm,200);
+ // Legacy EUR/USD rows count only with a TCMB rate, converted to TL (lib/listing-sort.ts tlRates).
+ assert.equal(regionPriceStats([{price:1,currency:'EUR',gross_area:1},{price:2,currency:'EUR',gross_area:1},{price:3,currency:'USD',gross_area:1}],{perSqm:true}),null,'no rate: legacy rows are left out');
+ assert.equal(regionPriceStats([{price:100,currency:'EUR',gross_area:1},{price:200,currency:'EUR',gross_area:1},{price:300,currency:'EUR',gross_area:1},{price:400,currency:'EUR',gross_area:2}],{perSqm:true,rates:{TRY:1,EUR:50}}).medianPerSqm,10000);
+ const withRates=await regionPrices(db,{city:'Muğla',district:'Bodrum',purpose:'satilik',type:'villa'},{TRY:1,EUR:50});
+ assert.deepEqual(withRates,{currency:'TRY',listings:5,min:9000000,max:47500000,medianPerSqm:60000});
 });
 
 test('region listings: limited, featured first, no demo, no expired; demo listings only as labelled fallback',async()=>{

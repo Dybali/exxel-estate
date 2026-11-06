@@ -1,5 +1,6 @@
 import { emailLayout, emailReady, escapeHtml, sendEmail, type EmailSettings } from "./email";
 import { searchSql } from "./search-filters";
+import type { RateSnapshot } from "./tcmb";
 
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
 export type NotificationDatabase = { prepare(sql: string): Statement };
@@ -76,7 +77,8 @@ export async function notifyNewMessage(db: NotificationDatabase, settings: Setti
 }
 
 // Daily digest of new saved-search matches and price changes on favourites for opted-in users.
-export async function sendDailyDigests(db: NotificationDatabase, settings: Settings, at = new Date(), limit = 500) {
+/** `rates`: TCMB snapshot for saved searches with a price range (lib/search-filters.ts). */
+export async function sendDailyDigests(db: NotificationDatabase, settings: Settings, at = new Date(), limit = 500, rates: RateSnapshot | null = null) {
   if (!emailReady(settings)) return { users: 0, sent: 0 };
   await ensure(db);
   const now = at.toISOString();
@@ -87,7 +89,7 @@ export async function sendDailyDigests(db: NotificationDatabase, settings: Setti
     const searches = await db.prepare("SELECT name,query FROM saved_searches WHERE user_id=? AND enabled=1 LIMIT 10").bind(user.user_id).all<{ name: string; query: string }>().catch(() => ({ results: [] as { name: string; query: string }[] }));
     const lines: string[] = [];
     for (const search of searches.results) {
-      const filter = searchSql(search.query);
+      const filter = searchSql(search.query, rates);
       const row = await db.prepare(`SELECT count(*) AS n FROM listings l WHERE ${filter.where} AND l.published_at>? AND l.published_at<=?`).bind(...filter.values, since, now).first<{ n: number }>();
       if (Number(row?.n)) lines.push(`<a href="${escapeHtml(`${settings.SITE_URL}/ilanlar?${search.query}`)}">${escapeHtml(search.name)}</a>: ${Number(row!.n)} yeni ilan / new listings`);
     }

@@ -1,6 +1,7 @@
 import { bucket, db } from "./server";
 import { siteUrl } from "./site-url";
 import { sendDailyDigests, type NotificationDatabase } from "./email-notifications";
+import { currentRates } from "./tcmb-server";
 import { expirePromotions, type OrderDatabase } from "./orders";
 import { alertOnFailure, runHealthChecks } from "./health";
 import { externalR2Ready, headExternalImage } from "./external-r2";
@@ -55,7 +56,7 @@ export async function backupJob(settings: JobSettings, run = runDatabaseBackup):
 export function dailyJobs(settings: JobSettings) {
   return {
     promotions: expirePromotions(db() as unknown as OrderDatabase).then(() => true, (cause) => { console.error("promotion_expiry_failed", String(cause)); return false; }),
-    digest: sendDailyDigests(db() as unknown as NotificationDatabase, withSiteUrl(settings)).then(() => true, (cause) => { console.error("daily_digest_failed", String(cause)); return false; }),
+    digest: currentRates().then((rates) => sendDailyDigests(db() as unknown as NotificationDatabase, withSiteUrl(settings), new Date(), 500, rates)).then(() => true, (cause) => { console.error("daily_digest_failed", String(cause)); return false; }),
     videos: videoFeatureEnabled()
       ? cleanupVideos(db() as unknown as VideoDatabase, videoStorageFromEnv()).then((result) => { if (result.removed || result.failed) console.info("video_cleanup", JSON.stringify(result)); return true; }, (cause) => { console.error("video_cleanup_failed", String(cause)); return false; })
       : Promise.resolve(true),

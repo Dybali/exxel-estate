@@ -157,23 +157,23 @@ export function regionPriceQuery(scope: RegionScope) {
 }
 const median = (values: number[]) => { const sorted = [...values].sort((a, b) => a - b), mid = sorted.length >> 1; return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2; };
 /**
- * Price range in the most common currency (other currencies cannot be compared without rates) and,
- * for a single property type, the median price per m². null below REGION_PRICE_MIN listings.
+ * Price range in Turkish lira (the base price) and, for a single property type, the median price per
+ * m². Legacy EUR/USD/GBP listings are converted with `rates` (TL per unit, one TCMB bulletin per
+ * request, lib/listing-sort.ts tlRates); a listing whose currency has no rate is left out. The page
+ * shows the figures in the visitor's display currency. null below REGION_PRICE_MIN listings.
  */
-export function regionPriceStats(rows: { price: unknown; currency: unknown; gross_area: unknown }[], { perSqm }: { perSqm: boolean }): RegionPriceStats | null {
-  const valid = rows.map((row) => ({ price: Number(row.price), currency: String(row.currency || ""), area: Number(row.gross_area) })).filter((row) => row.currency && Number.isFinite(row.price) && row.price > 0);
-  const byCurrency = new Map<string, typeof valid>();
-  for (const row of valid) byCurrency.set(row.currency, [...(byCurrency.get(row.currency) || []), row]);
-  const [currency, list] = [...byCurrency].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))[0] || ["", []];
+export function regionPriceStats(rows: { price: unknown; currency: unknown; gross_area: unknown }[], { perSqm, rates = { TRY: 1 } }: { perSqm: boolean; rates?: Record<string, number> }): RegionPriceStats | null {
+  const list = rows.map((row) => ({ price: Number(row.price) * (rates[String(row.currency || "")] ?? NaN), area: Number(row.gross_area) })).filter((row) => Number.isFinite(row.price) && row.price > 0);
+  const currency = "TRY";
   if (list.length < REGION_PRICE_MIN) return null;
   const prices = list.map((row) => row.price), unit = list.filter((row) => Number.isFinite(row.area) && row.area > 0).map((row) => row.price / row.area);
   return { currency, listings: list.length, min: Math.min(...prices), max: Math.max(...prices), medianPerSqm: perSqm && unit.length >= REGION_PRICE_MIN ? Math.round(median(unit)) : null };
 }
-export async function regionPrices(db: RegionDatabase, scope: RegionScope) {
+export async function regionPrices(db: RegionDatabase, scope: RegionScope, rates?: Record<string, number>) {
   if (!scope.purpose) return null;
   const { sql, values } = regionPriceQuery(scope);
   const rows = (await db.prepare(sql).bind(...values).all<{ price: unknown; currency: unknown; gross_area: unknown }>()).results || [];
-  return regionPriceStats(rows, { perSqm: Boolean(scope.type) });
+  return regionPriceStats(rows, { perSqm: Boolean(scope.type), rates });
 }
 
 // --- Query 3: the listings (same default order as /ilanlar: featured, then newest). ---

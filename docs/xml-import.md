@@ -20,7 +20,7 @@ Kök öğe `<listings version="1">`, her ilan `<listing ref="...">`. `ref` hesab
 | `description` | evet | 20–5000 karakter |
 | `purpose` | evet | `satilik`, `kiralik`, `gunluk`, `devren` |
 | `type` | evet | `lib/listings.ts` içindeki `PROPERTY_TYPES` değerleri (ör. `daire`, `villa`, `mustakil`, `arsa`, `ticari`) |
-| `price` | evet | Pozitif sayı; `currency` özniteliği `TRY`, `EUR`, `USD`, `GBP` (varsayılan `TRY`) |
+| `price` | evet | Pozitif sayı, Türk lirası. `currency` özniteliği yoksa `TRY` sayılır (`TL` de kabul edilir); başka para birimi kabul edilmez (`docs/listing-currency.md`) |
 | `city`, `district` | evet | Türkiye il ve ilçe adı |
 | `neighborhood` | evet | Mahalle adı; isteğe bağlı `postalCode` özniteliği |
 | `grossArea` | evet | m², tam sayı |

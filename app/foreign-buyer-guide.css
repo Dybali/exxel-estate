@@ -77,13 +77,36 @@
 .property-foreign-links a{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:750;color:var(--brand-petrol,#0b5f63)}
 .property-foreign-links a:hover{text-decoration:underline;text-underline-offset:4px}
 
-/* Approximate price in the visitor's display currency. */
-.approx-price{display:block;font-size:12px;font-weight:600;color:#5d6b66;cursor:help}
-.listing-approx-price{margin-top:4px}
-.property-price-convert{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:8px}
-.property-price-convert .approx-price{font-size:14px}
-.display-currency{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#536358;white-space:nowrap}
-.display-currency svg{color:var(--brand-petrol,#0b5f63)}
-.display-currency select{height:32px;padding:0 26px 0 9px;border:1px solid #e1e5de;border-radius:8px;background:#fff;color:#2c3b36;font-size:12px}
-.results-tools .display-currency select{height:37px}
-@media(max-width:700px){.results-currency>span{display:none}}
+/* Listing prices in the visitor's display currency (components/DisplayCurrency.tsx, TCMB rates). */
+.converted-money{white-space:nowrap}
+.property-price-convert{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:10px}
+.currency-switch{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#536358;white-space:nowrap;min-width:0}
+.currency-switch svg{flex-shrink:0;color:var(--brand-petrol,#0b5f63)}
+.currency-switch select{height:32px;max-width:190px;padding:0 24px 0 9px;border:1px solid #e1e5de;border-radius:8px;background:#fff;color:#2c3b36;font-size:12px;text-overflow:ellipsis}
+.results-tools .currency-switch select{height:37px;max-width:170px}
+.results-tools{flex-wrap:wrap;justify-content:flex-end}.results-currency .currency-switch-hint{display:none}
+.top-switches{display:flex;align-items:center;gap:12px}
+.top-inner .header-currency select{height:26px;max-width:150px;padding:0 20px 0 7px;font-size:11px;border-color:#d6dcd4;background:transparent;color:inherit}
+.top-inner .header-currency select option,.top-inner .header-currency select optgroup{color:#19362f;background:#fffefa}
+.home-topline .header-currency,.home-topline .header-currency svg{color:#fff}.home-topline .header-currency select{border-color:#ffffff55}
+.rate-source{display:flex;flex-direction:column;gap:2px;margin:6px 0 0;font-size:11.5px;line-height:1.45;color:#5d6b66}
+.rate-source a{color:var(--brand-petrol,#0b5f63);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.rate-source.compact{margin-top:5px;font-size:10.5px;line-height:1.35;color:#7a857f}
+.rate-source-warning{display:inline-flex;align-items:center;gap:4px;color:#9a5b00;font-weight:700}
+.base-price{display:block;margin-top:4px;font-size:14px;font-weight:700;color:#36504a}
+.property-main-price .rate-source{max-width:420px}
+.property-key-facts .converted-money span,.listing-card .converted-money span{font:inherit;color:inherit;letter-spacing:inherit}
+.property-key-facts .base-price{display:block;margin-top:4px;font-size:14px;font-weight:700;color:#36504a}
+.property-key-facts .rate-source span{font-size:11.5px;color:#5d6b66}.property-key-facts .rate-source .rate-source-warning{color:#9a5b00}
+.currency-notice{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:10px 0 0;padding:8px 11px;border:1px solid #ecd9b0;border-radius:8px;background:#fff9ec;font-size:12px;line-height:1.45;color:#5e4a1e}
+.currency-notice>svg{flex-shrink:0;color:#9a5b00}.currency-notice>span{flex:1 1 220px}
+.results-currency-notice{margin:0 0 14px}
+.comparison-rates{margin-top:14px}
+.filter-currency-current{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;font-size:12px;color:#536358}
+.filter-currency-current strong{padding:3px 9px;border:1px solid #ccd9de;border-radius:5px;background:#fff;color:#17334b;font-size:12px}
+.listing-currency-fixed{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:#304540}
+.listing-currency-fixed strong{display:flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid #d9e1dd;border-radius:6px;background:#f5f8f7;font-size:15px}
+.listing-currency-fixed small{font-weight:500;font-size:11.5px;line-height:1.45;color:#66746f}
+.listing-currency-legacy{margin:0;padding:10px 12px;border:1px solid #ecd9b0;border-radius:8px;background:#fff9ec;font-size:13px;line-height:1.5;color:#5e4a1e}
+.home-fx-source a{color:inherit;text-decoration:underline;text-underline-offset:2px}.home-fx-stale{color:#9a5b00}
+@media(max-width:700px){.results-currency>span{display:none}.top-inner .currency-switch-hint{display:none}.top-inner .header-currency select{max-width:118px}.top-switches{gap:8px}.currency-switch select{max-width:160px}}

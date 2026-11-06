@@ -252,7 +252,7 @@ test('daily job: the backup is isolated, reported and alerts on failure; Cloudfl
  const alerts=[];
  const deps=over=>({
   './server':{bucket:()=>null,db:()=>({})},'./site-url':{siteUrl:()=>'https://site.test'},
-  './email-notifications':{sendDailyDigests:async()=>{}},'./orders':{expirePromotions:async()=>{throw Error('orders down');}},
+  './email-notifications':{sendDailyDigests:async()=>{}},'./tcmb-server':{currentRates:async()=>null},'./orders':{expirePromotions:async()=>{throw Error('orders down');}},
   './health':{runHealthChecks:async()=>[],alertOnFailure:async(checks)=>{alerts.push(checks);return 'alerted';}},
   './external-r2':{externalR2Ready:()=>true,headExternalImage:async()=>null},
   './listing-video-server':{videoFeatureEnabled:()=>false,cleanupVideos:async()=>({}),videoStorageFromEnv:()=>null},

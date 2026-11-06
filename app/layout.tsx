@@ -52,6 +52,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppPrompt } from "@/components/WhatsAppPrompt";
 import { LocaleProvider } from "@/lib/i18n";
+import { CurrencyProvider } from "@/components/DisplayCurrency";
+import { currencyFromCookies } from "@/lib/display-currency";
+import { requestRates } from "@/lib/tcmb-server";
+import { headers } from "next/headers";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { isRtl } from "@/lib/i18n-dictionary";
 import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
@@ -88,11 +92,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await requestLocale();
+  // Display currency of listing prices: the visitor's explicit choice (cookie) and one TCMB snapshot per request.
+  const [locale, rates, requestHeaders] = await Promise.all([requestLocale(), requestRates(), headers()]);
+  const currency = currencyFromCookies(requestHeaders.get("cookie"));
   const gaId = gaMeasurementId();
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
-      <body><LocaleProvider initialLocale={locale}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></LocaleProvider><ServiceWorker/></body>
+      <body><LocaleProvider initialLocale={locale}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }

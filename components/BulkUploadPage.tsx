@@ -25,7 +25,7 @@ const FIELDS: [string, string, string][] = [
   ["description", "Evet", "20–5000 karakter"],
   ["purpose", "Evet", "satilik, kiralik, gunluk, devren"],
   ["type", "Evet", "Gayrimenkul tipi, ör. daire, villa, mustakil, arsa, ticari"],
-  ["price @currency", "Evet", "Pozitif sayı; para birimi TRY, EUR, USD veya GBP (varsayılan TRY)"],
+  ["price @currency", "Evet", "Pozitif sayı, Türk lirası; currency özniteliği yoksa TRY kabul edilir, başka para birimi kabul edilmez"],
   ["city, district", "Evet", "Türkiye il ve ilçe adı"],
   ["neighborhood @postalCode", "Evet", "Mahalle adı; aynı adlı mahallelerde posta kodu gerekir"],
   ["grossArea", "Evet", "Brüt alan, m², tam sayı"],

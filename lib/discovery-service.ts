@@ -1,10 +1,12 @@
 import { cleanSearch, searchSql } from "./search-filters";
+import type { RateSnapshot } from "./tcmb";
 type Value=string|number|null;
 export interface DiscoveryDatabase {prepare(query:string):{bind(...values:Value[]):{all<T=Record<string,unknown>>():Promise<{results:T[]}>;first<T=Record<string,unknown>>():Promise<T|null>;run():Promise<unknown>}}}
 type SavedRow={id:string;name:string;query:string;enabled:number;created_at:string;seen_at:string};
 export class DiscoveryError extends Error {constructor(message:string,public status=400){super(message);}}
 const uuid=(value:unknown)=>typeof value==="string"&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value);
-export async function discoveryFeed(db:DiscoveryDatabase,userId:string){
+/** `rates`: TCMB snapshot for saved searches with a price range (lib/search-filters.ts). */
+export async function discoveryFeed(db:DiscoveryDatabase,userId:string,rates:RateSnapshot|null=null){
   const checkedAt=new Date().toISOString();
   const [saved,state]=await Promise.all([
     db.prepare("SELECT id,name,query,enabled,created_at,seen_at FROM saved_searches WHERE user_id=? ORDER BY created_at DESC LIMIT 10").bind(userId).all<SavedRow>(),
@@ -12,7 +14,7 @@ export async function discoveryFeed(db:DiscoveryDatabase,userId:string){
   ]);
   const searches=saved.results.map(item=>({...item,enabled:Boolean(item.enabled)}));
   const searchAlerts=await Promise.all(saved.results.filter(item=>item.enabled).map(async item=>{
-    const filter=searchSql(item.query);
+    const filter=searchSql(item.query,rates);
     const row=await db.prepare(`SELECT count(*) AS count,max(l.published_at) AS latest FROM listings l WHERE ${filter.where} AND l.published_at>? AND l.published_at<=?`).bind(...filter.values,item.seen_at,checkedAt).first<{count:number;latest:string}>();
     return Number(row?.count)?{id:`search:${item.id}`,kind:"search",name:item.name,count:Number(row!.count),createdAt:row!.latest,href:`/ilanlar?${item.query}`} : null;
   }));

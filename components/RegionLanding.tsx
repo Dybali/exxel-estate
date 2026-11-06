@@ -5,11 +5,11 @@ import { translate, type Locale } from "@/lib/i18n-dictionary";
 import { typeLabel, type Listing } from "@/lib/listings";
 import { pricePeriod } from "@/lib/property-categories";
 import { regionHeading, regionPhrase } from "@/lib/region-copy";
+import { DisplayMoney, RateSource } from "@/components/DisplayCurrency";
 import { regionSearchHref, REGION_LISTING_LIMIT, type RegionLink, type RegionPriceStats, type RegionScope, type RegionSummary } from "@/lib/region-pages";
 
 export type RegionCrumb = { name: string; path: string };
 
-const money = (value: number, currency: string, locale: Locale) => new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
 
 function Chips({ links, current, label, locale }: { links: RegionLink[]; current: string; label: (link: RegionLink) => string; locale: Locale }) {
   return <ul className="region-chips">{links.map((link) => <li key={link.path}>
@@ -39,11 +39,12 @@ export function RegionLanding({ scope, path, crumbs, summary, prices, listings, 
       <p className="region-intro">{t("{heading}: estatemarket24'te şu anda yayında olan ilanlar. Sayılar ve fiyatlar yalnızca bu ilanlardan hesaplanır; örnek ilanlar dahil edilmez.").replace("{heading}", heading)}</p>
       <dl className="region-facts">
         <div><dt>{t("Aktif ilan")}</dt><dd>{number(summary.count)}</dd></div>
-        {prices && <div><dt>{t("Fiyat aralığı")}</dt><dd><bdi>{money(prices.min, prices.currency, locale)}</bdi> – <bdi>{money(prices.max, prices.currency, locale)}</bdi>{suffix}</dd></div>}
-        {prices?.medianPerSqm != null && <div><dt>{t("Medyan m² fiyatı")}</dt><dd><bdi>{money(prices.medianPerSqm, prices.currency, locale)}</bdi> / m²{suffix}</dd></div>}
+        {prices && <div><dt>{t("Fiyat aralığı")}</dt><dd><DisplayMoney value={prices.min} currency={prices.currency}/> – <DisplayMoney value={prices.max} currency={prices.currency}/>{suffix}</dd></div>}
+        {prices?.medianPerSqm != null && <div><dt>{t("Medyan m² fiyatı")}</dt><dd><DisplayMoney value={prices.medianPerSqm} currency={prices.currency}/> / m²{suffix}</dd></div>}
         {topTypes.length > 0 && <div><dt>{t("En çok ilan verilen türler")}</dt><dd>{topTypes.map((item) => `${t(typeLabel(item.type))} (${number(item.count)})`).join(", ")}</dd></div>}
       </dl>
-      {prices && <p className="region-note">{t("Fiyat bilgileri {currency} cinsinden fiyatlandırılmış ilanlardan hesaplanır (ilan sayısı: {count}).").replace("{currency}", prices.currency).replace("{count}", number(prices.listings))}</p>}
+      {prices && <p className="region-note">{t("Fiyat bilgileri ilanların TL esas fiyatlarından hesaplanır (ilan sayısı: {count}).").replace("{count}", number(prices.listings))}</p>}
+      {prices && <RateSource currency={prices.currency}/>}
     </header>
 
     {summary.combos.length > 0 && <nav className="region-section" aria-labelledby="region-types-heading">

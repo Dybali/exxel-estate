@@ -1,7 +1,7 @@
 import { landFacts } from "@/lib/land";
 import { SUBTYPES } from "@/lib/property-subtypes";
 import { detailFacts, FOREIGN_SALE, foreignSaleApplies, foreignSaleOf } from "@/lib/listing-details";
-import { ApproxPrice, CurrencySelect } from "@/components/DisplayCurrency";
+import { BasePrice, CurrencyNotice, CurrencySwitch, DisplayMoney, RateSource } from "@/components/DisplayCurrency";
 import { CITIZENSHIP_PATH, FOREIGN_BUYER_PATH } from "@/lib/citizenship-guide";
 import {VerifiedBadge} from "@/components/VerifiedBadge";
 import {ListingViewTracker} from "@/components/ListingViewTracker";
@@ -18,13 +18,15 @@ import { PUBLIC_DEMO_LISTINGS } from "@/lib/listings";
 import { similarIn, SIMILAR_LIMIT, similarListings, similarSearchHref, type SimilarDatabase } from "@/lib/similar-listings";
 import { PRICE_DROP_SQL, PRICE_HISTORY_SQL, priceHistory, type PriceHistoryRow } from "@/lib/price-history";
 import { SimilarListings } from "@/components/SimilarListings";
+import { tlRates } from "@/lib/listing-sort";
+import { requestRates } from "@/lib/tcmb-server";
 import { regionPath } from "@/lib/region-pages";
 import { PriceDropNote, PriceHistoryPanel } from "@/components/PriceHistory";
 import { readyListingVideo, type VideoDatabase } from "@/lib/listing-video-store";
 import { videoFeatureEnabled } from "@/lib/listing-video-server";
 import type { Metadata } from "next";
 import { ContactCard } from "@/components/ContactCard";
-import { T, Money } from "@/lib/i18n";
+import { T } from "@/lib/i18n";
 import { translate } from "@/lib/i18n-dictionary";
 import { ListingGallery } from "@/components/ListingGallery";
 import { PropertyText } from "@/components/PropertyText";
@@ -63,7 +65,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const videoId=listing.presentation?.videoId,video=videoId&&listing.source!=='demo'&&videoFeatureEnabled()?await readyListingVideo(db() as unknown as VideoDatabase,videoId,listing.id).catch(()=>null):null;
   // Both are extras: a failure leaves the page as it was (a demo page still gets demo suggestions).
   const [similar,historyRows]=await Promise.all([
-    (async()=>similarListings(db() as unknown as SimilarDatabase,listing,{parse:row=>publicListing(parseListing(row)),columns:[OWNER_VERIFIED_SQL,PRICE_DROP_SQL],demos:PUBLIC_DEMO_LISTINGS}))().catch(()=>listing.source==='demo'?similarIn(listing,PUBLIC_DEMO_LISTINGS).slice(0,SIMILAR_LIMIT):[]),
+    (async()=>similarListings(db() as unknown as SimilarDatabase,listing,{parse:row=>publicListing(parseListing(row)),columns:[OWNER_VERIFIED_SQL,PRICE_DROP_SQL],demos:PUBLIC_DEMO_LISTINGS,rates:tlRates(await requestRates())}))().catch(()=>listing.source==='demo'?similarIn(listing,PUBLIC_DEMO_LISTINGS).slice(0,SIMILAR_LIMIT):[]),
     (async()=>listing.source==='demo'?[]:(await db().prepare(PRICE_HISTORY_SQL).bind(listing.id).all<PriceHistoryRow>()).results||[])().catch(()=>[] as PriceHistoryRow[]),
   ]);
   const history=priceHistory(historyRows,listing);
@@ -75,7 +77,7 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     <ListingGallery listingId={listing.id} images={listing.images} title={listing.title} panoramas={listing.presentation?.panoramas} floorPlan={listing.presentation?.floorPlan} video={video}/>
     <div className="property-detail-layout"><article className="property-detail-main"><div className="property-heading"><div className="property-labels"><span><T id={purposeLabel(listing.purpose)}/></span><span><T id={typeLabel(listing.propertyType)}/></span>{listing.source==='demo'&&<span className="sample"><T id="Örnek ilan"/></span>}{listing.ownerVerified&&<VerifiedBadge/>}</div><h1><PropertyText listing={listing} field="title"/></h1><p><MapPin size={18}/>{listing.postalCode?`${listing.postalCode} `:''}{listing.city}, {listing.district}{listing.neighborhood?`, ${listing.neighborhood}`:''}</p></div>
     <ListingDates publishedAt={listing.publishedAt} updatedAt={listing.updatedAt}/>
-    <div className="property-key-facts"><div className="property-main-price"><strong><Money value={listing.price} currency={listing.currency}/>{pricePeriod(listing.purpose)&&<small> <T id={pricePeriod(listing.purpose)}/></small>}</strong>{history?.drop&&<PriceDropNote drop={history.drop} currency={listing.currency}/>}<span>{listing.grossArea>0&&<><Money value={listing.price/listing.grossArea} currency={listing.currency} fractionDigits={2}/> / m²{pricePeriod(listing.purpose)&&<> <T id={pricePeriod(listing.purpose)}/></>}</>}</span><div className="property-price-convert"><ApproxPrice value={listing.price} currency={listing.currency}/><CurrencySelect/></div></div>{listing.rooms&&<div><strong>{listing.rooms}</strong><span><T id="Oda düzeni"/></span></div>}<div><strong>{listing.netArea||listing.grossArea} m²</strong><span><T id={listing.netArea?'Net alan':'Brüt alan'}/></span></div></div>
+    <div className="property-key-facts"><div className="property-main-price"><strong><DisplayMoney value={listing.price} currency={listing.currency}/>{pricePeriod(listing.purpose)&&<small> <T id={pricePeriod(listing.purpose)}/></small>}</strong><BasePrice value={listing.price} currency={listing.currency}/>{history?.drop&&<PriceDropNote drop={history.drop} currency={listing.currency}/>}<span>{listing.grossArea>0&&<><DisplayMoney value={listing.price/listing.grossArea} currency={listing.currency} fractionDigits={2}/> / m²{pricePeriod(listing.purpose)&&<> <T id={pricePeriod(listing.purpose)}/></>}</>}</span><RateSource currency={listing.currency}/><CurrencyNotice/><div className="property-price-convert"><CurrencySwitch/></div></div>{listing.rooms&&<div><strong>{listing.rooms}</strong><span><T id="Oda düzeni"/></span></div>}<div><strong>{listing.netArea||listing.grossArea} m²</strong><span><T id={listing.netArea?'Net alan':'Brüt alan'}/></span></div></div>
     {history&&<PriceHistoryPanel history={history}/>}
     {listing.amenities.length>0&&<div className="property-amenity-tags">{listing.amenities.slice(0,4).map(a=><span key={a}><T id={a}/></span>)}</div>}
     <section className="property-section"><h2><T id="Gayrimenkul bilgileri"/></h2><dl className="property-facts-grid">{facts.map(([label,value])=><div key={label}><dt><T id={label}/></dt><dd>{value}</dd></div>)}</dl>{foreignSale==="Evet"&&<aside className="property-foreign-note"><Globe2 size={20} aria-hidden="true"/><div><strong><T id="Bu ilan, ilan verenin beyanına göre yabancılara satışa uygundur."/></strong><p><T id="Satın almadan önce uygunluğu tapu müdürlüğünden ve bağımsız bir avukattan teyit edin."/></p><div className="property-foreign-links"><Link href={FOREIGN_BUYER_PATH}><T id="Yabancı alıcılar için rehber"/><ArrowRight size={15}/></Link><Link href={CITIZENSHIP_PATH}><T id="Yatırım yoluyla vatandaşlık"/><ArrowRight size={15}/></Link></div></div></aside>}</section>

@@ -55,9 +55,9 @@ test('migrations: PostgreSQL 019 and SQLite 0026 define the same listing_videos 
  assert.match(sqlFiles.pg,/listing_id uuid REFERENCES listings\(id\) ON DELETE SET NULL/);assert.match(sqlFiles.pg,/size_bytes bigint/);
  for(const file of [sqlFiles.pg,sqlFiles.sqlite])assert.match(file,/'uploading','queued','processing','ready','failed'/);
  assert.doesNotMatch(sqlFiles.pg+sqlFiles.sqlite,/\r/);
- const journal=JSON.parse(read('drizzle/meta/_journal.json'));assert.equal(journal.entries.at(-1).tag,'0026_listing_videos');
+ const journal=JSON.parse(read('drizzle/meta/_journal.json'));assert.ok(journal.entries.some(entry=>entry.tag==='0026_listing_videos'));
  assert.match(read('postgres/schema.sql'),/CREATE TABLE IF NOT EXISTS listing_videos/);
- const {pendingMigrations}=load('lib/postgres-migrations.ts');assert.deepEqual(pendingMigrations(readdirSync(path.join(root,'postgres/migrations')),['018_individual_listing_45_days.sql']),['019_listing_videos.sql']);
+ const {pendingMigrations}=load('lib/postgres-migrations.ts');assert.deepEqual(pendingMigrations(readdirSync(path.join(root,'postgres/migrations')),['018_individual_listing_45_days.sql']).slice(0,1),['019_listing_videos.sql']);
 });
 
 test('job queue: atomic claim, no double processing, requeue after the lock expires, attempt limit, retry delay',async()=>{

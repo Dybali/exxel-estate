@@ -20,7 +20,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
 import { Building2, CalendarDays, ArrowUpRight, Bookmark, Heart, LayoutDashboard, LogOut, Mail, Plus, UserRound, Users, Wrench } from "lucide-react";
-import { type Listing, formatPrice } from "@/lib/listings";
+import { type Listing } from "@/lib/listings";
+import { DisplayMoney } from "./DisplayCurrency";
 import {DiscoveryPanel} from "./DiscoveryPanel";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { ManagedListings } from "@/components/ManagedListings";
@@ -117,7 +118,7 @@ export function Dashboard() {
         </>}
         {tab === "favoriler" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("KAYDETTİKLERİNİZ")}</span><h2>{t("Favori ilanlarım")}</h2></div></div>
-          {favorites.length ? <div className="favorite-dashboard-grid">{favorites.map(listing=><article className="favorite-dashboard-card" key={listing.id}><Link href={`/ilan/${listing.id}`}><img src={listing.images[0]} alt=""/><div><h3>{locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title}</h3><p>{listing.district}, {listing.city} · {listing.grossArea} m²</p><strong>{formatPrice(listing.price,listing.currency,locale)}</strong></div></Link><button type="button" onClick={()=>removeFavorite(listing.id)} aria-label={t("Favorilerden çıkar")}><Heart size={17} fill="currentColor"/>{t("Favorilerden çıkar")}</button></article>)}</div> : <div className="panel-empty"><Heart size={28}/><h3>{t("Henüz favori ilanınız yok.")}</h3><Link href="/ilanlar">{t("İlanlara göz atın")}<ForwardArrow/></Link></div>}
+          {favorites.length ? <div className="favorite-dashboard-grid">{favorites.map(listing=><article className="favorite-dashboard-card" key={listing.id}><Link href={`/ilan/${listing.id}`}><img src={listing.images[0]} alt=""/><div><h3>{locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title}</h3><p>{listing.district}, {listing.city} · {listing.grossArea} m²</p><strong><DisplayMoney value={listing.price} currency={listing.currency}/></strong></div></Link><button type="button" onClick={()=>removeFavorite(listing.id)} aria-label={t("Favorilerden çıkar")}><Heart size={17} fill="currentColor"/>{t("Favorilerden çıkar")}</button></article>)}</div> : <div className="panel-empty"><Heart size={28}/><h3>{t("Henüz favori ilanınız yok.")}</h3><Link href="/ilanlar">{t("İlanlara göz atın")}<ForwardArrow/></Link></div>}
 
         </>}
         {tab === "ilanlarim" && <>

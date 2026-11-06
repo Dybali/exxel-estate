@@ -12,32 +12,36 @@ import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
-import {priceCurrency,CURRENCIES} from "@/lib/price-filters";
+import {listingCurrencyAllowed,tlPriceRange,TL_ONLY_MESSAGE} from "@/lib/price-filters";
 import { areaBounds,centers,listingInArea,mapBoundsSql,validArea,validBounds } from "@/lib/search-filters";
 import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import {body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str,OWNER_VERIFIED_SQL} from "@/lib/server";
 import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
 import {agentPlanAccess,agentInsertGuard} from '@/lib/agent-plan';
 import { validDistrict } from "@/lib/turkey-locations";
-import {compareListings,listingOrderSql,listingSort,priceSort,strictSort,tryRates} from "@/lib/listing-sort";
-import {latestExchangeRates} from "@/lib/exchange-rates";
+import {compareListings,listingOrderSql,listingSort,priceSort,strictSort,tlPrice,tlPriceSql,tlRates} from "@/lib/listing-sort";
+import {currentRates} from "@/lib/tcmb-server";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
-  try{const currency=priceCurrency(q);if(currency)q.set("currency",currency);}catch{return error("Geçersiz para birimi.");}
   const sort=listingSort(q.get("sort"));
-  // Price sorting across currencies uses ECB rates; without them it falls back to TRY listings only.
-  const rates=priceSort(sort)&&!q.get("currency")?tryRates(await latestExchangeRates().catch(()=>null)):null;
-  if(priceSort(sort)&&!q.get("currency")&&!rates)q.set("currency","TRY");
+  // Prices are compared in Turkish lira: legacy EUR/USD/GBP rows and a price range entered in the
+  // visitor's display currency are converted with one TCMB bulletin for the whole request.
+  const snapshot=priceSort(sort)||q.get("minPrice")||q.get("maxPrice")?await currentRates():null,rates=tlRates(snapshot);
+  let range;try{range=tlPriceRange(q,snapshot);}catch{return error("Geçersiz para birimi.");}
+  if(!range)return error("Kur verisi şu anda alınamıyor. Fiyat aralığını TL olarak girin.",503);
+  const tlSql=tlPriceSql(rates);
   const page=Math.min(1000,Math.max(1,Math.floor(Number(q.get("page")))||1)),pageSize=q.get("map")==="1"?500:12;
   const where=["l.status='published'"],values:(string|number)[]=[];
   const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
   const textFilter=textSearchSql(q.get("q")||"");if(textFilter.where){where.push(textFilter.where);values.push(...textFilter.values);}
-  const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",currency:"currency",neighborhood:"neighborhood"};
+  const equals:Record<string,string>={purpose:"purpose",city:"city",district:"district",type:"property_type",neighborhood:"neighborhood"};
   for(const [param,column] of Object.entries(equals)){const v=q.get(param);if(v&&v.length<80){where.push(`l.${column}=?`);values.push(v)}}
-  for(const [param,column,op] of [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const){const v=q.get(param);if(v&&/^\d{1,12}$/.test(v)){where.push(`l.${column}${op}?`);values.push(Number(v))}}
+  if(range.min!==undefined){where.push(`${tlSql}>=?`);values.push(range.min);}
+  if(range.max!==undefined){where.push(`${tlSql}<=?`);values.push(range.max);}
+  for(const [param,column,op] of [["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const){const v=q.get(param);if(v&&/^\d{1,12}$/.test(v)){where.push(`l.${column}${op}?`);values.push(Number(v))}}
   if(q.get("furnished")==="1")where.push("l.furnished=1");
   const extra=extraFilterSql(q);where.push(...extra.where);values.push(...extra.values);
   if(q.get('assistant')==='1'&&q.get('furnished')==='0')where.push('l.furnished=0');
@@ -53,8 +57,9 @@ export async function GET(request:Request) {
     if(!matchesSearchText(q.get("q")||"",l))return false;
     if(!categoryMatches(q.get('category')||'',l))return false;
     if(q.get("neighborhood")&&l.neighborhood!==q.get("neighborhood"))return false;
-    for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"],["currency","currency"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
-    for(const [param,field,compare] of [["minPrice","price","min"],["maxPrice","price","max"],["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
+    for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
+    if(range.min!==undefined||range.max!==undefined){const value=tlPrice(l,rates);if(value===undefined||range.min!==undefined&&value<range.min||range.max!==undefined&&value>range.max)return false;}
+    for(const [param,field,compare] of [["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
     if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
     if(area&&!listingInArea(l,area))return false;
     if(q.get("furnished")==="1"&&!l.furnished)return false;
@@ -105,7 +110,8 @@ export async function POST(request:Request) {
   const title=str(data.title,150),description=str(data.description,5000),purpose=str(data.purpose,20),propertyType=str(data.propertyType,20),city=str(data.city,70),district=str(data.district,70);
   const neighborhoodId=num(data.neighborhoodId),neighborhood=findNeighborhood(city,district,neighborhoodId);
   const price=num(data.price),grossArea=num(data.grossArea);
-  if(!(CURRENCIES as readonly string[]).includes(str(data.currency,3)||"TRY"))return error("Geçersiz para birimi.");
+  // Prices are entered only in Turkish lira (XML import included); other currencies are display-only.
+  if(!listingCurrencyAllowed(data.currency))return error(TL_ONLY_MESSAGE);
   if(title.length<12 || description.length<30 || !["satilik","kiralik","gunluk","devren"].includes(purpose) || !PROPERTY_TYPES.some((p)=>p.value===propertyType) || !city || !district || !Number.isSafeInteger(price) || price<=0 || !Number.isSafeInteger(grossArea) || grossArea<=0 || grossArea>100000000) return error("Zorunlu ilan alanlarını doldurun.");
   if(!validDistrict(city,district) || !neighborhood) return error("Geçerli bir il, ilçe ve mahalle seçin.");
   if(data.netArea!==''&&data.netArea!=null&&(!Number.isSafeInteger(num(data.netArea))||num(data.netArea)<=0||num(data.netArea)>grossArea))return error('Net alan pozitif olmalı ve brüt alandan büyük olmamalıdır.');
@@ -143,7 +149,7 @@ export async function POST(request:Request) {
   const agentGuard=AGENT_PLANS_ENABLED&&user.role==='agent'&&!isAdmin(user)&&!team;
   const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at,agency_id) "+(team?`SELECT ${Array(34).fill('?').join(',')} WHERE EXISTS(SELECT 1 FROM company_team_memberships m JOIN agencies a ON a.id=m.agency_id JOIN users owner ON owner.id=a.owner_id JOIN users member ON member.id=m.user_id WHERE member.role='buyer' AND m.user_id=? AND m.agency_id=? AND m.ended_at IS NULL AND a.status='approved' AND owner.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications v WHERE v.user_id=CAST(owner.id AS TEXT) AND v.state='approved' AND v.company_snapshot=owner.company))`:agentGuard?`SELECT ${Array(34).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(34).fill('?').join(',')})`);
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
-    .bind(id,user.id,title,description,purpose,propertyType,price,str(data.currency,3)||"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,team?.id||null,...(team?[user.id,team.id]:[]),...(agentGuard?[user.id,createdAt,createdAt]:[]))];
+    .bind(id,user.id,title,description,purpose,propertyType,price,"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,team?.id||null,...(team?[user.id,team.id]:[]),...(agentGuard?[user.id,createdAt,createdAt]:[]))];
   if(ticket)statements.push(submissionStatement(db(),ticket,id,createdAt));
   if(presentation.videoId)statements.push(attachVideoStatement(db(),presentation.videoId,user.id,id));
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")

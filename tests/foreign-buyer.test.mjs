@@ -8,7 +8,6 @@ const {EXTRA_FILTERS,extraFilterSql,extraFilterMatches}=await import(url(searchC
 const {detailsFrom,foreignSaleOf,FOREIGN_SALE}=await import(detailsURL);
 const {pgPresentationJson}=await import(compile('pg-json'));
 const {validateDraft}=await import(url(transpile('listing-drafts').replace("'./panoramas'",JSON.stringify(compile('panoramas')))));
-const {convertPrice,defaultDisplayCurrency,roundApprox,isDisplayChoice}=await import(compile('display-currency'));
 const query=o=>new URLSearchParams(o);
 
 test('foreign sale flag is validated for sale listings of every category only',()=>{
@@ -46,22 +45,7 @@ test('foreign sale filter runs in SQLite, matches in memory and rewrites for Pos
  assert.equal(pgPresentationJson(extraFilterSql(query({foreignSale:'1'})).where[0]),"(l.purpose IN (?) AND (l.presentation::jsonb->'details'->>'foreignSale')=?)");
 });
 
-test('approximate prices convert through Turkish lira and stay off when not useful',()=>{
- const rates={eurTry:50,usdTry:40,gbpTry:60};
- assert.equal(convertPrice(5_000_000,'TRY','EUR',rates),100_000);
- assert.equal(convertPrice(100_000,'EUR','USD',rates),125_000);
- assert.equal(convertPrice(100_000,'GBP','TRY',rates),6_000_000);
- assert.equal(convertPrice(100_000,'EUR','EUR',rates),null);
- assert.equal(convertPrice(100_000,'EUR','off',rates),null);
- assert.equal(convertPrice(100_000,'EUR','USD',null),null);
- assert.equal(convertPrice(100_000,'TRY','GBP',{eurTry:50,usdTry:40}),null);
- assert.equal(convertPrice(100_000,'JPY','EUR',rates),null);
- assert.equal(roundApprox(123_456),123_000);assert.equal(roundApprox(4_567_890),4_568_000);assert.equal(roundApprox(987.6),988);
- assert.equal(defaultDisplayCurrency('tr'),'off');
- for(const locale of ['de','fr','nl'])assert.equal(defaultDisplayCurrency(locale),'EUR');
- for(const locale of ['en','ar','fa','ru'])assert.equal(defaultDisplayCurrency(locale),'USD');
- assert.equal(isDisplayChoice('GBP'),true);assert.equal(isDisplayChoice('JPY'),false);assert.equal(isDisplayChoice(null),false);
-});
+// Display currency and TCMB conversion: tests/tcmb-rates.test.mjs.
 
 test('citizenship guide is complete in every language and cites official sources',async()=>{
  const {citizenshipGuide,CITIZENSHIP_SOURCES,CITIZENSHIP_AS_OF}=await import(compile('citizenship-guide'));

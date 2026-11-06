@@ -9,6 +9,7 @@ import {validRooms} from "@/lib/listing-details";
 import {attachVideoStatement,videoAttachProblem,type VideoDatabase} from "@/lib/listing-video-store";
 import {removeVideoById,videoFeatureEnabled} from "@/lib/listing-video-server";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/listings";
+import { CURRENCIES, listingCurrencyAllowed, TL_ONLY_MESSAGE } from "@/lib/price-filters";
 import { deleteExternalImage, externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 import { listingMediaKeys, removeListingMedia } from "@/lib/listing-media";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
@@ -43,9 +44,12 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const expected=str(data.expectedUpdatedAt,40);
   if(expected&&expected!==row.updated_at) return error("İlan başka bir oturumda güncellendi. Sayfayı yenileyin.",409);
   const value=(key:string,column:string,max:number)=>Object.hasOwn(data,key)?str(data[key],max):str(row[column],max);
-  const title=value("title","title",150),description=value("description","description",5000),purpose=value("purpose","purpose",20),propertyType=value("propertyType","property_type",30),currency=value("currency","currency",3).toUpperCase(),city=value("city","city",70),district=value("district","district",70);
+  const title=value("title","title",150),description=value("description","description",5000),purpose=value("purpose","purpose",20),propertyType=value("propertyType","property_type",30),currency=(Object.hasOwn(data,"currency")?str(data.currency,3).toUpperCase().replace(/^TL$/,"TRY"):str(row.currency,3).toUpperCase())||"TRY",city=value("city","city",70),district=value("district","district",70);
+  // A new or changed price is accepted only in Turkish lira. A legacy EUR/USD/GBP listing keeps its
+  // currency only while its price is left untouched (docs/listing-currency.md).
+  if((Object.hasOwn(data,"price")||Object.hasOwn(data,"currency"))&&(!listingCurrencyAllowed(Object.hasOwn(data,"currency")?data.currency:row.currency)))return error(TL_ONLY_MESSAGE);
   const price=Object.hasOwn(data,"price")?num(data.price):Number(row.price),grossArea=Object.hasOwn(data,"grossArea")?num(data.grossArea):Number(row.gross_area);
-  if(title.length<12||description.length<30||!["satilik","kiralik","gunluk","devren"].includes(purpose)||!PROPERTY_TYPES.some((item)=>item.value===propertyType)||!["TRY","EUR","USD","GBP"].includes(currency)||!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(grossArea)||grossArea<=0||grossArea>100000000)return error("İlanın zorunlu alanlarını kontrol edin.");
+  if(title.length<12||description.length<30||!["satilik","kiralik","gunluk","devren"].includes(purpose)||!PROPERTY_TYPES.some((item)=>item.value===propertyType)||!(CURRENCIES as readonly string[]).includes(currency)||!Number.isSafeInteger(price)||price<=0||!Number.isSafeInteger(grossArea)||grossArea<=0||grossArea>100000000)return error("İlanın zorunlu alanlarını kontrol edin.");
   if(!validDistrict(city,district))return error("Geçerli bir il ve ilçe seçin.");
   const locationChanged=Object.hasOwn(data,"city")||Object.hasOwn(data,"district")||Object.hasOwn(data,"neighborhoodId");
   const neighborhoodId=locationChanged?num(data.neighborhoodId??row.neighborhood_id):Number(row.neighborhood_id);
