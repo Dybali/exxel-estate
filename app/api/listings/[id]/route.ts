@@ -14,6 +14,8 @@ import { deleteExternalImage, externalR2BucketName, headExternalImage } from "@/
 import { listingMediaKeys, removeListingMedia } from "@/lib/listing-media";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
 import { validDistrict } from "@/lib/turkey-locations";
+import { nearProvince, ownerPin, parseLocationInput, resolveLocation, storedLocation, type ResolvedLocation } from "@/lib/listing-location";
+import { scheduleListingNearby } from "@/lib/neighborhood-info-server";
 import { body, bucket, currentUser, db, error, isAdmin, listingById, now, num, ok, sameOrigin, str } from "@/lib/server";
 // Photos also live in the private bucket for listings created before the EU bucket.
 const removeMedia=async(key:string)=>{await deleteExternalImage(key);await bucket()?.delete(key);};
@@ -25,8 +27,10 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
     const user=await currentUser(request);
     if(!user || (user.id!==listing.ownerId&&!isAdmin(user))) return error("İlan bulunamadı.",404);
   }
-  const viewer=await currentUser(request);
-  return ok({listing:viewer&&(viewer.id===listing.ownerId||isAdmin(viewer))?listing:publicListing(listing)},{headers:{"Cache-Control":"private, no-store"}});
+  const viewer=await currentUser(request),own=Boolean(viewer&&(viewer.id===listing.ownerId||isAdmin(viewer)));
+  // The owner's edit form gets the exact pin; everyone else only sees the public point (lib/listing-location.ts).
+  const pin=own&&listing.source==="user"?ownerPin(await db().prepare("SELECT latitude,longitude,presentation FROM listings WHERE id=?").bind(id).first<Record<string,unknown>>()||{}):null;
+  return ok({listing:own?listing:publicListing(listing),...(own?{pin}:{})},{headers:{"Cache-Control":"private, no-store"}});
 }
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}) {
@@ -71,6 +75,18 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
   const previousVideo=String(JSON.parse(String(row.presentation||'{}')).videoId||'');
   if(presentation.videoId&&presentation.videoId!==previousVideo){if(!videoFeatureEnabled())return error("Video yükleme şu anda kullanılamıyor.",503);try{const problem=await videoAttachProblem(db() as unknown as VideoDatabase,presentation.videoId,String(row.owner_id),id);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
+  // Map pin: a new one from the form, or the stored one (cleared when the province changed under it).
+  const storedPresentation=JSON.parse(String(row.presentation||'{}')),hasPin=Object.hasOwn(data,"latitude")||Object.hasOwn(data,"longitude");
+  const before={latitude:row.latitude==null?null:Number(row.latitude),longitude:row.longitude==null?null:Number(row.longitude)};
+  let point:ResolvedLocation|null=null;
+  if(hasPin||before.latitude!=null&&before.longitude!=null){
+    const previous={...before,location:storedLocation(storedPresentation.location)};
+    if(hasPin){try{point=resolveLocation(parseLocationInput(data,city),previous);}catch(e){return error((e as Error).message);}}
+    else point=city!==row.city&&!nearProvince(city,before.latitude!,before.longitude!)?{latitude:null,longitude:null,location:null}:previous;
+    if(point?.location)presentation.location=point.location;
+    if(point&&point.latitude!=null&&point.latitude===before.latitude&&point.longitude===before.longitude&&point.location?.precision===previous.location?.precision&&storedPresentation.nearby)presentation.nearby=storedPresentation.nearby;
+  }
+  const pinMoved=Boolean(point&&point.latitude!=null&&(point.latitude!==before.latitude||point.longitude!==before.longitude));
   if(propertyType==='villa'&&(!optionalFields[0]||!presentation.plotArea||presentation.gardenArea==null))return error('Villa için net, arsa ve bahçe alanını girin. Bahçe yoksa 0 yazın.');
   const originalImages=JSON.parse(String(row.images||"[]")) as string[];
   const images=Object.hasOwn(data,"images")?Array.isArray(data.images)?data.images.filter((item):item is string=>typeof item==="string"&&item.startsWith("/api/media/")).slice(0,30):null:originalImages;
@@ -93,8 +109,8 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const team=row.agency_id?await activeTeamCompany(user.id):null;
   const status=(team&&team.id===String(row.agency_id)&&await officePublicationAllowed(team.owner_id))||user.role==='agent'&&await officePublicationAllowed(user.id)||isAdmin(user)?"published":"pending";
   const updatedAt=now();
-  const statements=[db().prepare("UPDATE listings SET title=?,description=?,purpose=?,property_type=?,price=?,currency=?,city=?,district=?,neighborhood=?,neighborhood_id=?,postal_code=?,gross_area=?,net_area=?,rooms=?,bedrooms=?,bathrooms=?,building_age=?,floor=?,total_floors=?,heating=?,furnished=?,amenities=?,images=?,translations=?,presentation=?,status=CASE WHEN listings.status<>'published' OR EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN 'pending' ELSE ? END,review_note=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN review_note ELSE NULL END,reviewed_by=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_by ELSE NULL END,reviewed_at=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_at ELSE NULL END,updated_at=? WHERE id=?")
-    .bind(title,description,purpose,propertyType,price,currency,city,district,neighborhood?.name??row.neighborhood??null,neighborhood?.id??row.neighborhood_id??null,neighborhood?.postalCode??row.postal_code??null,grossArea,...optionalFields.slice(0,1),value("rooms","rooms",10)||null,...optionalFields.slice(1),value("heating","heating",50)||null,Object.hasOwn(data,"furnished")?data.furnished?1:0:Number(row.furnished)||0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(cleanTranslations),JSON.stringify(presentation),status,updatedAt,id)];
+  const statements=[db().prepare("UPDATE listings SET title=?,description=?,purpose=?,property_type=?,price=?,currency=?,city=?,district=?,neighborhood=?,neighborhood_id=?,postal_code=?,latitude=?,longitude=?,gross_area=?,net_area=?,rooms=?,bedrooms=?,bathrooms=?,building_age=?,floor=?,total_floors=?,heating=?,furnished=?,amenities=?,images=?,translations=?,presentation=?,status=CASE WHEN listings.status<>'published' OR EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN 'pending' ELSE ? END,review_note=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN review_note ELSE NULL END,reviewed_by=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_by ELSE NULL END,reviewed_at=CASE WHEN EXISTS(SELECT 1 FROM listing_moderation_holds h WHERE h.listing_id=CAST(listings.id AS TEXT) AND h.active=1) THEN reviewed_at ELSE NULL END,updated_at=? WHERE id=?")
+    .bind(title,description,purpose,propertyType,price,currency,city,district,neighborhood?.name??row.neighborhood??null,neighborhood?.id??row.neighborhood_id??null,neighborhood?.postalCode??row.postal_code??null,point?point.latitude:before.latitude,point?point.longitude:before.longitude,grossArea,...optionalFields.slice(0,1),value("rooms","rooms",10)||null,...optionalFields.slice(1),value("heating","heating",50)||null,Object.hasOwn(data,"furnished")?data.furnished?1:0:Number(row.furnished)||0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(cleanTranslations),JSON.stringify(presentation),status,updatedAt,id)];
   [...new Set([...originalImages,...originalPanoramas.map(scene=>scene.url),...(originalFloorPlan?[originalFloorPlan]:[])])].forEach((image)=>{const key=image.slice("/api/media/".length);if(!keys.includes(key))statements.push(db().prepare("DELETE FROM property_images WHERE property_id=? AND object_key=?").bind(id,key));});
   keys.forEach((key,index)=>{if(previousKeys.has(key))statements.push(db().prepare("UPDATE property_images SET sort_order=? WHERE property_id=? AND object_key=?").bind(index,id,key));else{const info=addedInfo[added.indexOf(key)]!;statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,"r2",bucket!,key,info.contentType,info.size,info.checksum,index,updatedAt));}});
   if(status==="published")statements.push(db().prepare("UPDATE listings SET published_at=COALESCE(published_at,?) WHERE id=?").bind(updatedAt,id));
@@ -103,6 +119,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   await db().batch(statements);
   const actual=await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{status:string}>();
   if(actual?.status==='published')scheduleListingTranslations(id);
+  if(pinMoved)scheduleListingNearby(id);
   // Replaced or removed video: its files go (mirrors the photos below).
   if(previousVideo&&previousVideo!==presentation.videoId&&videoFeatureEnabled())await removeVideoById(db() as unknown as VideoDatabase,previousVideo);
   await removeListingMedia([...previousKeys].filter(key=>!keys.includes(key)),removeMedia);

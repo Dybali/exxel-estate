@@ -12,7 +12,7 @@ export function draftHasContent(payload?:Partial<DraftPayload>|null){
 type Value=string|number|null;
 export interface DraftDatabase {prepare(query:string):{bind(...values:Value[]):{first<T>():Promise<T|null>}}}
 export class DraftError extends Error {constructor(message:string,public status=400){super(message);}}
-const fieldNames=new Set(['submissionId','panoramas','eidsNumber','videoId','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale','landZoning','landBlock','landParcel','landSheet','landKaks','landGabari','landCredit','landDeed','landSwap','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','grossArea','netArea','gardenArea','plotArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','fa','ru','nl'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
+const fieldNames=new Set(['submissionId','panoramas','eidsNumber','videoId','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale','landZoning','landBlock','landParcel','landSheet','landKaks','landGabari','landCredit','landDeed','landSwap','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','latitude','longitude','locationPrecision','grossArea','netArea','gardenArea','plotArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','fa','ru','nl'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
 export function validateDraft(input:unknown,userId:string):DraftPayload {
  if(!input||typeof input!=="object"||Array.isArray(input))throw new DraftError('Taslak bilgileri geçersiz.');
  const data=input as Record<string,unknown>;
@@ -23,6 +23,8 @@ export function validateDraft(input:unknown,userId:string):DraftPayload {
  // Listing prices are entered only in Turkish lira (lib/price-filters.ts).
  if(fields.currency&&fields.currency!=='TRY')throw new DraftError('İlan fiyatı yalnızca Türk lirası (TL) olarak girilebilir.');
  if(fields.purpose&&!['satilik','kiralik','gunluk','devren'].includes(fields.purpose))throw new DraftError('Taslak bilgileri geçersiz.');
+ // Map pin: plain decimal degrees (checked against the province when the listing is published).
+ if(['latitude','longitude'].some(key=>fields[key]&&!/^-?\d{1,3}(\.\d{1,8})?$/.test(fields[key]))||fields.locationPrecision&&!['exact','approximate'].includes(fields.locationPrecision))throw new DraftError('Taslak bilgileri geçersiz.');
  const prefix=`/api/media/listings/${userId}/`;
  if(data.images.length>30||data.images.some(url=>typeof url!=="string"||!url.startsWith(prefix)||!/^[-a-f0-9]+\.(jpg|png|webp)$/.test(url.slice(prefix.length)))||new Set(data.images).size!==data.images.length)throw new DraftError('Taslak fotoğraflarını kontrol edin.');
  if(data.amenities.length>20||data.amenities.some(value=>typeof value!=="string"||value.length>50))throw new DraftError('Taslak özelliklerini kontrol edin.');

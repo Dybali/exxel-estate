@@ -13,7 +13,7 @@ import {officeDB,officePublicationAllowed} from '@/lib/office-verification-serve
 import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {listingCurrencyAllowed,tlPriceRange,TL_ONLY_MESSAGE} from "@/lib/price-filters";
-import { areaBounds,centers,listingInArea,mapBoundsSql,validArea,validBounds } from "@/lib/search-filters";
+import { areaBounds,listingInArea,mapBoundsSql,validArea,validBounds } from "@/lib/search-filters";
 import { AMENITIES, PUBLIC_DEMO_LISTINGS, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import {body, currentUser, db, error, isAdmin, now, num, ok, parseListing, sameOrigin, str,OWNER_VERIFIED_SQL} from "@/lib/server";
 import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
@@ -23,6 +23,8 @@ import {compareListings,listingOrderSql,listingSort,priceSort,strictSort,tlPrice
 import {currentRates} from "@/lib/tcmb-server";
 import { findNeighborhood } from "@/lib/turkey-neighborhoods";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
+import { bboxSql, inBbox, parseBbox, parseLocationInput, resolveLocation } from "@/lib/listing-location";
+import { scheduleListingNearby } from "@/lib/neighborhood-info-server";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
@@ -47,33 +49,49 @@ export async function GET(request:Request) {
   if(q.get('assistant')==='1'&&q.get('furnished')==='0')where.push('l.furnished=0');
   const chosen=(q.get("amenities")||"").split(",").filter((a)=>AMENITIES.includes(a)).slice(0,12);
   for(const a of chosen){where.push("EXISTS (SELECT 1 FROM json_each(l.amenities) WHERE value=?)");values.push(a)}
+  // Non-spatial filters: also used for the "Konumu olmayan N ilan" count of the map view.
+  const baseWhere=[...where],baseValues=[...values],mapMode=q.get("map")==="1";
   const bounds=validBounds(q.get("bounds")||"");
   if(bounds){const spatial=mapBoundsSql(bounds);where.push(spatial.where);values.push(...spatial.values);}
   const area=validArea(q.get("area")||"");
   if(area){const spatial=mapBoundsSql(areaBounds(area));where.push(spatial.where);values.push(...spatial.values);}
+  // Map search box: plain ranges on the public point columns (approximate pins are already offset there).
+  const bbox=parseBbox(q.get("bbox"));
+  if(bbox){const spatial=bboxSql(bbox);where.push(spatial.where);values.push(...spatial.values);}
+  // The map shows pinned listings only; the rest are counted and stay in the list view.
+  if(mapMode)where.push("l.latitude IS NOT NULL AND l.longitude IS NOT NULL");
   const query=where.join(" AND ");
   const order=listingOrderSql(sort,rates);
-  const demo=(q.get('assistant')==='1'?[]:PUBLIC_DEMO_LISTINGS).filter((l)=>{
+  const demoBase=(q.get('assistant')==='1'?[]:PUBLIC_DEMO_LISTINGS).filter((l)=>{
     if(!matchesSearchText(q.get("q")||"",l))return false;
     if(!categoryMatches(q.get('category')||'',l))return false;
     if(q.get("neighborhood")&&l.neighborhood!==q.get("neighborhood"))return false;
     for(const [param,field] of [["purpose","purpose"],["city","city"],["district","district"],["type","propertyType"]] as const){const v=q.get(param);if(v&&l[field]!==v)return false}
     if(range.min!==undefined||range.max!==undefined){const value=tlPrice(l,rates);if(value===undefined||range.min!==undefined&&value<range.min||range.max!==undefined&&value>range.max)return false;}
     for(const [param,field,compare] of [["minArea","grossArea","min"],["maxArea","grossArea","max"],["bedrooms","bedrooms","min"],["bathrooms","bathrooms","min"]] as const){const v=q.get(param);if(v&&Number.isFinite(Number(v))){const n=Number(l[field]||0);if(compare==="min"&&n<Number(v)||compare==="max"&&n>Number(v))return false}}
-    if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
-    if(area&&!listingInArea(l,area))return false;
     if(q.get("furnished")==="1"&&!l.furnished)return false;
     if(!extraFilterMatches(q,l))return false;
     if(chosen.some((a)=>!l.amenities.includes(a)))return false;
     return true;
   }).sort(compareListings(sort,rates));
-  const mapRow=(l:Listing)=>({...l,latitude:l.latitude??centers[l.city]?.[0],longitude:l.longitude??centers[l.city]?.[1],locationPrecision:l.latitude==null||l.longitude==null?"province" as const:"approximate" as const,description:"",images:l.images.slice(0,1),translations:undefined});
+  // Sample listings sit at their province centre ("province"): not a pin, so never on the map or in a bbox.
+  const pinned=(l:Listing)=>l.latitude!=null&&l.longitude!=null&&l.locationPrecision!=="province";
+  const demo=demoBase.filter((l)=>{
+    if(bounds&&(!l.latitude||!l.longitude||l.longitude<bounds[0]||l.latitude<bounds[1]||l.longitude>bounds[2]||l.latitude>bounds[3]))return false;
+    if(area&&!listingInArea(l,area))return false;
+    if(bbox&&!(pinned(l)&&inBbox(bbox,l.latitude,l.longitude)))return false;
+    if(mapMode&&!pinned(l))return false;
+    return true;
+  });
+  // Map rows carry only what a marker and its popup card need.
+  const mapRow=(l:Listing)=>({...l,locationPrecision:l.locationPrecision||"approximate" as const,description:"",images:l.images.slice(0,1),presentation:undefined,translations:l.translations?Object.fromEntries(Object.entries(l.translations).map(([code,item])=>[code,{title:item?.title||"",description:""}])):undefined});
+  const unlocated=async()=>{if(!mapMode)return undefined;const row=await db().prepare(`SELECT count(*) AS n FROM listings l WHERE ${baseWhere.join(" AND ")} AND (l.latitude IS NULL OR l.longitude IS NULL)`).bind(...baseValues).first<{n:number}>();return Number(row?.n||0)+demoBase.filter(l=>!pinned(l)).length;};
   if(area){
     // The bounding box narrows the query in SQL; the polygon test runs here, so results are paged in memory.
     const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL},${PRICE_DROP_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT 500`).bind(...values).all<Record<string,unknown>>();
     const inside=[...(rows.results||[]).map(row=>publicListing(parseListing(row))).filter(l=>listingInArea(l,area)),...demo];
     const pageRows=inside.slice((page-1)*pageSize,page*pageSize);
-    return ok({listings:q.get("map")==="1"?pageRows.map(mapRow):pageRows,total:inside.length,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+    return ok({listings:mapMode?pageRows.map(mapRow):pageRows,total:inside.length,page,pageSize,unlocated:await unlocated()},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
   }
   const count=await db().prepare(`SELECT count(*) AS n FROM listings l WHERE ${query}`).bind(...values).first<{n:number}>();
   const realCount=Number(count?.n||0);
@@ -86,7 +104,7 @@ export async function GET(request:Request) {
   if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL},${PRICE_DROP_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=ordered?[...real,...demo].sort(compareListings(sort,rates)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
-  return ok({listings:q.get("map")==="1"?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+  return ok({listings:mapMode?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize,unlocated:await unlocated()},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
 }
 
 export async function POST(request:Request) {
@@ -124,6 +142,9 @@ export async function POST(request:Request) {
   if(new Set(images).size!==images.length) return error("Aynı fotoğraf birden fazla eklenemez.");
   if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
   let presentation;try{presentation=presentationFrom(data,user.id);}catch(e){return error((e as Error).message);}
+  // Optional map pin: the columns get the public point, the exact pin stays private (lib/listing-location.ts).
+  let pin=null;if(Object.hasOwn(data,"latitude")||Object.hasOwn(data,"longitude")){try{pin=resolveLocation(parseLocationInput(data,city),null);}catch(e){return error((e as Error).message);}}
+  if(pin?.location)presentation.location=pin.location;
   if(presentation.videoId){if(!videoFeatureEnabled())return error("Video yükleme şu anda kullanılamıyor.",503);try{const problem=await videoAttachProblem(db() as unknown as VideoDatabase,presentation.videoId,user.id,null);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
   const imageKeys=[...new Set([...images,...(presentation.panoramas||[]).map(scene=>scene.url),presentation.floorPlan].filter(Boolean))].map((url)=>url.slice("/api/media/".length));
   if(imageKeys.some((key)=>!new RegExp(`^listings/${user.id}/[a-f0-9-]+\\.(jpg|png|webp)$`).test(key))) return error("Yalnızca kendi yüklediğiniz fotoğrafları ekleyebilirsiniz.",403);
@@ -149,7 +170,7 @@ export async function POST(request:Request) {
   const agentGuard=AGENT_PLANS_ENABLED&&user.role==='agent'&&!isAdmin(user)&&!team;
   const insertSql="INSERT INTO listings(id,owner_id,title,description,purpose,property_type,price,currency,city,district,neighborhood,neighborhood_id,postal_code,latitude,longitude,gross_area,net_area,rooms,bedrooms,bathrooms,building_age,floor,total_floors,heating,furnished,amenities,images,translations,presentation,status,featured,created_at,updated_at,agency_id) "+(team?`SELECT ${Array(34).fill('?').join(',')} WHERE EXISTS(SELECT 1 FROM company_team_memberships m JOIN agencies a ON a.id=m.agency_id JOIN users owner ON owner.id=a.owner_id JOIN users member ON member.id=m.user_id WHERE member.role='buyer' AND m.user_id=? AND m.agency_id=? AND m.ended_at IS NULL AND a.status='approved' AND owner.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications v WHERE v.user_id=CAST(owner.id AS TEXT) AND v.state='approved' AND v.company_snapshot=owner.company))`:agentGuard?`SELECT ${Array(34).fill('?').join(',')} WHERE ${agentInsertGuard}`:`VALUES(${Array(34).fill('?').join(',')})`);
   const statements=[...(agentGuard?[db().prepare('UPDATE users SET name=name WHERE id=?').bind(user.id)]:[]),db().prepare(insertSql)
-    .bind(id,user.id,title,description,purpose,propertyType,price,"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,null,null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,team?.id||null,...(team?[user.id,team.id]:[]),...(agentGuard?[user.id,createdAt,createdAt]:[]))];
+    .bind(id,user.id,title,description,purpose,propertyType,price,"TRY",city,district,neighborhood.name,neighborhood.id,neighborhood.postalCode||null,pin?.latitude??null,pin?.longitude??null,grossArea,optional(data.netArea),str(data.rooms,10)||null,optional(data.bedrooms),optional(data.bathrooms),optional(data.buildingAge),optional(data.floor),optional(data.totalFloors),str(data.heating,50)||null,data.furnished===true||data.furnished===1||data.furnished==='1'?1:0,JSON.stringify(amenities),JSON.stringify(images),JSON.stringify(translations),JSON.stringify(presentation),status,0,createdAt,createdAt,team?.id||null,...(team?[user.id,team.id]:[]),...(agentGuard?[user.id,createdAt,createdAt]:[]))];
   if(ticket)statements.push(submissionStatement(db(),ticket,id,createdAt));
   if(presentation.videoId)statements.push(attachVideoStatement(db(),presentation.videoId,user.id,id));
   imageKeys.forEach((key,index)=>statements.push(db().prepare("INSERT INTO property_images(id,property_id,storage_provider,bucket,object_key,content_type,byte_size,checksum_sha256,sort_order,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
@@ -160,5 +181,6 @@ export async function POST(request:Request) {
   const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
   if(!saved)return error('Ekip üyeliğiniz değişti. Sayfayı yenileyin.',409);
   if(saved?.status==='published')scheduleListingTranslations(id);
+  if(pin?.latitude!=null)scheduleListingNearby(id);
   return ok({id,status:saved?.status||'pending'},{status:201});
 }

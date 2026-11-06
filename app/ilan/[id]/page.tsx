@@ -32,6 +32,8 @@ import { ListingGallery } from "@/components/ListingGallery";
 import { PropertyText } from "@/components/PropertyText";
 import { ExternalMap } from "@/components/ExternalMap";
 import { BuyerTools } from "@/components/BuyerTools";
+import { NeighbourhoodInfo } from "@/components/NeighbourhoodInfo";
+import { storedNearby } from "@/lib/neighborhood-info";
 import { ServiceSuggestions } from "@/components/ServiceSuggestions";
 import { listingAuthorityNumber } from "@/lib/office-verification-server";
 import { listingStructuredData, localizedListingText } from "@/lib/listing-seo";
@@ -87,7 +89,9 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     <BuyerTools listing={listing}/>
     <ServiceSuggestions city={listing.city} purpose={listing.purpose} foreignSale={foreignSale==="Evet"}/>
     {(authorityNumber||eids)&&<section className="property-section property-legal"><h2><T id="Yasal bilgiler"/></h2><dl className="property-facts-grid">{authorityNumber&&<div><dt><T id="Taşınmaz ticareti yetki belgesi no"/></dt><dd>{authorityNumber}</dd></div>}{eids&&<div><dt><T id="EİDS doğrulama no (ilan verenin beyanı)"/></dt><dd>{eids}</dd></div>}</dl></section>}
-    {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={translate("{name} haritası",locale).replace("{name}",listing.district)} src={map}/><p className="property-map-note"><MapPin size={14}/><T id="Haritadaki nokta yaklaşık konumu gösterir."/></p></section>}
+    {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={translate("{name} haritası",locale).replace("{name}",listing.district)} src={map}/><p className="property-map-note"><MapPin size={14}/><T id={listing.locationPrecision==="exact"?"Haritadaki nokta ilan sahibinin paylaştığı konumu gösterir.":"Haritadaki nokta yaklaşık konumu gösterir."}/></p></section>}
+    {/* Neighbourhood block: pinned customer listings only, measured from the public point. */}
+    {listing.source==="user"&&listing.latitude!=null&&listing.longitude!=null&&<NeighbourhoodInfo listingId={listing.id} point={[listing.latitude,listing.longitude]} approximate={listing.locationPrecision!=="exact"} initial={storedNearby(listing.presentation?.nearby,listing.latitude,listing.longitude)}/>}
     </article><aside className="property-detail-aside"><ContactCard listing={listing}/></aside></div>
     <SimilarListings listings={similar} href={similarSearchHref(listing)}/>
     <div className="property-detail-back"><Link href="/ilanlar"><ArrowLeft size={16}/><T id="Tüm ilanlara dön"/></Link></div>

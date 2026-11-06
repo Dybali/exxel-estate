@@ -7,7 +7,7 @@ export type Listing = {
   presentation?:import("./presentation").Presentation;
   id: string; title: string; description: string; purpose: Purpose; propertyType: PropertyType;
   price: number; currency: string; city: string; district: string; neighborhood?: string; neighborhoodId?: number; postalCode?: string;
-  latitude?: number; longitude?: number; locationPrecision?:"province"|"approximate"; grossArea: number; netArea?: number;
+  latitude?: number; longitude?: number; locationPrecision?:"province"|"approximate"|"exact"; grossArea: number; netArea?: number;
   rooms?: string; bedrooms?: number; bathrooms?: number; buildingAge?: number;
   floor?: number; totalFloors?: number; heating?: string; furnished?: boolean;
   amenities: string[]; images: string[]; featured?: boolean; status?: string; expiresAt?: string;

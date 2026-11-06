@@ -165,7 +165,7 @@ test('signed-in member receives verified search data; cross-site requests cannot
 test('assistant result destination excludes demo listings and keeps unfurnished criteria',async()=>{
  const queries=[];
  const route=load('app/api/listings/route.ts',{
-  '@/lib/company-team-server':{},'@/lib/translation-runtime':{scheduleListingTranslations(){}},'@/lib/listing-submissions':{},'@/lib/agent-plan':{},'@/lib/office-verification-server':{},'@/lib/listing-details':{validRooms:()=>true},'@/lib/listing-video-server':{videoFeatureEnabled:()=>false,removeVideoById:async()=>true},'@/lib/listing-video-store':{videoAttachProblem:async()=>null,attachVideoStatement:()=>null},'@/lib/presentation':{},'@/lib/external-r2':{},'@/lib/turkey-neighborhoods':{},'@/lib/tcmb-server':{currentRates:async()=>null},
+  '@/lib/company-team-server':{},'@/lib/translation-runtime':{scheduleListingTranslations(){}},'@/lib/listing-submissions':{},'@/lib/agent-plan':{},'@/lib/office-verification-server':{},'@/lib/listing-details':{validRooms:()=>true},'@/lib/listing-video-server':{videoFeatureEnabled:()=>false,removeVideoById:async()=>true},'@/lib/listing-video-store':{videoAttachProblem:async()=>null,attachVideoStatement:()=>null},'@/lib/presentation':{},'@/lib/external-r2':{},'@/lib/turkey-neighborhoods':{},'@/lib/tcmb-server':{currentRates:async()=>null},'@/lib/neighborhood-info-server':{},
   '@/lib/server':{ok:Response.json,error:(message,status=400)=>Response.json({error:message},{status}),db:()=>({prepare(query){queries.push(query);return {bind(){return this;},async first(){return {n:0};}};}})},
  });
  const result=await(await route.GET(new Request('https://site.test/api/listings?assistant=1&furnished=0'))).json();

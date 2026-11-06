@@ -4,6 +4,7 @@ import {priceCurrency,tlPriceRange} from "./price-filters";
 import {tlPriceSql,tlRates} from "./listing-sort";
 import type {RateSnapshot} from "./tcmb";
 import provinceCenters from "@/data/province-centers.json";
+import {bboxSql,parseBbox} from "./listing-location";
 // Shared validation for saved searches, alerts and map queries.
 export const searchFields = {purpose:"purpose",city:"city",district:"district",type:"property_type",rooms:"rooms",neighborhood:"neighborhood"};
 export const searchRanges = [["minPrice","price",">="],["maxPrice","price","<="],["minArea","gross_area",">="],["maxArea","gross_area","<="],["bedrooms","bedrooms",">="],["bathrooms","bathrooms",">="]] as const;
@@ -20,6 +21,7 @@ export function cleanSearch(input: string) {
   if(amenities.length)result.set("amenities",amenities.join(","));
   const bounds=source.get("bounds");if(bounds&&validBounds(bounds))result.set("bounds",bounds);
   const area=source.get("area");if(area&&validArea(area))result.set("area",area);
+  const bbox=source.get("bbox");if(bbox&&parseBbox(bbox))result.set("bbox",bbox);
   const currency=priceCurrency(source);if(currency)result.set("currency",currency);
   result.sort();return result.toString();
 }
@@ -46,6 +48,8 @@ export function searchSql(query:string,rates:RateSnapshot|null=null) {
   const bounds=validBounds(q.get("bounds")||"");if(bounds){const filter=mapBoundsSql(bounds);where.push(filter.where);values.push(...filter.values);}
   // Alert counts use the drawn area's bounding box; the linked list applies the exact polygon.
   const area=validArea(q.get("area")||"");if(area){const filter=mapBoundsSql(areaBounds(area));where.push(filter.where);values.push(...filter.values);}
+  // Map search box ("Bu alanda ara"): pinned listings only, on their public point.
+  const bbox=parseBbox(q.get("bbox"));if(bbox){const filter=bboxSql(bbox);where.push(filter.where);values.push(...filter.values);}
   return {where:where.join(" AND "),values};
 }
 

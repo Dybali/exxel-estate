@@ -1,0 +1,58 @@
+/* Map features: pin step of the listing forms, /ilanlar map markers and popups, neighbourhood block.
+   Logical properties only, so Arabic and Persian (dir=rtl) mirror without extra rules. */
+
+/* Pin step (components/LocationPicker.tsx) */
+.location-picker{margin-top:22px;border:1px solid #dbe4e1;border-radius:8px;padding:16px;background:#fbfcfb}
+.location-picker-head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+.location-picker-head strong{display:inline-flex;align-items:center;gap:6px;font-size:15px;color:#173b36}
+.location-picker-head p{margin:5px 0 0;font-size:13px;line-height:1.55;color:#5d6d67;max-width:560px}
+.location-picker-head .outline-button{flex-shrink:0}
+.location-picker-map{height:360px;margin-top:14px;border-radius:6px;overflow:hidden;border:1px solid #d5dfdb;z-index:0;isolation:isolate}
+.location-picker-note{margin:9px 0 0;font-size:12px;color:#66756f}
+.location-picker-error{margin:9px 0 0;font-size:13px;color:var(--btn-danger,#a8322a);font-weight:600}
+.location-picker-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.location-picker-actions .outline-button{gap:6px}
+.location-picker-coords{font-size:12px;color:#53635d;font-variant-numeric:tabular-nums}
+.location-picker-privacy{border:0;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.location-picker-privacy legend{font-size:13px;font-weight:700;color:#173b36;margin-bottom:8px;padding:0}
+.location-picker-privacy label{display:flex;gap:10px;align-items:flex-start;border:1px solid #d7e0dc;border-radius:7px;padding:11px 12px;background:#fff;cursor:pointer}
+.location-picker-privacy label:has(input:checked){border-color:var(--btn-petrol,#0b5f63);box-shadow:0 0 0 1px var(--btn-petrol,#0b5f63)}
+.location-picker-privacy input{margin-top:3px;accent-color:var(--btn-petrol,#0b5f63);flex-shrink:0}
+.location-picker-privacy strong{display:block;font-size:13px;color:#173b36}
+.location-picker-privacy small{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:#63726c}
+.location-picker-pin{background:none;border:0}
+.location-picker-pin span{position:relative;display:block;width:30px;height:30px;margin:0 auto;background:var(--btn-petrol,#0b5f63);border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 3px 9px #0005}
+.location-picker-pin span::after{content:"";position:absolute;inset:8px;background:#fff;border-radius:50%}
+@media(max-width:640px){.location-picker{padding:13px}.location-picker-head{flex-direction:column}.location-picker-map{height:300px}.location-picker-privacy{grid-template-columns:1fr}}
+
+/* /ilanlar map (components/PropertyMap.tsx) */
+.property-map-marker.approximate{border-style:dashed}
+.property-map-controls .map-search-here.pending{background:var(--btn-gold,#f2b84b);border-color:var(--btn-gold-dark,#e3a634);color:#1d2a26}
+.search-map-note .map-unlocated button{border:0;background:none;padding:0;color:var(--btn-petrol,#0b5f63);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.map-popup .leaflet-popup-content{margin:0;width:auto!important;min-width:220px}
+.map-popup .leaflet-popup-content-wrapper{padding:0;border-radius:8px;overflow:hidden}
+.map-popup-card{display:grid;font-family:inherit}
+.map-popup-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#e7ecea}
+.map-popup-card>div{display:grid;gap:3px;padding:10px 12px 12px}
+.map-popup-card strong{font-size:13px;line-height:1.35;color:#1d2f29}
+.map-popup-card b{font-size:15px;color:var(--btn-petrol,#0b5f63)}
+.map-popup-card small{font-size:11px;color:#68776f}
+.map-popup-card a{margin-top:5px;font-size:12px;font-weight:700;color:var(--btn-petrol,#0b5f63)}
+.map-popup-list{max-height:320px;overflow:auto}
+.map-popup-list .map-popup-card+.map-popup-card{border-top:1px solid #e3e9e6}
+.map-popup-list .map-popup-card img{display:none}
+
+/* Neighbourhood block (components/NeighbourhoodInfo.tsx) */
+.neighbourhood-intro{margin:-4px 0 14px;font-size:13px;color:#60706a;line-height:1.6}
+.neighbourhood-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px}
+.neighbourhood-list li{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid #e8edeb;min-width:0}
+.neighbourhood-list li>svg{color:var(--btn-petrol,#0b5f63);flex-shrink:0}
+.neighbourhood-list li>span:first-of-type{display:grid;min-width:0;flex:1}
+.neighbourhood-list strong{font-size:14px;color:#203630}
+.neighbourhood-list small{font-size:12px;color:#6b7a74;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.neighbourhood-distance{display:grid;text-align:end;flex-shrink:0}
+.neighbourhood-distance b{font-size:14px;color:#203630;font-variant-numeric:tabular-nums}
+.neighbourhood-note{font-size:13px;color:#66756f}
+.neighbourhood-source{margin-top:14px;font-size:11px;color:#7b8983;line-height:1.6}
+.neighbourhood-source a{color:inherit;text-decoration:underline}
+@media(max-width:640px){.neighbourhood-list{grid-template-columns:1fr}}

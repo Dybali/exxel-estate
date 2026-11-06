@@ -3,7 +3,11 @@ import {subtypeFrom} from './property-subtypes';
 import {detailsFrom,type ListingDetails} from './listing-details';
 import {validVideoId} from './listing-video';
 import {validatePanoramas,type PanoramaScene} from './panoramas';
-export type Presentation={floorPlan:string;videoUrl:string;tourUrl:string;gardenArea?:number;plotArea?:number;panoramas?:PanoramaScene[];eidsNumber?:string;land?:LandDetails;businessType?:string;tourismType?:string;details?:ListingDetails;videoId?:string};
+export type Presentation={floorPlan:string;videoUrl:string;tourUrl:string;gardenArea?:number;plotArea?:number;panoramas?:PanoramaScene[];eidsNumber?:string;land?:LandDetails;businessType?:string;tourismType?:string;details?:ListingDetails;videoId?:string;
+ /** Map pin precision (lib/listing-location.ts); `exact` (the private pin) never leaves the server. */
+ location?:import('./listing-location').StoredLocation;
+ /** Neighbourhood block (lib/neighborhood-info.ts), written by the server only. */
+ nearby?:import('./neighborhood-info').NearbyInfo};
 export function videoEmbed(value:string){
  try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port)return null;const host=url.hostname.replace(/^www\./,'');if(host==='youtu.be'||host==='youtube.com'){const id=host==='youtu.be'?url.pathname.slice(1):url.pathname==='/watch'?url.searchParams.get('v'):url.pathname.match(/^\/(?:shorts|embed)\/([A-Za-z0-9_-]{11})$/)?.[1];return id&&/^[A-Za-z0-9_-]{11}$/.test(id)?`https://www.youtube-nocookie.com/embed/${id}`:null;}if(host==='vimeo.com'&&/^\/\d{5,12}$/.test(url.pathname))return `https://player.vimeo.com/video/${url.pathname.slice(1)}`;}catch{}return null;
 }

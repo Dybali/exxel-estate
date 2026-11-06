@@ -10,6 +10,7 @@ import persianTranslations from "@/data/fa-translations.json";
 import dutchTranslations from "@/data/nl-translations.json";
 import {portalWords} from "./portal-translations";
 import {pagesWords} from "./pages-translations";
+import {mapWords} from "./map-translations";
 import {securityWords} from "./security-translations";
 import {foreignBuyerWords} from "./foreign-buyer-translations";
 
@@ -693,6 +694,7 @@ for(const [key,nl] of Object.entries(dutchTranslations as Record<string,string>)
 Object.assign(words,securityWords);
 Object.assign(words,foreignBuyerWords);
 Object.assign(words,pagesWords);
+Object.assign(words,mapWords);
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);
