@@ -23,10 +23,11 @@ export function CurrencyProvider({initialRates,initialCurrency,children}:{initia
  const [explicit,setExplicit]=useState<SelectableCurrency|null>(initialCurrency);
  const loadedAt=useRef(Date.now());
  useEffect(()=>{
-  // The browser copy wins when the cookie is missing (e.g. cleared); the older "off" choice means TL.
+  // The browser copy wins when the cookie is missing (e.g. cleared). The older display-currency
+  // setting is dropped, not taken as an explicit choice, so the language default applies.
   try{
-   const stored=window.localStorage.getItem(CURRENCY_STORAGE_KEY),old=window.localStorage.getItem(OLD_KEY);
-   const value=isSelectableCurrency(stored)?stored:old==="off"?"TRY":isSelectableCurrency(old)?old:null;
+   const stored=window.localStorage.getItem(CURRENCY_STORAGE_KEY);window.localStorage.removeItem(OLD_KEY);
+   const value=isSelectableCurrency(stored)?stored:null;
    if(value&&value!==initialCurrency){setExplicit(value);persist(value);}else if(!value&&initialCurrency)persist(initialCurrency);
   }catch{}
   const sync=(event:StorageEvent)=>{if(event.key===CURRENCY_STORAGE_KEY)setExplicit(isSelectableCurrency(event.newValue)?event.newValue:null);};
