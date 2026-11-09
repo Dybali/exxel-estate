@@ -112,6 +112,7 @@ export function PrivacyPolicy(){
     {id:'aktarim',title:t('Türkiye’den erişim ve uluslararası aktarımlar'),content:<LegalClauses section={9} items={[
       <p>{t('Türkiye’deki yetkili geliştirme ve destek ekibi canlı kullanıcı verilerine erişebilir. Avrupa Ekonomik Alanı dışından bu erişimin hukuki niteliği, ekibin statüsü ve veri akışına göre değerlendirilir. Erişim yetkileri ve uygulanacak aktarım güvenceleri veri sorumlusu tarafından belirlenmelidir; yürürlükte olduğu doğrulanmamış bir yeterlilik kararı veya standart sözleşme maddesi bulunduğu ileri sürülmez. Diğer hizmet sağlayıcıların uluslararası veri akışları hakkında bilgi için bize başvurabilirsiniz.')}</p>,
       <p>{t('Cloudflare ve Google merkezi ABD’de olan şirketler grubuna aittir; bu sağlayıcılar üzerinden verilerin AB/AEA ve Türkiye dışına aktarılması mümkündür. Uygulanan güvenceler hakkında bilgiyi talep üzerine veririz.')}</p>,
+      <p>{t('Kişisel verileriniz, bulunduğunuz ülkenin dışındaki sunuculara aktarılabilir ve orada saklanabilir. Bu ülkelerdeki veri koruma mevzuatı, kendi ülkenizdeki kadar koruyucu olmayabilir. Bu tür aktarımları yalnızca GDPR ve KVKK’nın öngördüğü şartlar sağlandığında yaparız.')}</p>,
     ]}/>},
     {id:'harici',title:t('Üçüncü taraf siteler ve harita'),content:<LegalClauses section={10} items={[
       <p>{t('Site; WhatsApp, Google ve hizmet firmalarının kendi web siteleri gibi başka şirketlere ait sitelere bağlantılar içerebilir. Bu politika o sitelere uygulanmaz ve onların gizlilik uygulamalarından sorumlu değiliz; bu siteleri ziyaret ettiğinizde ilgili sitenin gizlilik politikasını inceleyin.')}</p>,
@@ -146,7 +147,12 @@ export function PrivacyPolicy(){
       <p>{t('Başvurunuzu e-posta ile veya yazılı olarak yukarıdaki adrese iletebilirsiniz. Talepleri ücretsiz ve yasal süreler içinde (KVKK’da en geç 30 gün, GDPR’da kural olarak bir ay) yanıtlarız; kimliğinizi doğrulamak için ek bilgi isteyebiliriz. Hukuka aykırı işleme nedeniyle zarara uğrarsanız zararın giderilmesini talep etme hakkınız saklıdır.')}</p>,
       <p>{t('Bir şikâyetiniz varsa önce bize yazmanızı rica ederiz. Ayrıca bir denetim makamına başvurabilirsiniz: veri sorumlusunun bağlı olduğu Bavyera Veri Koruma Denetim Dairesi (BayLDA, Ansbach, Almanya), Türkiye’de Kişisel Verileri Koruma Kurulu veya AB’de yaşadığınız ya da çalıştığınız yerdeki denetim makamı.')}</p>,
     ]}/>},
-    {id:'sorular',title:t('Sorular ve iletişim'),content:<LegalClauses section={16} items={[
+    {id:'hukuk',title:t('Uygulanacak hukuk ve yetkili mahkeme'),content:<LegalClauses section={16} items={[
+      <p>{t('Bu Gizlilik Politikası, kanunlar ihtilafı kuralları hariç olmak üzere Almanya Federal Cumhuriyeti hukukuna tabidir. Genel Veri Koruma Tüzüğü’nün (GDPR) ve Türkiye’de bulunan kullanıcılar bakımından 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun emredici hükümleri saklıdır.')}</p>,
+      <p>{t('Tacirler, kamu tüzel kişileri ve kamu hukukuna tabi özel mal varlıklarıyla bu politikadan doğabilecek uyuşmazlıklarda yetkili mahkeme, veri sorumlusunun merkezine bağlı Münih (Almanya) mahkemeleridir.')}</p>,
+      <p>{t('Tüketiciler, ikamet ettikleri ülkenin emredici tüketici koruma hükümlerinden ve kendi ikametgâhlarındaki mahkemelere ya da denetim makamlarına başvurma haklarından (GDPR md. 79) yararlanmaya devam eder.')}</p>,
+    ]}/>},
+    {id:'sorular',title:t('Sorular ve iletişim'),content:<LegalClauses section={17} items={[
       <p>{t('Bu Gizlilik Politikası veya kişisel verileriniz hakkında sorularınız için bize şu adresten ulaşabilirsiniz:')} {mail}</p>,
     ]}/>},
   ];

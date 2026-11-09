@@ -34,6 +34,11 @@ export function TermsOfUse(){
     {id:'ucretler',title:t('Ücretler'),content:<p>{t('Ücretli ilan paketleri ve çevrimiçi ödeme şu anda etkin değildir. Ücretli hizmetler sunulduğunda fiyatlar ve koşullar satın almadan önce ayrıca gösterilir.')}</p>},
     {id:'sorumluluk',title:t('Sorumluluk'),content:<p>{t('Platformu özenle işletiriz ancak kesintisiz erişimi garanti edemeyiz. İlan ve firma bilgilerinin doğruluğundan bunları yayımlayanlar sorumludur. Kast, ağır ihmal, hayata, vücut bütünlüğüne veya sağlığa verilen zararlar ve kanundan doğan zorunlu sorumluluk hâllerinde sorumluluğumuz sınırlanmaz.')}</p>},
     {id:'gizlilik',title:t('Kişisel veriler'),content:<p>{t('Kişisel verilerinizin nasıl işlendiğine dair tüm ayrıntılar')} <Link href="/gizlilik-politikasi">{t('Gizlilik politikası')}</Link> · <Link href="/cerez-politikasi">{t('Çerez politikası')}</Link></p>},
+    {id:'hukuk',title:t('Uygulanacak hukuk ve yetkili mahkeme'),content:<>
+      <p>{t('Bu Kullanım Koşulları, kanunlar ihtilafı kuralları ve Milletlerarası Mal Satımına İlişkin Sözleşmeler Hakkında Birleşmiş Milletler Antlaşması (CISG) hariç olmak üzere Almanya Federal Cumhuriyeti hukukuna tabidir.')}</p>
+      <p>{t('Tacirler, kamu tüzel kişileri ve kamu hukukuna tabi özel mal varlıklarıyla doğabilecek uyuşmazlıklarda yetkili mahkeme, işletmecinin merkezine bağlı Münih (Almanya) mahkemeleridir.')}</p>
+      <p>{t('Tüketiciler için, ikamet ettikleri ülkenin emredici tüketici koruma hükümleri saklıdır; tüketiciler kendi ikametgâhlarındaki mahkemelere ve tüketici hakem heyetlerine başvurabilir.')}</p>
+    </>},
     {id:'degisiklikler',title:t('Değişiklikler ve iletişim'),content:<p>{t('Bu koşulları hizmetler veya mevzuat değiştiğinde güncelleyebiliriz. Güncel sürüm bu sayfada yayımlanır; önemli değişikliklerde üyeleri uygun şekilde bilgilendiririz. Tüketiciler bakımından yaşadıkları ülkenin zorunlu tüketici koruma hükümleri saklıdır.')} <Link href="/iletisim">{t('İletişim')}</Link></p>},
   ];
   return <LegalPage current="/kullanim-kosullari" title={t('Kullanım koşulları')} updated={TERMS_UPDATED}
