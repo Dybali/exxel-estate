@@ -1,6 +1,6 @@
 # Doğal dil araması
 
-Ziyaretçi aradığını kendi cümlesiyle yazar ("Bodrum'da denize yakın, havuzlu, 3+1, 15 milyona kadar satılık villa", "2-bedroom flat for rent in Antalya under 1000 euro"); site bunu `/ilanlar` filtrelerine çevirir. Ana sayfa hero'sunda ve `/ilanlar` üstünde (`components/NaturalSearch.tsx`), ayrıca estateAI sohbetinde "Bu aramayı aç" bağlantısı olarak.
+Ziyaretçi aradığını kendi cümlesiyle yazar ("Bodrum'da denize yakın, havuzlu, 3+1, 15 milyona kadar satılık villa", "2-bedroom flat for rent in Antalya under 1000 euro"); site bunu `/ilanlar` filtrelerine çevirir. Yalnızca ana sayfa hero'sunda (`components/NaturalSearch.tsx`; sahibinin isteğiyle `/ilanlar` üstünden kaldırıldı, 2026-11-09), ayrıca estateAI sohbetinde "Bu aramayı aç" bağlantısı olarak.
 
 ## Akış
 
