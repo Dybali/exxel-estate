@@ -10,7 +10,12 @@ export function validateRecoveryInput(data:Record<string,unknown>){
 }
 // One atomic UPSERT avoids parallel requests bypassing the per-mailbox/IP limits.
 export async function consumeRecoveryLimit(database:ChatDatabase,key:string,limit:number,at=new Date()){
- const now=at.toISOString(),cutoff=new Date(at.getTime()-15*60000).toISOString();
+ await consumeRateLimit(database,key,limit,15*60000,at);
+}
+// The same shared auth_limits counter with a caller-chosen window (a fixed window from the first hit)
+// and message. Keys should already be hashed (sha256) so no raw IP address or e-mail is stored.
+export async function consumeRateLimit(database:ChatDatabase,key:string,limit:number,windowMs:number,at=new Date(),message='Çok fazla deneme. 15 dakika sonra tekrar deneyin.'){
+ const now=at.toISOString(),cutoff=new Date(at.getTime()-windowMs).toISOString();
  const row=await database.prepare(`INSERT INTO auth_limits(key,failures,window_started_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET failures=CASE WHEN auth_limits.window_started_at>? THEN auth_limits.failures+1 ELSE 1 END,window_started_at=CASE WHEN auth_limits.window_started_at>? THEN auth_limits.window_started_at ELSE excluded.window_started_at END RETURNING failures`).bind(key,now,cutoff,cutoff).first<{failures:number}>();
- if(!row||Number(row.failures)>limit)throw new RecoveryError('Çok fazla deneme. 15 dakika sonra tekrar deneyin.',429);
+ if(!row||Number(row.failures)>limit)throw new RecoveryError(message,429);
 }

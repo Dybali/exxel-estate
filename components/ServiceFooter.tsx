@@ -1,6 +1,7 @@
 "use client";
 import { ArrowLeft, Plus } from "lucide-react";
 import { openCookiePreferences } from "@/components/CookieConsent";
+import { FeedbackLink } from "@/components/FeedbackWidget";
 import Link from "@/components/SafeLink";
 import { groupSearchHref, SERVICE_SIGNUP_HREF, ServiceBrand } from "@/components/ServiceHeader";
 import { useLocale } from "@/lib/i18n";
@@ -28,7 +29,7 @@ export function ServiceFooter() {
     <div className="container svc-footer-bottom">
       <span>© 2026 estatemarket24. {t("Tüm hakları saklıdır.")}</span>
       <span className="svc-footer-legal">
-        <Link href="/iletisim">{t("İletişim")}</Link><Link href="/impressum">{t("Yasal künye")}</Link><Link href="/gizlilik-politikasi">{t("Gizlilik politikası")}</Link><Link href="/cerez-politikasi">{t("Çerez politikası")}</Link>
+        <Link href="/iletisim">{t("İletişim")}</Link><FeedbackLink className="svc-footer-feedback" source="services"/><Link href="/impressum">{t("Yasal künye")}</Link><Link href="/gizlilik-politikasi">{t("Gizlilik politikası")}</Link><Link href="/cerez-politikasi">{t("Çerez politikası")}</Link>
         <button type="button" onClick={openCookiePreferences}>{t("Çerez tercihleri")}</button>
       </span>
     </div>

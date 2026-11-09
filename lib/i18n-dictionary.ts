@@ -13,6 +13,7 @@ import {pagesWords} from "./pages-translations";
 import {mapWords} from "./map-translations";
 import {aiSearchWords} from "./ai-search-translations";
 import {duplicateWords} from "./duplicate-translations";
+import {feedbackWords} from "./feedback-translations";
 import {securityWords} from "./security-translations";
 import {foreignBuyerWords} from "./foreign-buyer-translations";
 
@@ -699,6 +700,7 @@ Object.assign(words,pagesWords);
 Object.assign(words,mapWords);
 Object.assign(words,aiSearchWords);
 Object.assign(words,duplicateWords);
+Object.assign(words,feedbackWords);
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);

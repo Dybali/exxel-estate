@@ -1,8 +1,8 @@
 'use client';
 import {usePathname,useSearchParams} from 'next/navigation';
 import {useState} from 'react';import {Brand} from './Brand';import Link from './SafeLink';import {useLocale} from '@/lib/i18n';
-import {LayoutDashboard,Users,Building2,MessageSquare,Flag,Activity,Settings,History,LogOut,ArrowUpRight,Menu,X,ShieldCheck,Receipt,Home,Mail,LockKeyhole,Wrench,ShieldAlert} from 'lucide-react';
-const items=[['overview','Genel bakış',LayoutDashboard],['applications','Başvurular',Users],['listings','İlanlar',Building2],['suspicious','Şüpheli ilanlar',ShieldAlert],['projects','Projeler',Home],['services','Hizmet firmaları',Wrench],['messages','Mesajlar',MessageSquare],['reports','Bildirimler',Flag],['contact','İletişim mesajları',Mail],['orders','Siparişler',Receipt],['health','Sistem durumu',Activity],['settings','Ayarlar',Settings],['audit','İşlem geçmişi',History]] as const;
+import {LayoutDashboard,Users,Building2,MessageSquare,Flag,Activity,Settings,History,LogOut,ArrowUpRight,Menu,X,ShieldCheck,Receipt,Home,Mail,LockKeyhole,Wrench,ShieldAlert,Lightbulb} from 'lucide-react';
+const items=[['overview','Genel bakış',LayoutDashboard],['applications','Başvurular',Users],['listings','İlanlar',Building2],['suspicious','Şüpheli ilanlar',ShieldAlert],['projects','Projeler',Home],['services','Hizmet firmaları',Wrench],['messages','Mesajlar',MessageSquare],['reports','Bildirimler',Flag],['contact','İletişim mesajları',Mail],['feedback','Öneriler',Lightbulb],['orders','Siparişler',Receipt],['health','Sistem durumu',Activity],['settings','Ayarlar',Settings],['audit','İşlem geçmişi',History]] as const;
 export function AdminShell({children}:{children:React.ReactNode}){
  const {t}=useLocale();const path=usePathname(),params=useSearchParams(),[open,setOpen]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  if(path==='/yonetim/giris'||path==='/yonetim/kurulum')return <>{children}</>;

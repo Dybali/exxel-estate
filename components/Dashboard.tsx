@@ -14,6 +14,7 @@ import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
 import {ProjectsPanel} from "./ProjectsPanel";
 import {ServiceFirmPanel} from "./ServiceFirmPanel";
+import {FeedbackCard} from "./FeedbackWidget";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -115,6 +116,7 @@ export function Dashboard() {
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div><Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link></div>
           <div className="summary-cards"><div><Heart size={22}/><strong>{favorites.length}</strong><span>{t("Favori ilan")}</span></div><div><Bookmark size={22}/><strong>{mine.length}</strong><span>{t("İlanım")}</span></div><div><Mail size={22}/><strong>{conversations.length}</strong><span>{t("Görüşme")}</span></div></div>
           <div className="panel-note"><h3>{t("Yeni bir yaşam alanı keşfedin")}</h3><p>{t("Aradığınız özelliklere uygun ilanları gelişmiş filtrelerle bulun.")}</p><Link className="text-link" href="/ilanlar">{t("İlanları incele")}<ArrowUpRight size={16}/></Link></div>
+          {user.role==="agent"&&<FeedbackCard/>}
         </>}
         {tab === "favoriler" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("KAYDETTİKLERİNİZ")}</span><h2>{t("Favori ilanlarım")}</h2></div></div>

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, ImagePlus, Pencil, Plus, Store, Trash2, X } from "lucide-react";
 import Link from "@/components/SafeLink";
+import { FeedbackCard } from "@/components/FeedbackWidget";
 import { apiJson } from "@/lib/api-client";
 import { locales, useLocale } from "@/lib/i18n";
 import { optimizeListingPhoto } from "@/lib/photo-optimize";
@@ -177,5 +178,6 @@ export function ServiceFirmPanel() {
         <button type="button" className="outline-button danger" onClick={() => void remove()}><Trash2 size={15}/>{t("Sil")}</button>
       </div>
     </article>}
+    {!editing && firm && <FeedbackCard/>}
   </section>;
 }
