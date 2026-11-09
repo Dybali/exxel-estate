@@ -1,16 +1,47 @@
 "use client";
-import { ArrowRight, ChevronRight, Clock, ExternalLink, FlaskConical, Flag, Globe, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, CalendarClock, ChevronRight, Clock, ExternalLink, FlaskConical, Flag, Globe, Mail, MapPin, MessageCircle, Phone, Send, Siren, Tag, Timer } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
-import { ServiceFirmCard, ServiceSampleBadge, ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
+import { ServiceDocumentedBadge, ServiceEmergencyBadge, ServiceFirmCard, ServiceSampleBadge, ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
 import { whatsappHref } from "@/lib/phone";
 import { serviceCategory } from "@/lib/service-categories";
-import { firmDescription, SERVICE_BASE, SERVICE_STATUS_LABELS, servicePath, type ServiceFirm } from "@/lib/services";
+import { istanbulClock, openNow, SERVICE_PRICE_UNITS, SERVICE_WEEKDAYS, type ServiceDetails } from "@/lib/service-extras";
+import { firmDescription, quoteHref, SERVICE_BASE, SERVICE_STATUS_LABELS, servicePath, type ServiceFirm } from "@/lib/services";
+
+/** Counts a profile view or contact click (daily totals only, app/api/services/track). */
+export function trackService(firmId: string, kind: "view" | "phone" | "whatsapp" | "email" | "website") {
+  try { void fetch("/api/services/track", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ firmId, kind }) }).catch(() => {}); } catch { /* Statistics never block the visitor. */ }
+}
+
+/** "Çalışma bilgileri": 7/24, typical answer time, price range and the weekly hours. */
+function ServiceWorkInfo({ details, responseHours }: { details: ServiceDetails; responseHours: number | null }) {
+  const { t, locale } = useLocale();
+  const money = (value: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(value);
+  // Computed after mounting so the server render and the visitor's clock never disagree.
+  const [state, setState] = useState<{ open: boolean | null; today: number }>({ open: null, today: -1 });
+  useEffect(() => { setState({ open: openNow(details), today: istanbulClock().day }); }, [details]);
+  if (!details.emergency && details.hours.length !== 7 && details.priceMin === null && responseHours === null) return null;
+  return <section className="service-profile-section svc-work-info"><h2>{t("Çalışma bilgileri")}</h2>
+    <div className="svc-work-grid">
+      {details.emergency && <p className="svc-work-item emergency"><Siren size={18} aria-hidden="true"/><span><strong>{t("7/24 acil hizmet")}</strong>{t("Gece, hafta sonu ve tatil günlerinde de ulaşabilirsiniz.")}</span></p>}
+      {responseHours !== null && <p className="svc-work-item"><Timer size={18} aria-hidden="true"/><span><strong>{responseHours <= 24 ? t("Genellikle {n} saat içinde yanıt verir").replace("{n}", String(responseHours)) : t("Genellikle {n} gün içinde yanıt verir").replace("{n}", String(Math.ceil(responseHours / 24)))}</strong>{t("Son 90 gündeki teklif yanıtlarına göre.")}</span></p>}
+      {details.priceMin !== null && <p className="svc-work-item"><Tag size={18} aria-hidden="true"/><span><strong>{money(details.priceMin)}{details.priceMax ? ` – ${money(details.priceMax)}` : "+"} <small>{t(SERVICE_PRICE_UNITS[details.priceUnit])}</small></strong>{details.priceNote ? <bdi dir="auto">{details.priceNote}</bdi> : t("Firmanın belirttiği ortalama fiyat; kesin fiyat için teklif isteyin.")}</span></p>}
+    </div>
+    {details.hours.length === 7 && <div className="svc-hours-view">
+      <h3><CalendarClock size={17} aria-hidden="true"/>{t("Çalışma saatleri")}{state.open !== null && !details.emergency && <span className={state.open ? "svc-open" : "svc-closed-now"}>{t(state.open ? "Şu an açık" : "Şu an kapalı")}</span>}</h3>
+      <dl>{SERVICE_WEEKDAYS.map((name, index) => { const day = details.hours[index]; return <div key={name} className={index === state.today ? "today" : undefined}><dt>{t(name)}</dt><dd>{day ? <bdi>{day[0]} – {day[1]}</bdi> : t("Kapalı")}</dd></div>; })}</dl>
+    </div>}
+  </section>;
+}
 
 /** Public firm profile (/hizmetler/firma/{id}); the owner and administrators also see it before approval. */
-export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; similar?: ServiceFirm[] }) {
+export function ServiceFirmProfile({ firm, similar = [], details, responseHours = null }: { firm: ServiceFirm; similar?: ServiceFirm[]; details?: ServiceDetails; responseHours?: number | null }) {
   const { t, locale } = useLocale();
+  const live = firm.status === "approved" && !firm.sample;
+  useEffect(() => { if (live) trackService(firm.id, "view"); }, [live, firm.id]);
+  const track = (kind: "phone" | "whatsapp" | "email" | "website") => () => { if (live) trackService(firm.id, kind); };
   const first = serviceCategory(firm.categories[0]), text = firmDescription(firm, locale);
   const whatsapp = firm.whatsapp ? `${whatsappHref(firm.whatsapp)}?text=${encodeURIComponent(t("Merhaba, firmanızı estatemarket24'te gördüm."))}` : null;
   const website = firm.website ? (() => { try { return new URL(firm.website).hostname.replace(/^www\./, ""); } catch { return firm.website; } })() : null;
@@ -30,7 +61,7 @@ export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; 
         <span className="service-profile-logo">{firm.logo ? <img src={firm.logo} alt={firm.name}/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>
         <div>
           <h1>{firm.name}</h1>
-          <div className="service-profile-badges">{firm.sample && <ServiceSampleBadge className="inline"/>}{firm.verified && <ServiceVerifiedBadge/>}{firm.status === "approved" && !firm.sample && <span className="service-approved-note">{t("Yönetici onaylı profil")}</span>}</div>
+          <div className="service-profile-badges">{firm.sample && <ServiceSampleBadge className="inline"/>}{firm.verified && <ServiceVerifiedBadge/>}{firm.documented && <ServiceDocumentedBadge/>}{firm.emergency && <ServiceEmergencyBadge/>}{firm.status === "approved" && !firm.sample && <span className="service-approved-note">{t("Yönetici onaylı profil")}</span>}</div>
         </div>
       </div>
     </header>
@@ -44,6 +75,7 @@ export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; 
           <ul className="service-areas">{firm.areas.map((area) => <li key={`${area.city}|${area.district}`}><MapPin size={15} aria-hidden="true"/>
             {first ? <Link href={servicePath(first.slug, area.city, area.district || null)}>{area.district ? `${area.district}, ${area.city}` : `${area.city} (${t("tüm il")})`}</Link> : <span>{area.city}</span>}</li>)}</ul>
         </section>
+        {details && <ServiceWorkInfo details={details} responseHours={responseHours}/>}
         {firm.photos.length > 0 && <section className="service-profile-section"><h2>{t("İş örnekleri")}</h2>
           <ul className="service-photos">{firm.photos.map((photo, index) => <li key={photo}><a href={photo} target="_blank" rel="noopener noreferrer" aria-label={t("Fotoğraf {n}").replace("{n}", String(index + 1))}><img src={photo} alt="" loading="lazy"/></a></li>)}</ul>
         </section>}
@@ -55,10 +87,11 @@ export function ServiceFirmProfile({ firm, similar = [] }: { firm: ServiceFirm; 
           <button type="button" className="btn btn-primary btn-block" disabled aria-disabled="true"><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span></button>
           {first && <Link className="btn btn-secondary btn-block" href={servicePath(first.slug)}><ServiceIcon name={first.icon} size={17}/>{t(first.name)}</Link>}
         </> : <>
-        <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
-        {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
-        {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
-        {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc"><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
+        {live && <Link className="btn btn-accent btn-block" href={quoteHref({ firmId: firm.id })}><Send size={17} aria-hidden="true"/>{t("Bu firmadan teklif iste")}</Link>}
+        <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`} onClick={track("phone")}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
+        {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer" onClick={track("whatsapp")}><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
+        {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`} onClick={track("email")}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
+        {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={track("website")}><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
         <p className="service-contact-note">{t("Fiyat ve iş koşullarını firmayla yazılı olarak netleştirin. estatemarket24 hizmetin tarafı değildir.")}</p>
         <Link className="service-report" href="/iletisim"><Flag size={14} aria-hidden="true"/>{t("Bu profille ilgili sorun bildir")}</Link>
         </>}

@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, BadgeCheck, CheckCircle2, Info, MapPinned, Store } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, Info, MapPinned, Send, Store } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { ServiceFinder } from "@/components/ServiceFinder";
 import { ServiceFirmCard } from "@/components/ServiceFirmCard";
@@ -8,7 +8,7 @@ import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
 import { categoriesOf, SERVICE_CATEGORIES, SERVICE_GROUPS, type ServiceSlug } from "@/lib/service-categories";
 import { SERVICE_SEARCH_PATH } from "@/lib/service-search";
-import { servicePath, type ServiceFirm } from "@/lib/services";
+import { SERVICE_QUOTE_PATH, servicePath, type ServiceFirm } from "@/lib/services";
 
 /** Hizmet veren firmalar için davet (landing, results and category pages). */
 export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
@@ -61,6 +61,7 @@ export function ServicesLanding({ counts, featured, newest, stats, sampleCounts 
         <h1>{t("Eviniz için güvenilir hizmet firmaları")}</h1>
         <p>{t("Tadilattan nakliyata, tapu işlemlerinden tatil evi yönetimine: Türkiye'nin her ilinde, yönetici onayından geçmiş firmaları bulun.")}</p>
         <ServiceFinder/>
+        <p className="svc-hero-quote"><span>{t("Firmaları tek tek aramak istemiyor musunuz?")}</span> <Link href={SERVICE_QUOTE_PATH} className="btn btn-accent btn-sm"><Send size={15} aria-hidden="true"/>{t("Ücretsiz teklif alın")}</Link></p>
         <ul className="services-hero-points">
           <li><BadgeCheck size={17} aria-hidden="true"/>{t("Yalnızca onaylı firmalar yayınlanır")}</li>
           <li><MapPinned size={17} aria-hidden="true"/>{t("81 ilde il ve ilçeye göre arama")}</li>

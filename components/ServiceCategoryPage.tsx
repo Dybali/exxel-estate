@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight, Send } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { ServiceResults, type ServiceResultsData } from "@/components/ServiceResults";
@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/i18n";
 import { categoriesOf, serviceCategory, serviceGroup, type ServiceSlug } from "@/lib/service-categories";
 import { serviceCrumbs, serviceHeading } from "@/lib/service-copy";
 import { EMPTY_SERVICE_FILTERS } from "@/lib/service-search";
-import { SERVICE_BASE, servicePath, type ServicePlaceLink, type ServiceScope, type ServiceSummary } from "@/lib/services";
+import { quoteHref, SERVICE_BASE, servicePath, type ServicePlaceLink, type ServiceScope, type ServiceSummary } from "@/lib/services";
 
 export function ServiceCrumbs({ crumbs }: { crumbs: { name: string; path: string }[] }) {
   const { t } = useLocale();
@@ -42,7 +42,10 @@ export function ServiceCategoryPage({ scope, summary, results, counts }: { scope
           <p>{t(category.description)}</p>
         </div>
       </div>
-      <p className="service-category-count"><strong>{new Intl.NumberFormat(locale).format(summary.count)}</strong> {t("onaylı firma")}{place ? ` · ${place}` : ""}</p>
+      <div className="svc-category-actions">
+        <p className="service-category-count"><strong>{new Intl.NumberFormat(locale).format(summary.count)}</strong> {t("onaylı firma")}{place ? ` · ${place}` : ""}</p>
+        <Link href={quoteHref({ category: scope.category, city: scope.city, district: scope.district })} className="btn btn-accent btn-sm"><Send size={15} aria-hidden="true"/>{t("Bu hizmet için teklif al")}</Link>
+      </div>
     </div></header>
 
     <div className="container">

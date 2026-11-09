@@ -36,6 +36,8 @@ function ServiceFilterForm({ filters, counts, onClose }: { filters: ServiceFilte
         {districtsFor(form.city).map((name) => <option key={name} value={name}>{name}</option>)}
       </select></label>
     <label className="svc-check svc-check-flag"><input type="checkbox" checked={form.verified} onChange={(event) => apply({ ...form, verified: event.target.checked })}/><span>{t("Doğrulanmış firmalar")}</span></label>
+    <label className="svc-check svc-check-flag"><input type="checkbox" checked={form.documented} onChange={(event) => apply({ ...form, documented: event.target.checked })}/><span>{t("Belgeli firmalar")}</span></label>
+    <label className="svc-check svc-check-flag"><input type="checkbox" checked={form.emergency} onChange={(event) => apply({ ...form, emergency: event.target.checked })}/><span>{t("7/24 acil hizmet")}</span></label>
     <label className="svc-check svc-check-flag"><input type="checkbox" checked={form.photos} onChange={(event) => apply({ ...form, photos: event.target.checked })}/><span>{t("Fotoğraflı")}</span></label>
     <fieldset className="svc-filter-categories"><legend>{t("Hizmet kategorileri")}</legend>
       {SERVICE_GROUPS.map((group) => {
@@ -86,7 +88,7 @@ export function ServiceResults({ filters, results, counts, highlight, empty }: {
     document.body.classList.add("svc-drawer-open");
     return () => { document.removeEventListener("keydown", escape); document.body.classList.remove("svc-drawer-open"); };
   }, [drawer]);
-  const active = filters.categories.length + (filters.city ? 1 : 0) + (filters.verified ? 1 : 0) + (filters.photos ? 1 : 0) + (filters.q ? 1 : 0);
+  const active = filters.categories.length + (filters.city ? 1 : 0) + (filters.verified ? 1 : 0) + (filters.photos ? 1 : 0) + (filters.documented ? 1 : 0) + (filters.emergency ? 1 : 0) + (filters.q ? 1 : 0);
   const first = (results.page - 1) * results.perPage + 1, last = first + results.firms.length - 1, samples = results.samples || 0;
   return <div className="svc-results-layout">
     <aside className="svc-results-aside" aria-label={t("Filtreler")}><ServiceFilterForm filters={filters} counts={counts}/></aside>

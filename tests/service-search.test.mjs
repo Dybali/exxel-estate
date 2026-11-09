@@ -146,7 +146,7 @@ test('URL filters: parsing, canonical category/region addresses, search addresse
  const parse=query=>Q.parseServiceFilters(new URLSearchParams(query));
  assert.deepEqual(parse(''),Q.EMPTY_SERVICE_FILTERS);
  const f=parse('q=%20I%C5%9EIK%20%20boya&kategori=tesisatci&kategori=bilinmeyen&kategori=tesisatci&il=mugla&ilce=bodrum&dogrulanmis=1&fotografli=1&sirala=a-z&sayfa=3');
- assert.deepEqual(f,{q:'IŞIK boya',categories:['tesisatci'],city:'Muğla',district:'Bodrum',verified:true,photos:true,sort:'az',page:3});
+ assert.deepEqual(f,{q:'IŞIK boya',categories:['tesisatci'],city:'Muğla',district:'Bodrum',verified:true,photos:true,documented:false,emergency:false,sort:'az',page:3});
  assert.equal(Q.serviceSearchHref(f),'/hizmetler/ara?q=I%C5%9EIK+boya&kategori=tesisatci&il=mugla&ilce=bodrum&dogrulanmis=1&fotografli=1&sirala=a-z&sayfa=3');
  assert.deepEqual(parse(Q.serviceSearchHref(f).split('?')[1]),f);
  // Unknown places, a district without its province, bad sort and page values are dropped.

@@ -1,5 +1,6 @@
 import { consumeRecoveryLimit, RecoveryError } from "@/lib/recovery-service";
-import { body, currentUser, db, error, ok, sameOrigin, sha256 } from "@/lib/server";
+import { body, bucket, currentUser, db, error, ok, sameOrigin, sha256 } from "@/lib/server";
+import { firmDetails, firmDocuments, responseHours, unseenQuotes } from "@/lib/service-extras";
 import { createFirm, deleteFirm, firmImageKeys, ownerFirm, ServiceError, updateFirm } from "@/lib/services";
 import { removeServiceMedia, serviceActor, serviceImagesStored, servicesDB } from "@/lib/services-server";
 
@@ -27,7 +28,11 @@ async function storedProblem(data: Record<string, unknown>, userId: string, prev
 export async function GET(request: Request) {
   const user = await member(request);
   if (!user) return error("Giriş ve e-posta doğrulaması gerekli.", 401);
-  return ok({ firm: await ownerFirm(servicesDB(), user.id) }, privateHeaders);
+  const firm = await ownerFirm(servicesDB(), user.id);
+  if (!firm) return ok({ firm: null }, privateHeaders);
+  // Phase 2 (lib/service-extras.ts): working information, documents, new quote requests, answer time.
+  const [details, documents, unseen, response] = await Promise.all([firmDetails(servicesDB(), firm.id), firmDocuments(servicesDB(), firm.id), unseenQuotes(servicesDB(), firm.id), responseHours(servicesDB(), firm.id)]);
+  return ok({ firm, details, documents, unseen, responseHours: response }, privateHeaders);
 }
 
 export async function POST(request: Request) {
@@ -74,6 +79,7 @@ export async function DELETE(request: Request) {
     if (!current) return error("Firma bulunamadı.", 404);
     const result = await deleteFirm(servicesDB(), serviceActor(user), current.id);
     await removeServiceMedia(result.imageKeys);
+    for (const key of result.documentKeys) await bucket()?.delete(key).catch(() => {});
     return ok({ success: true }, privateHeaders);
   } catch (cause) { return failure(cause); }
 }

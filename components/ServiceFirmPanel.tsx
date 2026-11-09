@@ -1,8 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ExternalLink, ImagePlus, Pencil, Plus, Store, Trash2, X } from "lucide-react";
+import { BarChart3, CalendarClock, ExternalLink, FileText, ImagePlus, Inbox, Pencil, Plus, Store, Trash2, X } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { FeedbackCard } from "@/components/FeedbackWidget";
+import { ServiceDetailsForm, ServiceDocuments, ServiceInbox, ServiceStatsPanel } from "@/components/ServiceFirmTools";
+import { EMPTY_SERVICE_DETAILS, type ServiceDetails, type ServiceDocument } from "@/lib/service-extras";
 import { apiJson } from "@/lib/api-client";
 import { locales, useLocale } from "@/lib/i18n";
 import { optimizeListingPhoto } from "@/lib/photo-optimize";
@@ -131,16 +133,38 @@ function FirmForm({ firm, onSaved, onCancel }: { firm: ServiceFirm | null; onSav
 }
 
 // Hesabım tab "Hizmet firmam": one service firm per member, independent of the account role.
+const SECTIONS = [
+  { id: "profil", label: "Profil", icon: Store }, { id: "talepler", label: "Teklif talepleri", icon: Inbox }, { id: "calisma", label: "Çalışma bilgileri", icon: CalendarClock },
+  { id: "belgeler", label: "Belgeler", icon: FileText }, { id: "istatistik", label: "İstatistikler", icon: BarChart3 },
+] as const;
+type Section = typeof SECTIONS[number]["id"];
+type Extras = { details: ServiceDetails; documents: ServiceDocument[]; unseen: number; responseHours: number | null };
+
 export function ServiceFirmPanel() {
   const { t, locale } = useLocale();
   const [firm, setFirm] = useState<ServiceFirm | null | undefined>(undefined);
+  const [extras, setExtras] = useState<Extras>({ details: EMPTY_SERVICE_DETAILS, documents: [], unseen: 0, responseHours: null });
+  // ?bolum=talepler (links in the quote e-mails) opens a section directly.
+  const [section, setSection] = useState<Section>(() => {
+    if (typeof window === "undefined") return "profil";
+    const wanted = new URLSearchParams(window.location.search).get("bolum");
+    return SECTIONS.some((item) => item.id === wanted) ? wanted as Section : "profil";
+  });
+  const choose = (next: Section) => {
+    setSection(next);
+    const url = new URL(window.location.href);
+    if (next === "profil") url.searchParams.delete("bolum"); else url.searchParams.set("bolum", next);
+    window.history.replaceState(null, "", url);
+  };
+  const seen = useCallback(() => setExtras((old) => ({ ...old, unseen: 0 })), []);
   const [editing, setEditing] = useState(false), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const load = useCallback(async () => {
     try {
       const response = await fetch("/api/services/mine", { cache: "no-store" });
-      const data = await apiJson<{ error?: string; firm: ServiceFirm | null }>(response);
+      const data = await apiJson<{ error?: string; firm: ServiceFirm | null } & Partial<Extras>>(response);
       if (!response.ok) throw new Error(data.error || "Firma bilgileri yüklenemedi.");
       setFirm(data.firm); setError("");
+      if (data.firm) setExtras({ details: data.details || EMPTY_SERVICE_DETAILS, documents: data.documents || [], unseen: data.unseen || 0, responseHours: data.responseHours ?? null });
     } catch (cause) { setError((cause as Error).message); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -164,13 +188,20 @@ export function ServiceFirmPanel() {
     {!editing && firm === null && <div className="panel-empty service-account-intro"><Store size={28}/><h3>{t("Hizmet veriyorsanız firmanızı ekleyin")}</h3>
       <p>{t("Boyacı, tesisatçı, nakliyeci, avukat veya tercüman gibi hizmet veren firmalar Hizmetler bölümünde ücretsiz profil açabilir. Hesap türünüz değişmez; ilan vermeye devam edebilirsiniz.")}</p>
       <Link href="/hizmetler">{t("Hizmetler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
-    {!editing && firm && <article className={`service-account-card status-${firm.status}`}>
+    {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>{SECTIONS.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-pressed={section === id} onClick={() => choose(id)}>
+      <Icon size={16} aria-hidden="true"/>{t(label)}{id === "talepler" && extras.unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(extras.unseen))}>{extras.unseen}</b>}</button>)}</nav>}
+    {!editing && firm && section === "talepler" && <ServiceInbox approved={firm.status === "approved"} onSeen={seen}/>}
+    {!editing && firm && section === "calisma" && <ServiceDetailsForm initial={extras.details} onSaved={(details) => setExtras((old) => ({ ...old, details }))}/>}
+    {!editing && firm && section === "belgeler" && <ServiceDocuments initial={extras.documents} onChanged={(documents) => setExtras((old) => ({ ...old, documents }))}/>}
+    {!editing && firm && section === "istatistik" && <ServiceStatsPanel/>}
+    {!editing && firm && section === "profil" && <article className={`service-account-card status-${firm.status}`}>
       <div className="service-account-head">
         <span className="service-firm-logo">{firm.logo ? <img src={firm.logo} alt=""/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>
-        <div><h3>{firm.name}</h3><span className={`service-status status-${firm.status}`}>{t(SERVICE_STATUS_LABELS[firm.status])}</span>{firm.verified && <span className="service-status status-approved">{t("Doğrulanmış firma")}</span>}</div>
+        <div><h3>{firm.name}</h3><span className={`service-status status-${firm.status}`}>{t(SERVICE_STATUS_LABELS[firm.status])}</span>{firm.verified && <span className="service-status status-approved">{t("Doğrulanmış firma")}</span>}{firm.documented && <span className="service-status status-approved">{t("Belgeli firma")}</span>}</div>
       </div>
       {firm.reviewNote && firm.status !== "approved" && firm.status !== "pending" && <p className="service-review-note"><strong>{t("Yönetici notu")}:</strong> {firm.reviewNote}</p>}
       {firm.status === "pending" && <p className="project-editor-note">{t("Profiliniz inceleniyor. Onaylandığında Hizmetler bölümünde yayınlanır.")}</p>}
+      {extras.responseHours !== null && <p className="service-account-meta">{t("Ortalama yanıt süreniz: {n} saat").replace("{n}", String(extras.responseHours))}</p>}
       <p className="service-account-meta">{t("Son güncelleme")}: {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(firm.updatedAt))} · {t("{n} kategori").replace("{n}", String(firm.categories.length))} · {t("{n} bölge").replace("{n}", String(firm.areas.length))}</p>
       <div className="project-editor-actions">
         <Link className="outline-button" href={firmPath(firm.id)} target="_blank" rel="noopener noreferrer">{t(firm.status === "approved" ? "Profili görüntüle" : "Önizle")}<ExternalLink size={15}/></Link>
@@ -178,6 +209,6 @@ export function ServiceFirmPanel() {
         <button type="button" className="outline-button danger" onClick={() => void remove()}><Trash2 size={15}/>{t("Sil")}</button>
       </div>
     </article>}
-    {!editing && firm && <FeedbackCard/>}
+    {!editing && firm && section === "profil" && <FeedbackCard/>}
   </section>;
 }

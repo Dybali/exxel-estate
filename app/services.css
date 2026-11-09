@@ -447,3 +447,172 @@ a.svc-page-step:hover{border-color:var(--svc-petrol);background:var(--svc-tint)}
 .service-sample-contact{display:flex;align-items:flex-start;gap:8px;margin:0;padding:10px 12px;border-radius:10px;background:#f6f4fc;color:#3d2f6b;font-size:13.5px;font-weight:650}
 .service-sample-contact svg{flex:none;margin-top:2px}
 .service-contact-card .btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ---- Phase 2: badges, working information, quotes, firm tools (lib/service-extras.ts) ---- */
+.service-card-badges{display:flex;flex-wrap:wrap;gap:4px}
+.service-card-badges .service-verified{margin-top:4px}
+.service-documented,.service-emergency{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:750}
+.service-documented{background:#e3f1f1;color:var(--svc-petrol-dark)}
+.service-emergency{background:#fde8e6;color:#9b2c21}
+.service-profile-badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.service-profile-badges .service-documented,.service-profile-badges .service-emergency{margin-top:0;font-size:12px;padding:3px 10px}
+
+.svc-hero-quote{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 0;color:#dfeeec;font-size:15px}
+.svc-category-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.svc-category-actions .service-category-count{margin:0}
+.svc-header-actions .svc-quote-link{white-space:nowrap}
+@media (max-width:760px){.svc-header-actions .svc-quote-link,.svc-header-actions .svc-add-firm{display:none}}
+
+/* Working information on the profile */
+.svc-work-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+.svc-work-item{display:flex;gap:10px;margin:0;padding:12px 14px;border:1px solid var(--svc-line);border-radius:12px;background:#fff}
+.svc-work-item svg{flex:none;color:var(--svc-petrol);margin-top:2px}
+.svc-work-item span{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--svc-muted)}
+.svc-work-item strong{color:var(--svc-ink);font-size:15px}
+.svc-work-item strong small{font-weight:600;color:var(--svc-muted);font-size:12px}
+.svc-work-item.emergency{border-color:#f3c2bc;background:#fff7f6}
+.svc-work-item.emergency svg{color:#b8342a}
+.svc-hours-view h3{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:15px;margin:0 0 8px}
+.svc-hours-view h3 svg{color:var(--svc-petrol)}
+.svc-open,.svc-closed-now{padding:2px 9px;border-radius:999px;font-size:12px;font-weight:750}
+.svc-open{background:#e3f4ea;color:#1d6a3d}
+.svc-closed-now{background:#f1f3f2;color:#4d5f5a}
+.svc-hours-view dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:4px 18px;margin:0;max-width:640px}
+.svc-hours-view dl div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--svc-line);font-size:14px}
+.svc-hours-view dl div.today{font-weight:750;color:var(--svc-petrol-dark)}
+.svc-hours-view dt,.svc-hours-view dd{margin:0}
+
+/* Firm panel tabs and tools (Hesabım > Hizmet firmam) */
+.svc-panel-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px;padding:4px;border:1px solid var(--svc-line);border-radius:12px;background:#f7faf9}
+.svc-panel-tabs button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 12px;border:0;border-radius:9px;background:transparent;color:var(--svc-ink);font:inherit;font-size:14px;font-weight:650;cursor:pointer}
+.svc-panel-tabs button[aria-pressed="true"]{background:#fff;box-shadow:0 1px 3px rgba(16,40,38,.14);color:var(--svc-petrol-dark)}
+.svc-panel-tabs button:focus-visible{outline:2px solid var(--svc-gold);outline-offset:2px}
+.svc-tab-count{min-width:20px;padding:1px 6px;border-radius:999px;background:#c2392c;color:#fff;font-size:11px;text-align:center}
+.svc-tool-card{display:grid;gap:14px;padding:20px;border:1px solid var(--svc-line);border-radius:14px;background:#fff;margin-bottom:16px}
+.svc-tool-head{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
+.svc-tool-head>svg{flex:none;color:var(--svc-petrol);margin-top:3px}
+.svc-tool-head>div:first-of-type{flex:1;min-width:220px}
+.svc-tool-head h3{margin:0 0 4px;font-size:18px}
+.svc-tool-head p{margin:0;color:var(--svc-muted);font-size:14px;line-height:1.5}
+.svc-switch{display:flex;align-items:center;gap:10px;font-weight:650;cursor:pointer}
+.svc-switch span{display:inline-flex;align-items:center;gap:6px}
+.svc-switch input{width:18px;height:18px;accent-color:var(--svc-petrol)}
+.svc-hours,.svc-price{display:grid;gap:10px;margin:0;padding:14px;border:1px solid var(--svc-line);border-radius:12px}
+.svc-hours legend,.svc-price legend{padding:0 6px;font-weight:750}
+.svc-price p{margin:0;color:var(--svc-muted);font-size:13px}
+.svc-hours-grid{display:grid;gap:6px}
+.svc-hours-row{display:grid;grid-template-columns:150px auto 14px auto;align-items:center;justify-content:start;gap:8px}
+.svc-hours-row input[type=time]{min-height:38px;padding:4px 8px;border:1px solid var(--svc-line);border-radius:8px;font:inherit}
+.svc-day{display:flex;align-items:center;gap:8px;font-weight:600}
+.svc-closed{color:var(--svc-muted);grid-column:2/-1;font-size:14px}
+.svc-price-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.svc-price-row label,.svc-price>label,.svc-offer-form label,.svc-doc-upload label:first-child{display:grid;gap:4px;font-size:13px;font-weight:650}
+:is(.svc-price-row,.svc-price,.svc-offer-form,.svc-doc-upload) :is(input,select,textarea){min-height:40px;padding:8px 10px;border:1px solid var(--svc-line);border-radius:8px;font:inherit;font-weight:400;background:#fff}
+@media (max-width:560px){.svc-hours-row{grid-template-columns:1fr auto 10px auto}.svc-hours-row input[type=time]{max-width:110px}}
+
+.svc-doc-badge{display:flex;align-items:center;gap:6px;margin:0;padding:10px 12px;border-radius:10px;background:#e3f4ea;color:#1d6a3d;font-weight:650}
+.svc-doc-upload{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
+.svc-doc-upload small{width:100%;color:var(--svc-muted)}
+.svc-doc-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.svc-doc-list li{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--svc-line);border-radius:10px}
+.svc-doc-list li>svg{color:var(--svc-petrol)}
+.svc-doc-list li div{display:grid;gap:2px}
+.svc-doc-list small{color:var(--svc-muted)}
+.svc-doc-list .svc-doc-note{color:#9b2c21}
+.svc-doc-list li.state-rejected{border-color:#f3c2bc}
+@media (max-width:560px){.svc-doc-list li{grid-template-columns:auto 1fr auto}.svc-doc-list li .service-status{grid-column:2/3}}
+
+.svc-empty{color:var(--svc-muted);margin:0}
+.svc-inbox{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.svc-inbox-item{display:grid;gap:8px;padding:14px;border:1px solid var(--svc-line);border-radius:12px}
+.svc-inbox-item.state-new{border-color:var(--svc-gold);box-shadow:inset 3px 0 0 var(--svc-gold)}
+.svc-inbox-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
+.svc-inbox-meta{margin:0;color:var(--svc-muted);font-size:13px}
+.svc-inbox-text{margin:0;white-space:pre-line;line-height:1.55}
+.svc-inbox-contact{display:flex;flex-wrap:wrap;gap:14px;margin:0}
+.svc-inbox-contact a{display:inline-flex;align-items:center;gap:5px;font-weight:650;color:var(--svc-petrol-dark)}
+.svc-inbox-offer{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0;padding:8px 10px;border-radius:8px;background:var(--svc-tint)}
+.svc-offer-form{display:grid;gap:10px;padding:12px;border-radius:10px;background:#f7faf9}
+.svc-offer-form button{justify-self:start}
+.svc-range{margin-inline-start:auto}
+.svc-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:0}
+.svc-stat-grid div{padding:12px;border:1px solid var(--svc-line);border-radius:12px;background:#fbfdfc}
+.svc-stat-grid dt{display:flex;align-items:center;gap:6px;color:var(--svc-muted);font-size:12px;font-weight:650}
+.svc-stat-grid dd{margin:4px 0 0;font-size:26px;font-weight:800;color:var(--svc-ink)}
+.svc-stat-grid small{font-size:11px;font-weight:650}
+.svc-stat-grid small.up{color:#1d6a3d}
+.svc-stat-grid small.down{color:#9b2c21}
+.svc-chart{margin:0}
+.svc-chart figcaption{font-weight:700;font-size:14px;margin-bottom:8px}
+.svc-chart-bars{display:flex;align-items:flex-end;gap:2px;height:130px;padding:6px;border-radius:10px;background:#f7faf9;border:1px solid var(--svc-line)}
+.svc-chart-bars span{flex:1;display:flex;align-items:flex-end;gap:1px;height:100%;min-width:2px}
+.svc-chart-bars i{flex:1;display:block;min-height:1px;border-radius:2px 2px 0 0}
+.svc-chart-bars i.views,.svc-chart-legend .views::before{background:var(--svc-petrol)}
+.svc-chart-bars i.contacts,.svc-chart-legend .contacts::before{background:var(--svc-gold)}
+.svc-chart-legend{display:flex;gap:16px;margin:8px 0 0;font-size:12px;color:var(--svc-muted)}
+.svc-chart-legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-inline-end:6px;vertical-align:-1px}
+
+/* "Teklif iste" page */
+.svc-quote-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start;margin-top:8px}
+.svc-quote-main h1{margin:6px 0 8px;font-size:clamp(26px,3.4vw,36px);line-height:1.15}
+.svc-quote-lead{margin:0 0 20px;color:var(--svc-muted);font-size:16px;line-height:1.55;max-width:680px}
+.svc-quote-form{display:grid;gap:16px}
+.svc-quote-form fieldset{display:grid;gap:12px;margin:0;padding:18px;border:1px solid var(--svc-line);border-radius:14px;background:#fff;min-width:0}
+.svc-quote-form legend{display:flex;align-items:center;gap:8px;padding:0 6px;font-weight:800;font-size:16px}
+.svc-quote-form legend span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--svc-petrol);color:#fff;font-size:13px}
+.svc-quote-form label{display:grid;gap:5px;font-weight:650;font-size:14px}
+.svc-quote-form :is(input:not([type=checkbox]):not([type=radio]),select,textarea){min-height:44px;padding:10px 12px;border:1px solid #c9d6d3;border-radius:10px;font:inherit;font-weight:400;background:#fff;min-width:0}
+.svc-quote-form :is(input,select,textarea):focus-visible{outline:2px solid var(--svc-gold);outline-offset:1px}
+.svc-quote-form textarea{resize:vertical;line-height:1.5}
+.svc-quote-form label small{justify-self:end;color:var(--svc-muted);font-weight:500}
+.svc-quote-form .service-terms{display:flex;align-items:flex-start;gap:10px;font-weight:500}
+.svc-quote-form .service-terms input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--svc-petrol)}
+.svc-timing{display:flex;flex-wrap:wrap;gap:8px}
+.svc-timing label{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #c9d6d3;border-radius:999px;font-weight:600;cursor:pointer}
+.svc-timing label.active{border-color:var(--svc-petrol);background:var(--svc-tint);color:var(--svc-petrol-dark)}
+.svc-timing input{accent-color:var(--svc-petrol)}
+.svc-quote-submit{min-height:52px;font-size:16px}
+.svc-quote-login,.svc-quote-done{display:grid;gap:12px;justify-items:start;padding:24px;border:1px solid var(--svc-line);border-radius:14px;background:#fff}
+.svc-quote-login svg,.svc-quote-done>svg{color:var(--svc-petrol)}
+.svc-quote-login h2,.svc-quote-done h2{margin:0;font-size:20px}
+.svc-quote-login p,.svc-quote-done p{margin:0;color:var(--svc-muted);line-height:1.55}
+.svc-quote-aside{position:sticky;top:96px;padding:20px;border-radius:14px;background:var(--svc-petrol);color:#eaf5f3}
+.svc-quote-aside h2{margin:0 0 12px;font-size:18px;color:#fff}
+.svc-quote-steps{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+.svc-quote-steps li{display:flex;gap:10px}
+.svc-quote-steps svg{flex:none;color:var(--svc-gold);margin-top:2px}
+.svc-quote-steps strong{color:#fff}
+.svc-quote-steps p{margin:2px 0 0;font-size:13px;line-height:1.5}
+.svc-quote-safe{display:flex;gap:8px;margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);font-size:13px;line-height:1.5}
+.svc-quote-safe svg{flex:none;color:var(--svc-gold)}
+@media (max-width:900px){.svc-quote-layout{grid-template-columns:1fr}.svc-quote-aside{position:static}}
+
+/* Hesabım > Teklif taleplerim */
+.svc-quote-card{display:grid;gap:12px;padding:18px;border:1px solid var(--svc-line);border-radius:14px;background:#fff;margin-bottom:16px}
+.svc-quote-card header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
+.svc-quote-card h3{margin:0 0 4px;font-size:17px}
+.svc-quote-card details summary{cursor:pointer;font-weight:650;color:var(--svc-petrol-dark)}
+.svc-offer-compare{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.svc-offer-card{position:relative;display:grid;gap:8px;align-content:start;padding:16px;border:1px solid var(--svc-line);border-radius:12px;background:#fbfdfc}
+.svc-offer-card.cheapest{border-color:var(--svc-petrol)}
+.svc-offer-card.state-accepted{border-color:#1d6a3d;background:#f1faf4}
+.svc-offer-card.state-rejected{opacity:.7}
+.svc-offer-flag{justify-self:start;display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:var(--svc-petrol);color:#fff;font-size:11px;font-weight:750}
+.svc-offer-flag.accepted{background:#1d6a3d}
+.svc-offer-firm{display:flex;align-items:center;gap:10px}
+.svc-offer-firm a{color:var(--svc-ink)}
+.svc-offer-badges{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;font-weight:700;color:var(--svc-petrol-dark)}
+.svc-offer-badges span{display:inline-flex;align-items:center;gap:3px}
+.svc-offer-price{margin:0;font-size:22px;font-weight:800;color:var(--svc-petrol-dark)}
+.svc-offer-message{margin:0;font-size:14px;line-height:1.5;white-space:pre-line}
+.svc-offer-contact{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.svc-offer-contact a{display:inline-grid;place-items:center;width:38px;height:38px;border:1px solid var(--svc-line);border-radius:50%;color:var(--svc-petrol-dark);background:#fff}
+.svc-offer-contact .small-primary{margin-inline-start:auto}
+
+/* Admin: firm documents */
+.admin-service-documents{display:grid;gap:6px;margin:6px 0;padding:10px;border:1px dashed #cfd8d6;border-radius:8px}
+.admin-service-documents strong{display:flex;align-items:center;gap:6px}
+.admin-service-documents ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.admin-service-documents li{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px}
+.admin-service-documents li>span{flex:1;min-width:220px}
+.admin-service-documents input{min-height:32px;padding:4px 8px;border:1px solid #cfd8d6;border-radius:6px;font:inherit;font-size:13px}

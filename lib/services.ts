@@ -4,8 +4,8 @@
 // firm can be suspended). Only approved firms are public, counted or listed in the sitemap.
 // Tables are created on first use (same convention as lib/projects.ts) and work on PostgreSQL and
 // SQLite, with no migration file (the convention for feature tables, as projects, leads and orders).
-// Room for later phases: `plan` (paid packages) and `featured`; quote requests (teklif) and reviews
-// get their own tables keyed by firm_id; the one-firm-per-owner index can be dropped for teams.
+// Phase 2 (working information, documents, statistics, quote requests) is in lib/service-extras.ts,
+// docs/services.md. Room for later: `plan` (paid packages), reviews; the one-firm-per-owner index can be dropped for teams.
 import { locales, translate } from "./i18n-dictionary";
 import { normalizeContactPhone } from "./phone";
 import { cityBySlug, districtBySlug, regionSlug } from "./region-pages";
@@ -51,6 +51,17 @@ export const SERVICE_SCHEMA = [
   // Folded search text and Turkish A–Z key per firm (lib/service-text.ts), rewritten on every save.
   "CREATE TABLE IF NOT EXISTS service_firm_search(firm_id TEXT PRIMARY KEY,name_key TEXT NOT NULL,body TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 0)",
   "CREATE INDEX IF NOT EXISTS service_firm_search_name_idx ON service_firm_search(name_key,firm_id)",
+  // Phase 2 (lib/service-extras.ts): working information, documents, statistics, quote requests and offers.
+  "CREATE TABLE IF NOT EXISTS service_firm_details(firm_id TEXT PRIMARY KEY,hours TEXT NOT NULL DEFAULT '[]',emergency INTEGER NOT NULL DEFAULT 0,price_min INTEGER,price_max INTEGER,price_unit TEXT NOT NULL DEFAULT 'job',price_note TEXT NOT NULL DEFAULT '',updated_at TEXT NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS service_firm_documents(id TEXT PRIMARY KEY,firm_id TEXT NOT NULL,kind TEXT NOT NULL,object_key TEXT NOT NULL,content_type TEXT NOT NULL,byte_size INTEGER NOT NULL,state TEXT NOT NULL DEFAULT 'pending',note TEXT NOT NULL DEFAULT '',reviewer_id TEXT,created_at TEXT NOT NULL,reviewed_at TEXT)",
+  "CREATE INDEX IF NOT EXISTS service_firm_documents_firm_idx ON service_firm_documents(firm_id,state)",
+  "CREATE TABLE IF NOT EXISTS service_firm_stats(firm_id TEXT NOT NULL,day TEXT NOT NULL,kind TEXT NOT NULL,n INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(firm_id,day,kind))",
+  "CREATE TABLE IF NOT EXISTS service_quote_requests(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,name TEXT NOT NULL,email TEXT NOT NULL,phone TEXT,share_contact INTEGER NOT NULL DEFAULT 0,category TEXT NOT NULL,city TEXT NOT NULL,district TEXT NOT NULL DEFAULT '',description TEXT NOT NULL,timing TEXT NOT NULL DEFAULT 'flexible',firm_id TEXT,status TEXT NOT NULL DEFAULT 'open',created_at TEXT NOT NULL,expires_at TEXT NOT NULL)",
+  "CREATE INDEX IF NOT EXISTS service_quote_requests_user_idx ON service_quote_requests(user_id,created_at)",
+  "CREATE TABLE IF NOT EXISTS service_quote_recipients(request_id TEXT NOT NULL,firm_id TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'new',created_at TEXT NOT NULL,PRIMARY KEY(request_id,firm_id))",
+  "CREATE INDEX IF NOT EXISTS service_quote_recipients_firm_idx ON service_quote_recipients(firm_id,created_at)",
+  "CREATE TABLE IF NOT EXISTS service_quote_offers(id TEXT PRIMARY KEY,request_id TEXT NOT NULL,firm_id TEXT NOT NULL,price_min INTEGER NOT NULL,price_max INTEGER,message TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'sent',created_at TEXT NOT NULL)",
+  "CREATE UNIQUE INDEX IF NOT EXISTS service_quote_offers_firm_idx ON service_quote_offers(request_id,firm_id)",
 ];
 
 export class ServiceError extends Error { constructor(message: string, public status = 400) { super(message); } }
@@ -70,6 +81,10 @@ export type ServiceFirm = {
   id: string; name: string; description: string; translations: Partial<Record<typeof SERVICE_TRANSLATION_LOCALES[number], string>>;
   categories: ServiceSlug[]; areas: ServiceArea[]; phone: string; whatsapp: string | null; email: string | null; website: string | null;
   logo: string | null; cover: string | null; photos: string[]; verified: boolean; featured: boolean; status: ServiceStatus; createdAt: string; updatedAt: string; approvedAt: string | null;
+  /** At least one approved document ("Belgeli firma", lib/service-extras.ts). */
+  documented?: boolean;
+  /** Offers 7/24 emergency service (working information). */
+  emergency?: boolean;
   /** Code-only sample firm (lib/service-samples.ts): labelled everywhere, never counted, indexed or stored. */
   sample?: boolean;
   // Owner and administrators only.
@@ -99,6 +114,19 @@ export function servicePath(category: string, city?: string | null, district?: s
   return parts.join("/");
 }
 export const firmPath = (id: string) => `${SERVICE_BASE}/firma/${id}`;
+/** "Teklif iste" form, prefilled: /hizmetler/teklif-iste?kategori=…&il=…&ilce=… or ?firma={id}. */
+export const SERVICE_QUOTE_PATH = `${SERVICE_BASE}/teklif-iste`;
+export function quoteHref(input: { category?: string | null; city?: string | null; district?: string | null; firmId?: string | null } = {}) {
+  const params = new URLSearchParams();
+  if (input.firmId) params.set("firma", input.firmId);
+  if (input.category && isServiceSlug(input.category)) params.set("kategori", input.category);
+  if (input.city && cityBySlug(regionSlug(input.city)) === input.city) {
+    params.set("il", regionSlug(input.city));
+    if (input.district && districtBySlug(input.city, regionSlug(input.district)) === input.district) params.set("ilce", regionSlug(input.district));
+  }
+  const query = params.toString();
+  return query ? `${SERVICE_QUOTE_PATH}?${query}` : SERVICE_QUOTE_PATH;
+}
 /** Route segments after /hizmetler → scope, or null (404) for unknown or non-canonical slugs. */
 export function resolveServicePath(segments: string[]): ServiceScope | null {
   if (!segments.length || segments.length > 3 || !isServiceSlug(segments[0])) return null;
@@ -262,13 +290,28 @@ async function withRelations(db: ServiceDatabase, rows: Row[], privateView = fal
     relation.categories.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
     relation.areas.sort((a, b) => a.city.localeCompare(b.city, "tr") || a.district.localeCompare(b.district, "tr"));
   }
-  return rows.map((row) => toFirm(row, byFirm.get(String(row.id))!, privateView));
+  const badges = await firmBadges(db, ids);
+  return rows.map((row) => ({ ...toFirm(row, byFirm.get(String(row.id))!, privateView), ...badges.get(String(row.id)) }));
 }
 
 async function firmRow(db: ServiceDatabase, id: string) {
   if (!validFirmId(id)) return null;
   await ensureServices(db);
   return db.prepare("SELECT * FROM service_firms WHERE id=?").bind(id).first<Row>();
+}
+
+/** Per firm: has an approved document, and the working-information flags shown on cards. */
+export async function firmBadges(db: ServiceDatabase, firmIds: string[]) {
+  const map = new Map<string, { documented: boolean; emergency: boolean }>(firmIds.map((id) => [id, { documented: false, emergency: false }]));
+  if (!firmIds.length) return map;
+  const marks = firmIds.map(() => "?").join(",");
+  const [documents, details] = await Promise.all([
+    db.prepare(`SELECT DISTINCT firm_id FROM service_firm_documents WHERE state='approved' AND firm_id IN (${marks})`).bind(...firmIds).all<Row>(),
+    db.prepare(`SELECT firm_id FROM service_firm_details WHERE emergency=1 AND firm_id IN (${marks})`).bind(...firmIds).all<Row>(),
+  ]);
+  for (const row of documents.results || []) { const item = map.get(String(row.firm_id)); if (item) item.documented = true; }
+  for (const row of details.results || []) { const item = map.get(String(row.firm_id)); if (item) item.emergency = true; }
+  return map;
 }
 
 // --- Owner ------------------------------------------------------------------------------------
@@ -330,8 +373,11 @@ export async function deleteFirm(db: ServiceDatabase, actor: ServiceActor, id: s
   await db.prepare("DELETE FROM service_firm_categories WHERE firm_id=?").bind(id).run();
   await db.prepare("DELETE FROM service_firm_areas WHERE firm_id=?").bind(id).run();
   await db.prepare("DELETE FROM service_firm_search WHERE firm_id=?").bind(id).run();
+  // Phase 2 rows. Quote requests stay with the member; this firm's recipient rows and offers go.
+  const documents = (await db.prepare("SELECT object_key FROM service_firm_documents WHERE firm_id=?").bind(id).all<Row>()).results || [];
+  for (const table of ["service_firm_details", "service_firm_documents", "service_firm_stats", "service_quote_recipients", "service_quote_offers"]) await db.prepare(`DELETE FROM ${table} WHERE firm_id=?`).bind(id).run();
   await db.prepare("DELETE FROM service_firms WHERE id=?").bind(id).run();
-  return { id, imageKeys: firmImageKeys({ logo: row.logo, cover: row.cover, photos: row.photos }) };
+  return { id, imageKeys: firmImageKeys({ logo: row.logo, cover: row.cover, photos: row.photos }), documentKeys: documents.map((item) => String(item.object_key)) };
 }
 
 // --- Public reads (approved only) ---------------------------------------------------------------
@@ -356,7 +402,7 @@ export async function firmById(db: ServiceDatabase, id: string, viewer: ServiceA
 /** Filters of the results pages; every field is optional. */
 export type ServiceQuery = {
   q?: string; categories?: readonly string[]; city?: string; district?: string;
-  verified?: boolean; photos?: boolean; featured?: boolean; cities?: readonly string[]; excludeId?: string;
+  verified?: boolean; photos?: boolean; featured?: boolean; emergency?: boolean; documented?: boolean; cities?: readonly string[]; excludeId?: string;
   sort?: ServiceSort; page?: number; perPage?: number;
 };
 /** `total` counts real firms only; `samples` is the number of sample firms listed after them (lib/service-samples.ts). */
@@ -373,6 +419,8 @@ function queryWhere(query: ServiceQuery) {
   if (query.cities?.length) { where.push(`EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=f.id AND a.city IN (${query.cities.map(() => "?").join(",")}))`); values.push(...query.cities); }
   if (query.verified) where.push("f.verified=1");
   if (query.featured) where.push("f.featured=1");
+  if (query.emergency) where.push("EXISTS(SELECT 1 FROM service_firm_details d WHERE d.firm_id=f.id AND d.emergency=1)");
+  if (query.documented) where.push("EXISTS(SELECT 1 FROM service_firm_documents d WHERE d.firm_id=f.id AND d.state='approved')");
   if (query.photos) where.push("((f.cover IS NOT NULL AND f.cover<>'') OR f.photos<>'[]')");
   if (query.excludeId) { where.push("f.id<>?"); values.push(query.excludeId); }
   // Tokens are folded to letters, digits and spaces, so LIKE wildcards cannot appear in them.

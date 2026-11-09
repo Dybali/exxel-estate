@@ -1,15 +1,47 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "./SafeLink";
-import { ArrowRight, BadgeCheck, Ban, Check, Star, Store, X } from "lucide-react";
+import { ArrowRight, BadgeCheck, Ban, Check, Download, FileText, Star, Store, X } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { apiJson } from "@/lib/api-client";
 import { serviceCategory } from "@/lib/service-categories";
+import { SERVICE_DOCUMENT_KINDS, SERVICE_DOCUMENT_STATES, type ServiceDocument } from "@/lib/service-extras";
 import { firmPath, SERVICE_STATUSES, SERVICE_STATUS_LABELS, type ServiceFirm, type ServiceStatus } from "@/lib/services";
+
+type AdminFirm = ServiceFirm & { documents?: ServiceDocument[] };
+
+/** Firm documents: open, approve, or reject with a note the firm reads (e-mailed to the owner). */
+function FirmDocuments({ documents, onDone }: { documents: ServiceDocument[]; onDone: () => void }) {
+  const { t, locale } = useLocale();
+  const [notes, setNotes] = useState<Record<string, string>>({}), [busy, setBusy] = useState(""), [error, setError] = useState("");
+  async function decide(document: ServiceDocument, approve: boolean) {
+    setBusy(document.id); setError("");
+    try {
+      const response = await fetch("/api/admin/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: approve ? "approve_document" : "reject_document", documentId: document.id, note: notes[document.id] || "" }) });
+      const data = await apiJson<{ error?: string }>(response);
+      if (!response.ok) throw new Error(data.error || "İşlem tamamlanamadı.");
+      onDone();
+    } catch (cause) { setError((cause as Error).message); } finally { setBusy(""); }
+  }
+  if (!documents.length) return <p className="admin-service-tax">{t("Belgeler")}: {t("Yüklenmedi")}</p>;
+  return <div className="admin-service-documents">
+    <strong><FileText size={15}/> {t("Belgeler")}</strong>
+    <ul>{documents.map((document) => <li key={document.id}>
+      <span>{t(SERVICE_DOCUMENT_KINDS[document.kind])} · {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(document.createdAt))} · <span className={`admin-badge ${document.state === "approved" ? "good" : document.state === "pending" ? "pending" : "neutral"}`}>{t(SERVICE_DOCUMENT_STATES[document.state])}</span></span>
+      <a className="admin-secondary" href={`/api/services/documents/${document.id}`}><Download size={14}/>{t("İndir")}</a>
+      {document.state !== "approved" && <button type="button" className="admin-primary" disabled={busy === document.id} onClick={() => void decide(document, true)}><Check size={14}/>{t("Onayla")}</button>}
+      {document.state !== "rejected" && <>
+        <input aria-label={t("Reddetme notu")} placeholder={t("Reddetme notu")} maxLength={1000} value={notes[document.id] || ""} onChange={(event) => setNotes((old) => ({ ...old, [document.id]: event.target.value }))}/>
+        <button type="button" className="admin-secondary" disabled={busy === document.id} onClick={() => void decide(document, false)}><X size={14}/>{t("Reddet")}</button>
+      </>}
+    </li>)}</ul>
+    {error && <p className="form-error" role="alert">{t(error)}</p>}
+  </div>;
+}
 
 type Action = "approve" | "reject" | "suspend" | "verify" | "unverify" | "feature" | "unfeature";
 
-function FirmReview({ firm, onDone }: { firm: ServiceFirm; onDone: () => void }) {
+function FirmReview({ firm, onDone }: { firm: AdminFirm; onDone: () => void }) {
   const { t, locale } = useLocale();
   const [note, setNote] = useState(""), [busy, setBusy] = useState(false), [error, setError] = useState("");
   async function act(action: Action) {
@@ -37,6 +69,7 @@ function FirmReview({ firm, onDone }: { firm: ServiceFirm; onDone: () => void })
       </small>
       <p className="admin-service-tax">{t("Vergi bilgileri")}: {firm.taxOffice || firm.taxNumber ? `${firm.taxOffice || "—"} / ${firm.taxNumber || "—"}` : t("Girilmedi")}</p>
       {firm.reviewNote && <p className="admin-service-tax">{t("Yönetici notu")}: {firm.reviewNote}</p>}
+      <FirmDocuments documents={firm.documents || []} onDone={onDone}/>
       <label>{t("İnceleme notu (reddederken veya askıya alırken zorunlu)")}<textarea rows={2} maxLength={1000} value={note} onChange={(event) => setNote(event.target.value)}/></label>
       {error && <p className="form-error" role="alert">{t(error)}</p>}
       <div className="admin-project-actions">
@@ -58,11 +91,11 @@ function FirmReview({ firm, onDone }: { firm: ServiceFirm; onDone: () => void })
 export function AdminServices() {
   const { t, locale } = useLocale();
   const [status, setStatus] = useState<ServiceStatus>("pending");
-  const [data, setData] = useState<{ firms: ServiceFirm[]; totals: Record<ServiceStatus, number> } | null>(null), [error, setError] = useState("");
+  const [data, setData] = useState<{ firms: AdminFirm[]; totals: Record<ServiceStatus, number>; pendingDocuments?: number } | null>(null), [error, setError] = useState("");
   const load = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/services?status=${status}`, { cache: "no-store" });
-      const result = await apiJson<{ error?: string; firms: ServiceFirm[]; totals: Record<ServiceStatus, number> }>(response);
+      const result = await apiJson<{ error?: string; firms: AdminFirm[]; totals: Record<ServiceStatus, number>; pendingDocuments?: number }>(response);
       if (!response.ok) throw new Error(result.error || "Hizmet firmaları yüklenemedi.");
       setData(result); setError("");
     } catch (cause) { setError((cause as Error).message); }
@@ -71,6 +104,7 @@ export function AdminServices() {
   return <section className="admin-projects admin-services">
     <div className="admin-section-title"><div><h2>{t("Hizmet firmaları")}</h2><p>{t("Onaylanan firmalar Hizmetler bölümünde yayınlanır. Reddetme ve askıya alma notları firmaya gösterilir.")}</p></div><Link href="/hizmetler" className="admin-secondary" target="_blank" rel="noopener noreferrer">{t("Hizmetler sayfası")} <ArrowRight size={14}/></Link></div>
     <div className="admin-filterbar"><div className="admin-tabs">{SERVICE_STATUSES.map((name) => <button key={name} aria-pressed={status === name} onClick={() => setStatus(name)}>{t(SERVICE_STATUS_LABELS[name])}{data ? ` (${new Intl.NumberFormat(locale).format(data.totals[name] || 0)})` : ""}</button>)}</div></div>
+    {data && Boolean(data.pendingDocuments) && <div className="admin-notice" role="status">{t("{n} firma belgesi inceleme bekliyor. Belgeler yayındaki firmaların kartlarında görünür.").replace("{n}", String(data.pendingDocuments))}</div>}
     {error && <div className="admin-notice error" role="alert">{t(error)}</div>}
     {!data && !error && <div className="admin-card admin-loading">{t("Yükleniyor...")}</div>}
     {data && (data.firms.length ? data.firms.map((firm) => <FirmReview key={firm.id} firm={firm} onDone={() => void load()}/>) : <div className="admin-card admin-empty"><Store size={28}/><strong>{t("Bu durumda firma yok.")}</strong></div>)}

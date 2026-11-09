@@ -4,7 +4,7 @@ import type { RateSnapshot } from "./tcmb";
 
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
 export type NotificationDatabase = { prepare(sql: string): Statement };
-type Settings = EmailSettings & { SITE_URL: string };
+export type Settings = EmailSettings & { SITE_URL: string };
 
 // messages: new-message emails (on by default, transactional). alerts: daily digest (off until the user opts in).
 export const EMAIL_SCHEMA = [
@@ -47,7 +47,7 @@ export async function unsubscribe(db: NotificationDatabase, token: string, kind:
   return Boolean(row);
 }
 
-const unsubscribeUrl = (settings: Settings, token: string, kind: string) => `${settings.SITE_URL}/api/email/unsubscribe?token=${token}&type=${kind}`;
+export const unsubscribeUrl = (settings: Settings, token: string, kind: string) => `${settings.SITE_URL}/api/email/unsubscribe?token=${token}&type=${kind}`;
 
 // One email per conversation at most every 30 minutes; returns why nothing was sent.
 export async function notifyNewMessage(db: NotificationDatabase, settings: Settings, message: { listingId: string; senderId: string; recipientId: string }, at = new Date()) {

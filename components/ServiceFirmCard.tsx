@@ -1,5 +1,5 @@
 "use client";
-import { BadgeCheck, FlaskConical, MapPin, Star } from "lucide-react";
+import { BadgeCheck, FileCheck2, FlaskConical, MapPin, Siren, Star } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
@@ -18,6 +18,16 @@ export function useAreaLabel() {
 export function ServiceVerifiedBadge() {
   const { t } = useLocale();
   return <span className="service-verified" title={t("Firma bilgileri ve vergi kaydı yönetici tarafından kontrol edildi.")}><BadgeCheck size={15} aria-hidden="true"/>{t("Doğrulanmış firma")}</span>;
+}
+
+/** At least one document approved by an administrator (lib/service-extras.ts). */
+export function ServiceDocumentedBadge() {
+  const { t } = useLocale();
+  return <span className="service-documented" title={t("Vergi levhası, ustalık belgesi veya sigorta gibi belgeleri yönetici tarafından incelendi.")}><FileCheck2 size={15} aria-hidden="true"/>{t("Belgeli firma")}</span>;
+}
+export function ServiceEmergencyBadge() {
+  const { t } = useLocale();
+  return <span className="service-emergency"><Siren size={14} aria-hidden="true"/>{t("7/24 acil")}</span>;
 }
 
 /** "Örnek firma" label of the code-only sample firms (lib/service-samples.ts). */
@@ -40,7 +50,7 @@ export function ServiceFirmCard({ firm, highlight }: { firm: ServiceFirm; highli
       <div className="service-firm-card-body">
         <div className="service-firm-card-head">
           <span className="service-firm-logo">{firm.logo ? <img src={firm.logo} alt="" loading="lazy"/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>
-          <div><h3>{firm.name}</h3>{firm.verified && <ServiceVerifiedBadge/>}</div>
+          <div><h3>{firm.name}</h3><span className="service-card-badges">{firm.verified && <ServiceVerifiedBadge/>}{firm.documented && <ServiceDocumentedBadge/>}{firm.emergency && <ServiceEmergencyBadge/>}</span></div>
         </div>
         <ul className="service-firm-tags">{firm.categories.slice(0, 3).map((slug) => <li key={slug}>{t(serviceCategory(slug)?.name || slug)}</li>)}{firm.categories.length > 3 && <li>+{firm.categories.length - 3}</li>}</ul>
         <p className="service-firm-card-text">{text.length > 150 ? `${text.slice(0, 150).trimEnd()}…` : text}</p>

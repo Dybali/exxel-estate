@@ -8,6 +8,7 @@ import { localizedUrl, pageAlternates, requestLocale } from "@/lib/request-conte
 import { serviceCategory } from "@/lib/service-categories";
 import { serviceName } from "@/lib/service-copy";
 import { fillWithSamples, isSampleFirmId, sampleFirmById, similarSampleFirms } from "@/lib/service-samples";
+import { EMPTY_SERVICE_DETAILS, firmDetails, responseHours } from "@/lib/service-extras";
 import { firmById, firmDescription, firmPath, SERVICE_SIMILAR_LIMIT, similarFirms, validFirmId, type ServiceFirm } from "@/lib/services";
 import { serviceActor, serviceSamples, servicesDB } from "@/lib/services-server";
 import { currentUser } from "@/lib/server";
@@ -49,6 +50,11 @@ export default async function ServiceFirmPage({ params }: Props) {
   // Real similar firms first, then samples up to the same limit.
   const real = await similarFirms(servicesDB(), firm).catch(() => [] as ServiceFirm[]);
   const similar = fillWithSamples(real, similarSampleFirms(serviceSamples(), firm), SERVICE_SIMILAR_LIMIT);
+  // Working information and typical answer time (lib/service-extras.ts); samples have neither.
+  const [details, response] = firm.sample ? [{ ...EMPTY_SERVICE_DETAILS, emergency: Boolean(firm.emergency) }, null] as const : await Promise.all([
+    firmDetails(servicesDB(), firm.id).catch(() => EMPTY_SERVICE_DETAILS), responseHours(servicesDB(), firm.id).catch(() => null),
+  ]);
+  const WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   // Legal and financial advice firms are ProfessionalService; trades and the rest LocalBusiness.
   const professional = firm.categories.every((slug) => serviceCategory(slug)?.group === "hukuk-finans");
   const structured = firm.status !== "approved" || firm.sample ? null : {
@@ -58,9 +64,12 @@ export default async function ServiceFirmPage({ params }: Props) {
     ...(firm.logo ? { logo: localizedUrl(firm.logo, "tr"), image: localizedUrl(firm.cover || firm.logo, "tr") } : firm.cover ? { image: localizedUrl(firm.cover, "tr") } : {}),
     areaServed: firm.areas.map((area) => area.district ? { "@type": "City", name: `${area.district}, ${area.city}` } : { "@type": "AdministrativeArea", name: area.city }),
     knowsAbout: firm.categories.map((slug) => serviceName(slug, locale)),
+    ...(details.emergency ? { openingHoursSpecification: [{ "@type": "OpeningHoursSpecification", dayOfWeek: WEEK, opens: "00:00", closes: "23:59" }] }
+      : details.hours.length === 7 ? { openingHoursSpecification: details.hours.flatMap((day, index) => day ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: WEEK[index], opens: day[0], closes: day[1] === "24:00" ? "23:59" : day[1] }] : []) } : {}),
+    ...(details.priceMin ? { priceRange: `${details.priceMin}${details.priceMax ? `-${details.priceMax}` : ""} TRY` } : {}),
   };
   return <>
     {structured && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>}
-    <ServiceFirmProfile firm={firm} similar={similar}/>
+    <ServiceFirmProfile firm={firm} similar={similar} details={details} responseHours={response}/>
   </>;
 }

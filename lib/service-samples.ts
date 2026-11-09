@@ -314,6 +314,7 @@ function areasOf(text: string): ServiceArea[] {
 const START = Date.UTC(2026, 9, 1, 8);
 
 /** Every sample firm, public fields only, in the shape of a real approved firm plus `sample: true`. */
+const EMERGENCY_SAMPLE: readonly string[] = ["cilingir", "tesisatci", "elektrikci"];
 export const SERVICE_SAMPLE_FIRMS: ServiceFirm[] = SEEDS.map((seed, index) => {
   const stamp = new Date(START + index * 6 * 3600_000).toISOString();
   return {
@@ -322,6 +323,8 @@ export const SERVICE_SAMPLE_FIRMS: ServiceFirm[] = SEEDS.map((seed, index) => {
     phone: "", whatsapp: null, email: null, website: null, logo: null,
     cover: seed.cover ? image(seed.cover) : null, photos: (seed.photos || []).map(image),
     verified: Boolean(seed.verified), featured: Boolean(seed.featured), status: "approved",
+    // Shows the phase-2 badges on samples too: verified samples count as documented, urgent trades as 7/24.
+    documented: Boolean(seed.verified), emergency: seed.categories.some((slug) => EMERGENCY_SAMPLE.includes(slug)),
     createdAt: stamp, updatedAt: stamp, approvedAt: stamp, sample: true,
   };
 });
@@ -354,6 +357,8 @@ export function matchSampleFirms(samples: readonly ServiceFirm[], query: Service
     if (query.city && !firm.areas.some((area) => area.city === query.city && (!query.district || !area.district || area.district === query.district))) return false;
     if (query.cities?.length && !firm.areas.some((area) => query.cities!.includes(area.city))) return false;
     if (query.verified && !firm.verified) return false;
+    if (query.documented && !firm.documented) return false;
+    if (query.emergency && !firm.emergency) return false;
     if (query.featured && !firm.featured) return false;
     if (query.photos && !firm.cover && !firm.photos.length) return false;
     if (query.excludeId && firm.id === query.excludeId) return false;
