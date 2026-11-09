@@ -1,22 +1,24 @@
-import { currentUser, db, now, ok, sha256 } from "@/lib/server";
+import { currentUser, db, now, ok, requestOrigin, sha256 } from "@/lib/server";
 import { flowCookie, googleConfig, pkceChallenge, randomUrlToken, redirectNoStore, safeNextPath } from "@/lib/google-auth";
 
 export async function GET(request: Request) {
   const config = googleConfig();
   const url = new URL(request.url);
+  // Public origin: behind Mittwald's HTTPS proxy request.url is plain http on an internal host.
+  const origin = requestOrigin(request);
   if (url.searchParams.get("status") === "1") {
-    return ok({ enabled: Boolean(config && url.origin === config.origin) }, { headers: { "Cache-Control": "no-store" } });
+    return ok({ enabled: Boolean(config && origin === config.origin) }, { headers: { "Cache-Control": "no-store" } });
   }
-  if (!config) return redirectNoStore(`${url.origin}/giris?google=unavailable`);
+  if (!config) return redirectNoStore(`${origin}/giris?google=unavailable`);
 
   // OAuth cookies must be set on the same host that receives Google's callback.
-  if (url.origin !== config.origin) {
-    return redirectNoStore(`${url.origin}/giris?google=unavailable`);
+  if (origin !== config.origin) {
+    return redirectNoStore(`${origin}/giris?google=unavailable`);
   }
 
   const link = url.searchParams.get("link") === "1";
   const user = link ? await currentUser(request) : null;
-  if (link && !user) return redirectNoStore(`${url.origin}/giris?next=%2Fhesabim%3Ftab%3Dprofil`);
+  if (link && !user) return redirectNoStore(`${origin}/giris?next=%2Fhesabim%3Ftab%3Dprofil`);
   const desiredRole = url.searchParams.get("role");
   const role = desiredRole === "individual" || desiredRole === "agent" ? desiredRole : "buyer";
   const nextPath = safeNextPath(url.searchParams.get("next"), link ? "/hesabim?tab=profil" : "/hesabim");

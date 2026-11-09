@@ -42,12 +42,7 @@ Zorunlu:
 | `EXXEL_ADMIN_EMAIL` | Yönetici e-postası |
 | `CONTACT_EMAIL` | İletişim formu mesajlarının gideceği adres (`wrangler.jsonc` vars; boşsa `EXXEL_ADMIN_EMAIL`) |
 
-E-posta doğrulama ve şifre sıfırlama için (Neon Auth):
-
-| Ad | Nereden |
-| --- | --- |
-| `NEON_AUTH_BASE_URL` | Neon paneli → Auth |
-| `NEON_AUTH_COOKIE_SECRET` | En az 32 karakterlik rastgele değer; yeniden üretilebilir |
+E-posta doğrulama ve şifre sıfırlama kendi kod sistemimizle, e-posta gönderimi üzerinden çalışır ([auth.md](auth.md)); Neon Auth artık kullanılmıyor (`NEON_AUTH_*` silinebilir). Gerekenler: e-posta gönderimi (`RESEND_API_KEY` + `EMAIL_FROM`; Cloudflare'de SMTP yoktur) ve isteğe bağlı `EMAIL_CODE_SECRET` (en az 32 rastgele karakter; yoksa `DATABASE_URL`'den türetilen anahtar kullanılır).
 
 İsteğe bağlı özellikler:
 
@@ -63,7 +58,7 @@ E-posta doğrulama ve şifre sıfırlama için (Neon Auth):
 | `BANK_ACCOUNT_NAME`, `BANK_IBAN`, `BANK_NAME` | Havale/EFT ile sipariş (`docs/payments.md`) |
 | `ADMIN_TOTP_KEY` | Yönetici iki adımlı doğrulaması (en az 32 rastgele karakter; değiştirilirse 2FA yeniden kurulur) — `docs/security-checklist.md` |
 | `SMS_PROVIDER` (`netgsm` veya `twilio`) + `NETGSM_USERCODE`, `NETGSM_PASSWORD`, `NETGSM_HEADER` veya `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | SMS ile telefon doğrulaması |
-| `PHONE_CODE_SECRET` | SMS kodlarının özet tuzu (yoksa `NEON_AUTH_COOKIE_SECRET` kullanılır) |
+| `PHONE_CODE_SECRET` | SMS kodlarının özet tuzu (yoksa `EMAIL_CODE_SECRET`, o da yoksa `DATABASE_URL`'den türetilen anahtar) |
 | `GA_MEASUREMENT_ID` | Google Analytics 4 (`G-…`), yalnızca çerez izniyle yüklenir |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console HTML etiketi doğrulama değeri |
 

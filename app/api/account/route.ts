@@ -99,7 +99,8 @@ export async function POST(request:Request) {
     }catch(cause){if(cause instanceof RecoveryError)return error(cause.message,cause.status);throw cause;}
     const row=await db().prepare("SELECT id,email,password_hash,email_verified,name,role,agent_status,phone,whatsapp_enabled,company FROM users WHERE email=?").bind(email).first<Record<string,unknown>>();
     if(!row || !(await verifyPassword(password,String(row.password_hash)))) {
-      return error("E-posta veya şifre hatalı.",401);
+      // Same message for every failure; it also guides accounts created with Google (no local password).
+      return error("E-posta veya şifre hatalı. Google ile kaydolduysanız Google ile giriş yapın ya da “Şifremi unuttum” ile yeni bir şifre belirleyin.",401);
     }
     await db().prepare("DELETE FROM auth_limits WHERE key=?").bind(limitKey).run();
     const token=await createSession(String(row.id));

@@ -21,6 +21,7 @@ const googleErrors: Record<string, string> = {
   existing: "Bu e-posta zaten kayıtlı. Şifrenizle giriş yapıp profilinizden Google hesabını bağlayın.",
   link: "Google hesabı bağlantısı doğrulanamadı.",
   linked_elsewhere: "Bu Google hesabı başka bir üyeliğe bağlı.",
+  unverified: "Bu e-posta ile henüz doğrulanmamış bir hesap var. Önce şifrenizle giriş yapıp e-postanızı doğrulayın veya “Şifremi unuttum” ile yeni bir şifre belirleyin; ardından Google ile giriş yapabilirsiniz.",
   failed: "Google ile giriş tamamlanamadı. Yeniden deneyin.",
 };
 
@@ -57,7 +58,7 @@ function GoogleBlock({
 }
 
 export function AuthForm({corporate=false}:{corporate?:boolean}) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(corporate || params.get("role") || params.get("mode") === "register" ? "register" : "login");
   const [role, setRole] = useState<Role>(corporate || params.get("role") === "developer" || params.get("companyCategory")==="developer" ? "developer" : params.get("role") === "agent" ? "agent" : "buyer");
@@ -107,7 +108,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
       if(mode==='register' && role==='buyer') { const companyCode=String(form.get('companyCode')||'').trim(); if(companyCode) sessionStorage.setItem('company-invite-code',companyCode); else sessionStorage.removeItem('company-invite-code'); }
       if(data.user?.isAdmin&&data.user.email_verified){window.location.assign(safeNext.startsWith("/yonetim")?safeNext:"/yonetim");return;}
       if (!data.user?.email_verified) {
-        const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify'})}).then(r=>r.ok).catch(()=>false);
+        const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify',locale})}).then(r=>r.ok).catch(()=>false);
         window.location.assign('/eposta-dogrula'+(sent?'?sent=1':''));
       } else window.location.assign(role==="developer"?"/hesabim?tab=firma":safeNext);
     } catch {

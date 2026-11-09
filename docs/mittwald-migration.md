@@ -13,10 +13,10 @@
 - Veritabanı aynı stack'te `postgres` konteyneri (PostgreSQL 18, iç ağ, port 5432). Neon'un tam kopyası 2026-11-03'te alındı (68 tablo, satır sayıları aynı); kopya tek seferlik `db-copy` konteyneriyle (`postgres:18`, `pg_dump | psql`, ardından tablo bazında satır sayısı karşılaştırması) yapıldı ve konteyner silindi.
 - `main`'e her push `mittwald.yml` ile imajı GHCR'ye (herkese açık paket) gönderir ve `site` konteynerini günceller (`MITTWALD_API_TOKEN` secret'ı, `MITTWALD_PROJECT_ID`/`MITTWALD_SERVICE_ID`/`MITTWALD_TEST_URL` değişkenleri).
 - R2: `mittwald-site` token'ı (üç kovaya okuma/yazma).
-- Giriş şimdilik Neon Auth'ta kalır (Better Auth'a geçişe kadar); Neon Auth güvenilen adreslerine geçici adres eklenmelidir.
+- Giriş tamamen kendi sistemimizde (2026-11-09, sahibinin onayı): şifreler zaten yerel `users.password_hash`'teydi; e-posta doğrulama ve şifre sıfırlama kodları artık Neon Auth yerine kendi tablomuz `email_codes` ve SMTP ile gider. Ayrıntı ve Google girişi kurulumu: [auth.md](auth.md).
 - Cloudflare yayını ve eski Sites hâlâ Neon'a yazar; kapatılmaları ve son veri kopyası sıradaki iştir.
 
-Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulmadan), 2) sahibinin mStudio kurulumu (PostgreSQL, uygulama konteyneri, test alt alan adı, API anahtarı), 3) GitHub Actions ile Mittwald test yayını + Neon verisinin kopyası, 4) Resend (estatemarket24.com) ve Neon Auth → Better Auth, 5) test ortamında uçtan uca deneme, 6) canlıya geçiş, anahtarların yenilenmesi, eski adreslerin kapatılması.
+Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulmadan), 2) sahibinin mStudio kurulumu (PostgreSQL, uygulama konteyneri, test alt alan adı, API anahtarı), 3) GitHub Actions ile Mittwald test yayını + Neon verisinin kopyası, 4) e-posta (SMTP, yapıldı) ve Neon Auth'tan çıkış (yapıldı, [auth.md](auth.md)), 5) test ortamında uçtan uca deneme, 6) canlıya geçiş, anahtarların yenilenmesi, eski adreslerin kapatılması.
 
 ## Kurallar (şimdiden)
 
@@ -49,16 +49,16 @@ Veritabanı da Mittwald'a alınacak. mStudio'da proje içinde **PostgreSQL konte
 - **Zamanlama:** Konteyner veritabanı projenin iç ağında çalışır; site Cloudflare'deyken ona bağlanmak için veritabanını internete açmak gerekir, bu yapılmaz. Veritabanı, site Mittwald'a taşındığı gün aynı projeye kurulur ve site ile yan yana çalışır. O güne kadar Neon kalır.
 - **Veri aktarımı:** Taşıma günü yazmayı durdur (bakım modu) → `pg_dump` (Neon) → `pg_restore` (Mittwald) → tablo/satır sayılarını karşılaştır → `DATABASE_URL`'i Mittwald'a çevir. Neon projesi bir süre salt okunur yedek olarak tutulur. Veritabanını değiştiren iş olduğu için her adım sahibine sorulur.
 - **Bağlantı:** `lib/neon-d1.ts` Neon'un HTTP sürücüsünü kullanır; Mittwald'da standart PostgreSQL sürücüsüne (`pg`/`postgres`) geçilir, D1 benzeri arayüz aynı kalır. **Yapıldı:** `lib/postgres-driver-node.ts` (postgres.js 3.4.9); sorgu dönüştürme iki sürücüde ortak (`lib/pg-d1.ts`).
-- **Giriş sistemi (en riskli kısım):** Kayıt, giriş ve e-posta kodları Neon Auth'ta. Neon Auth, açık kaynaklı **Better Auth** üzerine kurulu; taşımada Better Auth Mittwald'da kendimiz çalıştırılır, kullanıcı/oturum tabloları aynı PostgreSQL'e aktarılır. Önce bir deneme ortamında giriş, kayıt, şifre sıfırlama ve mevcut kullanıcıların girişi test edilir; e-posta kodları için Resend (alan adıyla) hazır olmalıdır.
+- **Giriş sistemi — yapıldı (2026-11-09):** Kayıt, giriş ve oturumlar baştan beri kendi tablolarımızda (`users`, `sessions`, `oauth_accounts`); Neon Auth yalnızca e-posta kodlarını gönderiyordu. Bu da kendi sistemimize alındı: `lib/email-codes.ts`, tablo `email_codes` (ilk kullanımda oluşur), gönderim `lib/email.ts` (SMTP / Resend). Better Auth'a gerek kalmadı. Mevcut kullanıcılar şifreleriyle aynen giriş yapar. Bkz. [auth.md](auth.md).
 
 ## Taşıma günü
 
-1. Mittwald'da proje ve Node.js uygulaması (veya konteyner) oluştur; bütün gizli ayarları ortam değişkeni olarak gir (`DATABASE_URL`, `R2_*`, `NEON_AUTH_*`, `GEMINI_API_KEY`, `DEEPL_API_KEY`, `SMTP_*` (veya `RESEND_API_KEY`), `GOOGLE_CLIENT_*`, `EXXEL_ADMIN_EMAIL`, `BACKUP_READ_TOKEN`, `SITE_URL`).
+1. Mittwald'da proje ve Node.js uygulaması (veya konteyner) oluştur; bütün gizli ayarları ortam değişkeni olarak gir (`DATABASE_URL`, `R2_*`, `EMAIL_CODE_SECRET`, `GEMINI_API_KEY`, `DEEPL_API_KEY`, `SMTP_*` (veya `RESEND_API_KEY`), `GOOGLE_CLIENT_*`, `EXXEL_ADMIN_EMAIL`, `BACKUP_READ_TOKEN`, `SITE_URL`).
 2. Yukarıdaki tablodaki değişiklikleri bir dalda yap, `npm run verify` ve Mittwald'daki geçici adreste uçtan uca test et.
 3. Alan adını Mittwald'a yönlendir, HTTPS sertifikası.
-4. `SITE_URL`'i alan adına çevir; Better Auth (Neon Auth yerine) güvenilen adresleri, Google OAuth yönlendirme adresi, Resend alan adı doğrulaması (SPF/DKIM).
+4. `SITE_URL`'i alan adına çevir; `GOOGLE_REDIRECT_URI`'yi `https://estatemarket24.com/api/auth/callback/google` yap (Google Cloud Console'da da yetkili yönlendirme adresi olarak ekli olmalı, [auth.md](auth.md)); e-posta alan adı doğrulaması (SPF/DKIM).
 5. workers.dev adresini alan adına yönlendir, bir süre sonra Cloudflare Worker'ı kapat.
-6. Eski Sites yayınını kapat; sohbette görünen bütün anahtarları yenile: Mittwald PostgreSQL şifresi (`eyup-aydin`), Neon şifresi, Gemini, DeepL, `BACKUP_READ_TOKEN`; `NEON_AUTH_COOKIE_SECRET` ve `CRON_SECRET` da yeniden üretilir.
+6. Eski Sites yayınını kapat; sohbette görünen bütün anahtarları yenile: Mittwald PostgreSQL şifresi (`eyup-aydin`), Neon şifresi, Gemini, DeepL, `BACKUP_READ_TOKEN`; `EMAIL_CODE_SECRET` ve `CRON_SECRET` da yeniden üretilir. Neon Auth artık kullanılmıyor: Neon panelinde Auth kapatılabilir, `NEON_AUTH_*` değişkenleri her yerden silinir.
 
 ## Aşama 1: teslim edilenler (2026-11-03)
 
@@ -75,7 +75,7 @@ Cloudflare yayını aynen çalışmaya devam eder (`npm run verify`); aynı kod 
 - **Bireysel ilan kuralı (2026-11-04, sahibinin kararı):** bireysel üyeler (`role='individual'`) **45 günde 1 ilan** verebilir (önce 3 takvim ayı); yayın süresi 20 gün. Kod `lib/listing-policy.ts`, PostgreSQL tetikleyicisi `018_individual_listing_45_days.sql` (Mittwald'da açılışta otomatik uygulanır), D1/SQLite `drizzle/0025_individual_listing_45_days.sql`. **Neon'a uygulanmadı:** Cloudflare yayını kapanana kadar Neon'daki tetikleyici 3 ay kuralını uygular; gerekirse 018 sahibinin onayıyla Neon'a ayrıca uygulanmalı (`scripts/neon-migrate.mjs` dosyaları `;` ile böldüğü için `$$` fonksiyonunu bozar, bu dosya için uygun değil).
 - **İlan videoları (2026-11-04, sahibinin kararı):** Cloudflare Stream yerine kendi sistemimiz (`docs/listing-videos.md`): en fazla 3 dakika ve 1 GB, ilan başına 1 video. `instrumentation.ts` migrasyonlardan sonra ffmpeg işçisini başlatır (`@/lib/video-worker` yuvası, Cloudflare'de boş); `Dockerfile` ffmpeg kurar. Yeni tablo `listing_videos`: `019_listing_videos.sql` (açılışta otomatik), `drizzle/0026_listing_videos.sql`; Neon'a uygulanmadı.
 - **İlan fiyatları TL'ye (2026-11-06, sahibinin onayı):** `020_listing_prices_try.sql` TRY olmayan ilan fiyatlarını TCMB 05.11.2026 bülteniyle (2026/208) bir kez TL'ye çevirir ve `price_history`'ye işler (açılışta otomatik), `drizzle/0027_listing_prices_try.sql`. Neon'a uygulanmadı; Neon'dan yeni veri kopyası alınırsa 020 o veride yeniden çalışır. Ayrıntı `docs/listing-currency.md`.
-- Node'da henüz olmayanlar: 5xx sayacı (`operations_events` `http`), Neon Auth → Better Auth (Aşama 4).
+- Node'da henüz olmayanlar: 5xx sayacı (`operations_events` `http`). Neon Auth'tan çıkış yapıldı (2026-11-09, [auth.md](auth.md)).
 
 ## Konteyner ortam değişkenleri
 
@@ -90,8 +90,8 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `R2_BUCKET_NAME` | Evet | `exxel-estate-images` (ilan fotoğrafları) |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Evet | İki kovaya da yetkili R2 token'ı |
 | `R2_PRIVATE_BUCKET_NAME` | Hayır | Varsayılan `exxel-estate-private` |
-| `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET` | Evet (Better Auth'a kadar) | Neon Auth; güvenilen adreslere test alan adı eklenmeli |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Google girişi için | Yönlendirme adresi test alan adıyla |
+| `EMAIL_CODE_SECRET` | Önerilir | E-posta doğrulama / şifre sıfırlama kodlarının HMAC anahtarı, en az 32 rastgele karakter (`openssl rand -hex 32`). Yoksa `DATABASE_URL`'den türetilir. Değiştirmek yalnızca bekleyen kodları geçersiz kılar. `NEON_AUTH_*` artık kullanılmıyor, silin. Bkz. [auth.md](auth.md) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Google girişi için | Şimdi `https://p-r9al26.project.space/api/auth/callback/google`, alan adından sonra `https://estatemarket24.com/api/auth/callback/google`. Google Cloud Console adımları: [auth.md](auth.md) |
 | `GEMINI_API_KEY` (+ isteğe bağlı `GEMINI_MODEL`, `AI_DAILY_CALL_LIMIT`, `AI_MONTHLY_CALL_LIMIT`) | Asistan için | |
 | `DEEPL_API_KEY` (+ `DEEPL_DAILY_CHAR_LIMIT`, `DEEPL_MONTHLY_CHAR_LIMIT`) | Çeviri için | |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | E-posta için (şu anki yol) | Mittwald posta kutusu: `mail.agenturserver.de`, `465` (doğrudan TLS; `587` = STARTTLS zorunlu), kullanıcı `noreply@estatemarket24.com`, şifre gizli. Bkz. [email-notifications.md](email-notifications.md) |

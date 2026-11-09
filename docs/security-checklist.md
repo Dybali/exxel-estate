@@ -52,7 +52,7 @@ Kilitlenme (telefon ve kurtarma kodları kayıp): Neon SQL Editor'da `DELETE FRO
 
 Sağlayıcı ayarlanmadıkça özellik kapalıdır ve hesap sayfasında "Telefon doğrulaması henüz kullanılamıyor." yazar. Doğrulama kimse için zorunlu değildir.
 
-Kodlar için gizli tuz: `NEON_AUTH_COOKIE_SECRET` tanımlıysa o kullanılır. Ayrı bir değer isterseniz `PHONE_CODE_SECRET` (en az 16, tercihen 32+ rastgele karakter) girin.
+Kodlar için gizli tuz: `PHONE_CODE_SECRET` (en az 16, tercihen 32+ rastgele karakter); yoksa e-posta kodlarının anahtarı (`EMAIL_CODE_SECRET`, o da yoksa `DATABASE_URL`'den türetilen anahtar, bkz. [auth.md](auth.md)) kullanılır.
 
 Netgsm (Türkiye, önerilen):
 

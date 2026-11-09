@@ -16,6 +16,7 @@ import {duplicateWords} from "./duplicate-translations";
 import {feedbackWords} from "./feedback-translations";
 import {securityWords} from "./security-translations";
 import {foreignBuyerWords} from "./foreign-buyer-translations";
+import {authEmailWords} from "./auth-email-translations";
 
 
 export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl";
@@ -701,6 +702,7 @@ Object.assign(words,mapWords);
 Object.assign(words,aiSearchWords);
 Object.assign(words,duplicateWords);
 Object.assign(words,feedbackWords);
+Object.assign(words,authEmailWords);
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);

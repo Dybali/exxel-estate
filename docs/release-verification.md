@@ -16,7 +16,7 @@ Use a local Worker with **no production secrets**. The audit fixture uses `http:
 
 ## Runtime configuration and deployment
 
-Neon Auth requires `NEON_AUTH_BASE_URL` and a server-only `NEON_AUTH_COOKIE_SECRET` of at least 32 characters in Sites runtime settings. Never place them in source, client code, or hosting.json. Deploy a saved version to apply a changed environment revision. A successful send response means the provider accepted the request; mailbox delivery and code confirmation are separate checks.
+E-mail verification and password-reset codes use our own system over the configured e-mail transport (docs/auth.md); Neon Auth is no longer used. The optional server-only `EMAIL_CODE_SECRET` (32+ random characters; otherwise a key derived from `DATABASE_URL`) must never be placed in source, client code, or hosting.json. A successful send response does not prove mailbox delivery; check with the admin test e-mail and a real code.
 
 Server errors in `/api/` return JSON with a request reference and private caching. Logs contain method, route template, status and reference, without query strings, uploaded documents, passwords or message contents. Existing operation counters remain enabled.
 

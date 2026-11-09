@@ -8,6 +8,7 @@
 - **İletişim mesajına yanıt (yönetim paneli → İletişim mesajları → "Yanıtla"):** Yanıt ziyaretçiye "Re: estatemarket24: &lt;konu&gt;" konusuyla gider; gönderen `EMAIL_FROM` (noreply), Reply-To `CONTACT_EMAIL` (info@estatemarket24.com), orijinal mesaj altında alıntılanır. Yanıt `contact_replies` tablosuna (metin, yönetici, zaman, sağlayıcı ileti kimliği) yazılır, mesaj "Yanıtlandı" olur. Gönderim başarısızsa hiçbir şey kaydedilmez. Yönetici başına saatte en fazla 30 yanıt. E-posta yapılandırılmamışsa panel bunu söyler ve `mailto:` bağlantısı yedek olarak kalır.
 - **Test e-postası (yönetim paneli → Hizmet durumu → "Site e-postası" → "Test e-postası gönder"):** Oturum açmış yöneticinin adresine; hangi sağlayıcının kullanıldığını da gösterir. Yönetici başına 10 dakikada 5.
 - **Sağlık uyarıları** (`ALERT_EMAIL` / `EXXEL_ADMIN_EMAIL`).
+- **E-posta doğrulama ve şifre sıfırlama kodları:** 6 haneli tek kullanımlık kod, 15 dakika geçerli, ziyaretçinin dilinde; gönderen `EMAIL_FROM`, Reply-To `CONTACT_EMAIL`. Kendi sistemimiz (Neon Auth yerine), ayrıntı [auth.md](auth.md).
 - Bildirim e-postalarında tek tıkla abonelikten çıkma bağlantısı ve `List-Unsubscribe` + `List-Unsubscribe-Post` başlıkları bulunur (`/api/email/unsubscribe`), iki sağlayıcıda da.
 - Bildirimler yalnızca e-postası doğrulanmış hesaplara gönderilir. İçerik Türkçe + İngilizce.
 
