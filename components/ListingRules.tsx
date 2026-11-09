@@ -2,6 +2,7 @@
 import Link from "@/components/SafeLink";
 import {ArrowRight} from "lucide-react";
 import {useLocale} from "@/lib/i18n";
+import {LegalPage} from "./LegalPage";
 
 type Rule = {title: string; text: string; points?: string[]};
 
@@ -28,22 +29,27 @@ const RULES: Rule[] = [
   {title: "Bildirim", text: "Kurallara aykırı bir ilan gördüğünüzde ilan sayfasındaki “İlanı bildir” düğmesini kullanın. Bildirimler yetkili yöneticiler tarafından incelenir; bildirimde bulunan kişinin kimliği ilan sahibine gösterilmez."},
 ];
 
+// Section anchors, in the order of RULES.
+const IDS = ["dogru-bilgi", "fiyat", "fotograflar", "mukerrer", "yetki-belgesi", "eids", "yasak-icerik", "inceleme", "bildirim"];
+
 export function ListingRules() {
   const {t} = useLocale();
-  return <main className="info-page rules-page">
-    <section className="info-hero"><div className="container">
-      <span>{t("İLAN VERENLER İÇİN")}</span>
-      <h1>{t("İlan kuralları")}</h1>
-      <p>{t("Ziyaretçilerin doğru ve güvenilir ilanlarla karşılaşması için tüm ilan verenlerden bu kurallara uymalarını bekliyoruz.")}</p>
-    </div></section>
-    <div className="container info-body rules-body">
-      <p className="rules-intro">{t("Bu kurallar bireysel üyeler, emlak ofisleri ve inşaat firmaları dahil estatemarket24'te ilan veren herkes için geçerlidir. Bu sayfa hukuki danışmanlık değildir; mevzuattan doğan yükümlülükleriniz ayrıca geçerlidir.")}</p>
-      <ol className="rules-list">{RULES.map((rule, index) => <li key={rule.title}>
-        <span className="rules-number">{String(index + 1).padStart(2, "0")}</span>
-        <div><h2>{t(rule.title)}</h2><p>{t(rule.text)}</p>{rule.points && <ul>{rule.points.map((point) => <li key={point}>{t(point)}</li>)}</ul>}</div>
-      </li>)}</ol>
-      <p className="rules-note">{t("estatemarket24 taşınmaz alım-satımı veya kiralamasında taraf değildir ve ödemelere aracılık etmez. Ödeme veya sözleşme öncesinde tapu kaydını ve belgeleri kendiniz kontrol edin.")}</p>
-      <aside className="info-cta"><div><h2>{t("İlanınızı hazırlamaya hazır mısınız?")}</h2><p>{t("Sorularınız için sık sorulan sorulara göz atın veya bize yazın.")}</p></div><div className="info-cta-actions"><Link href="/ilan-ver" className="info-button">{t("İlan Ver")}<ArrowRight size={17}/></Link><Link href="/sss" className="info-button secondary">{t("Sık sorulan sorular")}</Link></div></aside>
-    </div>
-  </main>;
+  const sections = RULES.map((rule, index) => ({id: IDS[index] || `kural-${index + 1}`, title: t(rule.title), content: <>
+    <p>{t(rule.text)}</p>
+    {rule.points && <ul>{rule.points.map((point) => <li key={point}>{t(point)}</li>)}</ul>}
+    {IDS[index] === "inceleme" && <p>{t("İlanlar kaydedilirken sahte veya mükerrer ilan belirtileri bakımından otomatik olarak da kontrol edilir; şüpheli bulunanlar yöneticilere bildirilir ve kararı her zaman bir yönetici verir.")}</p>}
+  </>}));
+  return <LegalPage current="/ilan-kurallari" title={t("İlan kuralları")} updated="2026-11-09"
+    lede={t("Ziyaretçilerin doğru ve güvenilir ilanlarla karşılaşması için tüm ilan verenlerden bu kurallara uymalarını bekliyoruz.")}
+    summary={[t("Bu kurallar bireysel üyeler, emlak ofisleri ve inşaat firmaları dahil estatemarket24'te ilan veren herkes için geçerlidir. Bu sayfa hukuki danışmanlık değildir; mevzuattan doğan yükümlülükleriniz ayrıca geçerlidir."), t("estatemarket24 taşınmaz alım-satımı veya kiralamasında taraf değildir ve ödemelere aracılık etmez. Ödeme veya sözleşme öncesinde tapu kaydını ve belgeleri kendiniz kontrol edin.")]}
+    sections={sections}>
+    <aside className="legal-contact">
+      <ArrowRight size={22} aria-hidden="true" className="legal-arrow"/>
+      <div>
+        <h3>{t("İlanınızı hazırlamaya hazır mısınız?")}</h3>
+        <p>{t("Sorularınız için sık sorulan sorulara göz atın veya bize yazın.")}</p>
+        <div className="legal-contact-actions"><Link href="/ilan-ver" className="legal-button">{t("İlan Ver")}</Link><Link href="/sss" className="legal-button secondary">{t("Sık sorulan sorular")}</Link></div>
+      </div>
+    </aside>
+  </LegalPage>;
 }

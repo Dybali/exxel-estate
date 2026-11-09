@@ -164,6 +164,16 @@ export const seoCopy: Record<string, Copy> = {
     ru: ["Политика cookie | estatemarket24", "Файлы cookie и локальное хранилище на estatemarket24."],
     nl: ["Cookiebeleid | estatemarket24", "Cookies en lokale opslag op estatemarket24."],
   },
+  "/kullanim-kosullari": {
+    tr: ["Kullanım Koşulları | estatemarket24", "estatemarket24 platformunun kullanım koşulları: üyelik, ilanlar, Hizmetler bölümü, denetim ve sorumluluk."],
+    de: ["Nutzungsbedingungen | estatemarket24", "Nutzungsbedingungen der Plattform estatemarket24: Mitgliedschaft, Anzeigen, Dienstleister, Moderation und Haftung."],
+    fr: ["Conditions d’utilisation | estatemarket24", "Conditions d’utilisation de la plateforme estatemarket24 : compte, annonces, prestataires, modération et responsabilité."],
+    en: ["Terms of Use | estatemarket24", "Terms of use of the estatemarket24 platform: membership, listings, the services directory, moderation and liability."],
+    ar: ["شروط الاستخدام | estatemarket24", "شروط استخدام منصة estatemarket24: العضوية والإعلانات وقسم الخدمات والمراجعة والمسؤولية."],
+    fa: ["شرایط استفاده | estatemarket24", "شرایط استفاده از پلتفرم estatemarket24: عضویت، آگهی‌ها، بخش خدمات، بررسی محتوا و مسئولیت."],
+    ru: ["Условия использования | estatemarket24", "Условия использования платформы estatemarket24: аккаунт, объявления, раздел услуг, модерация и ответственность."],
+    nl: ["Gebruiksvoorwaarden | estatemarket24", "Gebruiksvoorwaarden van het platform estatemarket24: lidmaatschap, advertenties, dienstverleners, controle en aansprakelijkheid."],
+  },
   "/iletisim": {
     tr: ["İletişim | estatemarket24", "estatemarket24 ile iletişime geçin: sorularınızı, önerilerinizi ve kurumsal üyelik taleplerinizi iletişim formuyla iletin."],
     de: ["Kontakt | estatemarket24", "Kontaktieren Sie estatemarket24: Senden Sie uns Fragen, Anregungen und Anfragen zur Firmenmitgliedschaft über das Kontaktformular."],

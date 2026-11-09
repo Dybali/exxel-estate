@@ -19,6 +19,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap> {
   const entries:MetadataRoute.Sitemap=[
     ...["/","/ilanlar","/sirketler","/projeler","/hizmetler","/hakkimizda","/paketler","/kurumsal-uyelik","/blog","/asistan","/yabanci-alici","/yabanci-alici/vatandaslik"].map(path=>entry(path,{changeFrequency:'daily',priority:path==='/'?1:.7})),
     ...["/iletisim","/sss","/ilan-kurallari","/toplu-ilan"].map(path=>entry(path,{changeFrequency:'monthly',priority:.5})),
+    ...["/kullanim-kosullari","/gizlilik-politikasi","/cerez-politikasi","/impressum"].map(path=>entry(path,{changeFrequency:'yearly',priority:.3})),
     ...editorialArticles.map(a=>entry('/blog/'+a.slug,{lastModified:new Date(a.date),changeFrequency:'monthly',priority:.6})),
     ...companies.map(c=>entry('/sirketler/'+c.id,{changeFrequency:'weekly',priority:.6})),
     ...regions.map(region=>entry(region.path,{...(Number.isFinite(Date.parse(region.updatedAt))?{lastModified:new Date(region.updatedAt)}:{}),changeFrequency:'daily',priority:region.path.split('/').length<=3?.7:.6})),
