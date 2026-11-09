@@ -122,3 +122,15 @@
  .legal-contact h3{color:#000}
  .legal-body a{color:#000}
 }
+
+/* Numbered clauses (privacy policy): "3.1." in the margin, body beside it. */
+.legal-clauses{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.legal-clauses>li{display:grid;grid-template-columns:3.2em minmax(0,1fr);gap:4px 10px;align-items:start}
+.legal-clause-number{font-weight:700;color:var(--legal-muted,#5d716c);font-variant-numeric:tabular-nums;padding-top:1px}
+.legal-clause-body>:first-child{margin-top:0}
+.legal-clause-body>:last-child{margin-bottom:0}
+.legal-clause-body ol:not(.legal-roman){padding-inline-start:1.3em}
+.legal-roman{list-style:none;counter-reset:roman;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.legal-roman>li{counter-increment:roman;display:flex;gap:8px}
+.legal-roman>li::before{content:"(" counter(roman,lower-roman) ")";flex:none;min-width:2.4em;font-weight:650;color:var(--legal-muted,#5d716c)}
+@media (max-width:560px){.legal-clauses>li{grid-template-columns:1fr}.legal-clause-number{padding:0}}

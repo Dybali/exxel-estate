@@ -138,3 +138,19 @@ export function LegalRights() {
     <small><bdi dir="ltr">{right.refs}</bdi></small>
   </li>)}</ul>;
 }
+
+/**
+ * Numbered clauses inside a section ("3.1", "3.2"…), the formal style of the privacy policy.
+ * `section` is the section number shown in the heading.
+ */
+export function LegalClauses({section, items}: {section: number; items: ReactNode[]}) {
+  return <ol className="legal-clauses">{items.map((item, index) => <li key={index}>
+    <span className="legal-clause-number" aria-hidden="true">{section}.{index + 1}.</span>
+    <div className="legal-clause-body">{item}</div>
+  </li>)}</ol>;
+}
+
+/** "(i) … (ii) …" list inside a clause. */
+export function LegalRomanList({items}: {items: ReactNode[]}) {
+  return <ol className="legal-roman">{items.map((item, index) => <li key={index}>{item}</li>)}</ol>;
+}

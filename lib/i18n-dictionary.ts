@@ -19,6 +19,7 @@ import {foreignBuyerWords} from "./foreign-buyer-translations";
 import {authEmailWords} from "./auth-email-translations";
 import {legalWords} from "./legal-translations";
 import {serviceQuoteWords} from "./service-quote-translations";
+import {privacyClauseWords} from "./privacy-clause-translations";
 
 
 export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl";
@@ -707,6 +708,7 @@ Object.assign(words,feedbackWords);
 Object.assign(words,authEmailWords);
 Object.assign(words,legalWords);
 Object.assign(words,serviceQuoteWords);
+Object.assign(words,privacyClauseWords);
 
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);
