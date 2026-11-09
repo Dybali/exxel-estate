@@ -70,7 +70,7 @@ export function CookiePolicy(){
       <p>{t('Kişisel verilerinizin nasıl işlendiğine dair tüm ayrıntılar')} <Link href="/gizlilik-politikasi">{t('Gizlilik politikası')}</Link></p>
     </>},
   ];
-  return <LegalPage current="/cerez-politikasi" title={t('Çerez politikası')} updated={COOKIES_UPDATED}
+  return <LegalPage collapsible current="/cerez-politikasi" title={t('Çerez politikası')} updated={COOKIES_UPDATED}
     lede={t('Bu sayfa, bu sitede kullanılan çerezleri ve benzer tarayıcı depolamalarını açıklar.')}
     summary={[
       t('Reklam veya pazarlama çerezi kullanılmaz.'),

@@ -41,7 +41,7 @@ export function TermsOfUse(){
     </>},
     {id:'degisiklikler',title:t('Değişiklikler ve iletişim'),content:<p>{t('Bu koşulları hizmetler veya mevzuat değiştiğinde güncelleyebiliriz. Güncel sürüm bu sayfada yayımlanır; önemli değişikliklerde üyeleri uygun şekilde bilgilendiririz. Tüketiciler bakımından yaşadıkları ülkenin zorunlu tüketici koruma hükümleri saklıdır.')} <Link href="/iletisim">{t('İletişim')}</Link></p>},
   ];
-  return <LegalPage current="/kullanim-kosullari" title={t('Kullanım koşulları')} updated={TERMS_UPDATED}
+  return <LegalPage collapsible current="/kullanim-kosullari" title={t('Kullanım koşulları')} updated={TERMS_UPDATED}
     lede={t('estatemarket24’ü kullanırken geçerli olan kurallar: üyelik, ilanlar, Hizmetler bölümü ve sorumluluklar.')}
     summary={[
       t('estatemarket24 bir ilan platformudur; alım-satım veya kiralamada taraf değildir.'),

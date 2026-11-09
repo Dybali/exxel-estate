@@ -156,7 +156,7 @@ export function PrivacyPolicy(){
       <p>{t('Bu Gizlilik Politikası veya kişisel verileriniz hakkında sorularınız için bize şu adresten ulaşabilirsiniz:')} {mail}</p>,
     ]}/>},
   ];
-  return <LegalPage current="/gizlilik-politikasi" title={t('Gizlilik politikası')} updated={PRIVACY_UPDATED}
+  return <LegalPage collapsible current="/gizlilik-politikasi" title={t('Gizlilik politikası')} updated={PRIVACY_UPDATED}
     lede={t('Bu politika, estatemarket24’ü kullandığınızda hangi kişisel verileri neden işlediğimizi, kimlerle paylaştığımızı ve haklarınızı nasıl kullanabileceğinizi açıklar.')}
     summary={[
       t('Yalnızca hizmeti sunmak için gereken verileri işleriz: hesap, ilan, mesaj ve talepleriniz.'),

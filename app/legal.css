@@ -134,3 +134,19 @@
 .legal-roman>li{counter-increment:roman;display:flex;gap:8px}
 .legal-roman>li::before{content:"(" counter(roman,lower-roman) ")";flex:none;min-width:2.4em;font-weight:650;color:var(--legal-muted,#5d716c)}
 @media (max-width:560px){.legal-clauses>li{grid-template-columns:1fr}.legal-clause-number{padding:0}}
+
+/* Collapsible sections (privacy, cookies, terms): a layered notice, headings first. */
+.legal-section.is-collapsible{padding:0;overflow:hidden}
+.legal-section.is-collapsible>h2{margin:0;position:relative}
+.legal-toggle{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:16px 56px 16px 24px;border:0;background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
+.legal-toggle:hover{background:var(--legal-soft)}
+.legal-toggle:focus-visible{outline:2px solid var(--legal-gold);outline-offset:-2px}
+.legal-toggle-title{flex:1}
+.legal-chevron{flex:none;color:var(--legal-muted);transition:transform .18s ease}
+.legal-section.is-open .legal-chevron{transform:rotate(180deg)}
+.legal-section.is-collapsible .legal-anchor{position:absolute;inset-inline-end:52px;top:50%;transform:translateY(-50%)}
+.legal-section.is-collapsible .legal-body{padding:4px 30px 26px}
+.legal-section.is-collapsible{margin-bottom:10px}
+@media (max-width:720px){.legal-toggle{padding:14px 48px 14px 16px;min-height:56px}.legal-section.is-collapsible .legal-body{padding:2px 18px 20px}.legal-section.is-collapsible .legal-anchor{display:none}}
+@media (prefers-reduced-motion:reduce){.legal-chevron{transition:none}}
+@media print{.legal-section.is-collapsible .legal-body{display:block!important}.legal-chevron{display:none}}

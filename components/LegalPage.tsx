@@ -2,9 +2,13 @@
 // Shared layout of the legal pages (/gizlilik-politikasi, /cerez-politikasi, /kullanim-kosullari, /ilan-kurallari,
 // /impressum): hero with tabs to the other legal texts, "last updated" date, summary box, sticky table of contents
 // (a collapsible list on phones), numbered sections with anchors, a privacy-request contact box and cross-links.
+// With `collapsible` (privacy, cookies, terms) the sections start closed, like a layered privacy notice: the
+// summary and the headings fit on one screen and each section opens on demand. Closed bodies stay in the page
+// (hidden="until-found"), so search engines and the browser's find-in-page still reach them; a #link, a table of
+// contents click or printing opens them.
 // Styles: app/legal.css. Translations of the strings below: lib/legal-translations.ts.
 import {useEffect, useRef, useState, type ReactNode} from "react";
-import {ArrowRight, ArrowUp, ChevronDown, Link2, Mail, Printer} from "lucide-react";
+import {ArrowRight, ArrowUp, ChevronDown, ChevronsDownUp, ChevronsUpDown, Link2, Mail, Printer} from "lucide-react";
 import Link from "@/components/SafeLink";
 import {useLocale} from "@/lib/i18n";
 
@@ -37,16 +41,34 @@ function useActiveSection(ids: string[]) {
   return active;
 }
 
-export function LegalPage({current, title, lede, updated, summary, sections, children}: {
-  current: LegalPath; title: string; lede?: string; updated?: string; summary?: string[]; sections: LegalSection[]; children?: ReactNode;
+export function LegalPage({current, title, lede, updated, summary, sections, children, collapsible = false}: {
+  current: LegalPath; title: string; lede?: string; updated?: string; summary?: string[]; sections: LegalSection[]; children?: ReactNode; collapsible?: boolean;
 }) {
   const {t, locale} = useLocale();
   const ids = useRef(sections.map((section) => section.id)).current;
   const active = useActiveSection(ids);
+  const [open, setOpen] = useState<Set<string>>(() => new Set(collapsible ? [] : ids));
+  const isOpen = (id: string) => !collapsible || open.has(id);
+  const openSection = (id: string) => setOpen((old) => old.has(id) ? old : new Set(old).add(id));
+  const toggle = (id: string) => setOpen((old) => {const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next;});
+  const allOpen = open.size === ids.length;
+  useEffect(() => {
+    if (!collapsible) return;
+    // A link to #section (shared, or from another page) opens it; printing opens everything.
+    const fromHash = () => {const id = decodeURIComponent(location.hash.slice(1)); if (ids.includes(id)) {openSection(id); requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());}};
+    const print = () => setOpen(new Set(ids));
+    // Find-in-page reveals a closed body (hidden="until-found"); keep the state in step.
+    const found = (event: Event) => {const section = (event.target as HTMLElement).closest(".legal-section"); if (section?.id) openSection(section.id);};
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    window.addEventListener("beforeprint", print);
+    document.addEventListener("beforematch", found, true);
+    return () => {window.removeEventListener("hashchange", fromHash); window.removeEventListener("beforeprint", print); document.removeEventListener("beforematch", found, true);};
+  }, [collapsible, ids]);
   const mobileToc = useRef<HTMLDetailsElement>(null);
   const date = updated ? new Intl.DateTimeFormat(locale, {day: "numeric", month: "long", year: "numeric", timeZone: "UTC"}).format(new Date(`${updated}T12:00:00Z`)) : "";
   const toc = (onPick?: () => void) => <ol>{sections.map((section, index) => <li key={section.id}>
-    <a href={`#${section.id}`} className={active === section.id ? "active" : undefined} aria-current={active === section.id ? "location" : undefined} onClick={onPick}>
+    <a href={`#${section.id}`} className={active === section.id ? "active" : undefined} aria-current={active === section.id ? "location" : undefined} onClick={() => {openSection(section.id); onPick?.();}}>
       <span className="legal-toc-number">{index + 1}</span><span>{section.title}</span>
     </a>
   </li>)}</ol>;
@@ -58,6 +80,7 @@ export function LegalPage({current, title, lede, updated, summary, sections, chi
         {lede && <p className="legal-lede">{lede}</p>}
         <div className="legal-meta">
           {date && <span>{t("Son güncelleme")}: <time dateTime={updated}>{date}</time></span>}
+          {collapsible && <button type="button" className="legal-print" aria-pressed={allOpen} onClick={() => setOpen(allOpen ? new Set() : new Set(ids))}>{allOpen ? <ChevronsDownUp size={15} aria-hidden="true"/> : <ChevronsUpDown size={15} aria-hidden="true"/>}{t(allOpen ? "Tümünü kapat" : "Tümünü aç")}</button>}
           <button type="button" className="legal-print" onClick={() => window.print()}><Printer size={15} aria-hidden="true"/>{t("Yazdır")}</button>
         </div>
         <nav className="legal-tabs" aria-label={t("Yasal metinler")}>
@@ -81,14 +104,24 @@ export function LegalPage({current, title, lede, updated, summary, sections, chi
           <h2>{t("Kısaca")}</h2>
           <ul>{summary.map((item) => <li key={item}>{item}</li>)}</ul>
         </section>}
-        {sections.map((section, index) => <section key={section.id} id={section.id} className="legal-section" aria-labelledby={`${section.id}-title`}>
-          <h2 id={`${section.id}-title`}>
-            <span className="legal-number">{index + 1}</span>
-            <span>{section.title}</span>
-            <a href={`#${section.id}`} className="legal-anchor" aria-label={t("Bu bölümün bağlantısı")}><Link2 size={16} aria-hidden="true"/></a>
-          </h2>
-          <div className="legal-body">{section.content}</div>
-        </section>)}
+        {sections.map((section, index) => {
+          const shown = isOpen(section.id);
+          return <section key={section.id} id={section.id} className={collapsible ? `legal-section is-collapsible${shown ? " is-open" : ""}` : "legal-section"} aria-labelledby={`${section.id}-title`}>
+            <h2 id={`${section.id}-title`}>
+              {collapsible ? <button type="button" className="legal-toggle" aria-expanded={shown} aria-controls={`${section.id}-body`} onClick={() => toggle(section.id)}>
+                <span className="legal-number">{index + 1}</span>
+                <span className="legal-toggle-title">{section.title}</span>
+                <ChevronDown size={20} aria-hidden="true" className="legal-chevron"/>
+              </button> : <>
+                <span className="legal-number">{index + 1}</span>
+                <span>{section.title}</span>
+              </>}
+              <a href={`#${section.id}`} className="legal-anchor" aria-label={t("Bu bölümün bağlantısı")} onClick={() => openSection(section.id)}><Link2 size={16} aria-hidden="true"/></a>
+            </h2>
+            {/* React renders hidden as a boolean; after commit a closed body is switched to "until-found" so find-in-page still reaches it. */}
+            <div className="legal-body" id={`${section.id}-body`} hidden={!shown} ref={(element) => {if (element && !shown) element.setAttribute("hidden", "until-found");}}>{section.content}</div>
+          </section>;
+        })}
         {children}
         <a href="#top" className="legal-top" onClick={(event) => {event.preventDefault(); window.scrollTo({top: 0, behavior: "smooth"});}}><ArrowUp size={15} aria-hidden="true"/>{t("Başa dön")}</a>
         <nav className="legal-related" aria-label={t("Diğer yasal metinler")}>
