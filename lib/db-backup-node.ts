@@ -164,7 +164,14 @@ export function s3Bucket(settings: S3Settings, fetcher: Fetcher = (request) => f
     return `${base}/${key.split("/").map(encodeURIComponent).join("/")}${query}`;
   };
   // Every body here is a Buffer or string, so a request can be signed and sent again on 5xx/network errors.
+  // R2 answered 411 (Length Required) to the backup upload on Mittwald, so every request with a body
+  // states its exact Content-Length, as the video uploads (lib/video-storage.ts) already do.
   async function send(input: string, init: RequestInit = {}) {
+    if (init.body !== undefined && init.body !== null) {
+      const body = init.body as Uint8Array | string;
+      const length = typeof body === "string" ? Buffer.byteLength(body) : body.byteLength;
+      init = { ...init, headers: { ...(init.headers as Record<string, string> | undefined), "Content-Length": String(length) } };
+    }
     for (let attempt = 1; ; attempt++) {
       try {
         const response = await fetcher(await client.sign(input, init));

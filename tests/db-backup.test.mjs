@@ -284,3 +284,20 @@ test('Cloudflare bundle never sees the backup: null slot, Node alias, cron scrip
  assert.match(read('Dockerfile'),/apk add --no-cache ffmpeg postgresql18-client/);
  assert.match(read('app/api/cron/[job]/route.ts'),/job === "backup"/);
 });
+
+test('every upload request states its exact Content-Length (R2 answers 411 otherwise)',async()=>{
+ const dir=scratch();
+ try{
+  const file=path.join(dir,'f'),data=randomBytes(2500);writeFileSync(file,data);
+  const seen=[];const r2=fakeR2();
+  const recording=async request=>{if(['PUT','POST'].includes(request.method)&&!new URL(request.url).searchParams.has('uploads'))seen.push({method:request.method,length:request.headers.get('content-length')});return r2.fetch(request);};
+  const store=backup.s3Bucket({endpoint:'https://abc123.eu.r2.cloudflarestorage.com',bucket:'estatemarket24-backups',accessKeyId:'a',secretAccessKey:'b'},recording);
+  await backup.uploadFile(store,'mittwald-db/one',file,data.length,{},5000);
+  await backup.uploadFile(store,'mittwald-db/multi',file,data.length,{},1000);
+  await store.put('mittwald-db/m.json',JSON.stringify({ok:'ü'}),{'Content-Type':'application/json'});
+  // single PUT, three parts, the multipart completion XML, then the JSON manifest
+  assert.deepEqual(seen.slice(0,4).map(s=>s.length),['2500','1000','1000','500']);
+  assert.equal(seen.at(-1).length,String(Buffer.byteLength(JSON.stringify({ok:'ü'}))));
+  assert.ok(seen.every(s=>Number(s.length)>0),'every request with a body has a positive Content-Length');
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
