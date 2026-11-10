@@ -52,6 +52,7 @@ export function Header() {
     { href: "/projeler", label: "Projeler", active: path.startsWith("/projeler") },
     { href: "/sirketler", label: "Şirketler", active: path.startsWith("/sirketler") },
     { href: "/hizmetler", label: "Hizmetler", active: path.startsWith("/hizmetler"), className: "nav-services" },
+    { href: "/muteahhitler", label: "Müteahhitler", active: path.startsWith("/muteahhitler") },
     { href: "/paketler", label: "Fiyatlar", active: path === "/paketler" },
     { href: "/blog", label: "Blog & Haberler", active: path.startsWith("/blog") },
   ];

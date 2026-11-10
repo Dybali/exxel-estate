@@ -15,13 +15,14 @@ import {AccountSecurity} from "./AccountSecurity";
 import {ProjectsPanel} from "./ProjectsPanel";
 import {ServiceFirmPanel} from "./ServiceFirmPanel";
 import {ServiceQuotesPanel} from "./ServiceQuotesPanel";
+import {ContractorPanel,LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
-import { Building2, CalendarDays, ArrowUpRight, Bookmark, Heart, LayoutDashboard, LogOut, Mail, Plus, UserRound, Users, Wrench,ClipboardList} from "lucide-react";
+import { Building2, CalendarDays, ArrowUpRight, Bookmark, Heart, LayoutDashboard, LogOut, Mail, Plus, UserRound, Users, Wrench,ClipboardList,HardHat,Handshake} from "lucide-react";
 import { type Listing } from "@/lib/listings";
 import { DisplayMoney } from "./DisplayCurrency";
 import {DiscoveryPanel} from "./DiscoveryPanel";
@@ -99,6 +100,9 @@ export function Dashboard() {
     { id: "hizmet", label: "Hizmet firmam", icon: Wrench },
     // Quote requests to service firms ("Teklif iste") are open to every member.
     { id: "teklifler", label: "Teklif taleplerim", icon: ClipboardList },
+    // Contractor firm (Müteahhitler) and land-for-flats requests, likewise open to every member.
+    { id: "muteahhit", label: "Müteahhit firmam", icon: HardHat },
+    { id: "kat-karsiligi", label: "Kat karşılığı taleplerim", icon: Handshake },
     ...(user.role==="agent"?[{id:"firma",label:"Firma bilgilerim",icon:LayoutDashboard}]:[]),
   ];
 
@@ -133,7 +137,7 @@ export function Dashboard() {
 
         </>}
         {tab === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <><EmailPreferences/><DiscoveryPanel/></>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}{tab==="talepler"&&<LeadsPanel/>}{tab==="siparisler"&&<MyOrders/>}{tab==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{tab==="hizmet"&&<ServiceFirmPanel/>}{tab==="teklifler"&&<ServiceQuotesPanel/>}
+        {tab === "bildirimlerim" && <MyReports/>}{tab === "bildirimler" && <><EmailPreferences/><DiscoveryPanel/></>}{tab==="randevular"&&<AppointmentsPanel userId={user.id}/>}{tab==="talepler"&&<LeadsPanel/>}{tab==="siparisler"&&<MyOrders/>}{tab==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{tab==="hizmet"&&<ServiceFirmPanel/>}{tab==="teklifler"&&<ServiceQuotesPanel/>}{tab==="muteahhit"&&<ContractorPanel/>}{tab==="kat-karsiligi"&&<LandRequestsPanel/>}
         {tab === "ekip" && <CompanyTeam/>}
         {tab === "firma" && user.role==='agent' && <CompanyAccount/>}
         {tab === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : user.role === "individual" ? "Bireysel İlan Veren" : "Kullanıcı")}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/><SellerUpgrade user={user}/>{user.role==='agent'&&<OfficeVerification/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}

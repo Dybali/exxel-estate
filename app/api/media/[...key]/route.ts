@@ -4,6 +4,8 @@ import { projectMediaPublic } from "@/lib/projects";
 import { projectsDB } from "@/lib/projects-server";
 import { serviceMediaPublic } from "@/lib/services";
 import { servicesDB } from "@/lib/services-server";
+import { contractorMediaPublic } from "@/lib/contractors";
+import { contractorsDB } from "@/lib/contractors-server";
 import { VIDEO_MEDIA_KEY } from "@/lib/listing-video";
 import { videoMediaAccess, type VideoDatabase } from "@/lib/listing-video-store";
 import { videoFeatureEnabled, videoStorageFromEnv } from "@/lib/listing-video-server";
@@ -47,7 +49,9 @@ export async function GET(request:Request,{params}:{params:Promise<{key:string[]
   const project=row||profile?false:await projectMediaPublic(projectsDB(),key).catch(()=>false);
   // Logo, cover and work photos of approved service firms (lib/services.ts) as well.
   const service=row||profile||project?false:await serviceMediaPublic(servicesDB(),key).catch(()=>false);
-  const isPublic=row?.status==="published"||Boolean(profile)||project||service;
+  // Logo, cover and completed-project photos of approved contractors (lib/contractors.ts) as well.
+  const contractor=row||profile||project||service?false:await contractorMediaPublic(contractorsDB(),key).catch(()=>false);
+  const isPublic=row?.status==="published"||Boolean(profile)||project||service||contractor;
   if(!isPublic) {
     const user=await currentUser(request);
     const uploaderId=key.split("/")[1];

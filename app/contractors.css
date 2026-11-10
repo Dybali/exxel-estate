@@ -1,0 +1,66 @@
+/* Contractor sub-site (/muteahhitler). Builds on the service sub-site styles (app/services.css): the
+   same svc-* frame, service-* cards and --svc-* colours, plus what only contractors have. */
+.ctr-nav-list .svc-nav-item>a{display:flex;align-items:center;gap:6px;width:100%;min-height:52px;padding:6px 7px;border-bottom:3px solid transparent;color:#1f4245;font-size:12.5px;font-weight:700;line-height:1.25;text-decoration:none;transition:color .15s,border-color .15s,background .15s}
+.ctr-nav-list .svc-nav-item>a:hover,.ctr-nav-list .svc-nav-item>a:focus-visible{border-bottom-color:var(--svc-gold);color:var(--svc-petrol);background:#fbfdfc}
+.ctr-drawer-list{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+.ctr-drawer-list a{display:flex;align-items:center;gap:10px;padding:11px 4px;color:var(--svc-ink);font-weight:650;text-decoration:none;border-bottom:1px solid var(--svc-line)}
+
+.ctr-search{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;margin-top:22px;padding:10px;border-radius:14px;background:#fff;box-shadow:0 12px 30px #0b2f3026}
+.ctr-search label{display:flex;align-items:center;min-width:0}
+.ctr-search input,.ctr-search select{width:100%;min-width:0;min-height:46px;padding:0 12px;border:1px solid var(--svc-line);border-radius:10px;background:#fff;color:var(--svc-ink);font:inherit;font-size:14px}
+.ctr-search-text{position:relative}
+.ctr-search-text svg{position:absolute;inset-inline-start:12px;color:var(--svc-muted);pointer-events:none}
+.ctr-search-text input{padding-inline-start:38px}
+.ctr-search .btn{min-height:46px}
+.ctr-search-flags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 18px;padding:2px 4px;color:var(--svc-ink);font-size:13px}
+.ctr-search-flags label{gap:6px;cursor:pointer}
+.ctr-search-flags input{width:auto;min-height:0}
+.ctr-sort label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--svc-muted)}
+.ctr-sort select{min-height:38px;padding:0 10px;border:1px solid var(--svc-line);border-radius:8px;background:#fff;font:inherit;font-size:13px;color:var(--svc-ink)}
+.ctr-empty{display:grid;justify-items:center;gap:10px;padding:36px 20px;border:1px dashed var(--svc-line);border-radius:14px;background:#fff;color:var(--svc-muted);text-align:center}
+.ctr-split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ctr-split .service-cta{flex-direction:column;align-items:flex-start}
+.ctr-split .service-cta:last-child{background:linear-gradient(120deg,#24423f,#16302d)}
+
+.ctr-land-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;margin-inline-start:4px;padding:2px 8px;border-radius:999px;background:var(--svc-tint);color:var(--svc-petrol);font-size:11px;font-weight:750}
+.ctr-card-facts{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0;color:var(--svc-muted);font-size:12.5px}
+.ctr-card-facts span+span::before{content:"·";margin-inline-end:12px}
+
+.ctr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 18px}
+.ctr-facts div{padding:12px 14px;border:1px solid var(--svc-line);border-radius:12px;background:#fff}
+.ctr-facts dt{display:flex;align-items:center;gap:6px;color:var(--svc-muted);font-size:12px}
+.ctr-facts dd{margin:4px 0 0;color:var(--svc-ink);font-size:18px;font-weight:800}
+.ctr-listings,.ctr-projects,.ctr-offers{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.ctr-listings a{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px;border:1px solid var(--svc-line);border-radius:12px;background:#fff;color:var(--svc-ink);text-decoration:none}
+.ctr-listings img,.ctr-listing-placeholder{width:72px;height:54px;border-radius:8px;object-fit:cover;background:var(--svc-tint);display:grid;place-items:center;color:var(--svc-petrol)}
+.ctr-listings small{display:block;color:var(--svc-muted)}
+.ctr-project{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:14px;padding:12px;border:1px solid var(--svc-line);border-radius:14px;background:#fff}
+.ctr-project-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.ctr-project-photos a:first-child{grid-column:1/-1}
+.ctr-project-photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px}
+.ctr-project-body h3{margin:0 0 6px;font-size:16px}
+.ctr-project-body p{margin:6px 0 0}
+.ctr-project-meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--svc-muted);font-size:13px}
+.ctr-project-meta span{display:inline-flex;align-items:center;gap:4px}
+.ctr-project:not(:has(.ctr-project-photos)){grid-template-columns:1fr}
+
+.ctr-project-editor{display:grid;gap:12px}
+.ctr-project-form{display:grid;gap:10px;padding:12px;border:1px solid var(--svc-line);border-radius:12px;background:#fbfdfc}
+.ctr-project-form-head{display:flex;align-items:center;justify-content:space-between}
+.ctr-land-facts{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.ctr-land-facts span{padding:3px 9px;border-radius:999px;background:var(--svc-tint);color:var(--svc-petrol);font-size:12px;font-weight:700}
+.ctr-offer-form{display:grid;gap:10px}
+.ctr-offer-sent{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0;color:#1f6b45;font-size:13px}
+.ctr-offer{display:grid;gap:6px;padding:12px;border:1px solid var(--svc-line);border-radius:12px;background:#fff}
+.ctr-offer.state-accepted{border-color:#3d9a6a;box-shadow:inset 3px 0 0 #3d9a6a}
+.ctr-offer.state-declined{opacity:.7}
+.ctr-offer-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ctr-offer-terms{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0}
+
+@media (max-width:860px){
+  .ctr-search{grid-template-columns:1fr 1fr}
+  .ctr-search-text{grid-column:1/-1}
+  .ctr-search .btn{grid-column:1/-1}
+  .ctr-split{grid-template-columns:1fr}
+  .ctr-project{grid-template-columns:1fr}
+}
