@@ -15,12 +15,12 @@ export default async function ContractorsPage({ searchParams }: Props) {
     q: one(params.q).slice(0, 100), city: CITIES.includes(city) ? city : "", specialty: isSpecialty(specialty) ? specialty : "",
     verified: one(params.dogrulanmis) === "1", landDeals: one(params.kat) === "1", sort: ["featured", "newest", "az"].includes(sort) ? sort : "featured",
   };
-  const db = contractorsDB(), page = Number(one(params.sayfa)) || 1;
-  // A database problem leaves the page usable: empty results, zero figures.
+  const page = Number(one(params.sayfa)) || 1;
+  // A database problem (even a missing connection) leaves the page usable: empty results, zero figures.
   const empty: ContractorResults = { firms: [], total: 0, page: 1, pages: 1, perPage: CONTRACTOR_PER_PAGE };
   const [results, stats] = await Promise.all([
-    searchContractors(db, { ...filters, page }).catch(() => empty),
-    contractorStats(db).catch(() => ({ firms: 0, cities: 0, projects: 0 })),
+    Promise.resolve().then(() => searchContractors(contractorsDB(), { ...filters, page })).catch(() => empty),
+    Promise.resolve().then(() => contractorStats(contractorsDB())).catch(() => ({ firms: 0, cities: 0, projects: 0 })),
   ]);
   // Labelled sample firms (lib/contractor-samples.ts) appear while the directory has fewer than a page of real ones.
   const samples = results.total < CONTRACTOR_PER_PAGE ? matchSampleContractors(contractorSamples(), filters) : [];

@@ -24,7 +24,7 @@
 
 .ctr-land-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;margin-inline-start:4px;padding:2px 8px;border-radius:999px;background:var(--svc-tint);color:var(--svc-petrol);font-size:11px;font-weight:750}
 .ctr-card-facts{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0;color:var(--svc-muted);font-size:12.5px}
-.ctr-card-facts span+span::before{content:"·";margin-inline-end:12px}
+
 
 .ctr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 18px}
 .ctr-facts div{padding:12px 14px;border:1px solid var(--svc-line);border-radius:12px;background:#fff}
