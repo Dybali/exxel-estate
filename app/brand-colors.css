@@ -88,9 +88,24 @@
 .site-header .main-nav a.nav-services.nav-services:after{display:none}
 .site-header .main-nav a.nav-services.nav-services.active{box-shadow:inset 0 0 0 1px var(--brand-gold-dark)}
 @media(max-width:989px){.site-header .main-nav a.nav-services.nav-services{align-self:flex-start;margin-block:6px;padding:7px 14px!important}}
-/* Tight desktop widths: the pill drops its icon and some padding so the one-row menu still fits
-   (measured for all eight languages from 990 to 1600px). */
-@media(min-width:990px) and (max-width:1400px){
+/* "Müteahhitler" uses the same pill in brand green with a hard hat, so the two sub-sites stand out side by side. */
+.site-header .main-nav a.nav-services.nav-contractors{border-color:var(--brand-petrol,#0b5f63);background:#e2f1ee}
+.site-header .main-nav a.nav-services.nav-contractors svg{color:var(--brand-petrol,#0b5f63)!important}
+.site-header .main-nav a.nav-services.nav-contractors:hover{background:#c9e6e0;border-color:#08484b}
+.site-header .main-nav a.nav-services.nav-contractors.active{box-shadow:inset 0 0 0 1px #08484b}
+/* With two pills (Hizmetler, Müteahhitler) the one-row menu needs room: on desktop the logo leads home, so
+   "Ana Sayfa" goes, and "İlanlar" covers sale and rent in the other languages; up to 1720px "Şirketler"
+   (also in the footer) goes too. Measured for all eight languages from 990 to 1900px. */
+@media(min-width:990px){
+  .site-header .main-nav a[href="/"]{display:none!important}
+  html:not([lang=tr]) .site-header .main-nav a[href="/ilanlar?purpose=satilik"],html:not([lang=tr]) .site-header .main-nav a[href="/ilanlar?purpose=kiralik"]{display:none!important}
+}
+@media(min-width:990px) and (max-width:1720px){.site-header .main-nav a[href="/sirketler"]{display:none!important}}
+/* Narrowest desktop widths in the longer languages (French "Programmes neufs"): prices and blog are in the footer too. */
+@media(min-width:990px) and (max-width:1040px){html:not([lang=tr]) .site-header .main-nav a[href="/paketler"]{display:none!important}}
+@media(min-width:1401px) and (max-width:1440px){html:not([lang=tr]) .site-header .main-nav a[href^="/blog"]{display:none!important}}
+/* Tight desktop widths: the pills drop their icons and some padding. */
+@media(min-width:990px) and (max-width:1600px){
   .site-header .main-nav a.nav-services.nav-services{padding:4px 9px!important}
   .site-header .main-nav a.nav-services.nav-services svg{display:none}
 }
