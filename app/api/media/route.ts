@@ -6,9 +6,9 @@ import {validPhotoHash} from '@/lib/listing-risk';
 export async function POST(request:Request) {
   if(!sameOrigin(request)) return error("Geçersiz kaynak.",403);
   const user=await currentUser(request);
-  // Profile photos and service firm photos (Hesabım → Hizmet firmam) may come from any verified member.
+  // Profile photos, service firm and contractor photos (Hesabım → Hizmet / Müteahhit firmam) may come from any verified member.
   const purpose=new URL(request.url).searchParams.get("purpose");
-  if(!user || purpose!=="profile"&&purpose!=="service"&&!["agent","individual","admin"].includes(user.role)) return error("Fotoğraf yüklemek için ilan veren hesabı gerekir.",403);
+  if(!user || purpose!=="profile"&&purpose!=="service"&&purpose!=="contractor"&&!["agent","individual","admin"].includes(user.role)) return error("Fotoğraf yüklemek için ilan veren hesabı gerekir.",403);
   if(!externalR2Ready()) return error("Fotoğraf deposu yapılandırılmamış.",503);
   let form:FormData;try{form=await request.formData();}catch{return error("Geçersiz dosya.");}
   const part=form.get("file");

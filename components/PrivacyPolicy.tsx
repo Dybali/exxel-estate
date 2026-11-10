@@ -8,7 +8,7 @@ import {LegalClauses, LegalContactBox, LegalPage, LegalRights, LegalRomanList, P
 // docs/nl-search.md, docs/listing-videos.md, docs/services.md, docs/mittwald-migration.md. Formal numbered clauses
 // (1.1, 1.2…) in the order owners asked for (2026-11-09): introduction, data, use, sharing, transfers, cookies,
 // security, rights, questions. Update the date when the content changes.
-export const PRIVACY_UPDATED = '2026-11-09';
+export const PRIVACY_UPDATED = '2026-11-10';
 
 export function PrivacyPolicy(){
   const {t}=useLocale();
@@ -35,6 +35,8 @@ export function PrivacyPolicy(){
         <li><strong>{t('Kurumsal hesaplar')}:</strong> {t('emlak ofisi veya inşaat firması adı, iletişim bilgileri ve yetki ya da faaliyet belgeleri.')}</li>
         <li><strong>{t('Hizmet firmaları')}:</strong> {t('firma adı, telefon ve WhatsApp numarası, e-posta, web sitesi, fotoğraflar, hizmet bölgeleri ve isteğe bağlı olarak yüklenen belgeler.')}</li>
         <li><strong>{t('Teklif talepleri')}:</strong> {t('hizmet kategorisi, işin yapılacağı il ve ilçe, iş tanımı, zamanlama, adınız, e-posta adresiniz ve isteğe bağlı telefon numaranız; firmaların gönderdiği teklifler.')}</li>
+        <li><strong>{t('Müteahhit firmaları')}:</strong> {t('firma adı, telefon ve WhatsApp numarası, e-posta, web sitesi, kuruluş yılı, yetki belgesi numarası, çalışılan bölgeler, tamamlanan projeler ve fotoğrafları.')}</li>
+        <li><strong>{t('Kat karşılığı talepleri')}:</strong> {t('arsanın il ve ilçesi, alanı, imar durumu ve açıklaması, adınız, e-posta adresiniz ve isteğe bağlı telefon numaranız; müteahhitlerin gönderdiği teklifler. İletişim bilgileriniz yalnızca paylaşmayı seçtiğinizde veya bir teklifi kabul ettiğinizde ilgili müteahhide gösterilir.')}</li>
         <li><strong>{t('Geri bildirimler')}:</strong> {t('öneri metniniz, bulunduğunuz sayfa, dil, ekran ve tarayıcı türü ile isteğe bağlı olarak e-posta adresiniz; IP adresiniz bu kayıtta saklanmaz.')}</li>
         <li><strong>{t('Teknik veriler')}:</strong> {t('IP adresi, istek zamanı, tarayıcı bilgileri ve güvenlik kayıtları.')}</li>
       </ul></>,

@@ -42,6 +42,7 @@ import "./buttons.css";
 import "./listing-insights.css";
 import "./region-pages.css";
 import "./services.css";
+import "./contractors.css";
 import "./map-features.css";
 import "./ai-search.css";
 import "./feedback.css";
