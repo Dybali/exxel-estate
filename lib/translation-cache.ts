@@ -1,8 +1,8 @@
 import {ensureOps} from './operations';
 import {translationServicePause,pauseTranslationService} from './translation-service';
-import {translateDeepL,translationSegments,translationHash,TranslationError,type TranslationDocument,type TranslationLocale,type TranslationSettings} from './translation';
+import {translateDeepL,translationSegments,translationHash,TranslationError,type TranslationDocument,type ContentLocale,type TranslationSettings} from './translation';
 type Database={prepare(sql:string):{bind(...values:(string|number|null)[]):{all<T>():Promise<{results:T[]}>;first<T>():Promise<T|null>;run():Promise<unknown>}};batch(statements:unknown[]):Promise<unknown>};
-export async function readTranslations(database:Database,doc:TranslationDocument,locale:TranslationLocale){
+export async function readTranslations(database:Database,doc:TranslationDocument,locale:ContentLocale){
  const segments=await translationSegments(doc,locale);if(!segments.length)return {fields:{},complete:true,segments};
  await ensureOps(database as never);
  const keys=[...new Set(segments.map(s=>s.key))];const rows=await database.prepare(`SELECT key,translated_text FROM content_translations WHERE key IN (${keys.map(()=>'?').join(',')})`).bind(...keys).all<{key:string;translated_text:string}>();
@@ -14,7 +14,7 @@ export async function recordTranslationUsage(database:Database,characters:number
  await ensureOps(database as never);
  for(const key of ['day:'+stamp.slice(0,10),'month:'+stamp.slice(0,7)])await database.prepare('INSERT INTO translation_usage(key,characters) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET characters=translation_usage.characters+excluded.characters').bind(key,characters).run();
 }
-export async function prepareTranslations(database:Database,settings:TranslationSettings,doc:TranslationDocument,locale:TranslationLocale){
+export async function prepareTranslations(database:Database,settings:TranslationSettings,doc:TranslationDocument,locale:ContentLocale){
  if(!settings.DEEPL_API_KEY)throw new TranslationError('not_configured');
  let cached=await readTranslations(database,doc,locale);if(cached.complete)return {status:'cached',fields:cached.fields};
  const pause=await translationServicePause(database);if(pause)return {status:'pending',fields:cached.fields,reason:pause.reason,retryAt:pause.retryAt};

@@ -3,7 +3,7 @@ import {validatePanoramas} from './panoramas';
 export type DraftPayload = {fields:Record<string,string>;images:string[];amenities:string[]};
 export type DraftRecord = {payload:DraftPayload;version:number;updatedAt:string};
 // Values the form fills in by itself; a draft holding only these has nothing worth keeping.
-const DEFAULT_FIELDS=new Set(['submissionId','purpose','propertyType','currency','furnished']);
+const DEFAULT_FIELDS=new Set(['submissionId','purpose','propertyType','currency','furnished','language']);
 export function draftHasContent(payload?:Partial<DraftPayload>|null){
  if(!payload)return false;
  if(payload.images?.length||payload.amenities?.length)return true;
@@ -12,7 +12,7 @@ export function draftHasContent(payload?:Partial<DraftPayload>|null){
 type Value=string|number|null;
 export interface DraftDatabase {prepare(query:string):{bind(...values:Value[]):{first<T>():Promise<T|null>}}}
 export class DraftError extends Error {constructor(message:string,public status=400){super(message);}}
-const fieldNames=new Set(['submissionId','panoramas','eidsNumber','videoId','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale','landZoning','landBlock','landParcel','landSheet','landKaks','landGabari','landCredit','landDeed','landSwap','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','latitude','longitude','locationPrecision','grossArea','netArea','gardenArea','plotArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','fa','ru','nl'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
+const fieldNames=new Set(['submissionId','language','panoramas','eidsNumber','videoId','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale','landZoning','landBlock','landParcel','landSheet','landKaks','landGabari','landCredit','landDeed','landSwap','floorPlan','videoUrl','tourUrl','title','description','purpose','propertyType','price','currency','city','district','neighborhoodId','latitude','longitude','locationPrecision','grossArea','netArea','gardenArea','plotArea','rooms','bedrooms','bathrooms','buildingAge','floor','totalFloors','heating','furnished',...['de','fr','en','ar','fa','ru','nl'].flatMap(code=>[`title_${code}`,`description_${code}`])]);
 export function validateDraft(input:unknown,userId:string):DraftPayload {
  if(!input||typeof input!=="object"||Array.isArray(input))throw new DraftError('Taslak bilgileri geçersiz.');
  const data=input as Record<string,unknown>;

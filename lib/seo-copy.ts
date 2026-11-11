@@ -84,6 +84,16 @@ export const seoCopy: Record<string, Copy> = {
     ru: ["Недвижимость по провинциям Турции | estatemarket24", "Продажа и аренда недвижимости во всех 81 провинции Турции: выберите провинцию и посмотрите районы и диапазоны цен."],
     nl: ["Vastgoed per provincie in Turkije | estatemarket24", "Vastgoed te koop en te huur in alle 81 provincies van Turkije: kies een provincie en bekijk districten en prijsklassen."],
   },
+  "/yurtdisindan-ilan": {
+    tr: ["Yurt Dışından Türkiye'deki Mülkünüzü İlan Verin | estatemarket24", "Almanya'da veya başka bir ülkede mi yaşıyorsunuz? Türkiye'deki evinizi, arsanızı veya iş yerinizi kendi dilinizde ilan verin; ilanınız sekiz dilde alıcılara ulaşsın."],
+    de: ["Immobilie in der Türkei aus dem Ausland inserieren | estatemarket24", "Sie leben in Deutschland und besitzen eine Immobilie in der Türkei? Inserieren Sie Haus, Wohnung oder Grundstück in Ihrer Sprache; Ihre Anzeige erscheint in acht Sprachen."],
+    fr: ["Publier depuis l’étranger votre bien en Turquie | estatemarket24", "Vous vivez à l’étranger et possédez un bien en Turquie ? Publiez votre maison, appartement ou terrain dans votre langue ; l’annonce paraît en huit langues."],
+    en: ["Advertise Your Property in Türkiye from Abroad | estatemarket24", "Living abroad and own a home, land or commercial property in Türkiye? Write the listing in your own language; it reaches buyers in eight languages."],
+    ar: ["أعلن عن عقارك في تركيا من الخارج | estatemarket24", "هل تعيش خارج تركيا وتملك عقاراً فيها؟ أعلن عن منزلك أو أرضك أو محلك بلغتك، وسيصل إعلانك إلى المشترين بثماني لغات."],
+    fa: ["آگهی ملک خود در ترکیه را از خارج ثبت کنید | estatemarket24", "خارج از ترکیه زندگی می‌کنید و در ترکیه ملک دارید؟ آگهی خانه، زمین یا ملک تجاری خود را به زبان خودتان بنویسید تا به هشت زبان به خریداران برسد."],
+    ru: ["Разместите объявление о недвижимости в Турции из-за рубежа | estatemarket24", "Живёте за границей и владеете недвижимостью в Турции? Напишите объявление на своём языке — его увидят покупатели на восьми языках."],
+    nl: ["Adverteer uw vastgoed in Turkije vanuit het buitenland | estatemarket24", "Woont u in het buitenland en bezit u een woning, grond of bedrijfspand in Turkije? Schrijf de advertentie in uw eigen taal; ze bereikt kopers in acht talen."],
+  },
   "/blog": {
     tr: ["Blog ve Emlak Haberleri | estatemarket24", "Resmî kaynaklara dayanan emlak haberleri, piyasa verileri ve Türkiye'de ev alma rehberleri."],
     de: ["Blog und Immobiliennachrichten | estatemarket24", "Immobiliennachrichten aus offiziellen Quellen, Marktdaten und Ratgeber zum Hauskauf in der Türkei."],

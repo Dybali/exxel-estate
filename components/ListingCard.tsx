@@ -12,11 +12,13 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { favoriteIds, favoritesChanged } from "@/lib/favorites-client";
 import {useContentTranslation} from './ContentTranslation';
+import {listingLanguage} from '@/lib/listing-language';
 export function ListingCard({listing,priority=false}: {listing:Listing;priority?:boolean}) {
   const {locale,t}=useLocale();
   const money=useMoneyText();
-  const translated=useContentTranslation('listing',listing.id,{title:listing.title,description:listing.description});
-  const title=locale==="tr"?listing.title:listing.translations?.[locale]?.title||translated.fields.title||listing.title;
+  const source=listingLanguage(listing);
+  const translated=useContentTranslation('listing',listing.id,{title:listing.title,description:listing.description},source);
+  const title=locale===source?listing.title:(locale!=="tr"?listing.translations?.[locale]?.title:undefined)||translated.fields.title||listing.title;
   const [favorite,setFavorite]=useState(false);
   const [favoriteBusy,setFavoriteBusy]=useState(false),[favoriteError,setFavoriteError]=useState("");
   const [imageError,setImageError]=useState(false);

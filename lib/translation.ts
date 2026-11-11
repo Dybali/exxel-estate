@@ -1,11 +1,15 @@
 export const translationLocales=['de','fr','en','ar','fa','ru','nl'] as const;
 export type TranslationLocale=typeof translationLocales[number];
+// Listings may be written in another language (lib/listing-language.ts), so Turkish can be a target too.
+export const contentLocales=['tr',...translationLocales] as const;
+export type ContentLocale=typeof contentLocales[number];
+export const isContentLocale=(value:unknown):value is ContentLocale=>(contentLocales as readonly unknown[]).includes(value);
 export type TranslationDocument={kind:'listing'|'blog';id:string;fields:Record<string,string>};
 export type TranslationSettings={DEEPL_API_KEY?:string;DEEPL_DAILY_CHAR_LIMIT?:string;DEEPL_MONTHLY_CHAR_LIMIT?:string};
 export class TranslationError extends Error{constructor(public code:string,public status=503){super(code);}}
 export const translationTarget=(locale:TranslationLocale|'tr')=>({tr:'TR',de:'DE',fr:'FR',en:'EN-GB',ar:'AR',fa:'FA',ru:'RU',nl:'NL'}[locale]);
 export async function translationHash(text:string){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),b=>b.toString(16).padStart(2,'0')).join('');}
-export async function translationSegments(doc:TranslationDocument,locale:TranslationLocale){
+export async function translationSegments(doc:TranslationDocument,locale:ContentLocale){
  const entries=Object.entries(doc.fields).filter(([,value])=>value.trim());
  if(entries.length>45||entries.some(([field,text])=>field.length>90||text.length>6000)||entries.reduce((n,[,text])=>n+text.length,0)>30000)throw new TranslationError('too_large',400);
  return Promise.all(entries.map(async([field,text])=>({field,text,key:await translationHash('deepl:auto:realestate-v1:'+locale+':'+text)})));
