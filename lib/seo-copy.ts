@@ -74,6 +74,16 @@ export const seoCopy: Record<string, Copy> = {
     ru: ["Предложения «земля в обмен на квартиры» | estatemarket24", "Опишите участок один раз — проверенные застройщики региона пришлют предложения с вашей долей квартир и сроком сдачи."],
     nl: ["Aanbiedingen grond tegen appartementen | estatemarket24", "Beschrijf uw grond één keer; goedgekeurde aannemers in de regio sturen aanbiedingen met uw aandeel en de opleverdatum."],
   },
+  "/emlak": {
+    tr: ["İllere Göre Emlak İlanları | estatemarket24", "Türkiye'nin 81 ilinde satılık ve kiralık ev, villa, arsa ve iş yeri ilanları: il seçin, ilçeleri ve fiyat aralıklarını görün."],
+    de: ["Immobilien nach Provinz in der Türkei | estatemarket24", "Immobilien zum Kauf und zur Miete in allen 81 Provinzen der Türkei: Provinz wählen, Bezirke und Preisspannen ansehen."],
+    fr: ["Immobilier par province en Turquie | estatemarket24", "Biens à vendre et à louer dans les 81 provinces de Turquie : choisissez une province, consultez districts et fourchettes de prix."],
+    en: ["Property by Province in Türkiye | estatemarket24", "Homes, villas, land and commercial property for sale and rent in all 81 provinces of Türkiye: pick a province to see districts and price ranges."],
+    ar: ["العقارات حسب الولاية في تركيا | estatemarket24", "عقارات للبيع والإيجار في جميع ولايات تركيا الـ81: اختر ولاية لعرض المناطق ونطاقات الأسعار."],
+    fa: ["املاک بر اساس استان در ترکیه | estatemarket24", "املاک فروشی و اجاره‌ای در هر ۸۱ استان ترکیه: یک استان را انتخاب کنید و شهرستان‌ها و بازهٔ قیمت‌ها را ببینید."],
+    ru: ["Недвижимость по провинциям Турции | estatemarket24", "Продажа и аренда недвижимости во всех 81 провинции Турции: выберите провинцию и посмотрите районы и диапазоны цен."],
+    nl: ["Vastgoed per provincie in Turkije | estatemarket24", "Vastgoed te koop en te huur in alle 81 provincies van Turkije: kies een provincie en bekijk districten en prijsklassen."],
+  },
   "/blog": {
     tr: ["Blog ve Emlak Haberleri | estatemarket24", "Resmî kaynaklara dayanan emlak haberleri, piyasa verileri ve Türkiye'de ev alma rehberleri."],
     de: ["Blog und Immobiliennachrichten | estatemarket24", "Immobiliennachrichten aus offiziellen Quellen, Marktdaten und Ratgeber zum Hauskauf in der Türkei."],

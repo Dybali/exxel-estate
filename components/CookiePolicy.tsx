@@ -7,13 +7,14 @@ import {LegalContactBox, LegalPage} from './LegalPage';
 
 // Real cookies and browser storage of the site: lib/server.ts (excell_session), lib/google-auth.ts (exxel_google_flow),
 // lib/cookie-consent.ts (em24_consent, em24_viewer), lib/display-currency.ts (em24_currency, em24:currency),
-// lib/admin-totp.ts (em24_admin_2fa), components/GoogleAnalytics.tsx (_ga), lib/i18n.tsx (exxel_locale),
+// lib/admin-totp.ts (em24_admin_2fa), components/GoogleAnalytics.tsx (_ga), lib/i18n.tsx (exxel_locale, em24_locale),
 // lib/compare-client.ts, components/WhatsAppPrompt.tsx, components/NaturalSearch.tsx, components/AuthForm.tsx.
-export const COOKIES_UPDATED='2026-11-09';
+export const COOKIES_UPDATED='2026-11-11';
 const COOKIES:[name:string,purpose:string,expiry:string,category:string][]=[
   ['excell_session','Güvenli üye oturumu','30 gün','Zorunlu'],
   ['exxel_google_flow','Google giriş güvenliği','10 dakika','Zorunlu'],
   ['em24_consent','İzin ve tercih kaydı','180 gün','Zorunlu'],
+  ['em24_locale','Dil tercihi','1 yıl','Zorunlu'],
   ['em24_currency','Para birimi tercihi (fiyatların gösterileceği para birimi; tarayıcıda da saklanır).','1 yıl','Zorunlu'],
   ['em24_admin_2fa','Yönetici iki adımlı doğrulama onayı (yalnızca yöneticiler).','12 saat','Zorunlu'],
   ['em24_viewer','İlan görüntülemelerinin ölçülmesi.','30 gün','İstatistik'],

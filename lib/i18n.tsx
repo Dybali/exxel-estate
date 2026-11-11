@@ -1,26 +1,30 @@
 "use client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { isLocale, isRtl, locales, translate, type Locale } from "./i18n-dictionary";
+import { LOCALE_COOKIE, preferredLocale } from "./locale-negotiation";
 export { isLocale, isRtl, locales, translate, type Locale };
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
   locale: "tr", setLocale: () => {}, t: (key) => key,
 });
 
-// initialLocale comes from the server (?lang=xx) so crawlers receive the page in that language.
+// initialLocale comes from the server (?lang=xx, saved choice or browser language), so crawlers and
+// visitors receive the page in that language from the first byte.
 export function LocaleProvider({ children, initialLocale = "tr" }: { children: React.ReactNode; initialLocale?: Locale }) {
   const [locale, setLocale] = useState<Locale>(initialLocale);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("lang");
     const saved = window.localStorage.getItem("exxel_locale");
-    const browser = navigator.language.slice(0, 2).toLowerCase();
-    const selected = [requested, saved, browser].find(isLocale);
+    // Same order as the server (lib/locale-negotiation.ts), so this normally changes nothing.
+    const selected = [requested, saved].find(isLocale) || preferredLocale(navigator.languages?.length ? navigator.languages : [navigator.language]);
     if (selected) setLocale(selected);
   }, []);
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = isRtl(locale) ? "rtl" : "ltr";
     window.localStorage.setItem("exxel_locale", locale);
+    // The server reads this on the next visit and renders the page in the same language.
+    document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=31536000;samesite=lax${window.location.protocol === "https:" ? ";secure" : ""}`;
   }, [locale]);
   const choose = (next: Locale) => {
     const url = new URL(window.location.href);

@@ -47,6 +47,7 @@ import "./map-features.css";
 import "./ai-search.css";
 import "./feedback.css";
 import "./legal.css";
+import "./polish.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
 import {GoogleAnalytics} from "@/components/GoogleAnalytics";
 import {gaMeasurementId,googleSiteVerification} from "@/lib/analytics";

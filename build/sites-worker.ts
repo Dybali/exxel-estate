@@ -2,7 +2,7 @@ import {apiFailureResponse,failureLog} from '../lib/api-failures';
 import {recordOperation} from '../lib/operations';
 import handler from "vinext/server/fetch-handler";
 import { withResponseSecurity } from "../lib/response-security";
-import { isLocale } from "../lib/i18n-dictionary";
+import { negotiateLocale } from "../lib/locale-negotiation";
 import { LOCALE_HEADER, PATH_HEADER } from "../lib/request-headers";
 import { serviceDB } from "../lib/server";
 import { dailyJobs, healthJob, type JobSettings } from "../lib/scheduled-jobs";
@@ -11,7 +11,7 @@ import { dailyJobs, healthJob, type JobSettings } from "../lib/scheduled-jobs";
 function withRequestContext(request: Request) {
   const url = new URL(request.url), lang = url.searchParams.get("lang");
   const headers = new Headers(request.headers);
-  headers.set(LOCALE_HEADER, isLocale(lang) ? lang : "tr");
+  headers.set(LOCALE_HEADER, negotiateLocale(lang, request.headers.get("cookie"), request.headers.get("accept-language")));
   headers.set(PATH_HEADER, url.pathname);
   return new Request(request, { headers });
 }

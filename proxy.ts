@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isLocale } from "./lib/i18n-dictionary";
+import { negotiateLocale } from "./lib/locale-negotiation";
 import { LOCALE_HEADER, PATH_HEADER } from "./lib/request-headers";
 
-// Request context for the standard Next.js server (Mittwald container): pass ?lang and the path
+// Request context for the standard Next.js server (Mittwald container): pass the language and the path
 // to server components, replacing any client-supplied values, and add the basic security
 // headers. On Cloudflare build/sites-worker.ts does the same, so running both is harmless.
 export function proxy(request: NextRequest) {
   const lang = request.nextUrl.searchParams.get("lang");
   const headers = new Headers(request.headers);
-  headers.set(LOCALE_HEADER, isLocale(lang) ? lang : "tr");
+  // ?lang, the saved choice, then the browser's languages (lib/locale-negotiation.ts).
+  headers.set(LOCALE_HEADER, negotiateLocale(lang, request.headers.get("cookie"), request.headers.get("accept-language")));
   headers.set(PATH_HEADER, request.nextUrl.pathname);
   const response = NextResponse.next({ request: { headers } });
   response.headers.set("X-Content-Type-Options", "nosniff");

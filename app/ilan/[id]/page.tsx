@@ -57,10 +57,11 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   if(subtype&&subtypeValue)facts.splice(2,0,[subtype.label,<T key="subtype" id={subtypeValue}/>]);
   if(listing.propertyType==='arsa'){facts.splice(2,1,['m²',`${listing.grossArea} m²`]);for(const [label,value] of landFacts(listing.presentation?.land))facts.push([label,<T key={label} id={value}/>]);}
   else{if(listing.presentation?.plotArea!=null)facts.push(['Arsa alanı',`${listing.presentation.plotArea} m²`]);if(listing.presentation?.gardenArea!=null)facts.push(['Bahçe alanı',`${listing.presentation.gardenArea} m²`]);
-  if(listing.netArea)facts.push(['Net alan',`${listing.netArea} m²`]);if(listing.rooms)facts.push(['Oda düzeni',listing.rooms]);if(listing.bedrooms!=null)facts.push(['Yatak odası',listing.bedrooms]);if(listing.bathrooms!=null)facts.push(['Banyo',listing.bathrooms]);if(listing.buildingAge!=null)facts.push(['Bina yaşı',listing.buildingAge===0?<T key="new" id="Yeni"/>:listing.buildingAge]);if(listing.floor!=null)facts.push(['Bulunduğu kat',listing.floor]);if(listing.totalFloors!=null)facts.push(['Kat sayısı',listing.totalFloors]);if(listing.heating)facts.push(['Isıtma',<T key="heating" id={listing.heating}/>]);facts.push(['Eşyalı',<T key="furnished" id={listing.furnished==null?'Belirtilmemiş':listing.furnished?'Evet':'Hayır'}/>]);}
-  for(const [label,value] of detailFacts(listing.propertyType,listing.presentation?.details))facts.push([label,<T key={`detail-${label}`} id={value}/>]);
+  if(listing.netArea)facts.push(['Net alan',`${listing.netArea} m²`]);if(listing.rooms)facts.push(['Oda düzeni',listing.rooms]);if(listing.bedrooms!=null)facts.push(['Yatak odası',listing.bedrooms]);if(listing.bathrooms!=null)facts.push(['Banyo',listing.bathrooms]);if(listing.buildingAge!=null)facts.push(['Bina yaşı',listing.buildingAge===0?<T key="new" id="Yeni"/>:listing.buildingAge]);if(listing.floor!=null)facts.push(['Bulunduğu kat',listing.floor]);if(listing.totalFloors!=null)facts.push(['Kat sayısı',listing.totalFloors]);if(listing.heating)facts.push(['Isıtma',<T key="heating" id={listing.heating}/>]);if(listing.furnished!=null)facts.push(['Eşyalı',<T key="furnished" id={listing.furnished?'Evet':'Hayır'}/>]);}
+  // Only what the owner filled in is listed (land rows keep the customary "Belirtilmemiş").
+  for(const [label,value] of detailFacts(listing.propertyType,listing.presentation?.details))if(value!=='Belirtilmemiş')facts.push([label,<T key={`detail-${label}`} id={value}/>]);
   const foreignSale=foreignSaleOf(listing);
-  if(foreignSaleApplies(listing.purpose,listing.propertyType))facts.push([FOREIGN_SALE.label,<T key="foreign-sale" id={foreignSale||"Belirtilmemiş"}/>]);
+  if(foreignSale&&foreignSaleApplies(listing.purpose,listing.propertyType))facts.push([FOREIGN_SALE.label,<T key="foreign-sale" id={foreignSale}/>]);
   if(listing.source!=='demo')facts.push(['Kimden',<T key="from" id={listing.ownerRole==='agent'?'Emlak Ofisinden':'Sahibinden'}/>]);
   const authorityNumber=listing.source==='demo'?null:await listingAuthorityNumber(listing.id),eids=listing.presentation?.eidsNumber;
   // Uploaded video: shown only once processed (docs/listing-videos.md).
@@ -92,7 +93,9 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
     {map&&<section className="property-section"><h2><T id="Konum"/></h2><ExternalMap title={translate("{name} haritası",locale).replace("{name}",listing.district)} src={map}/><p className="property-map-note"><MapPin size={14}/><T id={listing.locationPrecision==="exact"?"Haritadaki nokta ilan sahibinin paylaştığı konumu gösterir.":"Haritadaki nokta yaklaşık konumu gösterir."}/></p></section>}
     {/* Neighbourhood block: pinned customer listings only, measured from the public point. */}
     {listing.source==="user"&&listing.latitude!=null&&listing.longitude!=null&&<NeighbourhoodInfo listingId={listing.id} point={[listing.latitude,listing.longitude]} approximate={listing.locationPrecision!=="exact"} initial={storedNearby(listing.presentation?.nearby,listing.latitude,listing.longitude)}/>}
-    </article><aside className="property-detail-aside"><ContactCard listing={listing}/></aside></div>
+    </article><aside className="property-detail-aside" id="ilan-iletisim"><ContactCard listing={listing}/></aside></div>
+    {/* Phones: price and a way to the contact card stay in reach while reading (app/polish.css). */}
+    <div className="property-mobile-bar"><span><strong><DisplayMoney value={listing.price} currency={listing.currency}/></strong>{pricePeriod(listing.purpose)&&<small> <T id={pricePeriod(listing.purpose)}/></small>}</span><a className="btn btn-primary" href="#ilan-iletisim"><T id="İletişime geç"/></a></div>
     <SimilarListings listings={similar} href={similarSearchHref(listing)}/>
     <div className="property-detail-back"><Link href="/ilanlar"><ArrowLeft size={16}/><T id="Tüm ilanlara dön"/></Link></div>
   </div></main>;

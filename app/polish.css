@@ -1,0 +1,67 @@
+/* Site polish (2026-11): rules that sit on top of every other stylesheet, so it is imported last
+   (app/layout.tsx). Each block names the page it tunes. */
+
+/* --- Floating launchers ------------------------------------------------------------------------
+   Desktop: the feedback launcher is a round icon that opens to its label on hover or focus, so it
+   covers little of the page. Phones: it is left out; "Öneri ve fikirleriniz" stays in the footer. */
+@media(min-width:701px){
+  .feedback-launcher{width:46px;min-width:46px;padding:0;justify-content:center;overflow:hidden}
+  .feedback-launcher span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .feedback-launcher:hover,.feedback-launcher:focus-visible{width:auto;padding:0 17px}
+  .feedback-launcher:hover span,.feedback-launcher:focus-visible span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
+}
+@media(max-width:700px){.feedback-launcher{display:none!important}}
+
+/* --- Listing page (/ilan/{id}) -------------------------------------------------------------- */
+.property-gallery-swipe,.property-gallery-position,.property-mobile-bar{display:none}
+@media(max-width:700px){
+  /* One full-width photo at a time, swiped sideways. */
+  .property-gallery{display:block!important}
+  .property-gallery>.property-gallery-main,.property-gallery>.property-gallery-tile{display:none!important}
+  .property-gallery-swipe{display:flex;position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .property-gallery-swipe::-webkit-scrollbar{display:none}
+  .property-gallery-swipe button{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;padding:0;border:0;background:#e9eeec;cursor:zoom-in}
+  .property-gallery-swipe img{display:block;width:100%;height:100%;object-fit:cover}
+  .property-gallery-position{display:inline-flex;position:absolute;left:12px;bottom:12px;z-index:2;padding:6px 10px;border-radius:999px;background:#10242acc;color:#fff;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;pointer-events:none}
+  /* Price and contact stay in reach; the page ends above the bar. */
+  .property-mobile-bar{display:flex;position:fixed;inset:auto 0 0;z-index:79;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dfe6e3;box-shadow:0 -6px 20px #15454814}
+  .property-mobile-bar span{min-width:0;color:#15171c;line-height:1.2}
+  .property-mobile-bar strong{font-size:18px;font-weight:800;white-space:nowrap}
+  .property-mobile-bar small{font-size:12px;color:#5d6b66}
+  .property-mobile-bar .btn{flex:none;min-height:44px;padding:0 18px}
+  .property-detail-page{padding-bottom:84px}
+  .property-detail-aside{scroll-margin-top:12px}
+  body:has(.property-mobile-bar) .assistant-launcher{bottom:calc(76px + env(safe-area-inset-bottom))}
+  body:has(.property-mobile-bar) .compare-tray{bottom:calc(70px + env(safe-area-inset-bottom))}
+}
+
+/* --- Header on phones -----------------------------------------------------------------------
+   The full-width "İlan Ver" row stays on the home page; on every other page it is the first entry
+   of the menu, so listings and forms start higher. */
+@media(max-width:989px){
+  .site-header:not(.home-header) .compact-post-row{display:none!important}
+}
+
+/* --- Search page (/ilanlar) on phones: results start sooner ----------------------------------- */
+@media(max-width:700px){
+  .explore-top{padding:14px 0 12px!important}
+  .explore-top .eyebrow,.explore-top .container>p{display:none!important}
+  .explore-top h1{margin:0 0 10px!important;font-size:21px!important;line-height:1.2!important}
+  /* The toolbar below has the same "Filtreler" button with the active count. */
+  .explore-quick-search .explore-quick-filter{display:none!important}
+  .results-toolbar .eyebrow{display:none!important}
+  /* Currency is already in the bar above the header. */
+  .results-tools .results-currency{display:none!important}
+}
+
+/* --- Readability ---------------------------------------------------------------------------
+   Text that carries information (place, specs, unit price, dates, labels, hints) is at least 11–12px.
+   Decorative overlines, the brand tagline and the quiet source credits keep their size. */
+.listing-photo-meta>span,.listing-photo>.listing-badge,.editorial-card-meta>span,.editorial-card-bottom>time,.filter-field>span,
+.property-labels>span,.directory-company-name>small,.directory-company-about>.directory-about-label,.company-sample-tag,
+.developer-ad-top>.developer-ad-label,.nl-search-label>small,.category-search-footer>span,.locale-hint,.currency-switch-hint{font-size:11px!important}
+.listing-specs>span,.listing-info>.listing-place,.listing-info>.listing-unit-price,.listing-unit-price>bdi,.property-main-price>span,
+.property-seller-company>small,.market-section-head>.market-more,.market-hero-links>a{font-size:12px!important}
+
+/* --- Region index (/emlak): province chips without a count --------------------------------- */
+.region-chip.region-chip-plain{padding-inline:14px}
