@@ -15,15 +15,15 @@ export function AdminTranslationTrial() {
   const { t, locale } = useLocale();
   const usd = (value: number, digits = 2) => new Intl.NumberFormat(locale, { style: "currency", currency: "USD", maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);
   const number = (value: number) => new Intl.NumberFormat(locale).format(Math.round(value));
-  const [candidates, setCandidates] = useState<Candidate[] | null>(null), [configured, setConfigured] = useState(true);
+  const [candidates, setCandidates] = useState<Candidate[] | null>(null), [providers, setProviders] = useState<Record<string, boolean>>({ gemini: true, openai: true });
   const [model, setModel] = useState<TrialModel>("gemini-3.5-flash-lite"), [count, setCount] = useState(5);
   const [results, setResults] = useState<TrialResult[]>([]), [running, setRunning] = useState(false), [stop, setStop] = useState(false), [error, setError] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   useEffect(() => {
     fetch("/api/admin/translation-trial", { cache: "no-store" }).then(async (response) => {
-      const data = await apiJson<{ error?: string; listings: Candidate[]; configured: boolean }>(response);
+      const data = await apiJson<{ error?: string; listings: Candidate[]; providers: Record<string, boolean> }>(response);
       if (!response.ok) throw new Error(data.error || "İlanlar yüklenemedi.");
-      setCandidates(data.listings); setConfigured(data.configured);
+      setCandidates(data.listings); setProviders(data.providers);
     }).catch((cause) => setError((cause as Error).message));
   }, []);
   const stopRef = useRef(false);
@@ -41,11 +41,12 @@ export function AdminTranslationTrial() {
     }
     setRunning(false);
   }
+  const provider = TRIAL_MODELS[model].provider, configured = providers[provider] !== false;
   const estimate = results.length ? trialEstimate(results) : null;
   const warnings = results.reduce((sum, item) => sum + item.missing.length + Object.values(item.translations).reduce((n, tr) => n + (tr?.warnings.length || 0), 0), 0);
   return <section className="admin-translation-trial">
-    <div className="admin-section-title"><div><h2>{t("Çeviri testi")}</h2><p>{t("Son yayınlanan ilanları Gemini ile 7 dile çevirir, Gemini'nin bildirdiği gerçek token sayısıyla maliyeti hesaplar. Hiçbir şey kaydedilmez; her ilan bir sentin altında tutar.")}</p></div></div>
-    {!configured && <div className="admin-notice error" role="alert">{t("GEMINI_API_KEY ayarlı değil.")}</div>}
+    <div className="admin-section-title"><div><h2>{t("Çeviri testi")}</h2><p>{t("Son yayınlanan ilanları seçilen modelle 7 dile çevirir, modelin bildirdiği gerçek token sayısıyla maliyeti hesaplar. Hiçbir şey kaydedilmez; her ilan bir sentin altında tutar.")}</p></div></div>
+    {!configured && <div className="admin-notice error" role="alert">{t(provider === "openai" ? "OPENAI_API_KEY ayarlı değil." : "GEMINI_API_KEY ayarlı değil.")}</div>}
     <div className="admin-card admin-trial-controls">
       <label>{t("Model")}<select value={model} disabled={running} onChange={(event) => setModel(event.target.value as TrialModel)}>{Object.entries(TRIAL_MODELS).map(([id, item]) => <option key={id} value={id}>{item.label} · {usd(item.input)} / {usd(item.output)}</option>)}</select></label>
       <label>{t("İlan sayısı")}<select value={count} disabled={running} onChange={(event) => setCount(Number(event.target.value))}>{[1, 3, 5, 10].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>

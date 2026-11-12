@@ -1,14 +1,16 @@
 // Admin "Çeviri testi" (components/AdminTranslationTrial.tsx, /api/admin/translation-trial): translates a few
-// real published listings with a Gemini Flash-Lite model, reports the exact token usage Gemini returns and
-// extrapolates the cost of a large volume (2,1 billion translated characters) from it. Nothing is saved:
-// the result only helps decide whether to move listing translation from DeepL to Gemini.
+// real published listings with Gemini 3.5 Flash-Lite or OpenAI GPT-5 nano, reports the exact token usage the
+// provider returns and extrapolates the cost of a large volume (2,1 billion translated characters) from it.
+// Nothing is saved: the result only helps choose the translation model (owner's request 2026-11-12).
 // Pure helpers here (request, parsing, checks, prices); the network call takes `fetcher` for tests.
 import { LISTING_LANGUAGES, type ListingLanguage } from "./listing-language";
 
-/** Paid-tier prices in USD per 1M tokens (ai.google.dev pricing, checked 2026-11-12). Output includes thinking tokens. */
+/** Paid-tier prices in USD per 1M tokens (ai.google.dev and openai.com pricing, checked 2026-11-12). Thinking/reasoning tokens are billed as output. */
 export const TRIAL_MODELS = {
-  "gemini-3.5-flash-lite": { label: "Gemini 3.5 Flash-Lite", input: 0.30, output: 2.50 },
+  "gemini-3.5-flash-lite": { label: "Gemini 3.5 Flash-Lite", provider: "gemini", input: 0.30, output: 2.50 },
+  "gpt-5-nano": { label: "OpenAI GPT-5 nano", provider: "openai", input: 0.05, output: 0.40 },
 } as const;
+export const trialProvider = (model: TrialModel) => TRIAL_MODELS[model].provider;
 export type TrialModel = keyof typeof TRIAL_MODELS;
 export const isTrialModel = (value: unknown): value is TrialModel => typeof value === "string" && Object.hasOwn(TRIAL_MODELS, value);
 /** Batch mode costs half of the standard price. */
@@ -29,6 +31,21 @@ export function trialSchema(targets: ListingLanguage[]) {
   return { type: "OBJECT", properties: Object.fromEntries(targets.map((code) => [code, pair])), required: targets };
 }
 
+/** The same schema for OpenAI structured outputs (strict mode needs lowercase types and no extra properties). */
+export function openaiSchema(targets: ListingLanguage[]) {
+  const pair = { type: "object", properties: { title: { type: "string" }, description: { type: "string" } }, required: ["title", "description"], additionalProperties: false };
+  return { type: "object", properties: Object.fromEntries(targets.map((code) => [code, pair])), required: targets, additionalProperties: false };
+}
+/** Chat Completions body for GPT-5 nano: reasoning kept to the minimum (it is billed as output); no temperature (fixed for GPT-5). */
+export function openaiTrialRequest(model: TrialModel, source: ListingLanguage, listing: { title: string; description: string }) {
+  const targets = trialTargets(source);
+  return {
+    model, reasoning_effort: "minimal", max_completion_tokens: 32000,
+    messages: [{ role: "system", content: INSTRUCTION(source, targets) }, { role: "user", content: JSON.stringify({ title: listing.title, description: listing.description }) }],
+    response_format: { type: "json_schema", json_schema: { name: "listing_translations", strict: true, schema: openaiSchema(targets) } },
+  };
+}
+
 /** generateContent body: one request per listing, all target languages at once, thinking kept to the minimum. */
 export function trialRequest(model: TrialModel, source: ListingLanguage, listing: { title: string; description: string }) {
   const targets = trialTargets(source);
@@ -46,7 +63,7 @@ export type TrialResult = {
   id: string; source: ListingLanguage; title: string; description: string; model: TrialModel; ms: number;
   usage: TrialUsage; sourceChars: number; outputChars: number; cost: number;
   translations: Partial<Record<ListingLanguage, TrialTranslation>>; missing: ListingLanguage[];
-  /** Gemini finishReason; anything but STOP (e.g. MAX_TOKENS) means the answer was cut. */
+  /** Gemini finishReason / OpenAI finish_reason in upper case; anything but STOP (e.g. MAX_TOKENS, LENGTH) means the answer was cut. */
   finish: string;
 };
 
@@ -69,11 +86,26 @@ export function trialWarnings(source: { title: string; description: string }, tr
 
 export const trialCost = (model: TrialModel, usage: TrialUsage) => (usage.input * TRIAL_MODELS[model].input + (usage.output + usage.thinking) * TRIAL_MODELS[model].output) / 1_000_000;
 
+type OpenAiResponse = { choices?: { finish_reason?: string; message?: { content?: string | null; refusal?: string | null } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number; completion_tokens_details?: { reasoning_tokens?: number } } };
 type GenerateResponse = { candidates?: { finishReason?: string; content?: { parts?: { text?: string }[] } }[]; usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number } };
 export class TrialError extends Error { constructor(message: string, public status = 502) { super(message); } }
 
-export async function runTrial(apiKey: string, model: TrialModel, listing: { id: string; title: string; description: string; source: ListingLanguage }, fetcher: typeof fetch = fetch): Promise<TrialResult> {
-  const started = Date.now();
+/** One call to the model's provider: the answer text, token counts (output without thinking) and the finish reason. */
+async function callModel(apiKey: string, model: TrialModel, listing: { title: string; description: string; source: ListingLanguage }, fetcher: typeof fetch) {
+  if (trialProvider(model) === "openai") {
+    let response: Response;
+    try {
+      response = await fetcher("https://api.openai.com/v1/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` }, redirect: "manual", signal: AbortSignal.timeout(120_000),
+        body: JSON.stringify(openaiTrialRequest(model, listing.source, listing)),
+      });
+    } catch { throw new TrialError("OpenAI'ye ulaşılamadı veya süre doldu."); }
+    if (!response.ok) { await response.body?.cancel(); throw new TrialError(response.status === 429 ? "OpenAI kotası doldu (429). Biraz sonra tekrar deneyin." : `OpenAI hata verdi (${response.status}).`); }
+    const data = await response.json() as OpenAiResponse, choice = data.choices?.[0];
+    // completion_tokens includes the reasoning tokens; both are billed at the output price.
+    const thinking = Number(data.usage?.completion_tokens_details?.reasoning_tokens || 0);
+    return { text: choice?.message?.content || "", usage: { input: Number(data.usage?.prompt_tokens || 0), output: Math.max(0, Number(data.usage?.completion_tokens || 0) - thinking), thinking }, finish: String(choice?.finish_reason || "").toUpperCase() };
+  }
   let response: Response;
   try {
     response = await fetcher(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
@@ -85,8 +117,14 @@ export async function runTrial(apiKey: string, model: TrialModel, listing: { id:
   const data = await response.json() as GenerateResponse;
   const usage = { input: Number(data.usageMetadata?.promptTokenCount || 0), output: Number(data.usageMetadata?.candidatesTokenCount || 0), thinking: Number(data.usageMetadata?.thoughtsTokenCount || 0) };
   const candidate = data.candidates?.[0];
+  return { text: (candidate?.content?.parts || []).map((part) => part.text || "").join(""), usage, finish: String(candidate?.finishReason || "") };
+}
+
+export async function runTrial(apiKey: string, model: TrialModel, listing: { id: string; title: string; description: string; source: ListingLanguage }, fetcher: typeof fetch = fetch): Promise<TrialResult> {
+  const started = Date.now();
+  const { text, usage, finish } = await callModel(apiKey, model, listing, fetcher);
   let parsed: Record<string, { title?: unknown; description?: unknown }> = {};
-  try { parsed = JSON.parse((candidate?.content?.parts || []).map((part) => part.text || "").join("")); } catch { parsed = {}; }
+  try { parsed = JSON.parse(text); } catch { parsed = {}; }
   const translations: TrialResult["translations"] = {}, missing: ListingLanguage[] = [];
   let outputChars = 0;
   for (const code of trialTargets(listing.source)) {
@@ -98,7 +136,7 @@ export async function runTrial(apiKey: string, model: TrialModel, listing: { id:
   }
   return {
     id: listing.id, source: listing.source, title: listing.title, description: listing.description, model, ms: Date.now() - started,
-    usage, sourceChars: chars(listing.title) + chars(listing.description), outputChars, cost: trialCost(model, usage), translations, missing, finish: String(candidate?.finishReason || ""),
+    usage, sourceChars: chars(listing.title) + chars(listing.description), outputChars, cost: trialCost(model, usage), translations, missing, finish,
   };
 }
 
