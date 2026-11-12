@@ -1,5 +1,5 @@
 // Admin "Çeviri testi" (components/AdminTranslationTrial.tsx, /api/admin/translation-trial): translates a few
-// real published listings with Gemini 3.5 Flash-Lite or OpenAI GPT-5 nano, reports the exact token usage the
+// real published listings with Gemini 3.5 Flash-Lite or OpenAI GPT-6 Luna, reports the exact token usage the
 // provider returns and extrapolates the cost of a large volume (2,1 billion translated characters) from it.
 // Nothing is saved: the result only helps choose the translation model (owner's request 2026-11-12).
 // Pure helpers here (request, parsing, checks, prices); the network call takes `fetcher` for tests.
@@ -8,7 +8,7 @@ import { LISTING_LANGUAGES, type ListingLanguage } from "./listing-language";
 /** Paid-tier prices in USD per 1M tokens (ai.google.dev and openai.com pricing, checked 2026-11-12). Thinking/reasoning tokens are billed as output. */
 export const TRIAL_MODELS = {
   "gemini-3.5-flash-lite": { label: "Gemini 3.5 Flash-Lite", provider: "gemini", input: 0.30, output: 2.50 },
-  "gpt-5-nano": { label: "OpenAI GPT-5 nano", provider: "openai", input: 0.05, output: 0.40 },
+  "gpt-6-luna": { label: "OpenAI GPT-6 Luna", provider: "openai", input: 0.10, output: 0.50 },
 } as const;
 export const trialProvider = (model: TrialModel) => TRIAL_MODELS[model].provider;
 export type TrialModel = keyof typeof TRIAL_MODELS;
@@ -36,11 +36,11 @@ export function openaiSchema(targets: ListingLanguage[]) {
   const pair = { type: "object", properties: { title: { type: "string" }, description: { type: "string" } }, required: ["title", "description"], additionalProperties: false };
   return { type: "object", properties: Object.fromEntries(targets.map((code) => [code, pair])), required: targets, additionalProperties: false };
 }
-/** Chat Completions body for GPT-5 nano: reasoning kept to the minimum (it is billed as output); no temperature (fixed for GPT-5). */
+/** Chat Completions body for GPT-6 Luna: reasoning off (it would be billed as output); no temperature (fixed for GPT reasoning models). */
 export function openaiTrialRequest(model: TrialModel, source: ListingLanguage, listing: { title: string; description: string }) {
   const targets = trialTargets(source);
   return {
-    model, reasoning_effort: "minimal", max_completion_tokens: 32000,
+    model, reasoning_effort: "none", max_completion_tokens: 32000,
     messages: [{ role: "system", content: INSTRUCTION(source, targets) }, { role: "user", content: JSON.stringify({ title: listing.title, description: listing.description }) }],
     response_format: { type: "json_schema", json_schema: { name: "listing_translations", strict: true, schema: openaiSchema(targets) } },
   };

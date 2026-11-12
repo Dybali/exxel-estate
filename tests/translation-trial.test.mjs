@@ -54,17 +54,17 @@ test('estimate: measured cost per translated character scaled to 2,1 billion, ba
  assert.ok(estimate.standard>1700&&estimate.standard<1800,String(estimate.standard));
 });
 
-test('OpenAI GPT-5 nano: strict JSON schema, minimal reasoning, reasoning tokens billed as output',async()=>{
- const body=T.openaiTrialRequest('gpt-5-nano','tr',listing);
- assert.equal(body.model,'gpt-5-nano');assert.equal(body.reasoning_effort,'minimal');assert.equal(body.temperature,undefined,'GPT-5 has a fixed temperature');
+test('OpenAI GPT-6 Luna: strict JSON schema, reasoning off, reasoning tokens billed as output',async()=>{
+ const body=T.openaiTrialRequest('gpt-6-luna','tr',listing);
+ assert.equal(body.model,'gpt-6-luna');assert.equal(body.reasoning_effort,'none');assert.equal(body.temperature,undefined,'fixed temperature');
  assert.equal(body.response_format.json_schema.strict,true);assert.equal(body.response_format.json_schema.schema.additionalProperties,false);
  assert.deepEqual(body.response_format.json_schema.schema.required,['de','fr','en','ar','fa','ru','nl']);
  assert.deepEqual(JSON.parse(body.messages[1].content),{title:listing.title,description:listing.description});
  let seen;const answer=Object.fromEntries(T.trialTargets('tr').map(code=>[code,{title:code+' '+listing.title,description:code+' '+listing.description}]));
  const fetcher=async(url,init)=>{seen={url,init};return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer)}}],usage:{prompt_tokens:400,completion_tokens:1300,completion_tokens_details:{reasoning_tokens:100}}});};
- const result=await T.runTrial('sk-fixture','gpt-5-nano',listing,fetcher);
+ const result=await T.runTrial('sk-fixture','gpt-6-luna',listing,fetcher);
  assert.equal(seen.url,'https://api.openai.com/v1/chat/completions');assert.equal(seen.init.headers.Authorization,'Bearer sk-fixture');
  assert.deepEqual(result.usage,{input:400,output:1200,thinking:100});assert.equal(result.finish,'STOP');assert.deepEqual(result.missing,[]);
- assert.ok(Math.abs(result.cost-(400*0.05+1300*0.40)/1e6)<1e-12);
- await assert.rejects(T.runTrial('sk-fixture','gpt-5-nano',listing,async()=>new Response('x',{status:429})),e=>e instanceof T.TrialError&&/OpenAI/.test(e.message)&&!/sk-/.test(e.message));
+ assert.ok(Math.abs(result.cost-(400*0.10+1300*0.50)/1e6)<1e-12);
+ await assert.rejects(T.runTrial('sk-fixture','gpt-6-luna',listing,async()=>new Response('x',{status:429})),e=>e instanceof T.TrialError&&/OpenAI/.test(e.message)&&!/sk-/.test(e.message));
 });
