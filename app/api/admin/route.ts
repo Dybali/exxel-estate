@@ -1,6 +1,7 @@
 import {listingExpired} from '@/lib/listing-policy';
 import {officeDB} from '@/lib/office-verification-server';
 import {reportsDB} from '@/lib/reports-server';
+import {queueListingTranslation} from '@/lib/translation-runtime';
 import {clearRiskFlag,type RiskDatabase} from '@/lib/listing-risk-server';
 import {adminRiskView} from '@/lib/listing-risk';
 import { body, currentUser, db, error, isAdmin, now, ok, parseListing, sameOrigin, str } from "@/lib/server";
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
     await db().batch([db().prepare("UPDATE listings SET status=?,review_note=?,reviewed_by=?,reviewed_at=?,updated_at=?,published_at=CASE WHEN ?='published' THEN COALESCE(published_at,?) ELSE published_at END WHERE id=?")
       .bind(status, status === "pending" ? null : note || null, user!.id, now(), now(),status,now(), id),audit("listing",id,status+(note?" · "+note:"")),...(status==="published"?[db().prepare("UPDATE listing_moderation_holds SET active=0,released_at=? WHERE listing_id=?").bind(now(),id)]:[])]);
     // Publishing after review also answers an open fraud/duplicate flag (already audited above as "listing").
+    if(status==='published')await queueListingTranslation(id);
     if(status==='published'){try{await clearRiskFlag(db() as unknown as RiskDatabase,id,{id:user!.id,name:user!.name},{audit:false});}catch{}}
     return ok({ success: true, status });
   }

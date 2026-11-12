@@ -1,6 +1,7 @@
 import {body,currentUser,error,isAdmin,now,ok,sameOrigin,str} from '@/lib/server';
 import {officeDB} from '@/lib/office-verification-server';
 import {reportsDB} from '@/lib/reports-server';
+import {queueListingTranslation} from '@/lib/translation-runtime';
 import {OFFICE_PUBLIC_FIELDS,type OfficeVerification} from '@/lib/office-verification';
 export async function GET(request:Request){
  const user=await currentUser(request);if(!user?.email_verified||!isAdmin(user))return error('Yönetici yetkisi gerekli.',403);
@@ -34,5 +35,6 @@ export async function POST(request:Request){
  ]);
  const saved=await database.prepare('SELECT last_action FROM office_verifications WHERE user_id=?').bind(id).first<{last_action:string}>();
  if(saved?.last_action!==action)return error('Belge başka bir yönetici tarafından incelendi.',409);
+ for(const listing of pending.results)await queueListingTranslation(listing.id);
  return ok({success:true,state},{headers:{'Cache-Control':'private, no-store'}});
 }

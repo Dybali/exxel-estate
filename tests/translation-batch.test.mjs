@@ -76,3 +76,26 @@ test('response helpers read every documented location',()=>{
  for(const data of [{response:{inlinedResponses:{inlinedResponses:r}}},{response:{inlinedResponses:r}},{dest:{inlinedResponses:r}},{metadata:{output:{inlinedResponses:{inlinedResponses:r}}}}])assert.deepEqual(B.batchResponses(data),r);
  assert.deepEqual(B.batchResponses({}),[]);
 });
+
+test('without billing: the queue waits for one nightly attempt, then a few listings an hour are translated directly; billing brings the batch back',async()=>{
+ const db=database(),d=doc('a','Villa A'),done=[];
+ const translate=async(item,locale)=>{done.push(item.id+':'+locale);return 'done';};
+ const night=new Date('2026-11-13T06:00:00Z'),hour=new Date('2026-11-13T07:00:00Z');
+ assert.equal((await B.translateQueueDirectly(db,settings,source({a:d}),translate,hour)).status,'batch','nothing direct while the batch works');
+ for(const id of ['a','b','w','gone'])await B.queueBatchTranslation(db,id,new Date('2026-11-12T20:00:00Z'));
+ const refused=async()=>Response.json({error:{code:400,status:'FAILED_PRECONDITION'}},{status:400});
+ assert.equal((await B.submitTranslationBatch(db,settings,source({a:d,b:doc('b','Villa B'),w:'waiting'}),refused,night)).status,'billing_required');
+ assert.equal((await B.batchMode(db)).mode,'direct');
+ await B.queueBatchTranslation(db,'late',new Date('2026-11-13T06:30:00Z'));
+ const result=await B.translateQueueDirectly(db,settings,source({a:d,b:doc('b','Villa B'),w:'waiting',late:doc('late','Villa C')}),translate,hour);
+ assert.deepEqual(result,{status:'done',listings:2});
+ assert.deepEqual(done,['a:en','a:de','b:en','b:de']);
+ assert.deepEqual(db.sql.prepare('SELECT listing_id FROM translation_batch_queue ORDER BY listing_id').all().map(r=>r.listing_id),['late','w'],'newer listings wait for the next nightly attempt');
+ // A cap or a provider error stops the run and keeps the listing queued.
+ const stopped=database();await B.queueBatchTranslation(stopped,'a',new Date('2026-11-12T20:00:00Z'));await B.submitTranslationBatch(stopped,settings,source({a:d}),refused,night);
+ assert.deepEqual(await B.translateQueueDirectly(stopped,settings,source({a:d}),async()=>'stop',hour),{status:'stopped',listings:0});
+ assert.equal(stopped.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,1);
+ // Billing enabled: the next night's job is accepted and the hourly direct translation stops.
+ assert.equal((await B.submitTranslationBatch(db,settings,source({late:doc('late','Villa C'),w:'waiting'}),async()=>Response.json({name:'batches/ok'}),new Date('2026-11-14T06:00:00Z'))).status,'submitted');
+ assert.equal((await B.batchMode(db)).mode,'batch');
+});

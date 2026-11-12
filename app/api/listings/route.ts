@@ -26,7 +26,7 @@ import { findNeighborhood } from "@/lib/turkey-neighborhoods";
 import { externalR2BucketName, headExternalImage } from "@/lib/external-r2";
 import { bboxSql, inBbox, parseBbox, parseLocationInput, resolveLocation } from "@/lib/listing-location";
 import { scheduleListingNearby } from "@/lib/neighborhood-info-server";
-import { queueImportedListing } from "@/lib/translation-runtime";
+import { queueListingTranslation } from "@/lib/translation-runtime";
 
 export async function GET(request:Request) {
   const q=new URL(request.url).searchParams;
@@ -189,6 +189,7 @@ export async function POST(request:Request) {
   if(!saved)return error('Ekip üyeliğiniz değişti. Sayfayı yenileyin.',409);
   if(pin?.latitude!=null)scheduleListingNearby(id);
   // XML imports are translated into every language overnight at the batch price (lib/translation-batch.ts).
-  if(data.importSource==='xml')await queueImportedListing(id);
+  // Every new listing is translated into all languages once it is published (nightly batch, docs/translations.md).
+  await queueListingTranslation(id);
   return ok({id,status:saved?.status||'pending'},{status:201});
 }

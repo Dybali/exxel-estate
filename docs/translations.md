@@ -9,23 +9,24 @@
 - Harcama sınırları (çevrilen kaynak karakter, UTC gün/ay): `TRANSLATION_DAILY_CHAR_LIMIT` (varsayılan 2.000.000 ≈ 2 $/gün), `TRANSLATION_MONTHLY_CHAR_LIMIT` (varsayılan 30.000.000 ≈ 30 $/ay). Sınır aşılınca yeni çeviri yapılmaz, ziyaretçi asıl metni görür; ertesi gün/ay kendiliğinden devam eder. Ayrıca Google Cloud Console › Billing › Budgets'tan bütçe uyarısı kurulması önerilir.
 - `DEEPL_API_KEY` artık kullanılmıyor; ortamdan silinebilir.
 
-## Ne zaman çevrilir (en az maliyet)
+## Ne zaman çevrilir
 
-- **Yalnızca istendiğinde:** İlan yayınlandığında veya düzenlendiğinde hiçbir dile çevrilmez. Bir ziyaretçi ilanı bir dilde ilk kez açtığında tarayıcı `POST /api/translations` ile o dili ister; çeviri bir kez yapılır ve saklanır. Hiç açılmayan ilan/dil için ödeme yapılmaz. Yönetici, Yönetim › Çeviriler'den önceden de hazırlayabilir.
+- **İlanlar bir kez, bütün dillere (sahibinin kararı, 2026-11-12):** yeni, düzenlenen ve onaylanan her ilan sıraya girer ve yayındaysa o gece toplu modda (yarı fiyat) bütün dillere çevrilir (aşağıda). Amaç: arama motorları yabancı dildeki sayfaları hazır metinle görsün, ziyaretçi beklemesin, çeviri masrafı ziyaretçiye/bota bağlı olmasın. İlan başına ≈ 0,7 cent (toplu) / 1,4 cent (normal).
+- **Yedek, istendiğinde:** gece işinden önce bir ziyaretçi ilanı başka bir dilde açarsa tarayıcı `POST /api/translations` ile o dili ister; çeviri bir kez yapılır ve saklanır. Blog metinleri ve mesajlar yalnızca bu yolla çevrilir. Yönetici, Yönetim › Çeviriler'den elle de hazırlayabilir.
 - **Bir istek, bir dil, ilanın bütün alanları:** eksik alanlar tek Gemini isteğinde çevrilir; model "düşünme" kapalı (`thinkingLevel: minimal`), çünkü düşünme token'ları da ücretlidir.
 - **Önbellek:** her alan, hedef dil + metnin özetine göre `content_translations` tablosunda saklanır. Düzenlemede yalnızca değişen alan yeniden çevrilir. Anahtar öneki (`deepl:auto:realestate-v1:`) tarihseldir; DeepL döneminin çevirileri bu sayede geçerli kaldı.
 - **Elle girilen çeviriler** her zaman önceliklidir ve üzerine yazılmaz. İlanın kendi dili (`presentation.language`) hiçbir zaman çevrilmez.
 - **Kilit:** aynı ilan/dil için eş zamanlı iki istek tek çeviri yapar (`translation_leases`).
-- **XML ile aktarılan ilanlar gece toplu modda (Batch, yarı fiyat) bütün dillere çevrilir:** aşağıya bakın. Diğer ilanlar yalnızca istenince çevrilir.
 
-## XML aktarımları: gece toplu çeviri
+## İlanlar: gece toplu çeviri
 
-`lib/translation-batch.ts`. XML ile aktarılan ilan (`components/ListingImport.tsx` `importSource: "xml"` gönderir) `translation_batch_queue` sırasına girer. Günlük görev (`/api/cron/daily`) sıradaki en fazla 300 ilanın eksik bütün dil çevirilerini tek bir Gemini Batch işi olarak gönderir (`batchGenerateContent`, satır içi istekler, normal fiyatın %50'si). Saatlik görev (`/api/cron/health`) biten işleri toplar ve çevirileri normal önbelleğe (`content_translations`) yazar; Google bir işi en geç 24 saatte bitirir. İş bitene kadar ilanlar istenince çevrilir; zaten çevrilmiş diller işe konmaz.
+`lib/translation-batch.ts`. İlan verilince (`POST /api/listings`, XML aktarımı dahil), düzenlenince (`PATCH /api/listings/[id]`) ve yönetici onaylayınca (ilan onayı, ofis belgesi onayı) `translation_batch_queue` sırasına girer (`queueListingTranslation`). Günlük görev (`/api/cron/daily`) sıradaki en fazla 300 ilanın eksik bütün dil çevirilerini tek bir Gemini Batch işi olarak gönderir (`batchGenerateContent`, satır içi istekler, normal fiyatın %50'si). Saatlik görev (`/api/cron/health`) biten işleri toplar ve çevirileri normal önbelleğe (`content_translations`) yazar; Google bir işi en geç 24 saatte bitirir. İş bitene kadar ilanlar istenince çevrilir; zaten çevrilmiş diller işe konmaz.
 
 - Aynı anda tek iş çalışır; işler `translation_batch_jobs` tablosunda izlenir. Başarısız/süresi dolan işin ilanları sıraya geri döner.
 - İncelemedeki (`pending`) ilan yayına girene kadar en fazla 7 gün sırada bekler; reddedilen/silinen ilan sıradan çıkar.
 - Günlük/aylık karakter sınırları burada da geçerlidir; sınırdaki iş ertesi güne kalır.
-- **Batch API yalnızca faturalandırması açık (ücretli) projelerde çalışır.** Ücretsiz katman anahtarı `400 FAILED_PRECONDITION` döner; o zaman ilanlar sırada kalır ve istenince çevrilir.
+- Düzenlenen ilanda yalnızca değişen alanlar çevrilir; diğerleri önbellekte olduğu için işe konmaz.
+- **Batch API yalnızca faturalandırması açık (ücretli) projelerde çalışır.** Ücretsiz katman anahtarı `400 FAILED_PRECONDITION` döner. O zaman `translation_batch_mode` "direct" olur ve saatlik görev, o gece sırada olan ilanlardan saatte en fazla 6'sını normal fiyatla tek tek çevirir (`translateQueueDirectly`; ücretsiz katmanın istek sınırlarına göre). Sınır, bekleme veya hata çalışmayı durdurur, ilan sırada kalır. Gece işi her gece yeni ilanlarla Batch API'yi tekrar dener; faturalandırma açılınca kendiliğinden toplu moda (yarı fiyata) döner.
 
 ## Bot koruması
 
@@ -35,7 +36,7 @@
 2. Gerçek tarayıcı isteği: `Sec-Fetch-Site: same-origin`, `Sec-Fetch-Mode: cors` ve `Accept-Language` başlıkları (tarayıcılar `fetch()` ile hep gönderir, basit betikler göndermez).
 3. Ziyaretçi (IP özeti, `auth_limits`) başına saatte en fazla 20 yeni çeviri (`TRANSLATION_IP_LIMIT`). Gerçek bir ziyaretçi saatte 20 farklı ilanı yeni bir dilde açmaz.
 
-Bunların hepsini aşan bir saldırıda bile günlük/aylık karakter sınırı (yukarıda) harcamayı durdurur. Sonuç: Google ilanların yabancı dildeki sürümlerini, bir ziyaretçi o dili açıp çeviri kaydedildikten sonra görür; botlar çeviri masrafı oluşturamaz.
+Bunların hepsini aşan bir saldırıda bile günlük/aylık karakter sınırı (yukarıda) harcamayı durdurur. Sonuç: ilanlar zaten gece bütün dillere çevrildiği için Google yabancı dildeki sürümleri kayıtlı çeviriden görür; botlar yeni çeviri masrafı oluşturamaz.
 
 ## Mesajlar
 
@@ -47,4 +48,4 @@ Gemini 429 → kısa bekleme (`provider_busy`, 1 dk), 401/403 → `provider_auth
 
 ## Testler
 
-`tests/translation.test.mjs` (önbellek, kilit, sınırlar, Gemini isteği ve hata kodları), `tests/message-translations.test.mjs`, `tests/translation-trial.test.mjs`.
+`tests/translation.test.mjs` (önbellek, kilit, sınırlar, Gemini isteği ve hata kodları), `tests/translation-batch.test.mjs` (toplu iş, faturalandırma olmadan saatlik çeviri), `tests/message-translations.test.mjs`, `tests/translation-trial.test.mjs`.

@@ -108,7 +108,7 @@ function routeDeps(sql,user,scheduled){
   '@/lib/publication-policy':{AGENT_PLANS_ENABLED:false},
   '@/lib/listing-video-server':{videoFeatureEnabled:()=>false,removeVideoById:async()=>{}},
   '@/lib/listing-video-store':{videoAttachProblem:async()=>null,attachVideoStatement:()=>null},
-  '@/lib/translation-runtime':{scheduleListingTranslations:()=>{}},
+  '@/lib/translation-runtime':{queueListingTranslation:async()=>{}},
   '@/lib/neighborhood-info-server':{scheduleListingNearby:id=>scheduled.push(id)},
   '@/lib/external-r2':{externalR2BucketName:()=>'test-bucket',headExternalImage:async()=>({contentType:'image/jpeg',size:1,checksum:'x'}),deleteExternalImage:async()=>{}},
   '@/lib/reports-server':{reportsDB:async()=>{}},
