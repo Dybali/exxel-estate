@@ -3,7 +3,7 @@
 # (EXXEL_NODE_BUILD=1, output: "standalone"); the Cloudflare/vinext build is not involved.
 # Secrets are never baked in: every setting comes from container environment variables at runtime.
 
-FROM node:22.23.4-alpine3.23 AS build
+FROM node:22.23.5-alpine3.23 AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 SHARP_IGNORE_GLOBAL_LIBVIPS=1
 COPY package.json package-lock.json ./
@@ -14,7 +14,7 @@ RUN npm ci --workspaces=false --include=dev --include=optional --ignore-scripts 
 COPY . .
 RUN EXXEL_NODE_BUILD=1 npx next build
 
-FROM node:22.23.4-alpine3.23 AS runtime
+FROM node:22.23.5-alpine3.23 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 # ffmpeg/ffprobe for listing videos (lib/video-transcode.ts, docs/listing-videos.md).
