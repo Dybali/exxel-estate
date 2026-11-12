@@ -46,9 +46,12 @@ export function Header() {
   const loginHref = user ? "/hesabim" : `/giris?next=${encodeURIComponent(loginNext)}`;
   const links = [
     { href: "/", label: "Ana Sayfa", active: path === "/" },
-    { href: "/ilanlar?purpose=satilik", label: "Satılık", active: false },
-    { href: "/ilanlar?purpose=kiralik", label: "Kiralık", active: false },
-    { href: "/ilanlar", label: "İlanlar", active: path === "/ilanlar" },
+    // Satılık / Kiralık / İlanlar are left out on the home page, whose search box already covers them.
+    ...(isHome ? [] : [
+      { href: "/ilanlar?purpose=satilik", label: "Satılık", active: false },
+      { href: "/ilanlar?purpose=kiralik", label: "Kiralık", active: false },
+      { href: "/ilanlar", label: "İlanlar", active: path === "/ilanlar" },
+    ]),
     { href: "/projeler", label: "Projeler", active: path.startsWith("/projeler") },
     { href: "/sirketler", label: "Şirketler", active: path.startsWith("/sirketler") },
     { href: "/hizmetler", label: "Hizmetler", active: path.startsWith("/hizmetler"), className: "nav-services", icon: Wrench },
