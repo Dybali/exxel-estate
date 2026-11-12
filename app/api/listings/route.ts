@@ -10,7 +10,6 @@ import {attachVideoStatement,videoAttachProblem,type VideoDatabase} from "@/lib/
 import {videoFeatureEnabled} from "@/lib/listing-video-server";
 import {publicListing} from '@/lib/listings';
 import {officeDB,officePublicationAllowed} from '@/lib/office-verification-server';
-import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {assessListingSave,type RiskDatabase} from "@/lib/listing-risk-server";
 import {RISK_REVIEW_NOTE} from "@/lib/listing-risk";
@@ -187,7 +186,6 @@ export async function POST(request:Request) {
   try{await db().batch(statements);}catch(cause){if(ticket){try{const existing=await submittedListing(db(),ticket);if(existing)return ok(existing,{headers:{'Cache-Control':'private, no-store'}});}catch(replayError){if(replayError instanceof SubmissionError)return error(replayError.message,replayError.status);throw replayError;}}if(String((cause as Error).message).includes('individual_listing_quota'))return error('Bireysel üyeler 45 günde bir ilan verebilir. Sonraki ilan hakkınızı hesabınızdan kontrol edebilirsiniz.',429);if(agentGuard&&String((cause as Error).message).includes('foreign key'))return error('Paket hakkınız değişti. Sayfayı yenileyip tekrar deneyin.',409);throw cause;}
   const saved=await db().prepare('SELECT status FROM listings WHERE id=?').bind(id).first<{status:string}>();
   if(!saved)return error('Ekip üyeliğiniz değişti. Sayfayı yenileyin.',409);
-  if(saved?.status==='published')scheduleListingTranslations(id);
   if(pin?.latitude!=null)scheduleListingNearby(id);
   return ok({id,status:saved?.status||'pending'},{status:201});
 }

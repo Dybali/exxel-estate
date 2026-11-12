@@ -6,7 +6,7 @@ import {listingLanguage} from '@/lib/listing-language';
 
 export function PropertyText({ listing, field }: { listing: Listing; field: "title" | "description" }) {
   const { locale } = useLocale();
-  // Readers in the listing's own language see the original; others the owner's translation, else DeepL's.
+  // Readers in the listing's own language see the original; others the owner's translation, else the machine (Gemini) translation.
   const source=listingLanguage(listing);
   const translated=useContentTranslation('listing',listing.id,{title:listing.title,description:listing.description},source);
   const manual=locale!==source&&locale!=='tr'?listing.translations?.[locale]?.[field]:undefined;

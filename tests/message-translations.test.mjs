@@ -10,7 +10,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),nativ
 function load(file){const full=path.resolve(root,file),module={exports:{}};const code=ts.transpile(readFileSync(full,'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true});new Function('require','module','exports',code)(name=>name.startsWith('.')?load(path.resolve(path.dirname(full),name)+'.ts'):nativeRequire(name),module,module.exports);return module.exports;}
 const {translateMessages,alreadyInLocale,MessageTranslationError}=load('lib/message-translations.ts');
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
-const buyer=id(1),owner=id(2),stranger=id(3),settings={DEEPL_API_KEY:'fixture:fx'};
+const buyer=id(1),owner=id(2),stranger=id(3),settings={GEMINI_API_KEY:'fixture-key'};
 function adapter(sql){return {sql,prepare(query){return {values:[],bind(...values){this.values=values;return this;},async first(){return sql.prepare(query).get(...this.values)||null;},async all(){return {results:sql.prepare(query).all(...this.values)};},async run(){return sql.prepare(query).run(...this.values);}};},async batch(statements){return Promise.all(statements.map(s=>s.run()));}};}
 function setup(){
  const main=new DatabaseSync(':memory:');main.exec(`PRAGMA foreign_keys=ON;CREATE TABLE users(id uuid PRIMARY KEY);CREATE TABLE messages(id uuid PRIMARY KEY,listing_id text NOT NULL,sender_id uuid NOT NULL REFERENCES users(id),recipient_id uuid REFERENCES users(id),body text,created_at text);`);
@@ -20,20 +20,21 @@ function setup(){
  const usage=new DatabaseSync(':memory:');usage.exec(readFileSync(path.join(root,'drizzle/0020_glorious_mariko_yashida.sql'),'utf8'));
  return {main,db:adapter(main),usage:adapter(usage)};
 }
-function provider(calls,language='DE'){return async(url,options)=>{const body=JSON.parse(options.body);calls.push(body);return Response.json({translations:body.text.map(text=>({text:text.startsWith('Hello')?text:'['+body.target_lang+'] '+text,detected_source_language:text.startsWith('Hello')?'EN':language}))});};}
+// Gemini mock: records {target,texts,context}; a text starting with Hello is English and comes back unchanged.
+function provider(calls,language='de'){return async(url,options)=>{const request=JSON.parse(options.body),input=JSON.parse(request.contents[0].parts[0].text);calls.push({target:input.target,texts:input.texts,context:request.systemInstruction.parts[0].text});return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({items:input.texts.map(text=>({text:text.startsWith('Hello')?text:'['+input.target.toUpperCase()+'] '+text,source:text.startsWith('Hello')?'en':language}))})}]}}],usageMetadata:{promptTokenCount:5,candidatesTokenCount:7}});};}
 async function withFetch(fetcher,run){const original=globalThis.fetch;globalThis.fetch=fetcher;try{return await run();}finally{globalThis.fetch=original;}}
 
 test('recipient reads incoming messages in their language and the result is stored once',async()=>{const {db,usage,main}=setup(),calls=[];await withFetch(provider(calls),async()=>{
- const first=await translateMessages(db,usage,settings,owner,[id(10)],'tr');assert.equal(first.status,'ready');assert.equal(first.translations[id(10)].text,'[TR] Guten Tag, ist die Wohnung noch verfügbar?');assert.equal(first.translations[id(10)].source,'de');assert.equal(calls.length,1);assert.equal(calls[0].target_lang,'TR');assert.match(calls[0].context,/Private chat/);
+ const first=await translateMessages(db,usage,settings,owner,[id(10)],'tr');assert.equal(first.status,'ready');assert.equal(first.translations[id(10)].text,'[TR] Guten Tag, ist die Wohnung noch verfügbar?');assert.equal(first.translations[id(10)].source,'de');assert.equal(calls.length,1);assert.equal(calls[0].target,'tr');assert.match(calls[0].context,/Private chat/);
  const again=await translateMessages(db,usage,settings,owner,[id(10)],'tr');assert.deepEqual(again.translations,first.translations);assert.equal(calls.length,1);
- await translateMessages(db,usage,settings,owner,[id(10)],'en');assert.equal(calls.length,2);assert.equal(calls[1].target_lang,'EN-GB');
+ await translateMessages(db,usage,settings,owner,[id(10)],'en');assert.equal(calls.length,2);assert.equal(calls[1].target,'en');
  assert.ok(usage.sql.prepare("SELECT characters FROM translation_usage WHERE key LIKE 'day:%'").get().characters>0);
  main.prepare('DELETE FROM messages WHERE id=?').run(id(10));assert.equal(main.prepare('SELECT COUNT(*) n FROM message_translations').get().n,0);
 });});
 test('only messages the actor received are translated',async()=>{const {db,usage}=setup(),calls=[];await withFetch(provider(calls,'TR'),async()=>{
  assert.deepEqual((await translateMessages(db,usage,settings,stranger,[id(10),id(11)],'en')).translations,{});
  assert.deepEqual((await translateMessages(db,usage,settings,buyer,[id(10)],'en')).translations,{});assert.equal(calls.length,0);
- const r=await translateMessages(db,usage,settings,buyer,[id(10),id(11)],'de');assert.deepEqual(Object.keys(r.translations),[id(11)]);assert.equal(calls.length,1);assert.equal(calls[0].text.length,1);
+ const r=await translateMessages(db,usage,settings,buyer,[id(10),id(11)],'de');assert.deepEqual(Object.keys(r.translations),[id(11)]);assert.equal(calls.length,1);assert.equal(calls[0].texts.length,1);
 });});
 test('messages already in the reader language are not shown as translations or sent again',async()=>{const {db,usage}=setup(),calls=[];await withFetch(provider(calls),async()=>{
  assert.deepEqual((await translateMessages(db,usage,settings,buyer,[id(11)],'tr')).translations,{});assert.equal(calls.length,0);

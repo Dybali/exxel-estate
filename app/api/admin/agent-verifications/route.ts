@@ -1,4 +1,3 @@
-import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {body,currentUser,error,isAdmin,now,ok,sameOrigin,str} from '@/lib/server';
 import {officeDB} from '@/lib/office-verification-server';
 import {reportsDB} from '@/lib/reports-server';
@@ -35,6 +34,5 @@ export async function POST(request:Request){
  ]);
  const saved=await database.prepare('SELECT last_action FROM office_verifications WHERE user_id=?').bind(id).first<{last_action:string}>();
  if(saved?.last_action!==action)return error('Belge başka bir yönetici tarafından incelendi.',409);
- for(const listing of pending.results)scheduleListingTranslations(listing.id);
  return ok({success:true,state},{headers:{'Cache-Control':'private, no-store'}});
 }

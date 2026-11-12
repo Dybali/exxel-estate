@@ -3,7 +3,6 @@ import {officePublicationAllowed} from '@/lib/office-verification-server';
 import {listingExpired} from '@/lib/listing-policy';
 import {publicListing} from '@/lib/listings';
 import {reportsDB} from '@/lib/reports-server';
-import {scheduleListingTranslations} from '@/lib/translation-runtime';
 import {presentationFrom} from "@/lib/presentation";
 import {assessListingSave,keptPhotoHashes,type RiskDatabase} from "@/lib/listing-risk-server";
 import {RISK_REVIEW_NOTE} from "@/lib/listing-risk";
@@ -130,7 +129,6 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   if(Number(row.price)!==price||String(row.currency)!==currency||row.purpose!==purpose)statements.push(db().prepare("INSERT INTO price_history(id,listing_id,old_price,new_price,currency,purpose,changed_at) VALUES(?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,Number(row.currency===currency&&row.purpose===purpose?row.price:price),price,currency,purpose,updatedAt));
   await db().batch(statements);
   const actual=await db().prepare("SELECT status FROM listings WHERE id=?").bind(id).first<{status:string}>();
-  if(actual?.status==='published')scheduleListingTranslations(id);
   if(pinMoved)scheduleListingNearby(id);
   // Replaced or removed video: its files go (mirrors the photos below).
   if(previousVideo&&previousVideo!==presentation.videoId&&videoFeatureEnabled())await removeVideoById(db() as unknown as VideoDatabase,previousVideo);

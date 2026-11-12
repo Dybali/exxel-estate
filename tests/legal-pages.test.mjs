@@ -28,5 +28,7 @@ test('every legal page has a route, uses the shared layout and is cross-linked',
 test('privacy policy reflects the current hosting and no longer names Neon',()=>{
  const privacy=read('components/PrivacyPolicy.tsx');
  assert.doesNotMatch(privacy,/Neon/);
- for(const fact of ['Mittwald','Cloudflare R2','AES-256-GCM','Google Gemini','DeepL','noreply@estatemarket24.com','<LegalRights/>'])assert.ok(privacy.includes(fact),fact);
+ for(const fact of ['Mittwald','Cloudflare R2','AES-256-GCM','Google Gemini','noreply@estatemarket24.com','<LegalRights/>'])assert.ok(privacy.includes(fact),fact);
+ // Translations moved from DeepL to Gemini on 2026-11-12.
+ assert.doesNotMatch(privacy,/DeepL/);
 });

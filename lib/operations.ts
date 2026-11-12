@@ -16,6 +16,9 @@ export async function operationsSummary(db:OpsDatabase,settings:OpsSettings,at=n
  const chars=(key:string)=>Number(translation.results.find(r=>r.key===key)?.characters||0);
  return {checkedAt:at.toISOString(),period:'UTC',gemini:{model:settings.GEMINI_MODEL||'gemini-3.5-flash-lite',day:usageLevel(Number(daily?.requests||0),usageLimit(settings.AI_DAILY_CALL_LIMIT,400,2000)),month:usageLevel(Number(monthly?.requests||0),usageLimit(settings.AI_MONTHLY_CALL_LIMIT,12000,60000)),inputTokens:Number(monthly?.input_tokens||0),outputTokens:Number(monthly?.output_tokens||0),trackingSince:monthly?.tracking_since||at.toISOString(),providerBillingAvailable:false},deepl:{day:usageLevel(chars('day:'+day),usageLimit(settings.DEEPL_DAILY_CHAR_LIMIT,50000,500000)),month:usageLevel(chars('month:'+month),usageLimit(settings.DEEPL_MONTHLY_CHAR_LIMIT,300000,5000000))},failures:failures.results.map(r=>({...r,count:Number(r.count)})),billing:{available:false},warningPercent:80};
 }
+// Translation runs on Gemini (lib/translation.ts); Google publishes no quota endpoint for API keys, so the
+// panel points to Google Cloud billing instead of reading a provider quota.
+export async function translationProviderStatus(settings:OpsSettings&{GEMINI_API_KEY?:string}){return {available:false,reason:settings.GEMINI_API_KEY?'billing_console':'not_configured',status:0} as {available:boolean;reason:string;status:number;used?:number;limit?:number;percent?:number;level?:string};}
 export async function deeplProviderUsage(settings:OpsSettings){
  const key=settings.DEEPL_API_KEY;if(!key)return {available:false,reason:'not_configured',status:0};
  try{const r=await fetch((key.endsWith(':fx')?'https://api-free.deepl.com':'https://api.deepl.com')+'/v2/usage',{headers:{Authorization:'DeepL-Auth-Key '+key},redirect:'manual',signal:AbortSignal.timeout(8000)});

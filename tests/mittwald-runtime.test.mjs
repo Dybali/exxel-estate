@@ -84,11 +84,11 @@ test('Cloudflare bundle never sees postgres.js: only the Node-aliased module imp
 function sqlite(){const sql=new DatabaseSync(':memory:');return {sql,prepare(query){return {values:[],bind(...values){this.values=values;return this;},async first(){return sql.prepare(query).get(...this.values)||null;},async all(){return {results:sql.prepare(query).all(...this.values)};},async run(){return sql.prepare(query).run(...this.values);}};},async batch(statements){sql.exec('BEGIN');try{const r=[];for(const s of statements)r.push(await s.run());sql.exec('COMMIT');return r;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
 test('former D1 tables are created on first use in the main database (no D1 migration needed)',async()=>{
  const ops=load('lib/operations.ts'),cache=load('lib/translation-cache.ts'),assistant=load('lib/assistant-server.ts'),service=load('lib/translation-service.ts');
- const db=sqlite(),original=globalThis.fetch;globalThis.fetch=async(url,init)=>{const body=JSON.parse(init.body);return Response.json({translations:body.text.map(text=>({text:'T: '+text,detected_source_language:'TR'}))});};
+ const db=sqlite(),original=globalThis.fetch;globalThis.fetch=async(url,init)=>{const input=JSON.parse(JSON.parse(init.body).contents[0].parts[0].text);return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({items:input.texts.map(text=>({text:'T: '+text,source:'tr'}))})}]}}],usageMetadata:{promptTokenCount:3,candidatesTokenCount:4}});};
  try{
   const doc={kind:'listing',id:'fresh',fields:{title:'Deniz manzaralı daire'}};
   assert.equal((await cache.readTranslations(db,doc,'en')).complete,false);
-  assert.equal((await cache.prepareTranslations(db,{DEEPL_API_KEY:'k:fx'},doc,'en')).status,'ready');
+  assert.equal((await cache.prepareTranslations(db,{GEMINI_API_KEY:'k'},doc,'en')).status,'ready');
   assert.equal((await cache.readTranslations(db,doc,'en')).complete,true);
   const record=await assistant.reserveAssistantUsage(db,'client',400,new Date('2026-11-03T10:00:00Z'));await record({input:10,output:5});
   await ops.recordOperation(db,'http','500');await ops.recordOperation(null,'http','500');
