@@ -8,7 +8,8 @@
 2. Mahalle adı `/api/locations` listesinden eşleştirilir. Aynı adlı mahalleler için `postalCode` özniteliği gerekir.
 3. Fotoğraflar `POST /api/media/fetch` ile sunucu üzerinden indirilir (yalnızca herkese açık `https` adresler, en fazla 25 MB, JPG/PNG/WEBP imzası doğrulanır), tarayıcıda küçültülüp filigranlanır ve `POST /api/media` ile yüklenir.
 4. İlan, ilan formuyla aynı `POST /api/listings` isteğiyle gönderilir. Kota, ofis doğrulaması, konum, alan ve onay kuralları aynen uygulanır.
-5. `ref` ve hesap kimliğinden sabit bir `submissionId` üretilir. Aynı dosya tekrar aktarılırsa ilan ikinci kez oluşmaz; satır “Daha önce aktarılmış” olarak gösterilir. Bir ilanı değiştirmek için İlanlarım bölümünü kullanın.
+5. Aktarılan ilanlar o gece toplu çeviri modunda (yarı fiyat) bütün site dillerine çevrilir (`docs/translations.md`).
+6. `ref` ve hesap kimliğinden sabit bir `submissionId` üretilir. Aynı dosya tekrar aktarılırsa ilan ikinci kez oluşmaz; satır “Daha önce aktarılmış” olarak gösterilir. Bir ilanı değiştirmek için İlanlarım bölümünü kullanın.
 
 ## Biçim
 

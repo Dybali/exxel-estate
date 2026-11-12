@@ -28,6 +28,7 @@ export default {
     const jobs = dailyJobs(settings);
     ctx.waitUntil(jobs.promotions);
     ctx.waitUntil(jobs.digest);
+    ctx.waitUntil(jobs.translations);
   },
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     const request=withRequestContext(incoming);

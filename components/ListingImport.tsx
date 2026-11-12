@@ -56,7 +56,7 @@ export function ListingImport(){
      if(!places.has(placeKey)){const r=await fetch(`/api/locations?${new URLSearchParams({city:payload.city,district:payload.district})}`);const data=await apiJson<{neighborhoods?:{id:number;name:string;postalCode?:string}[]}>(r);places.set(placeKey,r.ok?data.neighborhoods||[]:[]);}
      const neighborhood=matchNeighborhood(places.get(placeKey)!,row.neighborhood,row.postalCode);if(!neighborhood)throw Error(t("Mahalle bulunamadı veya birden fazla eşleşti: {name}").replace("{name}",row.neighborhood));
      const images:string[]=[];for(const url of row.images)images.push(await photo(url));
-     const r=await fetch("/api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...row.payload,neighborhoodId:neighborhood.id,images,submissionId:await importSubmissionId(account.user.id,row.ref)})});
+     const r=await fetch("/api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...row.payload,neighborhoodId:neighborhood.id,images,submissionId:await importSubmissionId(account.user.id,row.ref),importSource:"xml"})});
      const data=await apiJson<{id?:string;status?:string;error?:string}>(r);
      if(r.status===409){update(row.ref,{state:"existing",message:data.error});continue;}
      if(!r.ok||!data.id)throw Error(data.error||"İlan kaydedilemedi.");

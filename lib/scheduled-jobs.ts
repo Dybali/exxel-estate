@@ -10,6 +10,7 @@ import { cleanupVideos, videoFeatureEnabled, videoStorageFromEnv } from "./listi
 import type { VideoDatabase } from "./listing-video-store";
 // Through the alias: in the Node build lib/db-backup-node.ts, on Cloudflare a null slot.
 import { runDatabaseBackup, type BackupReport } from "@/lib/db-backup";
+import { translationBatchJob, translationBatchPoll } from "./translation-runtime";
 
 // The scheduled jobs, shared by the Cloudflare cron triggers (build/sites-worker.ts scheduled())
 // and the protected HTTP endpoint /api/cron/[job] that a Mittwald cronjob calls.
@@ -30,7 +31,9 @@ export async function healthJob(settings: JobSettings) {
     listImages: () => headExternalImage("listings/00000000-0000-4000-8000-000000000000/00000000-0000-4000-8000-000000000000.jpg"),
     privateBucket,
   });
-  return { checks, alert: await alertOnFailure(checks, withSiteUrl(settings)) };
+  // Finished overnight translation jobs are collected within the hour (lib/translation-batch.ts).
+  const translations = await translationBatchPoll().catch(() => null);
+  return { checks, alert: await alertOnFailure(checks, withSiteUrl(settings)), translations };
 }
 
 // Encrypted offsite database backup (Mittwald container only, docs/backups-monitoring.md). Never
@@ -61,5 +64,7 @@ export function dailyJobs(settings: JobSettings) {
       ? cleanupVideos(db() as unknown as VideoDatabase, videoStorageFromEnv()).then((result) => { if (result.removed || result.failed) console.info("video_cleanup", JSON.stringify(result)); return true; }, (cause) => { console.error("video_cleanup_failed", String(cause)); return false; })
       : Promise.resolve(true),
     backup: backupJob(settings),
+    // XML-imported listings into every language at the Gemini batch price (lib/translation-batch.ts).
+    translations: translationBatchJob(),
   };
 }

@@ -16,7 +16,16 @@
 - **Önbellek:** her alan, hedef dil + metnin özetine göre `content_translations` tablosunda saklanır. Düzenlemede yalnızca değişen alan yeniden çevrilir. Anahtar öneki (`deepl:auto:realestate-v1:`) tarihseldir; DeepL döneminin çevirileri bu sayede geçerli kaldı.
 - **Elle girilen çeviriler** her zaman önceliklidir ve üzerine yazılmaz. İlanın kendi dili (`presentation.language`) hiçbir zaman çevrilmez.
 - **Kilit:** aynı ilan/dil için eş zamanlı iki istek tek çeviri yapar (`translation_leases`).
-- **Toplu mod (Batch) yok:** çeviri bir ziyaretçi beklerken yapıldığı için anlık API kullanılır. Toplu mod yalnızca önceden toplu çeviride (ör. büyük XML yüklemesinden sonra bütün dillere) %50 ucuzdur; isteğe bağlı çeviriyle buna gerek kalmadı.
+- **XML ile aktarılan ilanlar gece toplu modda (Batch, yarı fiyat) bütün dillere çevrilir:** aşağıya bakın. Diğer ilanlar yalnızca istenince çevrilir.
+
+## XML aktarımları: gece toplu çeviri
+
+`lib/translation-batch.ts`. XML ile aktarılan ilan (`components/ListingImport.tsx` `importSource: "xml"` gönderir) `translation_batch_queue` sırasına girer. Günlük görev (`/api/cron/daily`) sıradaki en fazla 300 ilanın eksik bütün dil çevirilerini tek bir Gemini Batch işi olarak gönderir (`batchGenerateContent`, satır içi istekler, normal fiyatın %50'si). Saatlik görev (`/api/cron/health`) biten işleri toplar ve çevirileri normal önbelleğe (`content_translations`) yazar; Google bir işi en geç 24 saatte bitirir. İş bitene kadar ilanlar istenince çevrilir; zaten çevrilmiş diller işe konmaz.
+
+- Aynı anda tek iş çalışır; işler `translation_batch_jobs` tablosunda izlenir. Başarısız/süresi dolan işin ilanları sıraya geri döner.
+- İncelemedeki (`pending`) ilan yayına girene kadar en fazla 7 gün sırada bekler; reddedilen/silinen ilan sıradan çıkar.
+- Günlük/aylık karakter sınırları burada da geçerlidir; sınırdaki iş ertesi güne kalır.
+- **Batch API yalnızca faturalandırması açık (ücretli) projelerde çalışır.** Ücretsiz katman anahtarı `400 FAILED_PRECONDITION` döner; o zaman ilanlar sırada kalır ve istenince çevrilir.
 
 ## Bot koruması
 
