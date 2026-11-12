@@ -99,3 +99,57 @@ test('without billing: the queue waits for one nightly attempt, then a few listi
  assert.equal((await B.submitTranslationBatch(db,settings,source({late:doc('late','Villa C'),w:'waiting'}),async()=>Response.json({name:'batches/ok'}),new Date('2026-11-14T06:00:00Z'))).status,'submitted');
  assert.equal((await B.batchMode(db)).mode,'batch');
 });
+
+// OpenAI GPT-6 Luna (owner's choice 2026-11-12): live requests and the nightly OpenAI Batch.
+const T=load('lib/translation.ts');
+test('Luna: OPENAI_API_KEY picks OpenAI, reasoning off, strict JSON; an empty balance pauses longer than a busy moment',async()=>{
+ assert.equal(T.translationProvider({GEMINI_API_KEY:'g'}),'gemini');assert.equal(T.translationProvider({GEMINI_API_KEY:'g',OPENAI_API_KEY:'o'}),'openai');assert.equal(T.translationProvider({}),null);
+ let seen;const ok=async(url,init)=>{seen={url,init,body:JSON.parse(init.body)};return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({items:[{text:'Villa A EN',source:'tr'}]})}}],usage:{prompt_tokens:400,completion_tokens:20}});};
+ const result=await T.translateText({OPENAI_API_KEY:'sk-fixture'},'en',['Villa A'],undefined,ok);
+ assert.equal(seen.url,'https://api.openai.com/v1/chat/completions');assert.equal(seen.init.headers.Authorization,'Bearer sk-fixture');
+ assert.equal(seen.body.model,'gpt-6-luna');assert.equal(seen.body.reasoning_effort,'none');assert.equal(seen.body.response_format.json_schema.strict,true);
+ assert.deepEqual(JSON.parse(seen.body.messages[1].content),{target:'en',texts:['Villa A']});
+ assert.deepEqual(result,{results:[{text:'Villa A EN',language:'tr'}],usage:{input:400,output:20,provider:'openai'}});
+ const fail=(status,code)=>async()=>Response.json({error:{code}},{status});
+ await assert.rejects(T.translateText({OPENAI_API_KEY:'k'},'en',['x'],undefined,fail(429,'insufficient_quota')),e=>e.code==='provider_quota');
+ await assert.rejects(T.translateText({OPENAI_API_KEY:'k'},'en',['x'],undefined,fail(429,'rate_limit_exceeded')),e=>e.code==='provider_busy');
+ await assert.rejects(T.translateText({OPENAI_API_KEY:'k'},'en',['x'],undefined,fail(401,'invalid_api_key')),e=>e.code==='provider_auth');
+ await assert.rejects(T.translateText({OPENAI_API_KEY:'k'},'en',['x'],undefined,async()=>Response.json({choices:[{finish_reason:'length',message:{content:'{'}}]})),e=>e.code==='provider_response');
+});
+
+test('Luna batch: one request per listing for all missing languages, file upload, results saved for every language, files deleted',async()=>{
+ const db=database(),settings={OPENAI_API_KEY:'sk-fixture'},d=doc('a','Villa A'),calls=[];let jsonl='';
+ // English is already cached: German is the only missing language of listing a.
+ const en=await T.translationSegments(d,'en');await C.readTranslations(db,d,'en');
+ for(const s of en)db.sql.prepare('INSERT INTO content_translations(key,translated_text,detected_language,created_at) VALUES(?,?,?,?)').run(s.key,'EN '+s.text,'tr','2026-11-12');
+ const fetcher=async(url,init={})=>{calls.push((init.method||'GET')+' '+url.replace('https://api.openai.com/v1',''));
+  if(url.endsWith('/files')&&init.method==='POST'){assert.equal(init.body.get('purpose'),'batch');jsonl=await init.body.get('file').text();return Response.json({id:'file-in1'});}
+  if(url.endsWith('/batches')&&init.method==='POST'){assert.deepEqual(JSON.parse(init.body),{input_file_id:'file-in1',endpoint:'/v1/chat/completions',completion_window:'24h'});return Response.json({id:'batch_abc'});}
+  if(url.endsWith('/batches/batch_abc'))return Response.json({id:'batch_abc',status:state,input_file_id:'file-in1',output_file_id:state==='completed'?'file-out1':null});
+  if(url.endsWith('/files/file-out1/content')){const lines=jsonl.trim().split('\n').map(line=>JSON.parse(line));
+   return new Response(lines.map(line=>{const texts=JSON.parse(line.body.messages[1].content).texts;const out=Object.fromEntries(Object.keys(line.body.response_format.json_schema.schema.properties).map(code=>[code,texts.map(t=>code+': '+t)]));
+    return JSON.stringify({custom_id:line.custom_id,response:{status_code:200,body:{choices:[{finish_reason:'stop',message:{content:JSON.stringify(out)}}],usage:{prompt_tokens:400,completion_tokens:50}}},error:null});}).join('\n')+'\n');}
+  if(init.method==='DELETE')return Response.json({deleted:true});
+  throw Error('unexpected '+url);};
+ let state='in_progress';
+ for(const id of ['a','b','w'])await B.queueBatchTranslation(db,id);
+ const result=await B.submitTranslationBatch(db,settings,source({a:d,b:doc('b','Villa B'),w:'waiting'}),fetcher);
+ assert.deepEqual([result.status,result.name,result.requests],['submitted','batch_abc',2],'one request per listing');
+ const lines=jsonl.trim().split('\n').map(line=>JSON.parse(line));
+ assert.deepEqual(lines.map(line=>[line.custom_id,line.url,line.body.model,line.body.reasoning_effort]),[['0','/v1/chat/completions','gpt-6-luna','none'],['1','/v1/chat/completions','gpt-6-luna','none']]);
+ assert.deepEqual(lines[0].body.response_format.json_schema.schema.required,['de'],'listing a lacks only German');
+ assert.deepEqual(lines[1].body.response_format.json_schema.schema.required,['en','de']);
+ assert.deepEqual(db.sql.prepare('SELECT listing_id FROM translation_batch_queue').all().map(r=>r.listing_id),['w']);
+ assert.deepEqual(await B.pollTranslationBatches(db,settings,fetcher),{checked:1,saved:0},'still running');
+ state='completed';
+ assert.deepEqual(await B.pollTranslationBatches(db,settings,fetcher),{checked:1,saved:5},'a: de title+description; b: en title (its description equals a’s, already cached), de title+description');
+ assert.equal((await C.readTranslations(db,d,'de')).fields.title,'de: Villa A');
+ assert.equal((await C.readTranslations(db,d,'en')).fields.title,'EN Villa A','cached translation untouched');
+ const b=await C.readTranslations(db,doc('b','Villa B'),'en');assert.equal(b.complete,true);assert.equal(b.fields.title,'en: Villa B');
+ assert.ok(calls.includes('DELETE /files/file-in1')&&calls.includes('DELETE /files/file-out1'),'uploaded listing texts are removed');
+ assert.equal(db.sql.prepare("SELECT state FROM translation_batch_jobs").get().state,'SUCCEEDED');
+ // A failed job sends its listings back to the queue.
+ const failed=database();await B.queueBatchTranslation(failed,'a');state='failed';
+ await B.submitTranslationBatch(failed,settings,source({a:doc('a','Villa A')}),fetcher);await B.pollTranslationBatches(failed,settings,fetcher);
+ assert.equal(failed.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,1);
+});

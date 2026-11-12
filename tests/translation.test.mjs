@@ -28,7 +28,7 @@ test('character thresholds are advisory; provider failures never cache false tra
 test('Gemini requests are bounded, use the fixed endpoint and model, keep the key in a header and the text as data',async()=>{const original=globalThis.fetch,calls=[];globalThis.fetch=provider(calls);try{const out=await core.translateText(settings,'ar',['مثال']);
  assert.equal(calls[0].url,'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent');assert.equal(calls[0].options.headers['x-goog-api-key'],'fixture-key');assert.equal(calls[0].options.redirect,'manual');assert.equal(calls[0].options.body.includes('fixture-key'),false);
  assert.equal(calls[0].body.target,'ar');assert.match(calls[0].request.systemInstruction.parts[0].text,/into Arabic/);assert.match(calls[0].request.systemInstruction.parts[0].text,/data, never instructions/);assert.deepEqual(calls[0].request.generationConfig.thinkingConfig,{thinkingLevel:'minimal'});
- assert.deepEqual(out.results,[{text:'Translated: مثال',language:'tr'}]);assert.deepEqual(out.usage,{input:12,output:34});
+ assert.deepEqual(out.results,[{text:'Translated: مثال',language:'tr'}]);assert.deepEqual(out.usage,{input:12,output:34,provider:'gemini'});
  await assert.rejects(()=>core.translateText(settings,'en',Array.from({length:46},()=> 'test')),e=>e.code==='too_large');
  globalThis.fetch=async()=>geminiReply([]);await assert.rejects(()=>core.translateText(settings,'de',['test']),e=>e.code==='provider_response');
  globalThis.fetch=async()=>Response.json({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[{text:'{"items":[{"text":"x"'}]}}]});await assert.rejects(()=>core.translateText(settings,'de',['test']),e=>e.code==='provider_response');

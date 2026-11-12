@@ -78,7 +78,7 @@ export function PrivacyPolicy(){
     {id:'ilanlar',title:t('İlanlar, mesajlar ve randevular'),content:<LegalClauses section={5} items={[
       <p>{t('İlanınızda ve herkese açık profilinizde yayımladığınız bilgiler ziyaretçilerce görülebilir. Mesajlarınız, randevu ve bilgi talepleriniz yalnızca ilgili ilan sahibine veya firmaya iletilir.')}</p>,
       <p>{t('Yüklenen fotoğraflar küçültülür ve konum gibi gizli dosya bilgileri silinir. Yüklenen videolar kendi sunucularımızda dönüştürülür ve fotoğraflarla birlikte saklanır.')}</p>,
-      <p>{t('Size gelen mesajlar, sitede seçtiğiniz dilde okuyabilmeniz için Google Gemini’ye iletilerek otomatik çevrilir. Çeviri yalnızca mesajın alıcısına gösterilir, mesajla birlikte saklanır ve mesaj silindiğinde silinir. Orijinal metin her zaman görüntülenebilir.')}</p>,
+      <p>{t('Size gelen mesajlar, sitede seçtiğiniz dilde okuyabilmeniz için OpenAI’ye iletilerek otomatik çevrilir. Çeviri yalnızca mesajın alıcısına gösterilir, mesajla birlikte saklanır ve mesaj silindiğinde silinir. Orijinal metin her zaman görüntülenebilir.')}</p>,
       <p>{t('İşlemsel e-postalar (giriş ve doğrulama kodları, şifre sıfırlama, bildirimler ve iletişim yanıtları) noreply@estatemarket24.com adresinden gönderilir. Günlük e-posta özeti varsayılan olarak kapalıdır; bildirimleri Hesabım’dan veya e-postadaki bağlantıyla kapatabilirsiniz.')}</p>,
     ]}/>},
     {id:'hizmetler',title:t('Hizmetler bölümü ve teklif talepleri'),content:<LegalClauses section={6} items={[
@@ -89,7 +89,7 @@ export function PrivacyPolicy(){
     ]}/>},
     {id:'otomasyon',title:t('Yapay zekâ, çeviri ve otomatik kontroller'),content:<LegalClauses section={7} items={[
       <p>{t('estateAI asistanı ve doğal dil araması, yazdığınız metni yanıt veya arama filtresi üretmek için gerektiğinde Google Gemini’ye iletir. Metin gönderilmeden önce e-posta adresleri ve telefon numaraları maskelenir; arama metni tarafımızdan saklanmaz.')}</p>,
-      <p>{t('İlan metinleri ve mesajlar, farklı dillerde gösterilebilmeleri için Google Gemini’ye iletilerek çevrilir. Bir ilan, bir ziyaretçi onu o dilde ilk kez açtığında çevrilir ve çeviri saklanır. Ücretli API kullandığımız için Google bu metinleri modellerini eğitmek için kullanmaz.')}</p>,
+      <p>{t('İlan metinleri ve mesajlar, farklı dillerde gösterilebilmeleri için OpenAI’ye iletilerek çevrilir. Bir ilan, yayınlandıktan veya değiştirildikten sonra bir kez bütün site dillerine çevrilir ve çeviri saklanır. OpenAI, API ile gönderilen metinleri modellerini eğitmek için kullanmaz; toplu çeviri için yüklenen dosyalar iş bitince silinir.')}</p>,
       <p>{t('Sahte ve mükerrer ilanları önlemek için ilanlar kaydedilirken fotoğraf ve metin benzerliği, fiyat ve şüpheli ifadeler bakımından otomatik olarak kontrol edilir. Bu kontrol yalnızca yöneticilere uyarı üretir; ilan hakkındaki karar her zaman bir yönetici tarafından verilir. Hukuki sonuç doğuran tamamen otomatik kararlar alınmaz.')}</p>,
     ]}/>},
     {id:'paylasim',title:t('Verilerin paylaşıldığı taraflar'),content:<LegalClauses section={8} items={[
@@ -104,7 +104,8 @@ export function PrivacyPolicy(){
       <ul className="legal-cards">
         <li><strong>Mittwald CM Service GmbH &amp; Co. KG</strong><p>{t('Espelkamp, Almanya. Sitenin ve PostgreSQL veritabanının barındırılması (adanmış konteyner barındırma) ve e-postaların gönderildiği posta sunucusu.')}</p></li>
         <li><strong>Cloudflare, Inc.</strong><p>{t('Cloudflare R2 nesne depolama: fotoğraflar, videolar, özel belgeler (ofis yetki belgeleri, firma belgeleri) ve AES-256-GCM ile şifrelenmiş günlük veritabanı yedekleri.')}</p></li>
-        <li><strong>Google</strong><p>{t('Google Gemini (estateAI, doğal dil araması ve ilan ve mesaj çevirileri; ücretli API, metinler model eğitiminde kullanılmaz), isteğe bağlı Google ile giriş ve yalnızca izninizle Google Analytics 4.')}</p></li>
+        <li><strong>Google</strong><p>{t('Google Gemini (estateAI ve doğal dil araması; ücretli API, metinler model eğitiminde kullanılmaz), isteğe bağlı Google ile giriş ve yalnızca izninizle Google Analytics 4.')}</p></li>
+        <li><strong>OpenAI</strong><p>{t('OpenAI GPT-6 Luna (ilan ve mesaj çevirileri). API ile gönderilen metinler model eğitiminde kullanılmaz; OpenAI bunları kötüye kullanımı önlemek için en fazla 30 gün saklayabilir.')}</p></li>
         <li><strong>OpenStreetMap</strong><p>{t('Harita parçaları; yalnızca bir harita açıldığında yüklenir.')}</p></li>
         <li><strong>TCMB</strong><p>{t('Döviz kurları; bu amaçla kişisel veri iletilmez.')}</p></li>
       </ul></>,
@@ -112,7 +113,7 @@ export function PrivacyPolicy(){
     ]}/>},
     {id:'aktarim',title:t('Türkiye’den erişim ve uluslararası aktarımlar'),content:<LegalClauses section={9} items={[
       <p>{t('Türkiye’deki yetkili geliştirme ve destek ekibi canlı kullanıcı verilerine erişebilir. Avrupa Ekonomik Alanı dışından bu erişimin hukuki niteliği, ekibin statüsü ve veri akışına göre değerlendirilir. Erişim yetkileri ve uygulanacak aktarım güvenceleri veri sorumlusu tarafından belirlenmelidir; yürürlükte olduğu doğrulanmamış bir yeterlilik kararı veya standart sözleşme maddesi bulunduğu ileri sürülmez. Diğer hizmet sağlayıcıların uluslararası veri akışları hakkında bilgi için bize başvurabilirsiniz.')}</p>,
-      <p>{t('Cloudflare ve Google merkezi ABD’de olan şirketler grubuna aittir; bu sağlayıcılar üzerinden verilerin AB/AEA ve Türkiye dışına aktarılması mümkündür. Uygulanan güvenceler hakkında bilgiyi talep üzerine veririz.')}</p>,
+      <p>{t('Cloudflare, Google ve OpenAI merkezi ABD’de olan şirketler grubuna aittir; bu sağlayıcılar üzerinden verilerin AB/AEA ve Türkiye dışına aktarılması mümkündür. Uygulanan güvenceler hakkında bilgiyi talep üzerine veririz.')}</p>,
       <p>{t('Kişisel verileriniz, bulunduğunuz ülkenin dışındaki sunuculara aktarılabilir ve orada saklanabilir. Bu ülkelerdeki veri koruma mevzuatı, kendi ülkenizdeki kadar koruyucu olmayabilir. Bu tür aktarımları yalnızca GDPR ve KVKK’nın öngördüğü şartlar sağlandığında yaparız.')}</p>,
     ]}/>},
     {id:'harici',title:t('Üçüncü taraf siteler ve harita'),content:<LegalClauses section={10} items={[

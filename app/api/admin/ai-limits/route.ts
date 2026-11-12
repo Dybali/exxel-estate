@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const database = limitsDB(), vars = env as unknown as Record<string, unknown>;
   const [{ agents, limits }, usage, history] = await Promise.all([aiLimits(database, vars), aiUsageNow(database), aiHistory(database, 30)]);
   return ok({
-    agents, prices: AI_PRICES, cost: aiCost(usage), tokens: usage.tokens, history, configured: Boolean(vars.GEMINI_API_KEY),
+    agents, prices: AI_PRICES, cost: aiCost(usage), tokens: usage.tokens, history, configured: Boolean(vars.GEMINI_API_KEY || vars.OPENAI_API_KEY),
     limits: limits.map((item) => ({ ...item, used: usage.used[item.id], percent: item.effective > 0 ? Math.round(usage.used[item.id] / item.effective * 100) : 0, capCost: capCost(item) })),
   }, headers);
 }

@@ -12,6 +12,7 @@ Eski ChatGPT Sites yayını aynı Neon veritabanını kullandığı için önce 
 | --- | --- | --- |
 | Neon veritabanı şifresi (`DATABASE_URL`) | Neon → proje → **Roles** → `neondb_owner` → **Reset password**. Ardından **Connect** → *pooled* bağlantı adresini kopyalayın. | `npx wrangler secret put DATABASE_URL` |
 | `GEMINI_API_KEY` | Google AI Studio → **API keys** → yeni anahtar oluştur, eskisini **Delete**. | `npx wrangler secret put GEMINI_API_KEY` |
+| `OPENAI_API_KEY` | platform.openai.com → **API keys** → yeni Restricted anahtar (Chat completions, Files, Batch), eskisini **Revoke**. | Mittwald ortam değişkeni |
 | `DEEPL_API_KEY` | DeepL hesabı → **API Keys** → yeni anahtar, eskisini devre dışı bırakın. | `npx wrangler secret put DEEPL_API_KEY` |
 | `BACKUP_READ_TOKEN` | Kendiniz üretin: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` | `npx wrangler secret put BACKUP_READ_TOKEN` |
 

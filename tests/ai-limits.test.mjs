@@ -34,7 +34,7 @@ test('usage, daily history, cost estimate and one warning per limit, period and 
  const usage=await L.snapshotAiUsage(db,at);
  assert.equal(usage.used.AI_DAILY_CALL_LIMIT,340);assert.equal(usage.used.TRANSLATION_DAILY_CHAR_LIMIT,1000000);
  const history=await L.aiHistory(db,30,at);assert.equal(history.length,30);assert.equal(history.at(-1).day,'2026-11-12');assert.equal(history.at(-1).assistantCalls,340);
- const expected=(100000*0.30+20000*2.50)/1e6+1000000*2142/2.1e9;
+ const expected=(100000*0.30+20000*2.50)/1e6+1000000*377/2.1e9;
  assert.ok(Math.abs(history.at(-1).cost-expected)<0.00002,String(history.at(-1).cost));assert.ok(Math.abs(L.aiCost(usage).day-expected)<1e-9);
  const {limits}=await L.aiLimits(db,{});
  let due=await L.dueAiAlerts(db,limits,usage,at);
@@ -42,5 +42,5 @@ test('usage, daily history, cost estimate and one warning per limit, period and 
  assert.deepEqual(await L.dueAiAlerts(db,limits,usage,at),[],'not repeated in the same day');
  db.sql.prepare("UPDATE ai_usage_limits SET requests=400").run();
  due=await L.dueAiAlerts(db,limits,await L.aiUsageNow(db,at),at);assert.deepEqual(due.map(d=>d.level),[100]);
- assert.equal(L.capCost({unit:'chars',effective:30000000}).toFixed(2),'30.60');
+ assert.equal(L.capCost({unit:'chars',effective:30000000}).toFixed(2),'5.39');
 });

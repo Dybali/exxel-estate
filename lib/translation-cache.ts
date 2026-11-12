@@ -9,8 +9,10 @@ export async function readTranslations(database:Database,doc:TranslationDocument
  const values=new Map(rows.results.map(r=>[r.key,r.translated_text]));
  return {fields:Object.fromEntries(segments.filter(s=>values.has(s.key)).map(s=>[s.field,values.get(s.key)!])),complete:segments.every(s=>values.has(s.key)),segments};
 }
-// Gemini tokens of translations, added to the monthly AI totals shown in Yönetim › Sistem durumu (cost overview).
-export async function recordTranslationTokens(database:Database,usage:{input:number;output:number},at=new Date()){
+// Gemini tokens of translations, added to the monthly Gemini totals shown in Yönetim › Sistem durumu (cost overview).
+// OpenAI translations are not added there (other prices); their cost is estimated from the translated characters.
+export async function recordTranslationTokens(database:Database,usage:{input:number;output:number;provider?:string},at=new Date()){
+ if(usage.provider==='openai')return;
  try{const month=await ensureMonth(database as never,at);await database.prepare('UPDATE ai_monthly_usage SET input_tokens=input_tokens+?,output_tokens=output_tokens+? WHERE month=?').bind(Math.max(0,Math.ceil(usage.input)),Math.max(0,Math.ceil(usage.output)),month).run();}catch{/* Statistics never block a translation. */}
 }
 /** 'daily_limit' or 'monthly_limit' when translating `characters` more would pass a cap (lib/translation.ts translationCaps), else null. */

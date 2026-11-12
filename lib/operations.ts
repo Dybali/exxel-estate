@@ -18,7 +18,7 @@ export async function operationsSummary(db:OpsDatabase,settings:OpsSettings,at=n
 }
 // Translation runs on Gemini (lib/translation.ts); Google publishes no quota endpoint for API keys, so the
 // panel points to Google Cloud billing instead of reading a provider quota.
-export async function translationProviderStatus(settings:OpsSettings&{GEMINI_API_KEY?:string}){return {available:false,reason:settings.GEMINI_API_KEY?'billing_console':'not_configured',status:0} as {available:boolean;reason:string;status:number;used?:number;limit?:number;percent?:number;level?:string};}
+export async function translationProviderStatus(settings:OpsSettings&{GEMINI_API_KEY?:string;OPENAI_API_KEY?:string}){return {available:false,reason:settings.OPENAI_API_KEY?'openai_console':settings.GEMINI_API_KEY?'billing_console':'not_configured',status:0} as {available:boolean;reason:string;status:number;used?:number;limit?:number;percent?:number;level?:string};}
 export async function deeplProviderUsage(settings:OpsSettings){
  const key=settings.DEEPL_API_KEY;if(!key)return {available:false,reason:'not_configured',status:0};
  try{const r=await fetch((key.endsWith(':fx')?'https://api-free.deepl.com':'https://api.deepl.com')+'/v2/usage',{headers:{Authorization:'DeepL-Auth-Key '+key},redirect:'manual',signal:AbortSignal.timeout(8000)});

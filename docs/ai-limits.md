@@ -19,7 +19,7 @@ Yönetim › **Yapay zekâ kotaları** (`components/AdminAiLimits.tsx`, `lib/ai-
 ## Kullanım ve maliyet
 
 - Saatlik görev (`/api/cron/health`) günün sayaçlarını `ai_usage_history` tablosuna kopyalar (canlı sayaçlar 3 gün sonra silinir); ekran son 30 günün tahmini maliyetini gösterir.
-- Maliyet tahmindir: Gemini 3.5 Flash-Lite liste fiyatı (1M token: 0,30 $ girdi, 2,50 $ çıktı) ve Çeviri testi'nde ölçülen çeviri maliyeti (≈ 1,02 $ / 1M karakter). Gerçek fatura Google Cloud Console › Billing'dedir.
+- Maliyet tahmindir: asistan ve arama için Gemini 3.5 Flash-Lite liste fiyatı (1M token: 0,30 $ girdi, 2,50 $ çıktı), çeviri için Çeviri testi'nde GPT-6 Luna ile ölçülen maliyet (≈ 0,18 $ / 1M karakter; gece Batch işi bunun yarısı, Gemini ile çeviride ≈ 5,6 katı). Gerçek faturalar Google Cloud Console › Billing ve platform.openai.com › Usage'dadır.
 - Bir tavanın %80'i ve %100'ü dolunca `ALERT_EMAIL` (yoksa `EXXEL_ADMIN_EMAIL`) adresine, her tavan, dönem ve seviye için bir kez e-posta gider (`ai_limit_alerts`).
 
 ## Google tarafında ayrıca

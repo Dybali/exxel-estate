@@ -93,7 +93,8 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | `EMAIL_CODE_SECRET` | Önerilir | E-posta doğrulama / şifre sıfırlama kodlarının HMAC anahtarı, en az 32 rastgele karakter (`openssl rand -hex 32`). Yoksa `DATABASE_URL`'den türetilir. Değiştirmek yalnızca bekleyen kodları geçersiz kılar. `NEON_AUTH_*` artık kullanılmıyor, silin. Bkz. [auth.md](auth.md) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Google girişi için | Şimdi `https://p-r9al26.project.space/api/auth/callback/google`, alan adından sonra `https://estatemarket24.com/api/auth/callback/google`. Google Cloud Console adımları: [auth.md](auth.md) |
 | `GEMINI_API_KEY` (+ isteğe bağlı `GEMINI_MODEL`, `AI_DAILY_CALL_LIMIT`, `AI_MONTHLY_CALL_LIMIT`) | Asistan için | |
-| `TRANSLATION_DAILY_CHAR_LIMIT`, `TRANSLATION_MONTHLY_CHAR_LIMIT` | İsteğe bağlı: çeviri harcama sınırları (çeviri `GEMINI_API_KEY` ile yapılır, `docs/translations.md`; `DEEPL_API_KEY` artık kullanılmıyor) | |
+| `OPENAI_API_KEY` (+ isteğe bağlı `OPENAI_TRANSLATION_MODEL`) | İlan ve mesaj çevirisi (GPT-6 Luna, `docs/translations.md`); yoksa çeviri `GEMINI_API_KEY` ile yapılır | Restricted anahtar: Chat completions, Files, Batch |
+| `TRANSLATION_DAILY_CHAR_LIMIT`, `TRANSLATION_MONTHLY_CHAR_LIMIT` | İsteğe bağlı: çeviri harcama sınırları (`DEEPL_API_KEY` artık kullanılmıyor) | |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | E-posta için (şu anki yol) | Mittwald posta kutusu: `mail.agenturserver.de`, `465` (doğrudan TLS; `587` = STARTTLS zorunlu), kullanıcı `noreply@estatemarket24.com`, şifre gizli. Bkz. [email-notifications.md](email-notifications.md) |
 | `EMAIL_FROM` | E-posta için | `EstateMarket24 <noreply@estatemarket24.com>`. Mittwald yalnızca posta kutusunun adresiyle gönderir: adres `SMTP_USER`dan farklıysa kod `SMTP_USER` adresini kullanır, görünen adı korur |
 | `EMAIL_REPLY_TO` | Hayır | Boşsa `CONTACT_EMAIL` |

@@ -19,8 +19,12 @@ export const AI_LIMITS = [
 export type AiLimitId = typeof AI_LIMITS[number]["id"];
 export const isAiLimitId = (value: unknown): value is AiLimitId => AI_LIMITS.some((item) => item.id === value);
 
-/** USD estimates: Gemini 3.5 Flash-Lite per 1M tokens, and per translated character as measured on real listings. */
-export const AI_PRICES = { input: 0.30, output: 2.50, translationPerChar: 2142 / 2_100_000_000, callEstimate: 0.0015 };
+/**
+ * USD estimates: Gemini 3.5 Flash-Lite per 1M tokens (assistant, search), and per translated character with OpenAI GPT-6 Luna
+ * as measured on real listings (one request per listing for all languages, normal price: ≈ 377 $ per 2,1 billion characters;
+ * the nightly batch costs half). Gemini, used for translation only without OPENAI_API_KEY, costs ≈ 5.6x more per character.
+ */
+export const AI_PRICES = { input: 0.30, output: 2.50, translationPerChar: 377 / 2_100_000_000, callEstimate: 0.0015 };
 export const tokenCost = (input: number, output: number) => (input * AI_PRICES.input + output * AI_PRICES.output) / 1_000_000;
 
 export const AI_LIMITS_SCHEMA = [
@@ -91,10 +95,10 @@ export async function aiUsageNow(db: LimitsDatabase, at = new Date()) {
   };
 }
 
-/** Estimated USD: tokens of the assistant and search plus translated characters. Month tokens already include translation tokens. */
+/** Estimated USD: Gemini tokens of the assistant and search plus translated characters (OpenAI translation tokens are not in the token totals). */
 export function aiCost(usage: Awaited<ReturnType<typeof aiUsageNow>>) {
   const day = tokenCost(usage.tokens.dayInput, usage.tokens.dayOutput) + usage.used.TRANSLATION_DAILY_CHAR_LIMIT * AI_PRICES.translationPerChar;
-  const month = Math.max(tokenCost(usage.tokens.monthInput, usage.tokens.monthOutput), usage.used.TRANSLATION_MONTHLY_CHAR_LIMIT * AI_PRICES.translationPerChar);
+  const month = tokenCost(usage.tokens.monthInput, usage.tokens.monthOutput) + usage.used.TRANSLATION_MONTHLY_CHAR_LIMIT * AI_PRICES.translationPerChar;
   return { day, month };
 }
 /** USD value of a cap if it were used in full. */
