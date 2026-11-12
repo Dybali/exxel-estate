@@ -1,6 +1,7 @@
 import {recordOperation} from '@/lib/operations';
 import {env} from '@/lib/runtime';
 import {body,currentUser,db,sameOrigin,serviceDB,sha256} from '@/lib/server';
+import {aiSettings} from '@/lib/ai-limits-server';
 import {AssistantError,assistantLanguages,canonicalFilters,chatInput,filterHref,type AssistantLanguage} from '@/lib/assistant';
 import {assistantCopy,assistantResultSummary} from '@/lib/assistant-copy';
 import {planSearch,explainListings,type AISettings} from '@/lib/assistant-provider';
@@ -22,7 +23,8 @@ export async function POST(request:Request) {
     const quotas=serviceDB();
     if(!quotas)throw new AssistantError('unavailable',503);
     const client=user.id;
-    const recordUsage=await reserveAssistantUsage(quotas,await sha256('assistant:'+settings().GEMINI_API_KEY+':'+client),Number(settings().AI_DAILY_CALL_LIMIT)||400);
+    const limits=await aiSettings<{AI_DAILY_CALL_LIMIT?:string;AI_MONTHLY_CALL_LIMIT?:string}>();
+    const recordUsage=await reserveAssistantUsage(quotas,await sha256('assistant:'+settings().GEMINI_API_KEY+':'+client),Number(limits.AI_DAILY_CALL_LIMIT)||400,new Date(),Number(limits.AI_MONTHLY_CALL_LIMIT)||12000);
     const plan=await planSearch(settings(),input,recordUsage);language=input.language==='auto'?plan.language:input.language;
     const copy=assistantCopy[language];
     const filters=canonicalFilters(plan.filters,false);

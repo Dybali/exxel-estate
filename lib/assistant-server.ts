@@ -3,14 +3,17 @@ import { AssistantError, assistantQuery, emptyFilters, type AssistantFilters } f
 import type { Listing } from './listings';
 type Value=string|number;
 export interface AssistantDatabase {prepare(query:string):{bind(...values:Value[]):{first<T=Record<string,unknown>>():Promise<T|null>;all<T=Record<string,unknown>>():Promise<{results:T[]}>;run():Promise<unknown>}}}
-export async function reserveAssistantUsage(database:AssistantDatabase,clientKey:string,dailyLimit=400,time=new Date()) {
+export async function reserveAssistantUsage(database:AssistantDatabase,clientKey:string,dailyLimit=400,time=new Date(),monthlyLimit=12000) {
   const month=await ensureMonth(database as never,time).catch(()=>null);
+  // Monthly cap shared with the natural-language search (Yönetim › Yapay zekâ kotaları).
+  if(month){const used=await database.prepare('SELECT requests FROM ai_monthly_usage WHERE month=?').bind(month).first<{requests:number}>();if(Number(used?.requests||0)+2>monthlyLimit)throw new AssistantError('rate_limit',429);}
   const day=time.toISOString().slice(0,10),hour=time.toISOString().slice(0,13);
-  const keys=[{key:`assistant:member:${clientKey}:${hour}`,limit:20,cost:1},{key:`assistant:global:${day}`,limit:Math.min(2000,Math.max(2,dailyLimit)),cost:2}];
+  const keys=[{key:`assistant:member:${clientKey}:${hour}`,limit:20,cost:1},{key:`assistant:global:${day}`,limit:Math.max(2,dailyLimit),cost:2}];
   for(const item of keys){
-    const guard=item.cost===1?' WHERE ai_usage_limits.requests+excluded.requests<=?':'';
+    // Both the member's hourly limit and the site-wide daily cap refuse the request once reached.
+    const guard=' WHERE ai_usage_limits.requests+excluded.requests<=?';
     const statement=database.prepare('INSERT INTO ai_usage_limits(key,requests,expires_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET requests=ai_usage_limits.requests+excluded.requests'+guard+' RETURNING requests');
-    const args:Value[]=[item.key,item.cost,new Date(time.getTime()+3*86400000).toISOString()];if(item.cost===1)args.push(item.limit);
+    const args:Value[]=[item.key,item.cost,new Date(time.getTime()+3*86400000).toISOString(),item.limit];
     const row=await statement.bind(...args).first<{requests:number}>();if(!row)throw new AssistantError('rate_limit',429);
   }
   if(month)await database.prepare('UPDATE ai_monthly_usage SET requests=requests+2 WHERE month=?').bind(month).run().catch(()=>{});

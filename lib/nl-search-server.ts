@@ -43,9 +43,9 @@ const limitOf=(value:string|undefined,fallback:number,max:number)=>{const n=Numb
 export async function reserveNlSearchAi(database:NlSearchDatabase,clientKey:string,settings:NlSearchSettings,time=new Date()){
  const month=await ensureMonth(database as never,time);
  const monthly=await database.prepare('SELECT requests FROM ai_monthly_usage WHERE month=?').bind(month).first<{requests:number}>();
- if(Number(monthly?.requests||0)>=limitOf(settings.AI_MONTHLY_CALL_LIMIT,12000,1_000_000))return null;
+ if(Number(monthly?.requests||0)>=limitOf(settings.AI_MONTHLY_CALL_LIMIT,12000,30_000_000))return null;
  const day=time.toISOString().slice(0,10),expires=new Date(time.getTime()+3*86400000).toISOString();
- const keys=[[`nl-search:client:${clientKey}:${day}`,10],[`nl-search:global:${day}`,limitOf(settings.NL_SEARCH_DAILY_AI_LIMIT,200,2000)],[`assistant:global:${day}`,limitOf(settings.AI_DAILY_CALL_LIMIT,400,2000)]] as const;
+ const keys=[[`nl-search:client:${clientKey}:${day}`,10],[`nl-search:global:${day}`,limitOf(settings.NL_SEARCH_DAILY_AI_LIMIT,200,1_000_000)],[`assistant:global:${day}`,limitOf(settings.AI_DAILY_CALL_LIMIT,400,1_000_000)]] as const;
  for(const [key,limit] of keys){
   const row=await database.prepare('INSERT INTO ai_usage_limits(key,requests,expires_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET requests=ai_usage_limits.requests+excluded.requests WHERE ai_usage_limits.requests+excluded.requests<=? RETURNING requests').bind(key,1,expires,limit).first<{requests:number}>();
   if(!row)return null;

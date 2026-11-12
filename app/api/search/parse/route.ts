@@ -10,6 +10,7 @@ import {createRateLimiter,geminiNlFilters,reserveNlSearchAi,resolveNlSearch,type
 // is neither stored nor logged.
 export const dynamic='force-dynamic';
 const limiter=createRateLimiter(30,10*60_000);
+import {aiSettings} from '@/lib/ai-limits-server';
 const settings=()=>env as unknown as NlSearchSettings;
 const reply=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
 export async function POST(request:Request){
@@ -21,7 +22,7 @@ export async function POST(request:Request){
  if(!query||query.length>300)return reply({error:'input',message:t('Arama metni gerekli.')},400);
  const client=await sha256('nl-search:'+clientIp(request));
  if(!limiter.take(client))return reply({error:'rate_limit',message:t('Çok fazla arama yaptınız. Lütfen biraz bekleyin.')},429);
- const config=settings(),database=serviceDB();
+ const config=await aiSettings<NlSearchSettings>(),database=serviceDB();
  const ai=input.ai!==false&&config.GEMINI_API_KEY&&database?async(text:string,recognized:Parameters<typeof geminiNlFilters>[2])=>{
   const record=await reserveNlSearchAi(database as never,client,config);
   if(!record)return null;

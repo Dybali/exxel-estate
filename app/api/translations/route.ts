@@ -5,7 +5,7 @@ import {isContentLocale,translationHash,TranslationError,type ContentLocale} fro
 import {sameOrigin,body,serviceDB,clientIp,db,sha256} from '@/lib/server';
 import {consumeRateLimit,RecoveryError} from '@/lib/recovery-service';
 import {TRANSLATION_IP_LIMIT,TRANSLATION_IP_WINDOW,translationRequestAllowed} from '@/lib/translation-guard';
-import {translationSettings} from '@/lib/translation-runtime';
+import {aiSettings} from '@/lib/ai-limits-server';
 // Public visitors may prepare only existing published content, never supplied text.
 // Shared leases and daily/monthly character caps also apply to this path. A saved translation is returned to
 // anyone; a new (paid) one only to real browsers, at most TRANSLATION_IP_LIMIT per visitor and hour
@@ -23,7 +23,7 @@ export async function POST(request:Request){
    try{await consumeRateLimit(db(),await sha256('translate:'+clientIp(request)),TRANSLATION_IP_LIMIT,TRANSLATION_IP_WINDOW);}
    catch(cause){if(cause instanceof RecoveryError)return original();throw cause;}
   }
-  const result=Object.keys(doc.fields).length?await prepareTranslations(serviceDB() as never,translationSettings(),doc,locale as ContentLocale):{status:'cached',fields:{}};
+  const result=Object.keys(doc.fields).length?await prepareTranslations(serviceDB() as never,await aiSettings(),doc,locale as ContentLocale):{status:'cached',fields:{}};
   const pending=result.status==='pending';
   return Response.json({locale,revision:await translationHash(JSON.stringify(content.document.fields)),status:pending?'pending':'ready',fields:pending?content.manual:{...result.fields,...content.manual},machine:!pending&&Object.keys(result.fields).length>0},{status:pending?202:200,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
  }catch(e){await recordOperation(serviceDB() as never,'gemini',String(e instanceof TranslationError?e.status:503)).catch(()=>{});return Response.json({error:e instanceof TranslationError?e.code:'translation_unavailable'},{status:e instanceof TranslationError?e.status:503,headers:{'Cache-Control':'no-store'}});}

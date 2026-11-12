@@ -42,14 +42,19 @@ test('query is parameterized, published-only, currency-specific, no demo fallbac
  const q=core.assistantQuery(f);assert.ok(q.where.includes("l.status='published'"));assert.ok(q.where.includes('l.currency=?'));assert.ok(q.where.includes('l.price<=?'));assert.ok(q.where.includes('l.bedrooms>=?'));assert.ok(q.values.includes('Bahçe'));assert.equal(q.where.includes('İstanbul'),false);
  assert.throws(()=>core.assistantQuery(f,['ex-1001']),e=>e.code==='input');
 });
-test('security quota stays atomic while daily usage thresholds are advisory',async()=>{
+// Since 2026-11-12 the site-wide daily and monthly caps refuse requests (Yönetim › Yapay zekâ kotaları).
+test('member and site-wide daily and monthly quotas are atomic and enforced',async()=>{
  const db=database(),time=new Date('2026-10-21T10:00:00Z');
  try{
   for(let n=0;n<20;n++)await service.reserveAssistantUsage(db,'one',100,time);
   await assert.rejects(()=>service.reserveAssistantUsage(db,'one',100,time),e=>e.code==='rate_limit');
   assert.equal(db.sql.prepare('SELECT requests FROM ai_usage_limits WHERE key=?').get('assistant:global:2026-10-21').requests,40);
   const usage=await service.reserveAssistantUsage(db,'two',42,time);await usage({input:250,output:60});
-  await service.reserveAssistantUsage(db,'three',42,time);assert.equal(db.sql.prepare('SELECT requests FROM ai_usage_limits WHERE key=?').get('assistant:global:2026-10-21').requests,44);
+  // The daily cap (42 calls, 2 per question) is reached: the next question is refused for everyone.
+  await assert.rejects(()=>service.reserveAssistantUsage(db,'three',42,time),e=>e.code==='rate_limit');
+  await service.reserveAssistantUsage(db,'three',44,time);assert.equal(db.sql.prepare('SELECT requests FROM ai_usage_limits WHERE key=?').get('assistant:global:2026-10-21').requests,44);
+  // Monthly cap: 44 calls used this month and a question needs 2, so a cap of 45 refuses it.
+  await assert.rejects(()=>service.reserveAssistantUsage(db,'four',1000,time,45),e=>e.code==='rate_limit');
   assert.equal(db.sql.prepare('SELECT input_tokens FROM ai_usage_limits WHERE key=?').get('assistant:global:2026-10-21').input_tokens,250);
  }finally{db.sql.close();}
 });

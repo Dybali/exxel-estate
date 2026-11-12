@@ -1,4 +1,5 @@
 import {env} from './runtime';
+import {aiSettings} from './ai-limits-server';
 import {listingById,serviceDB} from './server';
 import {contentLocales,type TranslationSettings} from './translation';
 import {translationContent} from './translation-content';
@@ -25,8 +26,9 @@ export async function queueImportedListing(id:string){const database=batchDB();i
 /** Daily: collect finished jobs, then submit the queue. Never rejects. */
 export async function translationBatchJob(){
  const database=batchDB();if(!database)return {poll:null,submit:null};
- const poll=await pollTranslationBatches(database,translationSettings()).catch(cause=>({error:String(cause).slice(0,200)}));
- const submit=await submitTranslationBatch(database,translationSettings(),listingSource).catch(cause=>({status:'error',error:String(cause).slice(0,200)}));
+ const settings=await aiSettings();
+ const poll=await pollTranslationBatches(database,settings).catch(cause=>({error:String(cause).slice(0,200)}));
+ const submit=await submitTranslationBatch(database,settings,listingSource).catch(cause=>({status:'error',error:String(cause).slice(0,200)}));
  if(submit&&'status'in submit&&submit.status!=='empty'&&submit.status!=='not_configured')console.info('translation_batch',JSON.stringify(submit));
  return {poll,submit};
 }

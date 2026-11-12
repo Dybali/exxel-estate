@@ -45,3 +45,29 @@
 .admin-trial-cell h4{margin:0 0 6px;font-size:14px}
 .admin-trial-cell p{margin:0;white-space:pre-line;max-height:260px;overflow:auto}
 .admin-trial-cell small{display:block;margin-top:6px;color:#9b2c21;font-weight:650}
+
+/* Admin "Yapay zekâ kotaları" (components/AdminAiLimits.tsx) */
+.admin-ai-summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.admin-ai-summary div{display:grid;gap:4px}
+.admin-ai-summary span{font-size:12px;color:#5d6e69}
+.admin-ai-summary strong{font-size:20px}
+.admin-ai-chart figcaption{display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:8px}
+.admin-ai-bars{display:flex;align-items:flex-end;gap:3px;height:120px;padding:6px;border:1px solid #e1e8e6;border-radius:8px;background:#fafcfb}
+.admin-ai-bars span{flex:1;display:flex;align-items:flex-end;height:100%}
+.admin-ai-bars i{display:block;width:100%;min-height:1px;border-radius:2px 2px 0 0;background:#0b5f63}
+.admin-ai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.admin-ai-limit{display:grid;gap:8px}
+.admin-ai-limit header{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.admin-ai-limit h3{margin:0;font-size:15px}
+.admin-ai-used{margin:0}
+.admin-ai-used strong{font-size:20px}
+.admin-ai-used small{color:#5d6e69}
+.admin-ai-bar{height:8px;border-radius:999px;background:#e8efed;overflow:hidden}
+.admin-ai-bar i{display:block;height:100%;background:#1d6a3d}
+.admin-ai-limit.level-warning .admin-ai-bar i{background:#c98a0b}
+.admin-ai-limit.level-exceeded .admin-ai-bar i{background:#b8342a}
+.admin-ai-limit.level-exceeded{border-color:#e6a49c}
+.admin-ai-note{margin:0;font-size:12px;color:#5d6e69}
+.admin-ai-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.admin-ai-form label{display:grid;gap:3px;font-size:12px;font-weight:650;flex:1;min-width:120px}
+.admin-ai-form input{min-height:36px;padding:6px 8px;border:1px solid #cfd8d6;border-radius:6px;font:inherit}

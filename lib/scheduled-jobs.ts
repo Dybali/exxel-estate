@@ -11,6 +11,7 @@ import type { VideoDatabase } from "./listing-video-store";
 // Through the alias: in the Node build lib/db-backup-node.ts, on Cloudflare a null slot.
 import { runDatabaseBackup, type BackupReport } from "@/lib/db-backup";
 import { translationBatchJob, translationBatchPoll } from "./translation-runtime";
+import { aiUsageJob } from "./ai-limits-server";
 
 // The scheduled jobs, shared by the Cloudflare cron triggers (build/sites-worker.ts scheduled())
 // and the protected HTTP endpoint /api/cron/[job] that a Mittwald cronjob calls.
@@ -33,6 +34,8 @@ export async function healthJob(settings: JobSettings) {
   });
   // Finished overnight translation jobs are collected within the hour (lib/translation-batch.ts).
   const translations = await translationBatchPoll().catch(() => null);
+  // AI usage history and the 80 % / 100 % quota e-mail (Yönetim › Yapay zekâ kotaları).
+  await aiUsageJob().catch(() => null);
   return { checks, alert: await alertOnFailure(checks, withSiteUrl(settings)), translations };
 }
 

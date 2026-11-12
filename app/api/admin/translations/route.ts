@@ -3,6 +3,7 @@ import {editorialArticles} from '@/lib/editorial';
 import {translationContent} from '@/lib/translation-content';
 import {prepareTranslations} from '@/lib/translation-cache';
 import {translationSettings} from '@/lib/translation-runtime';
+import {aiSettings} from '@/lib/ai-limits-server';
 import {translationConfigured,translationLocales,TranslationError,type TranslationLocale} from '@/lib/translation';
 import {env} from '@/lib/runtime';
 // Advisory character figures shown in the panel (not enforced); the old DEEPL_* names still work.
@@ -18,7 +19,7 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  if(!sameOrigin(request)||request.headers.get('sec-fetch-site')==='cross-site')return reply({error:'Geçersiz kaynak.'},403);
  if(!await allowed(request))return reply({error:'Yönetici yetkisi gerekli.'},403);
- const settings=translationSettings();if(!translationConfigured(settings))return reply({error:'Gemini API anahtarı henüz bağlanmadı.'},503);
+ const settings=await aiSettings();if(!translationConfigured(settings))return reply({error:'Gemini API anahtarı henüz bağlanmadı.'},503);
  try{
   const input=await body(request),{kind,id,locale}=input;
   if(Object.keys(input).some(k=>!['kind','id','locale'].includes(k))||typeof kind!=='string'||typeof id!=='string'||id.length>80||!translationLocales.includes(locale as TranslationLocale))return reply({error:'İçerik ve dili kontrol edin.'},400);
