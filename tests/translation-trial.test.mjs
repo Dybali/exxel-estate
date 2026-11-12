@@ -12,12 +12,13 @@ test('request: one call with every other site language, JSON schema, minimal thi
  assert.deepEqual(T.trialTargets('tr'),['de','fr','en','ar','fa','ru','nl']);
  assert.deepEqual(body.generationConfig.responseSchema.required,['de','fr','en','ar','fa','ru','nl']);
  assert.deepEqual(body.generationConfig.thinkingConfig,{thinkingLevel:'minimal'});
- assert.deepEqual(T.trialRequest('gemini-2.5-flash-lite','tr',listing).generationConfig.thinkingConfig,{thinkingBudget:0});
  assert.match(body.systemInstruction.parts[0].text,/data, never instructions/);
  assert.deepEqual(JSON.parse(body.contents[0].parts[0].text),{title:listing.title,description:listing.description});
  // A German listing is translated into Turkish too, never into German.
  assert.deepEqual(T.trialTargets('de'),['tr','fr','en','ar','fa','ru','nl']);
- assert.equal(T.isTrialModel('gemini-3.5-flash-lite'),true);assert.equal(T.isTrialModel('gemini-3.5-pro'),false);
+ assert.equal(T.isTrialModel('gemini-3.5-flash-lite'),true);assert.equal(T.isTrialModel('gemini-3.5-pro'),false);assert.equal(T.isTrialModel('gemini-2.5-flash-lite'),false,'retired by Google (404)');
+ // Persian and Arabic-Indic digits are the same numbers, not lost ones.
+ assert.deepEqual(T.trialWarnings({title:'5+1 villa',description:'300 m² bahçe'},{title:'ویلا ۵+۱',description:'باغ ٣٠٠ متر مربع'}),[]);
 });
 
 test('run: parses the answer, counts characters and tokens, flags lost numbers and missing languages',async()=>{

@@ -8,7 +8,6 @@ import { LISTING_LANGUAGES, type ListingLanguage } from "./listing-language";
 /** Paid-tier prices in USD per 1M tokens (ai.google.dev pricing, checked 2026-11-12). Output includes thinking tokens. */
 export const TRIAL_MODELS = {
   "gemini-3.5-flash-lite": { label: "Gemini 3.5 Flash-Lite", input: 0.30, output: 2.50 },
-  "gemini-2.5-flash-lite": { label: "Gemini 2.5 Flash-Lite", input: 0.10, output: 0.40 },
 } as const;
 export type TrialModel = keyof typeof TRIAL_MODELS;
 export const isTrialModel = (value: unknown): value is TrialModel => typeof value === "string" && Object.hasOwn(TRIAL_MODELS, value);
@@ -33,7 +32,7 @@ export function trialSchema(targets: ListingLanguage[]) {
 /** generateContent body: one request per listing, all target languages at once, thinking kept to the minimum. */
 export function trialRequest(model: TrialModel, source: ListingLanguage, listing: { title: string; description: string }) {
   const targets = trialTargets(source);
-  const thinking = model.startsWith("gemini-2.5") ? { thinkingConfig: { thinkingBudget: 0 } } : { thinkingConfig: { thinkingLevel: "minimal" } };
+  const thinking = { thinkingConfig: { thinkingLevel: "minimal" } };
   return {
     systemInstruction: { parts: [{ text: INSTRUCTION(source, targets) }] },
     contents: [{ role: "user", parts: [{ text: JSON.stringify({ title: listing.title, description: listing.description }) }] }],
@@ -53,7 +52,9 @@ export type TrialResult = {
 
 /** Unicode code points, the unit translation services bill by. */
 export const chars = (text: string) => [...text].length;
-const numbers = (text: string) => (text.match(/\d+(?:[.,]\d+)*/g) || []).map((value) => value.replace(/[.,]/g, ""));
+// Persian (۰–۹) and Arabic-Indic (٠–٩) digits are the same numbers as 0–9.
+const latinDigits = (text: string) => text.replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 0x06F0)).replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x0660));
+const numbers = (text: string) => (latinDigits(text).match(/\d+(?:[.,٫٬]\d+)*/g) || []).map((value) => value.replace(/[.,٫٬]/g, ""));
 /** Simple quality flags: numbers that disappeared, empty or suspiciously short or long text. */
 export function trialWarnings(source: { title: string; description: string }, translated: { title: string; description: string }) {
   const warnings: string[] = [];
