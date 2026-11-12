@@ -86,8 +86,16 @@ jobs:
         run: npm install -g @mittwald/cli@1.26.0 --no-audit --no-fund
       - name: Point the test container at this commit's image
         if: steps.creds.outputs.ready == 'true'
-        # The CLI reads the API token from MITTWALD_API_TOKEN.
-        run: mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet
+        # The CLI reads the API token from MITTWALD_API_TOKEN. The mittwald API sometimes answers 503 for a
+        # while (maintenance, busy periods); retry for about 20 minutes before failing the run.
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8; do
+            if mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
+            echo "::warning::mittwald API update failed (attempt $attempt of 8); retrying in $((attempt * 30)) seconds."
+            sleep $((attempt * 30))
+          done
+          echo "::error::mittwald API still unavailable; re-run this job when https://status.mittwald.de is green."
+          exit 1
       - name: Wait for the new container
         if: steps.creds.outputs.ready == 'true' && env.MITTWALD_TEST_URL != ''
         run: |
