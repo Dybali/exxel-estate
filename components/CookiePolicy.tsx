@@ -17,7 +17,7 @@ const COOKIES:[name:string,purpose:string,expiry:string,category:string][]=[
   ['em24_locale','Dil tercihi','1 yıl','Zorunlu'],
   ['em24_currency','Para birimi tercihi (fiyatların gösterileceği para birimi; tarayıcıda da saklanır).','1 yıl','Zorunlu'],
   ['em24_admin_2fa','Yönetici iki adımlı doğrulama onayı (yalnızca yöneticiler).','12 saat','Zorunlu'],
-  ['em24_viewer','İlan görüntülemelerinin ölçülmesi.','30 gün','İstatistik'],
+  ['em24_viewer','İlan görüntülemelerinin ve iletişim tıklamalarının ölçülmesi.','30 gün','İstatistik'],
   ['_ga, _ga_<ID>','Google Analytics 4 ziyaret istatistikleri (yalnızca izninizle ve etkinleştirilmişse).','2 yıl','İstatistik'],
 ];
 const STORAGE:[name:string,purpose:string,expiry:string][]=[

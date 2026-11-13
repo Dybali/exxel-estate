@@ -8,7 +8,7 @@ import {LegalClauses, LegalContactBox, LegalPage, LegalRights, LegalRomanList, P
 // docs/nl-search.md, docs/listing-videos.md, docs/services.md, docs/mittwald-migration.md. Formal numbered clauses
 // (1.1, 1.2…) in the order owners asked for (2026-11-09): introduction, data, use, sharing, transfers, cookies,
 // security, rights, questions. Update the date when the content changes.
-export const PRIVACY_UPDATED = '2026-11-12';
+export const PRIVACY_UPDATED = '2026-11-13';
 
 export function PrivacyPolicy(){
   const {t}=useLocale();
@@ -86,6 +86,7 @@ export function PrivacyPolicy(){
       <p>{t('Firmalar “Belgeli firma” rozeti için vergi levhası, ruhsat veya sigorta belgesi yükleyebilir. Bu belgeleri yalnızca yöneticiler görür; herkese açık yayımlanmaz.')}</p>,
       <p>{t('Teklif istediğinizde iş tanımınız ve adınız, seçtiğiniz kategori ve bölgede hizmet veren en fazla 12 uygun firmaya (veya profilinden teklif istediğiniz tek firmaya) iletilir. Telefon numaranız ve e-posta adresiniz firmalara yalnızca bunu seçtiyseniz ya da bir firmanın teklifini kabul ettiğinizde o firmaya gösterilir. Firmalar talebinizi yanıtlamak için bu verileri kendi sorumluluklarında işler.')}</p>,
       <p>{t('Firmalar profil görüntüleme ve tıklama sayılarını yalnızca toplu istatistik olarak görür; ziyaretçilerin kimliği gösterilmez.')}</p>,
+      <p>{t('İlan sahipleri, ilanlarının görüntülenme, favori, telefon gösterme, WhatsApp, mesaj ve randevu sayılarını ve ziyaretçilerin site dilini yalnızca toplu istatistik olarak görür; kimin baktığı veya tıkladığı gösterilmez. Her işlem kişi başına günde bir kez sayılır ve kimliğiniz yerine o güne özgü, geri çevrilemeyen bir özet saklanır. Giriş yapmış üyelerin telefon ve WhatsApp tıklamaları ilan sahibine hizmet sunmak için meşru menfaat kapsamında, giriş yapmamış ziyaretçiler yalnızca istatistik izniyle sayılır.')}</p>,
     ]}/>},
     {id:'otomasyon',title:t('Yapay zekâ, çeviri ve otomatik kontroller'),content:<LegalClauses section={7} items={[
       <p>{t('estateAI asistanı ve doğal dil araması, yazdığınız metni yanıt veya arama filtresi üretmek için gerektiğinde Google Gemini’ye iletir. Metin gönderilmeden önce e-posta adresleri ve telefon numaraları maskelenir; arama metni tarafımızdan saklanmaz.')}</p>,
