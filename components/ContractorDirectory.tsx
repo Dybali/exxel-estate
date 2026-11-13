@@ -148,7 +148,7 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
           <span className="service-kicker"><HardHat size={15} aria-hidden="true"/>{t("Müteahhit misiniz?")}</span>
           <h2 id="ctr-provider-title">{t("Firmanızı ekleyin, arsa sahiplerine ulaşın")}</h2>
           <ul>
-            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Firma profili ücretsizdir; hesap türünüz değişmez.")}</li>
+            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Firma profili ücretsizdir; müteahhit hesabıyla açılır.")}</li>
             <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Profiliniz yönetici onayından sonra yayınlanır.")}</li>
             <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Satıştaki projelerinizi Projeler bölümünde ayrıca yayınlayabilirsiniz.")}</li>
           </ul>

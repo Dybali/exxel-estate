@@ -186,7 +186,7 @@ export function ServiceFirmPanel() {
     {firm === undefined && !error && <p>{t("Yükleniyor...")}</p>}
     {editing && firm !== undefined && <FirmForm firm={firm} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında Hizmetler bölümünde yayınlanır."); void load(); }}/>}
     {!editing && firm === null && <div className="panel-empty service-account-intro"><Store size={28}/><h3>{t("Hizmet veriyorsanız firmanızı ekleyin")}</h3>
-      <p>{t("Boyacı, tesisatçı, nakliyeci, avukat veya tercüman gibi hizmet veren firmalar Hizmetler bölümünde ücretsiz profil açabilir. Hesap türünüz değişmez; ilan vermeye devam edebilirsiniz.")}</p>
+      <p>{t("Boyacı, tesisatçı, nakliyeci, avukat veya tercüman gibi hizmet veren firmalar Hizmetler bölümünde ücretsiz profil açabilir.")}</p>
       <Link href="/hizmetler">{t("Hizmetler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
     {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>{SECTIONS.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-pressed={section === id} onClick={() => choose(id)}>
       <Icon size={16} aria-hidden="true"/>{t(label)}{id === "talepler" && extras.unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(extras.unseen))}>{extras.unseen}</b>}</button>)}</nav>}

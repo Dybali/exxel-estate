@@ -18,7 +18,7 @@ export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
       <span className="service-kicker"><Store size={15} aria-hidden="true"/>{t("Hizmet veren misiniz?")}</span>
       <h2 id="service-cta-title">{t("Firmanızı ekleyin, bölgenizdeki ev sahiplerine ulaşın")}</h2>
       {!compact && <ul>
-        <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Firma profili ücretsizdir; hesap türünüz değişmez.")}</li>
+        <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Firma profili ücretsizdir; hizmet firması hesabıyla açılır.")}</li>
         <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Profiliniz yönetici onayından sonra yayınlanır.")}</li>
         <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Müşteriler sizi telefon, WhatsApp veya e-posta ile doğrudan arar.")}</li>
       </ul>}

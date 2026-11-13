@@ -1,4 +1,5 @@
 import {activeTeamCompany} from '@/lib/company-team-server';
+import {accountKind,AccountKindError,isFirmKind,setAccountKind,type KindDatabase} from '@/lib/account-kind';
 import { ensureProfiles, validProfileImage } from '@/lib/seller-profiles';
 import { headExternalImage } from '@/lib/external-r2';
 import { body, clientIp, createSession, currentUser, db, error, isAdmin, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str, verifyPassword } from "@/lib/server";
@@ -10,7 +11,8 @@ export async function GET(request:Request) {
   const user=await currentUser(request);
   const database=db();let bio='';if(user){await ensureProfiles(database);bio=(await database.prepare('SELECT bio FROM seller_profiles WHERE user_id=?').bind(user.id).first<{bio:string}>())?.bio||'';}
   const company= user?.role==='agent'?await database.prepare('SELECT category FROM agencies WHERE owner_id=?').bind(user.id).first<{category:string}>():null;
-  return ok({user:user?{...user,bio,companyCategory:company?.category||null,isAdmin:isAdmin(user)}:null},{headers:{"Cache-Control":"private, no-store"}});
+  const kind=user?await accountKind(database as unknown as KindDatabase,user):null;
+  return ok({user:user?{...user,bio,companyCategory:company?.category||null,isAdmin:isAdmin(user),accountKind:kind}:null},{headers:{"Cache-Control":"private, no-store"}});
 }
 
 export async function POST(request:Request) {
@@ -46,6 +48,13 @@ export async function POST(request:Request) {
     await database.batch([database.prepare('UPDATE users SET name=?,phone=?,whatsapp_enabled=?,avatar_url=? WHERE id=?').bind(name,phone,whatsappEnabled?1:0,avatarUrl||null,user.id),database.prepare('INSERT INTO seller_profiles(user_id,bio,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET bio=excluded.bio,updated_at=excluded.updated_at').bind(user.id,bio,now())]);
     return ok({success:true,user:{...user,name,phone,bio,avatar_url:avatarUrl||null,whatsapp_enabled:whatsappEnabled?1:0,isAdmin:isAdmin(user)}},{headers:{"Cache-Control":"private, no-store"}});
   }
+  // Profilim › Hesap türü: Bireysel, Müteahhit or Hizmet firması (agents use request_seller_role and verification).
+  if (action==="set_account_kind") {
+    const user=await currentUser(request);
+    if(!user) return error("Önce giriş yapın.",401);
+    try{return ok({success:true,accountKind:await setAccountKind(db() as unknown as KindDatabase,user,data.kind)});}
+    catch(cause){if(cause instanceof AccountKindError)return error(cause.message,cause.status);throw cause;}
+  }
   if (action==="request_seller_role") {
     const user=await currentUser(request);
     if(!user) return error("Önce giriş yapın.",401);
@@ -71,7 +80,9 @@ export async function POST(request:Request) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length<10 || password.length>128) return error("Geçerli e-posta ve en az 10 karakterli şifre girin.");
   if (action==="register") {
     try{await consumeRecoveryLimit(db(),await sha256('registration:'+ clientIp(request)),5);}catch(cause){if(cause instanceof RecoveryError)return error(cause.message,cause.status);throw cause;}
-    const name=str(data.name,100), role=str(data.role,20);
+    // Müteahhit and Hizmet firması register as plain members (role buyer) with their account type alongside.
+    const kind=isFirmKind(data.role)?data.role:null;
+    const name=str(data.name,100), role=kind?"buyer":str(data.role,20);
     if (name.length<2 || !["buyer","individual","agent"].includes(role)) return error("Ad ve hesap türünü kontrol edin.");
     const existing=await db().prepare("SELECT id FROM users WHERE email=?").bind(email).first();
     if(existing) return error("Bu e-posta ile kayıtlı bir hesap var.",409);
@@ -84,8 +95,9 @@ export async function POST(request:Request) {
     if(role==="agent") statements.push(db().prepare("INSERT INTO agencies(id,owner_id,name,category,status,created_at) VALUES(?,?,?,?,?,?)")
       .bind(crypto.randomUUID(),id,company!,category,"pending",createdAt));
     await db().batch(statements);
+    if(kind)await setAccountKind(db() as unknown as KindDatabase,{id,role},kind,createdAt);
     const token=await createSession(id);
-    return ok({user:{id,email,name,role,agent_status:role==="agent"?"pending":"none",isAdmin:false}},{status:201,headers:{"Set-Cookie":sessionCookie(token)}});
+    return ok({user:{id,email,name,role,agent_status:role==="agent"?"pending":"none",isAdmin:false,accountKind:kind||(role==="agent"?"agent":"individual")}},{status:201,headers:{"Set-Cookie":sessionCookie(token)}});
   }
   if(action==="login") {
     const ip=clientIp(request);

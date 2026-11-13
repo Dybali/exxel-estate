@@ -1,4 +1,5 @@
 import { consumeRecoveryLimit, RecoveryError } from "@/lib/recovery-service";
+import { firmAllowed, firmRefusal, type KindDatabase } from "@/lib/account-kind";
 import { body, bucket, currentUser, db, error, ok, sameOrigin, sha256 } from "@/lib/server";
 import { firmDetails, firmDocuments, responseHours, unseenQuotes } from "@/lib/service-extras";
 import { createFirm, deleteFirm, firmImageKeys, ownerFirm, ServiceError, updateFirm } from "@/lib/services";
@@ -7,7 +8,7 @@ import { removeServiceMedia, serviceActor, serviceImagesStored, servicesDB } fro
 const privateHeaders = { headers: { "Cache-Control": "private, no-store" } };
 
 // Any signed-in member with a verified e-mail can run one service firm ("Hizmet firmam" in Hesabım);
-// their account role does not change. currentUser() already refuses unverified sessions here.
+// only service-firm accounts may open one (lib/account-kind.ts). currentUser() already refuses unverified sessions here.
 async function member(request: Request) {
   const user = await currentUser(request);
   return user?.email_verified ? user : null;
@@ -43,6 +44,8 @@ export async function POST(request: Request) {
   if (blocked) return blocked;
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Firma bilgilerini kontrol edin."); }
+  // Only a service-firm account opens a service firm (one account, one type).
+  if (!await firmAllowed(servicesDB() as unknown as KindDatabase, user, "service")) return error(firmRefusal("service"), 403);
   const problem = await storedProblem(data, user.id);
   if (problem) return problem;
   try { return ok(await createFirm(servicesDB(), serviceActor(user), data), { status: 201, ...privateHeaders }); }

@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   const user = link ? await currentUser(request) : null;
   if (link && !user) return redirectNoStore(`${origin}/giris?next=%2Fhesabim%3Ftab%3Dprofil`);
   const desiredRole = url.searchParams.get("role");
-  const role = desiredRole === "individual" || desiredRole === "agent" ? desiredRole : "buyer";
+  const role = desiredRole === "individual" || desiredRole === "agent" || desiredRole === "contractor" || desiredRole === "service" ? desiredRole : "buyer";
   const nextPath = safeNextPath(url.searchParams.get("next"), link ? "/hesabim?tab=profil" : "/hesabim");
   const state = randomUrlToken();
   const verifier = randomUrlToken();

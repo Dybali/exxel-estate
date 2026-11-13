@@ -1,4 +1,5 @@
 import { createSession, currentUser, db, now, requestOrigin, sessionCookie, sha256 } from "@/lib/server";
+import { isFirmKind, setAccountKind, type KindDatabase } from "@/lib/account-kind";
 import { flowCookie, GOOGLE_CALLBACK_PATH, GOOGLE_FLOW_COOKIE, googleConfig, loginError, redirectNoStore, safeNextPath } from "@/lib/google-auth";
 
 type Flow = { code_verifier: string; role: string; next_path: string; link_user_id: string | null; expires_at: string };
@@ -94,6 +95,7 @@ export async function GET(request: Request) {
       } else {
         userId = crypto.randomUUID();
         const name = profile.name?.trim().slice(0, 100) || email.split("@")[0];
+        const kind = isFirmKind(flow.role) ? flow.role : null;
         const role = ["buyer", "individual", "agent"].includes(flow.role) ? flow.role : "buyer";
         await db().batch([
           db().prepare("INSERT INTO users(id,email,password_hash,email_verified,name,role,agent_status,company,avatar_url,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
@@ -101,6 +103,7 @@ export async function GET(request: Request) {
           db().prepare("INSERT INTO oauth_accounts(provider,provider_user_id,user_id,created_at) VALUES('google',?,?,?)")
             .bind(profile.sub, userId, now()),
         ]);
+        if (kind) await setAccountKind(db() as unknown as KindDatabase, { id: userId, role }, kind);
       }
     } else if (avatarUrl) {
       await db().prepare("UPDATE users SET avatar_url=? WHERE id=?").bind(avatarUrl, userId).run();

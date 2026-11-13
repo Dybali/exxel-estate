@@ -233,7 +233,7 @@ export function ContractorPanel() {
     {firm === undefined && !error && <p>{t("Yükleniyor...")}</p>}
     {editing && firm !== undefined && <ContractorForm firm={firm} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında yayınlanır."); void load(); }}/>}
     {!editing && firm === null && <div className="panel-empty service-account-intro"><HardHat size={28}/><h3>{t("Müteahhitseniz firmanızı ekleyin")}</h3>
-      <p>{t("Konut, villa, ticari veya kentsel dönüşüm projeleri yapan firmalar Müteahhitler bölümünde ücretsiz profil açabilir ve arsa sahiplerinden kat karşılığı talebi alabilir. Hesap türünüz değişmez.")}</p>
+      <p>{t("Konut, villa, ticari veya kentsel dönüşüm projeleri yapan firmalar Müteahhitler bölümünde ücretsiz profil açabilir ve arsa sahiplerinden kat karşılığı talebi alabilir.")}</p>
       <Link href={CONTRACTOR_BASE}>{t("Müteahhitler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
     {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>
       <button type="button" aria-pressed={section === "profil"} onClick={() => setSection("profil")}><HardHat size={16} aria-hidden="true"/>{t("Profil")}</button>
@@ -253,7 +253,7 @@ export function ContractorPanel() {
         <button type="button" className="small-primary" onClick={() => { setEditing(true); setNotice(""); }}><Pencil size={15}/>{t("Düzenle")}</button>
         <button type="button" className="outline-button danger" onClick={() => void remove()}><Trash2 size={15}/>{t("Sil")}</button>
       </div>
-      <p className="project-editor-note">{t("Satıştaki projelerinizi Projeler bölümünde yayınlarsanız profilinizde otomatik görünür.")} <Link href="/hesabim?tab=projelerim">{t("Projelerim")}</Link></p>
+     
     </article>}
   </section>;
 }
