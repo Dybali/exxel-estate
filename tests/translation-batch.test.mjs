@@ -184,3 +184,12 @@ test('Luna batch: an answer returned untranslated is not saved, so the language 
  assert.equal(nl.fields.title,'Villa A','a two-word name may stay as it is');
  assert.equal(nl.fields.description,undefined,'the unchanged description is not saved');
 });
+
+test('admin "add all listings": every published listing is queued once (queuePublishedListings SQL)',async()=>{
+ const src=readFileSync(path.join(root,'lib/translation-runtime.ts'),'utf8');
+ assert.match(src,/SELECT id FROM listings WHERE status='published'/);
+ const route=readFileSync(path.join(root,'app/api/admin/translations/route.ts'),'utf8');
+ assert.match(route,/input\.action==='queue_all'&&Object\.keys\(input\)\.length===1/,'only the action key, admin-checked above');
+ const db=database();for(const id of ['a','b','a'])await B.queueBatchTranslation(db,id);
+ assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,2,'queueing twice keeps one row');
+});

@@ -23,6 +23,13 @@ const listingSource:BatchSource=async id=>{
  }
  return docs;
 };
+/** Yönetim › Çeviriler: every published listing into tonight's batch (listings published before the nightly batch existed). */
+export async function queuePublishedListings(){
+ const database=batchDB();if(!database)return 0;
+ const rows=await database.prepare("SELECT id FROM listings WHERE status='published' ORDER BY updated_at DESC LIMIT 20000").bind().all<{id:string}>();
+ for(const row of rows.results||[])await queueBatchTranslation(database,String(row.id));
+ return (rows.results||[]).length;
+}
 export async function queueListingTranslation(id:string){const database=batchDB();if(database)await queueBatchTranslation(database,id).catch(cause=>console.warn('translation_queue_failed',String(cause)));}
 /** Daily: collect finished jobs, then submit the queue. Never rejects. */
 export async function translationBatchJob(){

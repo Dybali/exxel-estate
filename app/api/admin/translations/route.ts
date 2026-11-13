@@ -2,7 +2,7 @@ import {body,currentUser,isAdmin,sameOrigin,db,serviceDB} from '@/lib/server';
 import {editorialArticles} from '@/lib/editorial';
 import {translationContent} from '@/lib/translation-content';
 import {prepareTranslations} from '@/lib/translation-cache';
-import {translationSettings} from '@/lib/translation-runtime';
+import {queuePublishedListings,translationSettings} from '@/lib/translation-runtime';
 import {aiSettings} from '@/lib/ai-limits-server';
 import {translationConfigured,translationLocales,TranslationError,type TranslationLocale} from '@/lib/translation';
 import {env} from '@/lib/runtime';
@@ -22,6 +22,8 @@ export async function POST(request:Request){
  const settings=await aiSettings();if(!translationConfigured(settings))return reply({error:'Gemini API anahtarı henüz bağlanmadı.'},503);
  try{
   const input=await body(request),{kind,id,locale}=input;
+  // Queues every published listing for the nightly translation into all languages (cached texts cost nothing).
+  if(input.action==='queue_all'&&Object.keys(input).length===1)return reply({queued:await queuePublishedListings()});
   if(Object.keys(input).some(k=>!['kind','id','locale'].includes(k))||typeof kind!=='string'||typeof id!=='string'||id.length>80||!translationLocales.includes(locale as TranslationLocale))return reply({error:'İçerik ve dili kontrol edin.'},400);
   const content=await translationContent(kind,id,locale as TranslationLocale);if(!content)return reply({error:'Yayında içerik bulunamadı.'},404);
   const document={...content.document,fields:Object.fromEntries(Object.entries(content.document.fields).filter(([field])=>!content.manual[field]))};
