@@ -166,7 +166,7 @@ export const privacyClauseWords: Record<string,{de:string;fr:string;en:string;ar
  "Hesap türünü değiştir":{"de":"Kontotyp ändern","fr":"Changer le type de compte","en":"Change account type","ar":"تغيير نوع الحساب","fa":"تغییر نوع حساب","ru":"Изменить тип аккаунта","nl":"Accounttype wijzigen"},
  "Hesap ayarları":{"de":"Kontoeinstellungen","fr":"Paramètres du compte","en":"Account settings","ar":"إعدادات الحساب","fa":"تنظیمات حساب","ru":"Настройки аккаунта","nl":"Accountinstellingen"},
  "Firma profili bulunamadı.":{"de":"Firmenprofil nicht gefunden.","fr":"Profil d’entreprise introuvable.","en":"Firm profile not found.","ar":"لم يُعثر على ملف الشركة.","fa":"نمایهٔ شرکت پیدا نشد.","ru":"Профиль компании не найден.","nl":"Bedrijfsprofiel niet gevonden."},
- "Türkiye distribütörü":{"de":"Vertriebspartner in der Türkei","fr":"Distributeur en Turquie","en":"Distributor in Türkiye","ar":"الموزّع في تركيا","fa":"توزیع‌کننده در ترکیه","ru":"Дистрибьютор в Турции","nl":"Distributeur in Türkiye"},
+ "Lisans alan (Türkiye)":{"de":"Lizenznehmer (Türkei)","fr":"Licencié (Turquie)","en":"Licensee (Türkiye)","ar":"المرخَّص له (تركيا)","fa":"دارندهٔ مجوز (ترکیه)","ru":"Лицензиат (Турция)","nl":"Licentienemer (Turkije)"},
  "Almanya":{"de":"Deutschland","fr":"Allemagne","en":"Germany","ar":"ألمانيا","fa":"آلمان","ru":"Германия","nl":"Duitsland"},
  "GEMINI_API_KEY ayarlı değil.":{de:"GEMINI_API_KEY ist nicht gesetzt.",fr:"GEMINI_API_KEY n’est pas configuré.",en:"GEMINI_API_KEY is not set.",ar:"لم يتم ضبط GEMINI_API_KEY.",fa:"GEMINI_API_KEY تنظیم نشده است.",ru:"GEMINI_API_KEY не задан.",nl:"GEMINI_API_KEY is niet ingesteld."},
  "Model":{de:"Modell",fr:"Modèle",en:"Model",ar:"النموذج",fa:"مدل",ru:"Модель",nl:"Model"},
