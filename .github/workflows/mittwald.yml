@@ -63,7 +63,7 @@ jobs:
   deploy-test:
     needs: image
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 45
     concurrency:
       group: deploy-mittwald-test
       cancel-in-progress: false
@@ -87,14 +87,18 @@ jobs:
       - name: Point the test container at this commit's image
         if: steps.creds.outputs.ready == 'true'
         # The CLI reads the API token from MITTWALD_API_TOKEN. The mittwald API sometimes answers 503 for a
-        # while (maintenance, busy periods); retry for about 20 minutes before failing the run.
+        # while (maintenance, busy periods), and one CLI call then takes about four minutes to give up. Five
+        # attempts fit inside this job's timeout, so a lasting outage ends as a failed run with the reason in
+        # the log instead of a cancelled one. After a failed attempt the status codes of three API requests
+        # show whether the whole API, only this project or only its containers are affected (codes only).
         run: |
-          for attempt in 1 2 3 4 5 6 7 8; do
-            if mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
-            echo "::warning::mittwald API update failed (attempt $attempt of 8); retrying in $((attempt * 30)) seconds."
-            sleep $((attempt * 30))
+          probe() { curl -s -o /dev/null -m 30 -w '%{http_code}' -H "Authorization: Bearer $MITTWALD_API_TOKEN" "https://api.mittwald.de/v2/$1" || true; }
+          for attempt in 1 2 3 4 5; do
+            if timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
+            echo "::warning::mittwald API update failed (attempt $attempt of 5). API answers: account $(probe users/self), project $(probe "projects/$MITTWALD_PROJECT_ID"), containers $(probe "projects/$MITTWALD_PROJECT_ID/services")."
+            if [ "$attempt" -lt 5 ]; then sleep 60; fi
           done
-          echo "::error::mittwald API still unavailable; re-run this job when https://status.mittwald.de is green."
+          echo "::error::mittwald API still unavailable after 5 attempts; re-run this job when https://status.mittwald.de is green. If only the project request fails, the project itself needs a look in mStudio."
           exit 1
       - name: Wait for the new container
         if: steps.creds.outputs.ready == 'true' && env.MITTWALD_TEST_URL != ''
