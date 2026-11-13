@@ -2,6 +2,10 @@ import {bucket,currentUser,error,isAdmin,now,ok,sameOrigin,str} from '@/lib/serv
 import {normalizeContactPhone} from '@/lib/phone';
 import {officeDB} from '@/lib/office-verification-server';
 import {officeFileType,readOfficeFile,OFFICE_PUBLIC_FIELDS,type OfficeVerification} from '@/lib/office-verification';
+import {checkOffice} from '@/lib/office-check';
+import {decideOffice} from '@/lib/office-decision';
+import {queueListingTranslation} from '@/lib/translation-runtime';
+import {env} from '@/lib/runtime';
 export async function GET(request:Request){
  const user=await currentUser(request);if(!user)return error('Belge başvurusu için hesabınızla giriş yapın.',401);
  const database=await officeDB(),id=new URL(request.url).searchParams.get('userId')||user.id;
@@ -43,6 +47,16 @@ export async function POST(request:Request){
   const saved=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS} FROM office_verifications WHERE user_id=?`).bind(user.id).first<OfficeVerification>();
   if(saved?.document_id!==documentId){await storage.delete(key);return error('Belge başka bir oturumda değişti. Sayfayı yenileyin.',409);}
   if(previous)await storage.delete(previous.object_key).catch(()=>{});
-  return ok({verification:saved},{status:201,headers:{'Cache-Control':'private, no-store'}});
+  // Automatic check (lib/office-check.ts): every check passing approves now; the admin confirms in TTBS later.
+  let verification:OfficeVerification|null=saved,automatic=false;
+  try{
+   const result=await checkOffice(database as never,{userId:String(user.id),documentId,company:String(user.company),documentNumber:number,taxNumber,bytes,contentType:type},env as {OPENAI_API_KEY?:string;OFFICE_CHECK_MODEL?:string});
+   if(result.decision==='auto_approved'&&saved){
+    const {published}=await decideOffice(database as never,{userId:String(user.id),state:'approved',note:'',version:saved.version,actor:{id:'system',name:'Otomatik doğrulama'},summary:'approved (automatic, score '+result.score+') · '+number});
+    for(const listing of published)await queueListingTranslation(listing);
+    automatic=true;verification=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS} FROM office_verifications WHERE user_id=?`).bind(user.id).first<OfficeVerification>();
+   }
+  }catch(cause){console.warn('office_check_failed',String(cause).slice(0,200));}
+  return ok({verification,automatic},{status:201,headers:{'Cache-Control':'private, no-store'}});
  }catch(e){await storage.delete(key).catch(()=>{});throw e;}
 }

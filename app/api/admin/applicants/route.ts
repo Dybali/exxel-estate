@@ -1,5 +1,6 @@
 import {currentUser,isAdmin,error,ok,str} from '@/lib/server';
 import {officeDB} from '@/lib/office-verification-server';
+import {ensureOfficeChecks} from '@/lib/office-check';
 const fields=`u.id,u.name,u.email,u.phone,u.company,u.agent_status,u.email_verified,u.created_at,a.category,
  v.document_id,v.document_number,v.company_snapshot,v.content_type,v.byte_size,v.state AS document_state,v.version,v.note,v.reviewed_at,
  d.contact_name AS applicant_name,d.phone AS applicant_phone,d.address AS office_address,d.tax_number`;
@@ -14,9 +15,12 @@ export async function GET(request:Request){
   return ok({applicant,listings:listings.results},{headers:{'Cache-Control':'private, no-store'}});
  }
  const page=Math.max(1,Math.min(10000,Math.floor(Number(params.get('page'))||1))),q=str(params.get('q'),100),state=params.get('state')||'pending';
- if(!['pending','approved','rejected','missing','all'].includes(state))return error('Geçersiz filtre.');
+ if(!['pending','ttbs','approved','rejected','missing','all'].includes(state))return error('Geçersiz filtre.');
+ await ensureOfficeChecks(db as never);
  const conditions=["u.role='agent'"],values:(string|number)[]=[];
  if(state==='missing')conditions.push('v.user_id IS NULL');
+ // Approved automatically, the TTBS lookup by an admin still to do (lib/office-check.ts).
+ else if(state==='ttbs')conditions.push("v.state='approved' AND EXISTS(SELECT 1 FROM office_checks c WHERE c.user_id=v.user_id AND c.decision='auto_approved' AND c.ttbs_checked_at IS NULL)");
  else if(state==='pending')conditions.push("(v.state='pending' OR (u.agent_status='pending' AND v.state='approved'))");
  else if(state==='approved')conditions.push("u.agent_status='approved' AND v.state='approved'");
  else if(state==='rejected')conditions.push("(u.agent_status='rejected' OR v.state='rejected')");

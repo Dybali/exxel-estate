@@ -12,6 +12,9 @@ import type { VideoDatabase } from "./listing-video-store";
 import { runDatabaseBackup, type BackupReport } from "@/lib/db-backup";
 import { translationBatchJob, translationBatchPoll } from "./translation-runtime";
 import { aiUsageJob } from "./ai-limits-server";
+import { emailLayout, emailReady, sendEmail } from "./email";
+import { officeExpiryJob } from "./office-check";
+import { revokeOffice } from "./office-decision";
 
 // The scheduled jobs, shared by the Cloudflare cron triggers (build/sites-worker.ts scheduled())
 // and the protected HTTP endpoint /api/cron/[job] that a Mittwald cronjob calls.
@@ -69,5 +72,7 @@ export function dailyJobs(settings: JobSettings) {
     backup: backupJob(settings),
     // XML-imported listings into every language at the Gemini batch price (lib/translation-batch.ts).
     translations: translationBatchJob(),
+    // Agent licences: reminder 30 days before expiry, approval withdrawn after it (lib/office-check.ts).
+    officeExpiry: officeExpiryJob(db() as never, (to, subject, lines) => emailReady(withSiteUrl(settings)) ? sendEmail(withSiteUrl(settings), { to, subject, html: emailLayout({ title: "Yetki belgenizin süresi doluyor", titleEn: "Your licence is expiring", lines, action: { href: siteUrl() + "/hesabim?tab=firma", label: "Belgeyi yükle / Upload" } }), text: lines.join(" ") }) : Promise.resolve(), (userId, note) => revokeOffice(db() as never, userId, note, { id: "system", name: "Otomatik doğrulama" })).then((result) => { if (result.reminded || result.expired) console.info("office_expiry", JSON.stringify(result)); return true; }, (cause) => { console.error("office_expiry_failed", String(cause)); return false; }),
   };
 }

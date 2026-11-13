@@ -106,7 +106,7 @@ export function PrivacyPolicy(){
         <li><strong>Mittwald CM Service GmbH &amp; Co. KG</strong><p>{t('Espelkamp, Almanya. Sitenin ve PostgreSQL veritabanının barındırılması (adanmış konteyner barındırma) ve e-postaların gönderildiği posta sunucusu.')}</p></li>
         <li><strong>Cloudflare, Inc.</strong><p>{t('Cloudflare R2 nesne depolama: fotoğraflar, videolar, özel belgeler (ofis yetki belgeleri, firma belgeleri) ve AES-256-GCM ile şifrelenmiş günlük veritabanı yedekleri.')}</p></li>
         <li><strong>Google</strong><p>{t('Google Gemini (estateAI ve doğal dil araması; ücretli API, metinler model eğitiminde kullanılmaz), isteğe bağlı Google ile giriş ve yalnızca izninizle Google Analytics 4.')}</p></li>
-        <li><strong>OpenAI</strong><p>{t('OpenAI GPT-6 Luna (ilan ve mesaj çevirileri). API ile gönderilen metinler model eğitiminde kullanılmaz; OpenAI bunları kötüye kullanımı önlemek için en fazla 30 gün saklayabilir.')}</p></li>
+        <li><strong>OpenAI</strong><p>{t('OpenAI GPT-6 Luna (ilan ve mesaj çevirileri; emlak ofislerinin yüklediği yetki belgesinin otomatik okunması). API ile gönderilen metinler ve belgeler model eğitiminde kullanılmaz; OpenAI bunları kötüye kullanımı önlemek için en fazla 30 gün saklayabilir.')}</p></li>
         <li><strong>OpenStreetMap</strong><p>{t('Harita parçaları; yalnızca bir harita açıldığında yüklenir.')}</p></li>
         <li><strong>TCMB</strong><p>{t('Döviz kurları; bu amaçla kişisel veri iletilmez.')}</p></li>
       </ul></>,
