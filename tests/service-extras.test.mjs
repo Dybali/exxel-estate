@@ -81,7 +81,7 @@ test('statistics: only approved firms are counted, per Istanbul day, with the pr
  await X.countStat(db,firm,'view',new Date('2026-10-01T10:00:00Z'),5);// previous 30-day window
  const stats=await X.firmStats(db,firm,30,at);
  assert.equal(stats.totals.view,2);assert.equal(stats.totals.phone,1);assert.equal(stats.previous.view,5);
- assert.equal(stats.daily.length,30);assert.equal(stats.daily.at(-1).day,'2026-11-10');assert.deepEqual(stats.daily.at(-1),{day:'2026-11-10',views:2,contacts:1});
+ assert.equal(stats.daily.length,30);assert.equal(stats.daily.at(-1).day,'2026-11-10');assert.deepEqual(stats.daily.at(-1),{day:'2026-11-10',views:2,contacts:1,searches:0});
  await S.reviewFirm(db,admin,firm,'suspend','Şikâyet inceleniyor.');
  assert.equal(await X.trackFirm(db,firm,'view',at),false,'suspended firms are not counted');
 });
@@ -172,4 +172,15 @@ test('quote and search addresses',()=>{
  assert.equal(Q.isCanonicalServiceScope(filters),false);
  assert.equal(Q.serviceSearchHref(filters),'/hizmetler/ara?kategori=tesisatci&belgeli=1&acil=1');
  assert.equal(Q.serviceQuery(filters).emergency,true);
+});
+
+test('firm statistics: search appearances and requests are counted but are not contact clicks; contractors share the counters',async()=>{
+ const F=load('lib/firm-stats.ts');const {DatabaseSync}=await import('node:sqlite');const sql=new DatabaseSync(':memory:');
+ const db={prepare(q){return {values:[],bind(...v){this.values=v;return this;},async first(){return sql.prepare(q).get(...this.values)||null;},async all(){return {results:sql.prepare(q).all(...this.values)};},async run(){return sql.prepare(q).run(...this.values);}};}};
+ sql.exec(F.firmStatsSchema('contractor_firm_stats'));
+ const at=new Date('2026-11-13T10:00:00Z');
+ for(const [kind,n] of [['search',12],['view',4],['phone',2],['request',1]])await F.countFirmStat(db,'contractor_firm_stats','f1',kind,at,n);
+ const stats=await F.firmDailyStats(db,'contractor_firm_stats',['view','search','phone','request'],'f1',7,at);
+ assert.deepEqual(stats.totals,{view:4,search:12,phone:2,request:1});
+ assert.deepEqual(stats.daily.at(-1),{day:'2026-11-13',views:4,contacts:2,searches:12});
 });

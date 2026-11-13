@@ -1,6 +1,7 @@
 "use client";
 import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { trackFirmSearch } from "@/lib/firm-track-client";
 import Link from "@/components/SafeLink";
 import { ServiceFirmCard } from "@/components/ServiceFirmCard";
 import { ServiceIcon } from "@/components/ServiceIcon";
@@ -89,6 +90,9 @@ export function ServiceResults({ filters, results, counts, highlight, empty }: {
     return () => { document.removeEventListener("keydown", escape); document.body.classList.remove("svc-drawer-open"); };
   }, [drawer]);
   const active = filters.categories.length + (filters.city ? 1 : 0) + (filters.verified ? 1 : 0) + (filters.photos ? 1 : 0) + (filters.documented ? 1 : 0) + (filters.emergency ? 1 : 0) + (filters.q ? 1 : 0);
+  // "Aramalarda görünme" in each listed firm's statistics.
+  const shownIds = results.firms.map((firm) => firm.id).join(",");
+  useEffect(() => { trackFirmSearch("services", results.firms); }, [shownIds]); // eslint-disable-line react-hooks/exhaustive-deps
   const first = (results.page - 1) * results.perPage + 1, last = first + results.firms.length - 1, samples = results.samples || 0;
   return <div className="svc-results-layout">
     <aside className="svc-results-aside" aria-label={t("Filtreler")}><ServiceFilterForm filters={filters} counts={counts}/></aside>

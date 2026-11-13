@@ -12,9 +12,8 @@ import {MyOrders} from "./Orders";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
 import {ProjectsPanel} from "./ProjectsPanel";
-import {ServiceFirmPanel} from "./ServiceFirmPanel";
 import {ServiceQuotesPanel} from "./ServiceQuotesPanel";
-import {ContractorPanel,LandRequestsPanel} from "./ContractorPanel";
+import {LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
 import {CrmPanel} from "./CrmPanel";
@@ -95,6 +94,9 @@ export function Dashboard() {
   const kind:AccountKind=user.accountKind||(user.role==="agent"?"agent":"individual");
   const items=panelTabs(kind,{hasListings:mine.length>0,developer:user.companyCategory==="developer"}).map(item=>({...item,icon:ICONS[item.id]}));
   const active=panelTab(tab,items);
+  // Firm panels live in their own sub-site (/hizmetler/panel, /muteahhitler/panel); Hesabım keeps messages and settings.
+  const firmPanel=active==="hizmet"?"/hizmetler/panel":active==="muteahhit"?"/muteahhitler/panel":null;
+  if(firmPanel&&typeof window!=="undefined"){const bolum=new URLSearchParams(window.location.search).get("bolum");window.location.replace(firmPanel+(bolum?"?bolum="+encodeURIComponent(bolum):""));return <main className="account-page"><div className="container section">{t("Firma panelinize yönlendiriliyorsunuz...")}</div></main>;}
 
   return <main className="account-page">
     <div className="account-head"><div className="container"><span className="eyebrow dark-eyebrow">{t("ESTATEMARKET24 HESABIM")}</span><h1>{t("Hoş geldiniz,")} <em>{user.name.split(" ")[0]}.</em></h1><p>{t("Yaşam alanlarınızı ve görüşmelerinizi buradan yönetin.")}</p></div></div>
@@ -111,7 +113,7 @@ export function Dashboard() {
         {draft&&draftHasContent(draft.payload)&&(active==="genel"||active==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")}<ForwardArrow/></Link></div>}
         {active === "genel" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div>{(kind==="individual"||kind==="agent")&&<Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link>}</div>
-          {(kind==="contractor"||kind==="service")?<div className="panel-note"><h3>{t(kind==="contractor"?"Müteahhit firmanız":"Hizmet firmanız")}</h3><p>{t(kind==="contractor"?"Firma profilinizi, tamamlanan projelerinizi ve gelen kat karşılığı taleplerini Firma panelim bölümünden yönetin.":"Firma profilinizi, çalışma bilgilerinizi, belgelerinizi ve gelen teklif taleplerini Firma panelim bölümünden yönetin.")}</p><button type="button" className="text-link" onClick={()=>{setTab(kind==="contractor"?"muteahhit":"hizmet");history.replaceState(null,"",`/hesabim?tab=${kind==="contractor"?"muteahhit":"hizmet"}`);}}>{t("Firma panelime git")}<ArrowUpRight size={16}/></button></div>:<>
+          {(kind==="contractor"||kind==="service")?<div className="panel-note"><h3>{t(kind==="contractor"?"Müteahhit firmanız":"Hizmet firmanız")}</h3><p>{t(kind==="contractor"?"Firma profilinizi, tamamlanan projelerinizi ve gelen kat karşılığı taleplerini Firma panelim bölümünden yönetin.":"Firma profilinizi, çalışma bilgilerinizi, belgelerinizi ve gelen teklif taleplerini Firma panelim bölümünden yönetin.")}</p><button type="button" className="text-link" onClick={()=>window.location.assign(kind==="contractor"?"/muteahhitler/panel":"/hizmetler/panel")}>{t("Firma panelime git")}<ArrowUpRight size={16}/></button></div>:<>
           <div className="summary-cards"><div><Heart size={22}/><strong>{favorites.length}</strong><span>{t("Favori ilan")}</span></div><div><Bookmark size={22}/><strong>{mine.length}</strong><span>{t("İlanım")}</span></div><div><Mail size={22}/><strong>{conversations.length}</strong><span>{t("Görüşme")}</span></div></div>
           <div className="panel-note"><h3>{t("Yeni bir yaşam alanı keşfedin")}</h3><p>{t("Aradığınız özelliklere uygun ilanları gelişmiş filtrelerle bulun.")}</p><Link className="text-link" href="/ilanlar">{t("İlanları incele")}<ArrowUpRight size={16}/></Link></div></>}
           {user.role==="agent"&&<FeedbackCard/>}
@@ -128,7 +130,7 @@ export function Dashboard() {
 
         </>}
         {active === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {active === "aramalar" && <><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="hizmet"&&<ServiceFirmPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}{active==="muteahhit"&&<ContractorPanel/>}
+        {active === "aramalar" && <><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}
         {active === "ekip" && <CompanyTeam/>}
         {active === "firma" && user.role==='agent' && <><CompanyAccount/><OfficeVerification/></>}
         {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : ACCOUNT_KIND_LABELS[kind])}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}

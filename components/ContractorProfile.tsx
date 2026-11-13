@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { trackFirmEvent } from "@/lib/firm-track-client";
 import { ArrowRight, Building2, CalendarDays, ChevronRight, Clock, ExternalLink, FileBadge, Flag, FlaskConical, Globe, Handshake, HardHat, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { specialtyHref } from "@/components/ContractorChrome";
@@ -12,6 +14,9 @@ export function ContractorProfile({ firm, listings }: { firm: ContractorFirm; li
   const { t, locale } = useLocale();
   const live = firm.status === "approved" && !firm.sample;
   const whatsapp = firm.whatsapp ? `${whatsappHref(firm.whatsapp)}?text=${encodeURIComponent(t("Merhaba, firmanızı estatemarket24'te gördüm."))}` : null;
+  // Profile statistics of the firm (Müteahhitler › Firma panelim › İstatistikler); samples are never counted.
+  const track = (kind: "view" | "phone" | "whatsapp" | "email" | "website") => { if (!firm.sample) trackFirmEvent("contractors", firm.id, kind); };
+  useEffect(() => { if (!firm.sample) trackFirmEvent("contractors", firm.id, "view"); }, [firm.id, firm.sample]);
   const website = firm.website ? (() => { try { return new URL(firm.website).hostname.replace(/^www\./, ""); } catch { return firm.website; } })() : null;
   const units = firm.projects.reduce((sum, project) => sum + (project.units || 0), 0), number = (value: number) => new Intl.NumberFormat(locale).format(value);
   return <main className="services-page service-profile-page ctr-profile">
@@ -74,10 +79,10 @@ export function ContractorProfile({ firm, listings }: { firm: ContractorFirm; li
           <button type="button" className="btn btn-primary btn-block" disabled aria-disabled="true"><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span></button>
         </> : <>
           {live && firm.landDeals && <Link className="btn btn-accent btn-block" href={`${LAND_PATH}?firma=${firm.id}`}><Send size={17} aria-hidden="true"/>{t("Bu firmadan kat karşılığı teklif iste")}</Link>}
-          <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
-          {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
-          {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
-          {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc"><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
+          <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`} onClick={() => track("phone")}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
+          {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp")}><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
+          {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`} onClick={() => track("email")}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
+          {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={() => track("website")}><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
           <p className="service-contact-note">{t("Kat karşılığı anlaşmalarını noter onaylı sözleşmeyle yapın; yetki belgesini Bakanlığın sisteminden kontrol edin. estatemarket24 sözleşmenin tarafı değildir.")}</p>
           <Link className="service-report" href="/iletisim"><Flag size={14} aria-hidden="true"/>{t("Bu profille ilgili sorun bildir")}</Link>
         </>}

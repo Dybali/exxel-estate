@@ -64,3 +64,9 @@
 .crm-insights li svg{flex:none;margin-top:3px}
 .crm-insights .warn{background:#fdf0ec;color:#8f3a24}.crm-insights .tip{background:#f3f6ff;color:#304a8a}.crm-insights .good{background:#eaf6ef;color:#1f6b43}
 @media(max-width:900px){.crm-grid{grid-template-columns:1fr}}
+
+/* Firm panel inside the Hizmetler / Müteahhitler sub-site (components/FirmPanelPage.tsx) */
+.firm-panel-page{display:grid;gap:16px;padding-top:28px}
+.firm-panel-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.firm-panel-links a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #d6e2da;border-radius:20px;background:#fff;color:#24463d;font-size:13px;font-weight:600;text-decoration:none}
+.firm-panel-links a:hover{border-color:#17676b;color:#17676b}

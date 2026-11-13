@@ -15,7 +15,8 @@ async function member(db: NotificationDatabase, userId: string): Promise<Recipie
   const row = await db.prepare("SELECT email,name,email_verified FROM users WHERE CAST(id AS TEXT)=?").bind(userId).first<{ email: string; name: string; email_verified: number }>();
   return row?.email && Number(row.email_verified) ? { email: row.email, name: row.name || "" } : null;
 }
-const PANEL = "/hesabim?tab=hizmet";
+// The firm's own panel inside the Hizmetler sub-site (app/hizmetler/panel).
+const PANEL = "/hizmetler/panel";
 const QUOTES = "/hesabim?tab=teklifler";
 
 /** Firm review decision (approve, reject, suspend). Other admin actions send nothing. */
@@ -62,7 +63,7 @@ export async function notifyQuoteRequest(db: NotificationDatabase, settings: Set
     if (!owner) continue;
     const prefs = await emailPreferences(db, firm.ownerId);
     if (!prefs.messages) continue;
-    const unsubscribe = unsubscribeUrl(settings, prefs.token, "messages"), link = `${settings.SITE_URL}${PANEL}&bolum=talepler`;
+    const unsubscribe = unsubscribeUrl(settings, prefs.token, "messages"), link = `${settings.SITE_URL}${PANEL}?bolum=talepler`;
     const result = await sendEmail(settings, {
       to: owner.email, subject: `Yeni teklif talebi / New quote request: ${request.summary}`.slice(0, 180),
       html: emailLayout({ title: "Yeni teklif talebi", titleEn: "New quote request", lines: [`<strong>${escapeHtml(firm.name)}</strong>`, `${escapeHtml(request.summary)} · ${escapeHtml(request.timing)}`, "Talebi okuyup fiyat teklifinizi site üzerinden gönderin; hızlı yanıt veren firmalar öne çıkar. / Read the request and send your price offer on the site."], action: { href: link, label: "Talebi aç / Open request" }, unsubscribeUrl: unsubscribe }),
@@ -96,7 +97,7 @@ export async function notifyOfferAccepted(db: NotificationDatabase, settings: Se
   if (!owner) return "no_recipient";
   const prefs = await emailPreferences(db, accepted.ownerId);
   if (!prefs.messages) return "opted_out";
-  const unsubscribe = unsubscribeUrl(settings, prefs.token, "messages"), link = `${settings.SITE_URL}${PANEL}&bolum=talepler`;
+  const unsubscribe = unsubscribeUrl(settings, prefs.token, "messages"), link = `${settings.SITE_URL}${PANEL}?bolum=talepler`;
   const result = await sendEmail(settings, {
     to: owner.email, subject: `Teklifiniz kabul edildi / Your offer was accepted`,
     html: emailLayout({ title: "Teklifiniz kabul edildi", titleEn: "Your offer was accepted", lines: [`<strong>${escapeHtml(accepted.firmName)}</strong> · ${escapeHtml(accepted.customerName)}`, "Müşterinin iletişim bilgileri artık talep ekranınızda görünür. / The customer's contact details are now visible in your requests."], action: { href: link, label: "Talebi aç / Open request" }, unsubscribeUrl: unsubscribe }),

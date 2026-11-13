@@ -10,6 +10,7 @@
 // the landowner chose to share them. estatemarket24 is not a party to any agreement.
 // Housing projects for sale stay in lib/projects.ts (/projeler); a profile links its owner's approved ones.
 // Tables are created on first use and work on PostgreSQL and SQLite (no migration file), docs/contractors.md.
+import { countFirmStat, firmDailyStats, firmStatsSchema, type FirmStats } from "./firm-stats";
 import { normalizeContactPhone } from "./phone";
 import { serviceNameSortKey, serviceSearchKey, serviceSearchTokens } from "./service-text";
 import { CITIES, validDistrict } from "./turkey-locations";
@@ -20,7 +21,8 @@ type Row = Record<string, unknown>;
 
 export const CONTRACTOR_BASE = "/muteahhitler";
 export const LAND_PATH = `${CONTRACTOR_BASE}/kat-karsiligi`;
-export const CONTRACTOR_PANEL = "/hesabim?tab=muteahhit";
+/** The contractor's own panel inside the Müteahhitler sub-site (app/muteahhitler/panel). */
+export const CONTRACTOR_PANEL = "/muteahhitler/panel";
 export const LAND_PANEL = "/hesabim?tab=kat-karsiligi";
 export const contractorPath = (id: string) => `${CONTRACTOR_BASE}/firma/${id}`;
 
@@ -60,6 +62,8 @@ export const CONTRACTOR_SITEMAP_LIMIT = 20000;
 export const LAND_LIMITS = { perDay: 3, recipients: 12, days: 30 } as const;
 
 export const CONTRACTOR_SCHEMA = [
+  // Daily profile statistics (lib/firm-stats.ts): views, search appearances, contact clicks, requests and offers.
+  firmStatsSchema("contractor_firm_stats"),
   "CREATE TABLE IF NOT EXISTS contractor_firms(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,name TEXT NOT NULL,description TEXT NOT NULL,phone TEXT NOT NULL,whatsapp TEXT,email TEXT,website TEXT,logo TEXT,cover TEXT,founded_year INTEGER,license_number TEXT,specialties TEXT NOT NULL DEFAULT '[]',land_deals INTEGER NOT NULL DEFAULT 1,tax_office TEXT,tax_number TEXT,search_text TEXT NOT NULL DEFAULT '',name_key TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'pending',review_note TEXT NOT NULL DEFAULT '',verified INTEGER NOT NULL DEFAULT 0,featured INTEGER NOT NULL DEFAULT 0,reviewed_by TEXT,approved_at TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)",
   // One contractor firm per member in this release.
   "CREATE UNIQUE INDEX IF NOT EXISTS contractor_firms_owner_idx ON contractor_firms(owner_id)",
@@ -310,7 +314,7 @@ export async function deleteContractor(db: ContractorDatabase, actor: Contractor
   if (!row) throw new ContractorError("Firma bulunamadı.", 404);
   if (String(row.owner_id) !== actor.id && !actor.admin) throw new ContractorError("Bu firmayı silme yetkiniz yok.", 403);
   const [current] = await withRelations(db, [row], true);
-  for (const table of ["contractor_areas", "contractor_projects", "land_request_recipients", "land_offers"]) await db.prepare(`DELETE FROM ${table} WHERE firm_id=?`).bind(id).run();
+  for (const table of ["contractor_areas", "contractor_projects", "land_request_recipients", "land_offers", "contractor_firm_stats"]) await db.prepare(`DELETE FROM ${table} WHERE firm_id=?`).bind(id).run();
   await db.prepare("DELETE FROM contractor_firms WHERE id=?").bind(id).run();
   return { id, imageKeys: contractorImageKeys(current) };
 }
@@ -486,7 +490,7 @@ export async function createLandRequest(db: ContractorDatabase, userId: string, 
   const id = crypto.randomUUID(), stamp = at.toISOString(), expires = new Date(at.getTime() + LAND_LIMITS.days * 86_400_000).toISOString();
   await db.prepare("INSERT INTO land_requests(id,user_id,name,email,phone,share_contact,city,district,area_m2,zoning,emsal,expected_share,description,firm_id,status,created_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'open',?,?)")
     .bind(id, userId, request.name, request.email, request.phone, request.shareContact ? 1 : 0, request.city, request.district, request.areaM2, request.zoning, request.emsal, request.expectedShare, request.description, request.firmId, stamp, expires).run();
-  for (const firm of recipients) await db.prepare("INSERT INTO land_request_recipients(request_id,firm_id,state,created_at) VALUES(?,?,'new',?)").bind(id, firm.id, stamp).run();
+  for (const firm of recipients) { await db.prepare("INSERT INTO land_request_recipients(request_id,firm_id,state,created_at) VALUES(?,?,'new',?)").bind(id, firm.id, stamp).run(); await countFirmStat(db as never, "contractor_firm_stats", String(firm.id), "request", at).catch(() => undefined); }
   return { id, recipients, summary: `${request.district ? `${request.district}, ` : ""}${request.city} · ${request.areaM2} m²` };
 }
 
@@ -569,6 +573,7 @@ export async function sendLandOffer(db: ContractorDatabase, ownerId: string, req
   const id = crypto.randomUUID();
   await db.prepare("INSERT INTO land_offers(id,request_id,firm_id,owner_share,delivery_months,message,state,created_at) VALUES(?,?,?,?,?,?,'sent',?)").bind(id, String(request.id), firmId, share, months, message, at.toISOString()).run();
   await db.prepare("UPDATE land_request_recipients SET state='offered' WHERE request_id=? AND firm_id=?").bind(String(request.id), firmId).run();
+  await countFirmStat(db as never, "contractor_firm_stats", firmId, "offer", at).catch(() => undefined);
   return { id, firmName, requestUserId: String(request.user_id), ownerShare: share, deliveryMonths: months };
 }
 export async function passLandRequest(db: ContractorDatabase, ownerId: string, requestId: unknown, at = new Date()) {
@@ -596,3 +601,18 @@ export async function closeLandRequest(db: ContractorDatabase, userId: string, r
   if (row.status === "open") await db.prepare("UPDATE land_requests SET status='closed' WHERE id=?").bind(requestId).run();
   return { id: String(requestId) };
 }
+
+// --- Profile statistics (Müteahhitler › Firma panelim › İstatistikler) ------------------------------
+export const CONTRACTOR_STAT_KINDS = ["view", "search", "phone", "whatsapp", "email", "website", "request", "offer"] as const;
+export type ContractorStatKind = typeof CONTRACTOR_STAT_KINDS[number];
+/** Kinds a visitor's browser may report; requests and offers are counted by the server. */
+export const CONTRACTOR_TRACKED_KINDS = ["view", "search", "phone", "whatsapp", "email", "website"] as const;
+export type ContractorStats = FirmStats<ContractorStatKind>;
+/** Visitor event for an approved firm; false when the firm is not public. */
+export async function trackContractor(db: ContractorDatabase, firmId: unknown, kind: unknown, at = new Date()) {
+  if (!validContractorId(firmId) || !(CONTRACTOR_TRACKED_KINDS as readonly unknown[]).includes(kind)) return false;
+  if (!await db.prepare("SELECT 1 AS ok FROM contractor_firms WHERE id=? AND status='approved'").bind(String(firmId).toLowerCase()).first()) return false;
+  await countFirmStat(db as never, "contractor_firm_stats", String(firmId).toLowerCase(), String(kind), at);
+  return true;
+}
+export const contractorFirmStats = (db: ContractorDatabase, firmId: string, days = 30, at = new Date()): Promise<ContractorStats> => firmDailyStats(db as never, "contractor_firm_stats", CONTRACTOR_STAT_KINDS, firmId, days, at);

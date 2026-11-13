@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { trackFirmSearch } from "@/lib/firm-track-client";
 import { ArrowRight, BadgeCheck, Building2, CheckCircle2, FlaskConical, HardHat, Handshake, Info, MapPin, Search, Send, Star } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
@@ -71,6 +73,9 @@ const pageHref = (filters: ContractorFilters, page: number) => {
 
 /** /muteahhitler: search form (plain GET, works without JavaScript), figures, results, samples, land-request and provider invitations. */
 export function ContractorDirectory({ filters, results, samples, stats }: { filters: ContractorFilters; results: ContractorResults; samples: ContractorFirm[]; stats: { firms: number; cities: number; projects: number } }) {
+  // "Aramalarda görünme" in each listed firm's statistics.
+  const shownIds = results.firms.map((firm) => firm.id).join(",");
+  useEffect(() => { trackFirmSearch("contractors", results.firms); }, [shownIds]); // eslint-disable-line react-hooks/exhaustive-deps
   const { t, locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value);
   const filtered = Boolean(filters.q || filters.city || filters.specialty || filters.verified || filters.landDeals);
   return <main className="services-page services-landing ctr-page">

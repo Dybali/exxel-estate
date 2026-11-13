@@ -11,6 +11,7 @@
 //   service_quote_requests   a member describes a job once; it goes to up to QUOTE_LIMITS.recipients matching
 //   service_quote_recipients firms (or to one firm from its profile), who answer with a price offer.
 //   service_quote_offers     one offer per firm and request; the member compares and accepts one.
+import { countFirmStat, firmDailyStats, type FirmStats } from "./firm-stats";
 import { isServiceSlug, serviceCategory, type ServiceSlug } from "./service-categories";
 import { normalizeContactPhone } from "./phone";
 import { CITIES, validDistrict } from "./turkey-locations";
@@ -149,15 +150,14 @@ export async function reviewDocument(db: ServiceDatabase, adminId: string, id: u
 }
 
 // --- Statistics ---------------------------------------------------------------------------------
-export const SERVICE_STAT_KINDS = ["view", "phone", "whatsapp", "email", "website", "quote", "offer"] as const;
+export const SERVICE_STAT_KINDS = ["view", "search", "phone", "whatsapp", "email", "website", "quote", "offer"] as const;
 export type ServiceStatKind = typeof SERVICE_STAT_KINDS[number];
-/** Kinds a visitor's browser may report (quote and offer are counted by the server). */
-export const SERVICE_TRACKED_KINDS = ["view", "phone", "whatsapp", "email", "website"] as const;
+/** Kinds a visitor's browser may report (quote and offer are counted by the server); "search" = shown in search results. */
+export const SERVICE_TRACKED_KINDS = ["view", "search", "phone", "whatsapp", "email", "website"] as const;
 export const isTrackedKind = (value: unknown): value is typeof SERVICE_TRACKED_KINDS[number] => (SERVICE_TRACKED_KINDS as readonly unknown[]).includes(value);
-const day = (at: Date) => new Date(at.getTime() + 3 * 3600_000).toISOString().slice(0, 10);
 
 export async function countStat(db: ServiceDatabase, firmId: string, kind: ServiceStatKind, at = new Date(), amount = 1) {
-  await db.prepare("INSERT INTO service_firm_stats(firm_id,day,kind,n) VALUES(?,?,?,?) ON CONFLICT(firm_id,day,kind) DO UPDATE SET n=service_firm_stats.n+excluded.n").bind(firmId, day(at), kind, amount).run();
+  await countFirmStat(db as never, "service_firm_stats", firmId, kind, at, amount);
 }
 /** Visitor event for an approved firm; false when the firm is not public. */
 export async function trackFirm(db: ServiceDatabase, firmId: unknown, kind: unknown, at = new Date()) {
@@ -166,26 +166,9 @@ export async function trackFirm(db: ServiceDatabase, firmId: unknown, kind: unkn
   await countStat(db, firmId, kind, at);
   return true;
 }
-export type ServiceStats = { days: number; totals: Record<ServiceStatKind, number>; previous: Record<ServiceStatKind, number>; daily: { day: string; views: number; contacts: number }[] };
+export type ServiceStats = FirmStats<ServiceStatKind>;
 /** Last `days` days (Istanbul calendar) with the period before for comparison, and a daily series. */
-export async function firmStats(db: ServiceDatabase, firmId: string, days = 30, at = new Date()): Promise<ServiceStats> {
-  const today = new Date(`${day(at)}T00:00:00Z`), from = new Date(today.getTime() - (days - 1) * 86400_000), before = new Date(from.getTime() - days * 86400_000);
-  const iso = (date: Date) => date.toISOString().slice(0, 10);
-  const rows = (await db.prepare("SELECT day,kind,n FROM service_firm_stats WHERE firm_id=? AND day>=?").bind(firmId, iso(before)).all<Row>()).results || [];
-  const zero = () => Object.fromEntries(SERVICE_STAT_KINDS.map((kind) => [kind, 0])) as Record<ServiceStatKind, number>;
-  const totals = zero(), previous = zero(), byDay = new Map<string, { views: number; contacts: number }>();
-  for (let index = 0; index < days; index++) byDay.set(iso(new Date(from.getTime() + index * 86400_000)), { views: 0, contacts: 0 });
-  for (const row of rows) {
-    const kind = String(row.kind) as ServiceStatKind, n = Number(row.n) || 0, date = String(row.day);
-    if (!(SERVICE_STAT_KINDS as readonly string[]).includes(kind)) continue;
-    if (date >= iso(from)) {
-      totals[kind] += n;
-      const entry = byDay.get(date);
-      if (entry) { if (kind === "view") entry.views += n; else if (kind !== "offer" && kind !== "quote") entry.contacts += n; }
-    } else previous[kind] += n;
-  }
-  return { days, totals, previous, daily: [...byDay].map(([date, value]) => ({ day: date, ...value })) };
-}
+export const firmStats = (db: ServiceDatabase, firmId: string, days = 30, at = new Date()): Promise<ServiceStats> => firmDailyStats(db as never, "service_firm_stats", SERVICE_STAT_KINDS, firmId, days, at);
 
 // --- Quote requests -----------------------------------------------------------------------------
 export const QUOTE_TIMINGS = { asap: "Hemen / bu hafta", month: "Bu ay içinde", later: "1–3 ay içinde", flexible: "Esnek, tarih belli değil" } as const;

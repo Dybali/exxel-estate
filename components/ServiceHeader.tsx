@@ -10,7 +10,7 @@ import { categoriesOf, SERVICE_GROUPS } from "@/lib/service-categories";
 import { SERVICE_SEARCH_PATH } from "@/lib/service-search";
 import { SERVICE_BASE, SERVICE_QUOTE_PATH, servicePath } from "@/lib/services";
 
-export const SERVICE_SIGNUP_HREF = "/hesabim?tab=hizmet";
+export const SERVICE_SIGNUP_HREF = "/hizmetler/panel";
 export const groupSearchHref = (group: string) => `${SERVICE_SEARCH_PATH}?grup=${group}`;
 
 /** "EstateMarket24 Hizmet": the brand logo with a gold label; links to the service home. */
@@ -24,12 +24,12 @@ export function ServiceBrand() {
 
 function useAccount() {
   const path = usePathname();
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; accountKind?: string } | null>(null);
   useEffect(() => {
-    fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: { name: string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: { name: string; accountKind?: string } }).then((data) => setUser(data.user || null)).catch(() => {});
   }, [path]);
   const next = (target: string) => `/giris?next=${encodeURIComponent(target)}`;
-  return { user, accountHref: user ? "/hesabim" : next(path || SERVICE_BASE), addFirmHref: user ? SERVICE_SIGNUP_HREF : `/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}` };
+  return { user, accountHref: user ? (user.accountKind === "service" ? SERVICE_SIGNUP_HREF : "/hesabim") : next(path || SERVICE_BASE), addFirmHref: user ? SERVICE_SIGNUP_HREF : `/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}` };
 }
 
 /** Header of the service sub-site (every /hizmetler page, app/hizmetler/layout.tsx). */

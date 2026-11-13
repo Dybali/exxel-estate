@@ -1,6 +1,7 @@
 "use client";
+import { CONTRACTOR_TILES, FirmStatsPanel } from "@/components/ServiceFirmTools";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CheckCircle2, ExternalLink, HardHat, ImagePlus, Inbox, Pencil, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle2, ExternalLink, HardHat, ImagePlus, Inbox, Pencil, Plus, Trash2, X, BarChart3 } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
@@ -205,7 +206,7 @@ export function ContractorPanel() {
   const { t, locale } = useLocale();
   const [firm, setFirm] = useState<ContractorFirm | null | undefined>(undefined), [unseen, setUnseen] = useState(0);
   // ?bolum=talepler (links in the request e-mails) opens the requests directly.
-  const [section, setSection] = useState<"profil" | "talepler">(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("bolum") === "talepler" ? "talepler" : "profil");
+  const [section, setSection] = useState<"profil" | "talepler" | "istatistik">(() => { const wanted = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bolum") : null; return wanted === "talepler" || wanted === "istatistik" ? wanted : "profil"; });
   const [editing, setEditing] = useState(false), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const seen = useCallback(() => setUnseen(0), []);
   const load = useCallback(async () => {
@@ -238,8 +239,10 @@ export function ContractorPanel() {
     {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>
       <button type="button" aria-pressed={section === "profil"} onClick={() => setSection("profil")}><HardHat size={16} aria-hidden="true"/>{t("Profil")}</button>
       <button type="button" aria-pressed={section === "talepler"} onClick={() => setSection("talepler")}><Inbox size={16} aria-hidden="true"/>{t("Kat karşılığı talepleri")}{unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(unseen))}>{unseen}</b>}</button>
+      <button type="button" aria-pressed={section === "istatistik"} onClick={() => setSection("istatistik")}><BarChart3 size={16} aria-hidden="true"/>{t("İstatistikler")}</button>
     </nav>}
     {!editing && firm && section === "talepler" && <ContractorInbox approved={firm.status === "approved"} onSeen={seen}/>}
+    {!editing && firm && section === "istatistik" && <FirmStatsPanel endpoint="/api/contractors/mine/stats" tiles={CONTRACTOR_TILES}/>}
     {!editing && firm && section === "profil" && <article className={`service-account-card status-${firm.status}`}>
       <div className="service-account-head">
         <span className="service-firm-logo">{firm.logo ? <img src={firm.logo} alt=""/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>

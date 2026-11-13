@@ -48,3 +48,7 @@ estatemarket24 firma ile müşteri arasındaki anlaşmanın tarafı değildir; �
 ## Hesap türü (2026-11-13)
 
 Bir hesap tek türdür: Bireysel, Emlakçı, Müteahhit veya Hizmet firması (`lib/account-kind.ts`). Müteahhit ve hizmet firması türü kayıtta seçilir ya da Hesabım › Profilim › Hesap türü'nden değiştirilir; `users.role` değişmez (`buyer`), tür `account_kinds` tablosunda tutulur (ilk kullanımda oluşur). Yeni firma yalnızca o türdeki hesapla açılır; emlakçılar açamaz. Mevcut firmalar düzenlenebilir kalır ve eski hesapların türü sahip oldukları firmadan çıkarılır. Her türün kendi Hesabım menüsü vardır (`lib/account-panel.ts`).
+
+## Firma paneli ve istatistikler (2026-11-13)
+
+Hizmet firması hesabının paneli Hizmetler alt sitesinin içindedir: `/hizmetler/panel` (`components/FirmPanelPage.tsx`); Hesabım'daki firma sekmesi ve e-posta bağlantıları buraya yönlendirir, mesajlar ve hesap ayarları Hesabım'da kalır. İstatistikler `lib/firm-stats.ts` ile günlük toplam olarak tutulur: aramalarda görünme (`search`, sonuç sayfasında listelenen firmalar, `lib/firm-track-client.ts`), profil görüntülenme, telefon/WhatsApp/e-posta/web sitesi tıklaması, gelen teklif talebi ve gönderilen teklif. Aynı ziyaretçi, firma ve tür 30 dakikada bir sayılır (`lib/firm-track.ts`); botlar sayılmaz.

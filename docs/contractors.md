@@ -44,3 +44,7 @@ Ana sayfadaki üç kurgusal inşaat firması (Akdeniz Atlas Yapı, Ege Form Yap�
 ## Hesap türü (2026-11-13)
 
 Bir hesap tek türdür: Bireysel, Emlakçı, Müteahhit veya Hizmet firması (`lib/account-kind.ts`). Müteahhit ve hizmet firması türü kayıtta seçilir ya da Hesabım › Profilim › Hesap türü'nden değiştirilir; `users.role` değişmez (`buyer`), tür `account_kinds` tablosunda tutulur (ilk kullanımda oluşur). Yeni firma yalnızca o türdeki hesapla açılır; emlakçılar açamaz. Mevcut firmalar düzenlenebilir kalır ve eski hesapların türü sahip oldukları firmadan çıkarılır. Her türün kendi Hesabım menüsü vardır (`lib/account-panel.ts`).
+
+## Firma paneli ve istatistikler (2026-11-13)
+
+Müteahhit hesabının paneli Müteahhitler alt sitesinin içindedir: `/muteahhitler/panel` (`CONTRACTOR_PANEL`). Panelde Profil, Kat karşılığı talepleri ve İstatistikler sekmeleri vardır. `contractor_firm_stats` (`lib/firm-stats.ts`): aramalarda görünme, profil görüntülenme, telefon/WhatsApp/e-posta/web sitesi tıklaması (`POST /api/contractors/track`), gelen kat karşılığı talebi ve gönderilen teklif (sunucu sayar).

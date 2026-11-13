@@ -52,7 +52,7 @@ export async function notifyLandRequest(db: NotificationDatabase, settings: Sett
     if (!person) continue;
     const status = await send(settings, person.email, { title: "Yeni kat karşılığı talebi", titleEn: "New land-for-flats request", subject: summary, unsubscribe: person.unsubscribe,
       lines: [`<strong>${escapeHtml(firm.name)}</strong>`, escapeHtml(summary), "Arsa bilgilerini okuyup teklifinizi site üzerinden gönderin. / Read the plot details and send your offer on the site."],
-      href: `${CONTRACTOR_PANEL}&bolum=talepler`, label: "Talebi aç / Open request" });
+      href: `${CONTRACTOR_PANEL}?bolum=talepler`, label: "Talebi aç / Open request" });
     if (status === "sent") sent++;
   }
   return `sent:${sent}`;
@@ -73,5 +73,5 @@ export async function notifyLandAccepted(db: NotificationDatabase, settings: Set
   if (!person) return "no_recipient";
   return send(settings, person.email, { title: "Kat karşılığı teklifiniz kabul edildi", titleEn: "Your land-for-flats offer was accepted", subject: accepted.firmName, unsubscribe: person.unsubscribe,
     lines: [`<strong>${escapeHtml(accepted.firmName)}</strong>`, "Arsa sahibinin iletişim bilgileri artık hesabınızda görünüyor. / The landowner's contact details are now shown in your account."],
-    href: `${CONTRACTOR_PANEL}&bolum=talepler`, label: "Talebi aç / Open request" });
+    href: `${CONTRACTOR_PANEL}?bolum=talepler`, label: "Talebi aç / Open request" });
 }
