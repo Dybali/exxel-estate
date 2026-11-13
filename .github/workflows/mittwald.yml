@@ -87,18 +87,35 @@ jobs:
       - name: Point the test container at this commit's image
         if: steps.creds.outputs.ready == 'true'
         # The CLI reads the API token from MITTWALD_API_TOKEN. The mittwald API sometimes answers 503 for a
-        # while (maintenance, busy periods), and one CLI call then takes about four minutes to give up. Five
-        # attempts fit inside this job's timeout, so a lasting outage ends as a failed run with the reason in
-        # the log instead of a cancelled one. After a failed attempt the status codes of three API requests
-        # show whether the whole API, only this project or only its containers are affected (codes only).
+        # while (maintenance, busy periods), and one CLI call then takes about four minutes to give up. So a
+        # cheap request first waits up to 15 minutes for the API; if it stays down the run fails with the
+        # API's own answer in the log (status with and without the token, headers, start of the body) instead
+        # of being cancelled by the job timeout. Then the CLI gets three attempts.
         run: |
-          probe() { curl -s -o /dev/null -m 30 -w '%{http_code}' -H "Authorization: Bearer $MITTWALD_API_TOKEN" "https://api.mittwald.de/v2/$1" || true; }
-          for attempt in 1 2 3 4 5; do
-            if timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
-            echo "::warning::mittwald API update failed (attempt $attempt of 5). API answers: account $(probe users/self), project $(probe "projects/$MITTWALD_PROJECT_ID"), containers $(probe "projects/$MITTWALD_PROJECT_ID/services")."
-            if [ "$attempt" -lt 5 ]; then sleep 60; fi
+          api() { curl -s -m 10 -H "Authorization: Bearer $MITTWALD_API_TOKEN" "$@"; }
+          code() { api -o /dev/null -w '%{http_code}' "https://api.mittwald.de/v2/$1" || true; }
+          for attempt in $(seq 1 30); do
+            status=$(code users/self)
+            case "$status" in 000|502|503|504) ;; *) break ;; esac
+            if [ "$attempt" = 1 ]; then
+              echo "::warning::mittwald API answers $status; waiting up to 15 minutes for it to come back."
+              echo "Same request without the token: $(curl -s -m 10 -o /dev/null -w '%{http_code}' https://api.mittwald.de/v2/users/self || true)"
+              echo "Answer of the API (headers, start of the body):"
+              api -i https://api.mittwald.de/v2/users/self | head -c 1500 || true
+              echo
+            fi
+            if [ "$attempt" = 30 ]; then
+              echo "::error::mittwald API still answers $status after 15 minutes; re-run this job when https://status.mittwald.de is green."
+              exit 1
+            fi
+            sleep 30
           done
-          echo "::error::mittwald API still unavailable after 5 attempts; re-run this job when https://status.mittwald.de is green. If only the project request fails, the project itself needs a look in mStudio."
+          for attempt in 1 2 3; do
+            if timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
+            echo "::warning::mittwald container update failed (attempt $attempt of 3). API answers: account $(code users/self), project $(code "projects/$MITTWALD_PROJECT_ID"), containers $(code "projects/$MITTWALD_PROJECT_ID/services")."
+            if [ "$attempt" -lt 3 ]; then sleep 60; fi
+          done
+          echo "::error::mittwald container update failed 3 times; see the API answers above. If only the project request fails, the project itself needs a look in mStudio."
           exit 1
       - name: Wait for the new container
         if: steps.creds.outputs.ready == 'true' && env.MITTWALD_TEST_URL != ''
