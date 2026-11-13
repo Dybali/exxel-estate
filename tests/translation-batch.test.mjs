@@ -153,3 +153,34 @@ test('Luna batch: one request per listing for all missing languages, file upload
  await B.submitTranslationBatch(failed,settings,source({a:doc('a','Villa A')}),fetcher);await B.pollTranslationBatches(failed,settings,fetcher);
  assert.equal(failed.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,1);
 });
+
+test('Luna: a text returned untranslated is asked once more, then refused; names and short texts may stay unchanged',async()=>{
+ const reply=texts=>async()=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({items:texts.map(text=>({text,source:'de'}))})}}],usage:{prompt_tokens:1,completion_tokens:1}});
+ const german='85 qm Wohnung in Konya Adaköy. Mit Balkon.';
+ let calls=0;const flaky=async(...args)=>(++calls===1?reply([german]):reply(['85 m² appartement in Konya Adaköy. Met balkon.']))(...args);
+ assert.equal((await T.translateText({OPENAI_API_KEY:'k'},'nl',[german],undefined,flaky)).results[0].text,'85 m² appartement in Konya Adaköy. Met balkon.');assert.equal(calls,2);
+ await assert.rejects(T.translateText({OPENAI_API_KEY:'k'},'nl',[german],undefined,reply([german])),e=>e.code==='provider_response');
+ assert.equal((await T.translateText({OPENAI_API_KEY:'k'},'nl',['Konya Adaköy'],undefined,reply(['Konya Adaköy']))).results[0].text,'Konya Adaköy');
+ assert.equal(T.untranslated('Mit Balkon und Garten','Mit Balkon und Garten'),true);assert.equal(T.untranslated('Villa A','Villa A'),false);
+});
+
+test('Luna batch: an answer returned untranslated is not saved, so the language is asked again later',async()=>{
+ const db=database(),settings={OPENAI_API_KEY:'sk-fixture'},d=doc('a','Villa A');let jsonl='';
+ const fetcher=async(url,init={})=>{
+  if(url.endsWith('/files')&&init.method==='POST'){jsonl=await init.body.get('file').text();return Response.json({id:'file-in2'});}
+  if(url.endsWith('/batches')&&init.method==='POST')return Response.json({id:'batch_two'});
+  if(url.endsWith('/batches/batch_two'))return Response.json({id:'batch_two',status:'completed',input_file_id:'file-in2',output_file_id:'file-out2'});
+  if(url.endsWith('/files/file-in2/content'))return new Response(jsonl);
+  if(url.endsWith('/files/file-out2/content')){const line=JSON.parse(jsonl.trim());const texts=JSON.parse(line.body.messages[1].content).texts;
+   const out=Object.fromEntries(line.body.response_format.json_schema.schema.required.map(code=>[code,code==='nl'?texts:texts.map(t=>code+': '+t)]));
+   return new Response(JSON.stringify({custom_id:line.custom_id,response:{status_code:200,body:{choices:[{finish_reason:'stop',message:{content:JSON.stringify(out)}}]}}})+'\n');}
+  if(init.method==='DELETE')return Response.json({deleted:true});
+  throw Error('unexpected '+url);};
+ await B.queueBatchTranslation(db,'a');
+ await B.submitTranslationBatch(db,settings,async()=>['de','nl'].map(locale=>({locale,doc:d})),fetcher);
+ await B.pollTranslationBatches(db,settings,fetcher);
+ assert.equal((await C.readTranslations(db,d,'de')).complete,true);
+ const nl=await C.readTranslations(db,d,'nl');
+ assert.equal(nl.fields.title,'Villa A','a two-word name may stay as it is');
+ assert.equal(nl.fields.description,undefined,'the unchanged description is not saved');
+});

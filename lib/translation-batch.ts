@@ -7,7 +7,7 @@
 // get on-demand translations as for every other listing (docs/translations.md), so nothing waits on the batch.
 // Tables are created on first use and work on PostgreSQL and SQLite.
 import { recordTranslationTokens, recordTranslationUsage, readTranslations, translationBudget } from "./translation-cache";
-import { GEMINI_BASE, listingContext, OPENAI_BASE, openaiMultiRequest, openaiTranslationModel, parseOpenAiMulti, parseTranslation, translationConfigured, translationModel, translationProvider, translationRequest, TranslationError, type ContentLocale, type GeminiResponse, type OpenAiResponse, type TranslationDocument, type TranslationSettings } from "./translation";
+import { GEMINI_BASE, untranslated, listingContext, OPENAI_BASE, openaiMultiRequest, openaiTranslationModel, parseOpenAiMulti, parseTranslation, translationConfigured, translationModel, translationProvider, translationRequest, TranslationError, type ContentLocale, type GeminiResponse, type OpenAiResponse, type TranslationDocument, type TranslationSettings } from "./translation";
 import { ensureOps } from "./operations";
 
 type Statement = { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> };
@@ -180,6 +180,13 @@ async function pollOpenAiJob(db: BatchDatabase, settings: TranslationSettings, n
   if (data.output_file_id && (state === "SUCCEEDED" || state === "EXPIRED")) {
     const content = await fetcher(`${OPENAI_BASE}/files/${data.output_file_id}/content`, { headers: openaiAuth(settings), redirect: "manual", signal: AbortSignal.timeout(120_000) }).catch(() => null);
     if (!content?.ok) { await content?.body?.cancel(); return null; }
+    // The request texts, to refuse answers returned untranslated (see translateText); unreadable = no check.
+    const sources = new Map<string, string[]>();
+    if (data.input_file_id) {
+      const input = await fetcher(`${OPENAI_BASE}/files/${data.input_file_id}/content`, { headers: openaiAuth(settings), redirect: "manual", signal: AbortSignal.timeout(120_000) }).catch(() => null);
+      if (input?.ok) for (const line of (await input.text()).split("\n")) { try { const request = JSON.parse(line) as { custom_id?: unknown; body?: { messages?: { content?: string }[] } }; const texts = (JSON.parse(request.body?.messages?.[1]?.content || "{}") as { texts?: unknown }).texts; if (Array.isArray(texts)) sources.set(String(request.custom_id), texts.map(String)); } catch { /* skip */ } }
+      else await input?.body?.cancel();
+    }
     for (const line of (await content.text()).split("\n")) {
       if (!line.trim()) continue;
       let answer: { custom_id?: unknown; error?: unknown; response?: { status_code?: number; body?: OpenAiResponse } };
@@ -191,7 +198,8 @@ async function pollOpenAiJob(db: BatchDatabase, settings: TranslationSettings, n
       try { parsed = parseOpenAiMulti(answer.response.body, item.locales, size); } catch { continue; }
       const statements: unknown[] = [];
       for (const locale of item.locales) (item.keys[locale] || []).forEach((key, index) => {
-        if (key) statements.push(db.prepare("INSERT INTO content_translations(key,translated_text,detected_language,created_at) VALUES(?,?,?,?) ON CONFLICT(key) DO NOTHING").bind(key, parsed.results[locale]![index], "", stamp));
+        const text = parsed.results[locale]![index], source = sources.get(String(answer.custom_id))?.[index];
+        if (key && !(source !== undefined && untranslated(source, text))) statements.push(db.prepare("INSERT INTO content_translations(key,translated_text,detected_language,created_at) VALUES(?,?,?,?) ON CONFLICT(key) DO NOTHING").bind(key, text, "", stamp));
       });
       await db.batch(statements);
       count += statements.length;
