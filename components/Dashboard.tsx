@@ -7,7 +7,6 @@ import {IndividualPolicyNotice} from "./IndividualPolicyNotice";
 import {CompanyAccount} from './CompanyAccount';
 import {CompanyTeam} from './CompanyTeam';
 import {AppointmentsPanel} from "./Appointments";
-import {LeadsPanel} from "./LeadsPanel";
 import {EmailPreferences} from "./EmailPreferences";
 import {MyOrders} from "./Orders";
 import {MyReports} from './MyReports';
@@ -18,6 +17,8 @@ import {ServiceQuotesPanel} from "./ServiceQuotesPanel";
 import {ContractorPanel,LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
+import {CrmPanel} from "./CrmPanel";
+import {BarChart3} from "lucide-react";
 import {ACCOUNT_KIND_LABELS,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
 import type {AccountKind} from "@/lib/account-kind";
 
@@ -37,7 +38,7 @@ import { SellerUpgrade } from "@/components/SellerUpgrade";
 import { MessagesInbox, type Conversation } from "@/components/MessagesInbox";
 
 type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; bio?:string; companyCategory?:string|null; isAdmin?: boolean; accountKind?: AccountKind };
-const ICONS:Record<PanelTabId,typeof Heart>={genel:LayoutDashboard,favoriler:Heart,aramalar:Search,ilanlarim:Bookmark,projelerim:Building2,mesajlar:Mail,randevular:CalendarDays,talepler:Users,siparisler:ShoppingBag,teklifler:ClipboardList,firma:Store,ekip:Users,muteahhit:HardHat,hizmet:Wrench,profil:UserRound};
+const ICONS:Record<PanelTabId,typeof Heart>={genel:LayoutDashboard,favoriler:Heart,aramalar:Search,ilanlarim:Bookmark,projelerim:Building2,mesajlar:Mail,randevular:CalendarDays,crm:BarChart3,talepler:Users,siparisler:ShoppingBag,teklifler:ClipboardList,firma:Store,ekip:Users,muteahhit:HardHat,hizmet:Wrench,profil:UserRound};
 
 export function Dashboard() {
   const { t, locale } = useLocale();
@@ -125,7 +126,7 @@ export function Dashboard() {
 
         </>}
         {active === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {active === "aramalar" && <><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="talepler"&&<LeadsPanel/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="hizmet"&&<ServiceFirmPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}{active==="muteahhit"&&<ContractorPanel/>}
+        {active === "aramalar" && <><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="hizmet"&&<ServiceFirmPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}{active==="muteahhit"&&<ContractorPanel/>}
         {active === "ekip" && <CompanyTeam/>}
         {active === "firma" && user.role==='agent' && <><CompanyAccount/><OfficeVerification/></>}
         {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : ACCOUNT_KIND_LABELS[kind])}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}
