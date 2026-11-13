@@ -8,7 +8,7 @@
 // contents click or printing opens them.
 // Styles: app/legal.css. Translations of the strings below: lib/legal-translations.ts.
 import {useEffect, useRef, useState, type ReactNode} from "react";
-import {ArrowRight, ArrowUp, ChevronDown, ChevronsDownUp, ChevronsUpDown, Link2, Mail, Printer} from "lucide-react";
+import {ArrowRight, ArrowUp, ChevronDown, ChevronsDownUp, ChevronsUpDown, Link2, Mail} from "lucide-react";
 import Link from "@/components/SafeLink";
 import {useLocale} from "@/lib/i18n";
 
@@ -72,7 +72,9 @@ export function LegalPage({current, title, lede, updated, summary, sections, chi
       <span className="legal-toc-number">{index + 1}</span><span>{section.title}</span>
     </a>
   </li>)}</ol>;
-  return <main className="legal-page">
+  // Owner's request 2026-11-13: the legal texts cannot be selected or copied on the site (links still work).
+  const block = (event: React.SyntheticEvent) => event.preventDefault();
+  return <main className="legal-page legal-nocopy" onCopy={block} onCut={block} onDragStart={block}>
     <header className="legal-hero">
       <div className="container">
         <span className="legal-kicker">{t("Yasal bilgiler")}</span>
@@ -81,7 +83,6 @@ export function LegalPage({current, title, lede, updated, summary, sections, chi
         <div className="legal-meta">
           {date && <span>{t("Son güncelleme")}: <time dateTime={updated}>{date}</time></span>}
           {collapsible && <button type="button" className="legal-print" aria-pressed={allOpen} onClick={() => setOpen(allOpen ? new Set() : new Set(ids))}>{allOpen ? <ChevronsDownUp size={15} aria-hidden="true"/> : <ChevronsUpDown size={15} aria-hidden="true"/>}{t(allOpen ? "Tümünü kapat" : "Tümünü aç")}</button>}
-          <button type="button" className="legal-print" onClick={() => window.print()}><Printer size={15} aria-hidden="true"/>{t("Yazdır")}</button>
         </div>
         <nav className="legal-tabs" aria-label={t("Yasal metinler")}>
           {LEGAL_PAGES.map((page) => <Link key={page.href} href={page.href} aria-current={page.href === current ? "page" : undefined}>{t(page.title)}</Link>)}

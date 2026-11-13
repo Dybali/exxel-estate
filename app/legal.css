@@ -155,3 +155,8 @@
 .legal-identity-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .legal-identity-pair>div{display:grid;gap:6px}
 .legal-identity-pair>div>span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5f7a70}
+
+/* Legal pages: text cannot be selected or copied (components/LegalPage.tsx); links and buttons keep working. */
+.legal-nocopy{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.legal-nocopy input,.legal-nocopy textarea{-webkit-user-select:text;user-select:text}
+.legal-identity-pair p{margin:0;line-height:1.8}
