@@ -61,7 +61,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
   const { t, locale } = useLocale();
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(corporate || params.get("role") || params.get("mode") === "register" ? "register" : "login");
-  const [role, setRole] = useState<Role>(corporate || params.get("role") === "developer" || params.get("companyCategory")==="developer" ? "developer" : params.get("role") === "agent" ? "agent" : params.get("role") === "contractor" ? "contractor" : params.get("role") === "service" ? "service" : "buyer");
+  const [role, setRole] = useState<Role>(corporate || params.get("role") === "developer" || params.get("companyCategory")==="developer" ? "developer" : params.get("role") === "agent" ? "agent" : params.get("role") === "contractor" || /[?&]tab=muteahhit\b/.test(params.get("next") || "") ? "contractor" : params.get("role") === "service" || /[?&]tab=hizmet\b/.test(params.get("next") || "") ? "service" : "buyer");
   const [showPassword, setShowPassword] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,7 +77,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/hesabim";
   const googleRole = mode === "register" ? role==="developer"?"agent":role : "buyer";
-  const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(mode==="register"&&role==="developer"?"/hesabim?tab=profil&companyCategory=developer":safeNext)}`;
+  const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(mode==="register"&&role==="developer"?"/hesabim?tab=profil&companyCategory=developer":mode==="register"&&role==="contractor"?"/hesabim?tab=muteahhit":mode==="register"&&role==="service"?"/hesabim?tab=hizmet":safeNext)}`;
   const showBuyerGoogle = mode === "login" || role === "buyer";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {

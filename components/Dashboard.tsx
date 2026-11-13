@@ -45,7 +45,9 @@ export function Dashboard() {
   const params = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState(params.get("tab") || "genel");
+  // No tab: each account type opens on its own start page (lib/account-panel.ts panelTab). A member who signed up
+  // with a company invite code lands on Profilim, where the code is accepted.
+  const [tab, setTab] = useState<string|null>(()=>{const requested=params.get("tab");try{if(requested==="baslangic"&&typeof window!=="undefined"&&sessionStorage.getItem("company-invite-code"))return "profil";}catch{}return requested;});
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [draft,setDraft]=useState<{payload:{fields:Record<string,string>};updatedAt:string}|null>(null);
   const [mine, setMine] = useState<Listing[]>([]);
@@ -76,7 +78,7 @@ export function Dashboard() {
     }
   }, [loading, user]);
 
-  useEffect(()=>{if(tab!=="ilanlarim"&&tab!=="genel")return;const controller=new AbortController();fetch('/api/listing-draft',{cache:'no-store',signal:controller.signal}).then(r=>r.ok?apiJson<{draft?:import('@/lib/listing-drafts').DraftRecord|null}>(r):{draft:null}).then(data=>{if(!controller.signal.aborted)setDraft(data.draft||null);}).catch(()=>{});return()=>controller.abort();},[tab]);
+  useEffect(()=>{if(tab&&tab!=="ilanlarim"&&tab!=="genel")return;const controller=new AbortController();fetch('/api/listing-draft',{cache:'no-store',signal:controller.signal}).then(r=>r.ok?apiJson<{draft?:import('@/lib/listing-drafts').DraftRecord|null}>(r):{draft:null}).then(data=>{if(!controller.signal.aborted)setDraft(data.draft||null);}).catch(()=>{});return()=>controller.abort();},[tab]);
   async function logout() {
     await fetch("/api/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) });
     window.location.assign("/");

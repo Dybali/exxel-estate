@@ -37,6 +37,9 @@ test('panel: each type has its own short menu; old links still land on the right
  assert.equal(P.panelTab('kat-karsiligi',individual),'teklifler');assert.equal(P.panelTab('bildirimlerim',individual),'aramalar');
  assert.equal(P.panelTab('muteahhit',individual),'profil','"add your firm" links go to the account type switch');
  assert.equal(P.panelTab('projelerim',individual),'genel');assert.equal(P.panelTab(null,individual),'genel');
+ assert.equal(P.panelTab(null,P.panelTabs('contractor')),'muteahhit','firm accounts open on their firm panel');assert.equal(P.panelTab('baslangic',P.panelTabs('service')),'hizmet');assert.equal(P.panelTab('baslangic',P.panelTabs('agent')),'genel');
+ const auth=readFileSync(path.join(root,'components/AuthForm.tsx'),'utf8');assert.match(auth,/tab=muteahhit/);assert.match(auth,/tab=hizmet/);
+ assert.match(readFileSync(path.join(root,'components/ServiceHeader.tsx'),'utf8'),/mode=register&role=service/);assert.match(readFileSync(path.join(root,'components/ContractorChrome.tsx'),'utf8'),/mode=register&role=contractor/);
 });
 
 test('registration and firm APIs use the account type',()=>{

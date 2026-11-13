@@ -27,7 +27,7 @@ function useAccount() {
     fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: { name: string } }).then((data) => setUser(data.user || null)).catch(() => {});
   }, [path]);
   const next = (target: string) => `/giris?next=${encodeURIComponent(target)}`;
-  return { user, accountHref: user ? "/hesabim" : next(path || CONTRACTOR_BASE), addFirmHref: user ? CONTRACTOR_PANEL : next(CONTRACTOR_PANEL) };
+  return { user, accountHref: user ? "/hesabim" : next(path || CONTRACTOR_BASE), addFirmHref: user ? CONTRACTOR_PANEL : `/giris?mode=register&role=contractor&next=${encodeURIComponent(CONTRACTOR_PANEL)}` };
 }
 
 /** Header of the contractor sub-site (every /muteahhitler page). */

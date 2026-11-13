@@ -34,7 +34,9 @@ export function panelTabs(kind: AccountKind, options: { hasListings?: boolean; d
 const ALIASES: Record<string, PanelTabId> = { bildirimler: "aramalar", bildirimlerim: "aramalar", "kat-karsiligi": "teklifler", favorites: "favoriler", talepler: "crm", istatistik: "crm" };
 /** The tab to show for a `?tab=` value: aliases resolved, unknown or foreign tabs fall back to the overview. */
 export function panelTab(requested: string | null, tabs: PanelTab[]): PanelTabId {
-  const id = requested ? ALIASES[requested] ?? requested : "genel";
+  // No tab or "baslangic" (sign-up, e-mail verification): firm accounts start on their firm panel.
+  if (!requested || requested === "baslangic") return tabs.find((tab) => tab.id === "muteahhit" || tab.id === "hizmet")?.id ?? "genel";
+  const id = ALIASES[requested] ?? requested;
   if (tabs.some((tab) => tab.id === id)) return id as PanelTabId;
   // Agents find appointments inside CRM.
   if (id === "randevular" && tabs.some((tab) => tab.id === "crm")) return "crm";

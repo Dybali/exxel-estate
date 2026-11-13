@@ -29,7 +29,7 @@ function useAccount() {
     fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: { name: string } }).then((data) => setUser(data.user || null)).catch(() => {});
   }, [path]);
   const next = (target: string) => `/giris?next=${encodeURIComponent(target)}`;
-  return { user, accountHref: user ? "/hesabim" : next(path || SERVICE_BASE), addFirmHref: user ? SERVICE_SIGNUP_HREF : next(SERVICE_SIGNUP_HREF) };
+  return { user, accountHref: user ? "/hesabim" : next(path || SERVICE_BASE), addFirmHref: user ? SERVICE_SIGNUP_HREF : `/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}` };
 }
 
 /** Header of the service sub-site (every /hizmetler page, app/hizmetler/layout.tsx). */
