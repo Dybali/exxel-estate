@@ -46,3 +46,15 @@ test('registration and firm APIs use the account type',()=>{
  assert.match(readFileSync(path.join(root,'app/api/services/mine/route.ts'),'utf8'),/firmAllowed\(servicesDB\(\) as unknown as KindDatabase, user, "service"\)/);
  assert.match(readFileSync(path.join(root,'app/api/auth/callback/google/route.ts'),'utf8'),/if \(kind\) await setAccountKind/);
 });
+
+test('Yönetim menu: six groups, every screen reachable, old ?view= links keep their screen',()=>{
+ const N=load('lib/admin-nav.ts');
+ assert.deepEqual(N.ADMIN_GROUPS.map(g=>g.id),['overview','listings','members','inbox','orders','system']);
+ const views=N.ADMIN_GROUPS.flatMap(g=>g.views.map(v=>v.id));
+ for(const id of ['overview','applications','listings','suspicious','projects','services','contractors','messages','reports','contact','feedback','orders','health','translation-trial','ai-limits','settings','audit','security'])assert.ok(views.includes(id),id);
+ assert.equal(new Set(views).size,views.length,'each screen in one group');
+ assert.equal(N.adminGroup('suspicious').id,'listings');assert.equal(N.adminGroup('security').id,'system');assert.equal(N.adminGroup('nope').id,'overview');
+ assert.equal(N.adminHref({id:'security',href:'/yonetim/guvenlik'}),'/yonetim/guvenlik');
+ const dashboard=readFileSync(path.join(root,'components/AdminDashboard.tsx'),'utf8');
+ for(const id of views.filter(v=>v!=='security'))assert.ok(dashboard.includes(`${id.includes('-')?`'${id}'`:id}:[`),'page title for '+id+' (a missing title fell back to the overview)');
+});

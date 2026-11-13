@@ -71,3 +71,10 @@
 .admin-ai-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
 .admin-ai-form label{display:grid;gap:3px;font-size:12px;font-weight:650;flex:1;min-width:120px}
 .admin-ai-form input{min-height:36px;padding:6px 8px;border:1px solid #cfd8d6;border-radius:6px;font:inherit}
+
+/* Yönetim group tabs (components/AdminGroupTabs.tsx, lib/admin-nav.ts) */
+.admin-group-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px;padding:4px;border:1px solid #e1e8e4;border-radius:12px;background:#f6f9f7}
+.admin-group-tabs a{padding:8px 14px;border-radius:9px;color:#4b6358;font-size:13px;font-weight:600;text-decoration:none}
+.admin-group-tabs a:hover{background:#fff;color:#173d36}
+.admin-group-tabs a.active{background:#fff;color:#17676b;box-shadow:0 1px 3px rgba(23,61,54,.12)}
+.admin-main-tabs{padding-bottom:0}
