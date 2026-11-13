@@ -150,3 +150,8 @@
 @media (max-width:720px){.legal-toggle{padding:14px 48px 14px 16px;min-height:56px}.legal-section.is-collapsible .legal-body{padding:2px 18px 20px}.legal-section.is-collapsible .legal-anchor{display:none}}
 @media (prefers-reduced-motion:reduce){.legal-chevron{transition:none}}
 @media print{.legal-section.is-collapsible .legal-body{display:block!important}.legal-chevron{display:none}}
+
+/* Yasal künye: service provider and distributor side by side (components/Imprint.tsx) */
+.legal-identity-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.legal-identity-pair>div{display:grid;gap:6px}
+.legal-identity-pair>div>span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5f7a70}
