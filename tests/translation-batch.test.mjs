@@ -185,11 +185,13 @@ test('Luna batch: an answer returned untranslated is not saved, so the language 
  assert.equal(nl.fields.description,undefined,'the unchanged description is not saved');
 });
 
-test('admin "add all listings": every published listing is queued once (queuePublishedListings SQL)',async()=>{
- const src=readFileSync(path.join(root,'lib/translation-runtime.ts'),'utf8');
- assert.match(src,/SELECT id FROM listings WHERE status='published'/);
- const route=readFileSync(path.join(root,'app/api/admin/translations/route.ts'),'utf8');
- assert.match(route,/input\.action==='queue_all'&&Object\.keys\(input\)\.length===1/,'only the action key, admin-checked above');
- const db=database();for(const id of ['a','b','a'])await B.queueBatchTranslation(db,id);
- assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,2,'queueing twice keeps one row');
+test('first nightly run queues every published listing once by itself; later runs do not',async()=>{
+ const db=database();let asked=0;const ids=async()=>{asked++;return ['a','b','c'];};
+ await B.queueBatchTranslation(db,'a');
+ assert.equal(await B.backfillOnce(db,ids),3);
+ assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,3,'a stays one row');
+ db.sql.prepare('DELETE FROM translation_batch_queue').run();
+ assert.equal(await B.backfillOnce(db,ids),null);assert.equal(asked,1,'not asked again');
+ assert.equal(db.sql.prepare('SELECT COUNT(*) AS n FROM translation_batch_queue').get().n,0);
+ assert.equal((await B.batchMode(db)).mode,'batch','the backfill marker is not the batch mode');
 });

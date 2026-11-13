@@ -35,6 +35,20 @@ async function ensure(db: BatchDatabase) {
   await promise;
 }
 
+/**
+ * Once per database: queues every published listing (those published before the nightly batch existed were never
+ * queued). Runs from the nightly job, so nobody has to start it; cached texts cost nothing. Returns the number queued,
+ * or null when it already ran.
+ */
+export async function backfillOnce(db: BatchDatabase, publishedIds: () => Promise<string[]>, at = new Date()) {
+  await ensure(db);
+  if (await db.prepare("SELECT id FROM translation_batch_mode WHERE id='backfill'").bind().first()) return null;
+  const ids = await publishedIds();
+  for (const id of ids) await queueBatchTranslation(db, id, at);
+  await db.prepare("INSERT INTO translation_batch_mode(id,mode,checked_at) VALUES('backfill','done',?) ON CONFLICT(id) DO NOTHING").bind(at.toISOString()).run();
+  return ids.length;
+}
+
 export async function queueBatchTranslation(db: BatchDatabase, listingId: string, at = new Date()) {
   await ensure(db);
   await db.prepare("INSERT INTO translation_batch_queue(listing_id,created_at) VALUES(?,?) ON CONFLICT(listing_id) DO NOTHING").bind(listingId, at.toISOString()).run();

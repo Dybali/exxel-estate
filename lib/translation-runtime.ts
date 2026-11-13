@@ -4,7 +4,7 @@ import {listingById,serviceDB} from './server';
 import {contentLocales,type TranslationSettings} from './translation';
 import {prepareTranslations} from './translation-cache';
 import {translationContent} from './translation-content';
-import {pollTranslationBatches,queueBatchTranslation,submitTranslationBatch,translateQueueDirectly,type BatchDatabase,type BatchSource} from './translation-batch';
+import {backfillOnce,pollTranslationBatches,queueBatchTranslation,submitTranslationBatch,translateQueueDirectly,type BatchDatabase,type BatchSource} from './translation-batch';
 export const translationSettings=()=>env as unknown as TranslationSettings;
 // Every listing is translated into every language once (owner's decision 2026-11-12): new, edited and approved
 // listings are queued and translated overnight at the batch price (lib/translation-batch.ts), or hour by hour at
@@ -23,18 +23,14 @@ const listingSource:BatchSource=async id=>{
  }
  return docs;
 };
-/** Yönetim › Çeviriler: every published listing into tonight's batch (listings published before the nightly batch existed). */
-export async function queuePublishedListings(){
- const database=batchDB();if(!database)return 0;
- const rows=await database.prepare("SELECT id FROM listings WHERE status='published' ORDER BY updated_at DESC LIMIT 20000").bind().all<{id:string}>();
- for(const row of rows.results||[])await queueBatchTranslation(database,String(row.id));
- return (rows.results||[]).length;
-}
 export async function queueListingTranslation(id:string){const database=batchDB();if(database)await queueBatchTranslation(database,id).catch(cause=>console.warn('translation_queue_failed',String(cause)));}
 /** Daily: collect finished jobs, then submit the queue. Never rejects. */
 export async function translationBatchJob(){
  const database=batchDB();if(!database)return {poll:null,submit:null};
  const settings=await aiSettings();
+ // First night only: listings published before this system existed are queued automatically.
+ const backfill=await backfillOnce(database,async()=>((await database.prepare("SELECT id FROM listings WHERE status='published' ORDER BY updated_at DESC LIMIT 20000").bind().all<{id:string}>()).results||[]).map(row=>String(row.id))).catch(cause=>{console.warn('translation_backfill_failed',String(cause).slice(0,200));return null;});
+ if(backfill)console.info('translation_backfill',backfill);
  const poll=await pollTranslationBatches(database,settings).catch(cause=>({error:String(cause).slice(0,200)}));
  const submit=await submitTranslationBatch(database,settings,listingSource).catch(cause=>({status:'error',error:String(cause).slice(0,200)}));
  if(submit&&'status'in submit&&submit.status!=='empty'&&submit.status!=='not_configured')console.info('translation_batch',JSON.stringify(submit));
