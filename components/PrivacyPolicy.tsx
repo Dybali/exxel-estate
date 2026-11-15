@@ -146,7 +146,7 @@ export function PrivacyPolicy(){
       <p>{t('Ücretli ilan paketleri ve çevrimiçi ödeme şu anda etkin değildir; bu sitede kart veya ödeme işlemi verisi alınmaz. Ödeme açılmadan önce seçilen ödeme sağlayıcısı, fatura ve işlem verilerinin kapsamı, amaçları, hukuki dayanakları, saklama süreleri ve olası uluslararası aktarımları burada açıklanacaktır.')}</p>,
     ]}/>},
     {id:'haklar',title:t('Haklarınız ve nasıl kullanabileceğiniz'),content:<LegalClauses section={15} items={[
-      <><p>{t('Uygulanabilir mevzuat çerçevesinde aşağıdaki haklara sahipsiniz. Bazı haklar yalnızca GDPR kapsamında veya belirli koşullarda geçerlidir.')}</p><LegalRights/></>,
+      <><p>{t('Uygulanabilir mevzuat çerçevesinde aşağıdaki haklara sahipsiniz. Bazı haklar yalnızca GDPR kapsamında veya belirli koşullarda geçerlidir.')}</p><LegalRights/><p>{t('Üyeler verilerinin bir kopyasını indirebilir ve hesaplarını Hesabım › Profilim › Hesap güvenliği bölümünden kendileri silebilir. Şirket hesapları için bize yazın.')}</p></>,
       <p>{t('Başvurunuzu e-posta ile veya yazılı olarak yukarıdaki adrese iletebilirsiniz. Talepleri ücretsiz ve yasal süreler içinde (KVKK’da en geç 30 gün, GDPR’da kural olarak bir ay) yanıtlarız; kimliğinizi doğrulamak için ek bilgi isteyebiliriz. Hukuka aykırı işleme nedeniyle zarara uğrarsanız zararın giderilmesini talep etme hakkınız saklıdır.')}</p>,
       <p>{t('Bir şikâyetiniz varsa önce bize yazmanızı rica ederiz. Ayrıca bir denetim makamına başvurabilirsiniz: veri sorumlusunun bağlı olduğu Bavyera Veri Koruma Denetim Dairesi (BayLDA, Ansbach, Almanya), Türkiye’de Kişisel Verileri Koruma Kurulu veya AB’de yaşadığınız ya da çalıştığınız yerdeki denetim makamı.')}</p>,
     ]}/>},
