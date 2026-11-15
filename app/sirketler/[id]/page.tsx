@@ -19,6 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: `${company.name} | estatemarket24`, description,
     alternates: await pageAlternates(path),
+    // Labelled sample developers stay out of search results, like sample listings; links may be followed.
+    ...(sample ? { robots: { index: false, follow: true } } : {}),
     ...shareMetadata({ title: company.name, description, path, locale, image: coverShareImage(sample?.coverUrl, company.name) }),
   };
 }

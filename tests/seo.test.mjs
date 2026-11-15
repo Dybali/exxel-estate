@@ -42,3 +42,8 @@ test('unknown ids answer 404 before streaming: listings, companies, projects, se
   assert.equal(await publicProfileExists(db,"x' OR 1=1 --"),false);
  }finally{sql.close()}
 });
+
+test('sample companies are labelled noindex, follow like sample listings',()=>{
+ assert.match(read('app/sirketler/[id]/page.tsx'),/sample \? \{ robots: \{ index: false, follow: true \} \}/);
+ assert.match(read('app/ilan/[id]/page.tsx'),/listing\.source==='demo'\?\{robots:\{index:false,follow:true\}\}/);
+});
