@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { isLocale, isRtl, locales, translate, type Locale } from "./i18n-dictionary";
-import { LOCALE_COOKIE, preferredLocale } from "./locale-negotiation";
+import { LOCALE_COOKIE } from "./locale-negotiation";
 export { isLocale, isRtl, locales, translate, type Locale };
 
 const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string }>({
@@ -15,8 +15,10 @@ export function LocaleProvider({ children, initialLocale = "tr" }: { children: R
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("lang");
     const saved = window.localStorage.getItem("exxel_locale");
-    // Same order as the server (lib/locale-negotiation.ts), so this normally changes nothing.
-    const selected = [requested, saved].find(isLocale) || preferredLocale(navigator.languages?.length ? navigator.languages : [navigator.language]);
+    // Only an explicit ?lang or the visitor's saved choice overrides the server's language. The browser
+    // languages were already weighed on the server (Accept-Language); guessing again here made pages flip
+    // after hydration, e.g. Turkish pages turning English for crawlers whose renderer reports en-US.
+    const selected = [requested, saved].find(isLocale);
     if (selected) setLocale(selected);
   }, []);
   useEffect(() => {

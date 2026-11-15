@@ -1,7 +1,7 @@
-// Which language a page is rendered in, the same on the server (proxy.ts, build/sites-worker.ts) and
-// in the browser (lib/i18n.tsx): ?lang=xx, then the visitor's saved choice, then the first of the
-// browser's languages the site offers, else Turkish. Agreeing on this keeps the first HTML, the page
-// title and the hydrated page in one language, so foreign visitors no longer see Turkish first.
+// Which language a page is rendered in, decided on the server (proxy.ts, build/sites-worker.ts):
+// ?lang=xx, then the visitor's saved choice, then the first of the browser's languages the site offers,
+// else Turkish. The browser (lib/i18n.tsx) keeps that language and only follows ?lang or a saved choice,
+// so the first HTML, the page title and the hydrated page stay in one language.
 import { isLocale, type Locale } from "./i18n-dictionary";
 
 /** The saved language choice; written by the browser (lib/i18n.tsx), listed in the cookie policy. */

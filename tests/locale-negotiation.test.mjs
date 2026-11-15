@@ -16,3 +16,11 @@ test('invalid values are ignored and a Turkish choice is respected for a foreign
  assert.deepEqual(acceptedLanguages('de;q=0, en;q=0.5 , *'),['en','*']);
  assert.equal(preferredLocale(['zh-CN','RU-ru']),'ru');assert.equal(preferredLocale([]),undefined);
 });
+test('the browser keeps the server language unless ?lang or a saved choice says otherwise',()=>{
+ const provider=readFileSync('lib/i18n.tsx','utf8');
+ assert.match(provider,/const selected = \[requested, saved\]\.find\(isLocale\);/);
+ // No second guess from navigator.languages after hydration (crawlers report en-US and pages flipped).
+ assert.doesNotMatch(provider,/navigator\.language/);assert.doesNotMatch(provider,/preferredLocale/);
+ // An explicit choice is still remembered for the server.
+ assert.match(provider,/document\.cookie = `\$\{LOCALE_COOKIE\}=\$\{locale\}/);assert.match(provider,/localStorage\.setItem\("exxel_locale", locale\)/);
+});
