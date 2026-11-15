@@ -17,6 +17,9 @@ function pool(url: string) {
       max: Math.max(1, Math.min(50, Number(process.env.DATABASE_POOL_MAX) || 10)),
       idle_timeout: 30,
       connect_timeout: 10,
+      // One slow query must not hold one of the few connections indefinitely. Migrations use their own
+      // connection (runStartupMigrations) and are not limited by this.
+      connection: { statement_timeout: 30_000, idle_in_transaction_session_timeout: 60_000 },
       // "relation already exists, skipping" from CREATE TABLE IF NOT EXISTS is expected.
       onnotice: () => {},
     });

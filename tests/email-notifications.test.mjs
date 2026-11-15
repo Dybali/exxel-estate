@@ -20,3 +20,9 @@ test('daily digest is opt-in and only covers matches since the last digest',asyn
  await notify.setEmailPreferences(f.db,'u1',{alerts:true},new Date('2026-10-28T07:00:00Z'));
  const first=await notify.sendDailyDigests(f.db,settings,new Date('2026-10-29T06:00:00Z'));assert.deepEqual(first,{users:1,sent:1});assert.match(calls[0].body.html,/İzmir daireler<\/a>: 1 yeni ilan/);
  const second=await notify.sendDailyDigests(f.db,settings,new Date('2026-10-30T06:00:00Z'));assert.deepEqual(second,{users:1,sent:0});f.sql.close();});
+test('a digest that fails to send is retried the next day with the same listings',async()=>{const f=fixture();f.sql.exec("INSERT INTO saved_searches VALUES('u1','İzmir daireler','city=%C4%B0zmir',1)");
+ await notify.setEmailPreferences(f.db,'u1',{alerts:true},new Date('2026-10-28T07:00:00Z'));
+ globalThis.fetch=async()=>new Response('{"message":"down"}',{status:503});
+ const failed=await notify.sendDailyDigests(f.db,settings,new Date('2026-10-29T06:00:00Z'));assert.deepEqual(failed,{users:1,sent:0});
+ const calls=mockFetch();
+ const retried=await notify.sendDailyDigests(f.db,settings,new Date('2026-10-30T06:00:00Z'));assert.deepEqual(retried,{users:1,sent:1});assert.match(calls[0].body.html,/İzmir daireler<\/a>: 1 yeni ilan/);f.sql.close();});

@@ -46,6 +46,7 @@ export async function GET(request: Request) {
         grant_type: "authorization_code",
         code_verifier: flow.code_verifier,
       }),
+      signal: AbortSignal.timeout(10_000),
     });
     if (!tokenResponse.ok) return loginError("exchange", origin);
     const token = await tokenResponse.json() as { access_token?: string };
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
 
     const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
       headers: { Authorization: `Bearer ${token.access_token}` },
+      signal: AbortSignal.timeout(10_000),
     });
     if (!profileResponse.ok) return loginError("identity", origin);
     const profile = await profileResponse.json() as GoogleProfile;

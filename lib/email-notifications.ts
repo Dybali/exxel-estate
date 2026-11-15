@@ -82,7 +82,7 @@ export async function sendDailyDigests(db: NotificationDatabase, settings: Setti
   if (!emailReady(settings)) return { users: 0, sent: 0 };
   await ensure(db);
   const now = at.toISOString();
-  const users = await db.prepare("SELECT p.user_id,p.token,p.alerts_sent_at,u.email FROM email_preferences p JOIN users u ON CAST(u.id AS TEXT)=p.user_id WHERE p.alerts=1 AND u.email_verified=1 LIMIT ?").bind(limit).all<{ user_id: string; token: string; alerts_sent_at: string | null; email: string }>();
+  const users = await db.prepare("SELECT p.user_id,p.token,p.alerts_sent_at,u.email FROM email_preferences p JOIN users u ON CAST(u.id AS TEXT)=p.user_id WHERE p.alerts=1 AND u.email_verified=1 ORDER BY p.alerts_sent_at IS NOT NULL, p.alerts_sent_at LIMIT ?").bind(limit).all<{ user_id: string; token: string; alerts_sent_at: string | null; email: string }>();
   let sent = 0;
   for (const user of users.results) {
     const since = user.alerts_sent_at || new Date(at.getTime() - 86400000).toISOString();
@@ -102,7 +102,9 @@ export async function sendDailyDigests(db: NotificationDatabase, settings: Setti
         html: emailLayout({ title: "Aramalarınızda yenilikler", titleEn: "Updates to your searches and favourites", lines, action: { href: `${settings.SITE_URL}/hesabim?tab=bildirimler`, label: "Bildirimleri aç / Open alerts" }, unsubscribeUrl: unsubscribe }),
         text: lines.map((line) => line.replace(/<[^>]+>/g, "")).join("\n") + `\n\nAbonelikten çık / Unsubscribe: ${unsubscribe}`, unsubscribeUrl: unsubscribe,
       }).catch(() => ({ sent: false as const }));
-      if (result.sent) sent++;
+      // A failed send keeps the old timestamp, so the next run covers these listings again.
+      if (!result.sent) continue;
+      sent++;
     }
     await db.prepare("UPDATE email_preferences SET alerts_sent_at=? WHERE user_id=?").bind(now, user.user_id).run();
   }

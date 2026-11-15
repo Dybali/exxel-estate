@@ -27,11 +27,14 @@ export function externalR2BucketName() { return config()?.bucket || null; }
 
 // photoHash: the dHash computed in the uploader's browser (lib/listing-risk.ts); kept as object metadata
 // so the listing routes read it with the HEAD request they already make.
+// A stalled storage request must not hold a request (or the hourly health job) for minutes. Downloads
+// stream to the visitor and are left without a limit.
+const R2_TIMEOUT_MS = 20_000;
 export async function putExternalImage(key: string, bytes: Uint8Array, contentType: string, checksum: string, photoHash?: string | null) {
   const storage = config();
   if (!storage) throw new Error("External R2 is not configured");
   const response = await storage.client.fetch(objectUrl(storage.endpoint, key), {
-    method: "PUT", headers: { "Content-Type": contentType, "x-amz-meta-sha256": checksum, ...(photoHash ? { "x-amz-meta-phash": photoHash } : {}) }, body: bytes as unknown as BodyInit,
+    method: "PUT", headers: { "Content-Type": contentType, "x-amz-meta-sha256": checksum, ...(photoHash ? { "x-amz-meta-phash": photoHash } : {}) }, body: bytes as unknown as BodyInit, signal: AbortSignal.timeout(R2_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`R2 upload failed (${response.status})`);
 }
@@ -39,7 +42,7 @@ export async function putExternalImage(key: string, bytes: Uint8Array, contentTy
 export async function headExternalImage(key: string) {
   const storage = config();
   if (!storage) return null;
-  const response = await storage.client.fetch(objectUrl(storage.endpoint, key), { method: "HEAD" });
+  const response = await storage.client.fetch(objectUrl(storage.endpoint, key), { method: "HEAD", signal: AbortSignal.timeout(R2_TIMEOUT_MS) });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`R2 metadata failed (${response.status})`);
   return { contentType: response.headers.get("content-type") || "image/jpeg", size: Number(response.headers.get("content-length") || 0), checksum: response.headers.get("x-amz-meta-sha256"), photoHash: response.headers.get("x-amz-meta-phash") };
@@ -48,7 +51,7 @@ export async function headExternalImage(key: string) {
 export async function deleteExternalImage(key: string) {
   const storage = config();
   if (!storage) return;
-  const response = await storage.client.fetch(objectUrl(storage.endpoint, key), { method: "DELETE" });
+  const response = await storage.client.fetch(objectUrl(storage.endpoint, key), { method: "DELETE", signal: AbortSignal.timeout(R2_TIMEOUT_MS) });
   if (!response.ok && response.status !== 404) throw new Error(`R2 delete failed (${response.status})`);
 }
 
