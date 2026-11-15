@@ -256,4 +256,25 @@ export const seoCopy: Record<string, Copy> = {
   },
 };
 
+// Private and utility pages (sign-in, account, listing forms, comparison, administration): their own
+// title instead of the home page's, never indexed (app/layout.tsx, also disallowed in app/robots.ts).
+// A path matches its entry and everything below it (/ilan-duzenle/<id>, /yonetim/ilan/<id>).
+export const privatePageCopy: Record<string, { follow: boolean; title: Record<Locale, string> }> = {
+  "/giris": { follow: false, title: { tr: "Giriş Yap veya Üye Ol", de: "Anmelden oder registrieren", fr: "Se connecter ou s’inscrire", en: "Sign In or Register", ar: "تسجيل الدخول أو إنشاء حساب", fa: "ورود یا ثبت‌نام", ru: "Вход или регистрация", nl: "Inloggen of registreren" } },
+  "/hesabim": { follow: false, title: { tr: "Hesabım", de: "Mein Konto", fr: "Mon compte", en: "My Account", ar: "حسابي", fa: "حساب من", ru: "Мой аккаунт", nl: "Mijn account" } },
+  "/ilan-ver": { follow: false, title: { tr: "İlan Ver", de: "Anzeige aufgeben", fr: "Publier une annonce", en: "Post a Listing", ar: "أضف إعلانًا", fa: "ثبت آگهی", ru: "Разместить объявление", nl: "Advertentie plaatsen" } },
+  "/ilan-duzenle": { follow: false, title: { tr: "İlanı Düzenle", de: "Anzeige bearbeiten", fr: "Modifier l’annonce", en: "Edit Listing", ar: "تعديل الإعلان", fa: "ویرایش آگهی", ru: "Редактировать объявление", nl: "Advertentie bewerken" } },
+  // The comparison holds the visitor's own picks; its links to the listings may still be followed.
+  "/karsilastir": { follow: true, title: { tr: "İlan Karşılaştırma", de: "Anzeigen vergleichen", fr: "Comparer les annonces", en: "Compare Listings", ar: "مقارنة الإعلانات", fa: "مقایسهٔ آگهی‌ها", ru: "Сравнение объявлений", nl: "Advertenties vergelijken" } },
+  "/sifremi-unuttum": { follow: false, title: { tr: "Şifremi Unuttum", de: "Passwort vergessen", fr: "Mot de passe oublié", en: "Forgot Password", ar: "نسيت كلمة المرور", fa: "فراموشی رمز عبور", ru: "Забыли пароль", nl: "Wachtwoord vergeten" } },
+  "/eposta-dogrula": { follow: false, title: { tr: "E-posta Doğrulama", de: "E-Mail-Bestätigung", fr: "Vérification de l’e-mail", en: "Email Verification", ar: "تأكيد البريد الإلكتروني", fa: "تأیید ایمیل", ru: "Подтверждение e-mail", nl: "E-mailverificatie" } },
+  "/yonetim": { follow: false, title: { tr: "Yönetim Merkezi", de: "Verwaltung", fr: "Administration", en: "Administration", ar: "لوحة الإدارة", fa: "مدیریت", ru: "Администрирование", nl: "Beheer" } },
+};
+
+/** The private-page entry for a path (exact or below it), or null for public pages. */
+export function privatePage(path: string) {
+  const key = Object.keys(privatePageCopy).find((prefix) => path === prefix || path.startsWith(prefix + "/"));
+  return key ? privatePageCopy[key] : null;
+}
+
 export const openGraphLocale: Record<Locale, string> = { tr: "tr_TR", de: "de_DE", fr: "fr_FR", en: "en_GB", ar: "ar_AR", fa: "fa_IR", ru: "ru_RU", nl: "nl_NL" };

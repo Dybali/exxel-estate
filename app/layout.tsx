@@ -65,20 +65,26 @@ import { headers } from "next/headers";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { isRtl } from "@/lib/i18n-dictionary";
 import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
-import { seoCopy } from "@/lib/seo-copy";
+import { privatePage, seoCopy } from "@/lib/seo-copy";
 import { shareMetadata } from "@/lib/share-metadata";
 
 export const viewport: Viewport = { themeColor: "#0B5F63" };
 
 export async function generateMetadata(): Promise<Metadata> {
   const [locale, path] = await Promise.all([requestLocale(), requestPath()]);
-  const [title, description] = (seoCopy[path] || seoCopy["/"])[locale];
+  // Public pages listed in seoCopy get their own title, canonical and hreflang. Private pages (sign-in,
+  // account, forms, administration) get their own title and are never indexed. Any other path keeps
+  // the plain brand name and no canonical: pages with their own metadata set both, and a 404 must not
+  // claim the home page's title or point a canonical at itself.
+  const known = seoCopy[path]?.[locale], hidden = privatePage(path);
+  const title = hidden ? `${hidden.title[locale]} | estatemarket24` : known?.[0] || "estatemarket24";
+  const description = hidden ? undefined : known?.[1];
   const verification = googleSiteVerification();
   return {
     metadataBase: new URL(siteUrl()),
     title,
-    description,
-    alternates: { canonical: localizedUrl(path, locale), languages: languageAlternates(path) },
+    ...(description ? { description } : {}),
+    ...(hidden ? { robots: { index: false, follow: hidden.follow } } : known ? { alternates: { canonical: localizedUrl(path, locale), languages: languageAlternates(path) } } : {}),
     // Default link preview; pages with their own title or image call shareMetadata themselves.
     ...shareMetadata({ title, description, path, locale }),
     icons: {
