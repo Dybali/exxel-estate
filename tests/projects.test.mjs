@@ -139,3 +139,16 @@ test('reservation status changes are limited to the owner and known statuses',as
   assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM project_reservations').get().n,0);
  }finally{sql.close()}
 });
+
+test('sitemap lists approved projects only, newest first',async()=>{
+ const {sql,db}=fixture();try{
+  const pending=await P.createProject(db,{id:owner,admin:false},valid());
+  assert.deepEqual(await P.projectSitemapEntries(db),[]);
+  const approved=await P.createProject(db,{id:admin,admin:true},valid(admin));
+  const rows=await P.projectSitemapEntries(db);
+  assert.deepEqual(rows.map(r=>r.path),['/projeler/'+approved.id]);assert.ok(Number.isFinite(Date.parse(rows[0].updatedAt)));
+  assert.ok(!rows.some(r=>r.path.endsWith(pending.id)));
+  const source=readFileSync(new URL('../app/sitemap.ts',import.meta.url),'utf8');
+  assert.match(source,/projectSitemapEntries\(projectsDB\(\)\)/);assert.doesNotMatch(source,/"\/asistan"/);
+ }finally{sql.close()}
+});

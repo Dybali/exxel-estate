@@ -223,6 +223,13 @@ export async function publicProjects(db: ProjectDatabase, filters: ProjectFilter
   return { projects: matches.slice((page - 1) * PROJECT_PAGE_SIZE, page * PROJECT_PAGE_SIZE), total: matches.length, page, pageSize: PROJECT_PAGE_SIZE };
 }
 
+// Sitemap rows: approved projects only (the same ones /projeler/<id> shows everyone), newest first.
+export async function projectSitemapEntries(db: ProjectDatabase) {
+  await ensure(db);
+  const rows = await db.prepare("SELECT id,updated_at FROM projects WHERE moderation='approved' ORDER BY updated_at DESC, id DESC LIMIT 5000").all<{ id: string; updated_at: string }>();
+  return rows.results.map((row) => ({ path: `/projeler/${row.id}`, updatedAt: String(row.updated_at) }));
+}
+
 // Approved projects are public; the owner and administrators also see pending and rejected ones.
 export async function projectById(db: ProjectDatabase, id: string, viewer: Actor | null = null) {
   const row = await projectRow(db, id);
