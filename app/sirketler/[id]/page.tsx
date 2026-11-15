@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { CompanyProfile } from "@/components/CompanyProfile";
 import { companySummary } from "@/lib/company-seo";
 import { PUBLIC_DEMO_COMPANIES } from "@/lib/demo-companies";
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   // Labelled sample developers have a cover photo; real company profiles have none yet (default image).
   const sample = PUBLIC_DEMO_COMPANIES.find((company) => company.id === id);
   const company = sample || await companySummary(id).catch(() => null);
-  if (!company) return { alternates: await pageAlternates(path) };
+  if (!company) return { robots: { index: false, follow: false } };
   const description = sample?.description?.slice(0, 160) || seoCopy["/sirketler"][locale][1];
   return {
     title: `${company.name} | estatemarket24`, description,
@@ -24,5 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  // Unknown or unapproved companies answer 404 before anything streams (no soft 404); samples stay
+  // available, and a database failure leaves the message to the client.
+  if (!PUBLIC_DEMO_COMPANIES.some((company) => company.id === id) && await companySummary(id).catch(() => undefined) === null) notFound();
   return <CompanyProfile id={id}/>;
 }
