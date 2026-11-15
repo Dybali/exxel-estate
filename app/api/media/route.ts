@@ -1,4 +1,6 @@
-import { bucket, currentUser, error, ok, sameOrigin } from "@/lib/server";
+import { bucket, currentUser, db, error, ok, sameOrigin, sha256 } from "@/lib/server";
+import { stripImageMetadata } from "@/lib/image-metadata";
+import { consumeRateLimit, RecoveryError } from "@/lib/recovery-service";
 import { externalR2Ready, putExternalImage } from "@/lib/external-r2";
 import {panoramaDimensions} from '@/lib/panoramas';
 import {validPhotoHash} from '@/lib/listing-risk';
@@ -10,6 +12,12 @@ export async function POST(request:Request) {
   const purpose=new URL(request.url).searchParams.get("purpose");
   if(!user || purpose!=="profile"&&purpose!=="service"&&purpose!=="contractor"&&!["agent","individual","admin"].includes(user.role)) return error("Fotoğraf yüklemek için ilan veren hesabı gerekir.",403);
   if(!externalR2Ready()) return error("Fotoğraf deposu yapılandırılmamış.",503);
+  // Storage cost: any verified member may upload profile, firm and contractor photos, so cap uploads per
+  // member (profile photos 10, everything together 200 per 15 minutes).
+  try{
+    if(purpose==="profile")await consumeRateLimit(db(),await sha256(`upload-profile:${user.id}`),10,15*60_000);
+    await consumeRateLimit(db(),await sha256(`upload:${user.id}`),200,15*60_000);
+  }catch(cause){if(cause instanceof RecoveryError)return error(cause.message,cause.status);throw cause;}
   let form:FormData;try{form=await request.formData();}catch{return error("Geçersiz dosya.");}
   const part=form.get("file");
   // The multipart File can come from a different runtime realm, so instanceof File is unreliable.
@@ -23,8 +31,10 @@ export async function POST(request:Request) {
   if(!isPng && !isJpeg && !isWebp) return error("Fotoğraf biçimi doğrulanamadı.");
   const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
   const key=`listings/${user.id}/${crypto.randomUUID()}.${ext}`;
-  const bytes=new Uint8Array(await file.arrayBuffer());
-  if(new URL(request.url).searchParams.get('purpose')==='panorama'){try{if(file.type!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(bytes);}catch(cause){return error((cause as Error).message);}}
+  const original=new Uint8Array(await file.arrayBuffer());
+  if(purpose==='panorama'){try{if(file.type!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(original);}catch(cause){return error((cause as Error).message);}}
+  // GPS and other personal metadata never reach storage, even when the browser re-encode was skipped.
+  const bytes=stripImageMetadata(original,file.type,{keepXmp:purpose==='panorama'});
   const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map((item)=>item.toString(16).padStart(2,"0")).join("");
   // Listing photos carry a dHash computed in the browser (Workers cannot decode WebP/JPEG; docs/listing-risk.md).
   // It is advisory only: a malformed value is dropped, never an error.

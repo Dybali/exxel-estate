@@ -1,4 +1,5 @@
-import { body, currentUser, error, ok, sameOrigin } from "@/lib/server";
+import { body, clientIp, currentUser, db, error, ok, sameOrigin, sha256 } from "@/lib/server";
+import { consumeRateLimit, RecoveryError } from "@/lib/recovery-service";
 import { env, waitUntil } from "@/lib/runtime";
 import { siteUrl } from "@/lib/request-context";
 import type { EmailSettings } from "@/lib/email";
@@ -12,6 +13,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params, user = await currentUser(request);
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Talep bilgilerini kontrol edin."); }
+  // Anonymous form: at most 5 requests per address in 15 minutes so a publisher's inbox cannot be flooded.
+  try { await consumeRateLimit(db(), await sha256(`reservation-ip:${clientIp(request)}`), 5, 15 * 60_000); }
+  catch (cause) { if (cause instanceof RecoveryError) return error(cause.message, cause.status); throw cause; }
   try {
     const saved = await createReservation(projectsDB(), id, data, user?.id || null);
     // Email the publisher in the background; failures never affect the request.

@@ -1,4 +1,6 @@
 import { env } from "./runtime";
+import { safeNextPath } from "./safe-next";
+export { safeNextPath };
 
 type GoogleEnv = Cloudflare.Env & {
   GOOGLE_CLIENT_ID?: string;
@@ -24,17 +26,6 @@ export function googleConfig() {
   }
 }
 
-export function safeNextPath(value: string | null, fallback = "/hesabim") {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
-  try {
-    const url = new URL(value, "https://exxel.invalid");
-    if (url.origin !== "https://exxel.invalid") return fallback;
-    if (url.pathname.startsWith("/api/auth/")) return fallback;
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return fallback;
-  }
-}
 
 export function randomUrlToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(32));

@@ -1,5 +1,6 @@
 "use client";
 import { BackArrow } from "@/components/DirectionalArrow";
+import { safeNextPath } from "@/lib/safe-next";
 import {apiJson} from '@/lib/api-client';
 
 import { useEffect, useState } from "react";
@@ -75,7 +76,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
   }, []);
 
   const next = params.get("next");
-  const safeNext = next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/hesabim";
+  const safeNext = safeNextPath(next || null);
   const googleRole = mode === "register" ? role==="developer"?"agent":role : "buyer";
   const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(mode==="register"&&role==="developer"?"/hesabim?tab=profil&companyCategory=developer":mode==="register"&&role==="contractor"?"/muteahhitler/panel":mode==="register"&&role==="service"?"/hizmetler/panel":safeNext)}`;
   const showBuyerGoogle = mode === "login" || role === "buyer";

@@ -16,3 +16,9 @@ test('route-specific privacy and download sandbox policies are retained',()=>{
  assert.equal(result.headers.get('Referrer-Policy'),'no-referrer');assert.equal(result.headers.get('Content-Security-Policy'),"sandbox; default-src 'none'");assert.match(result.headers.get('Content-Disposition'),/attachment/);
  const redirect=withResponseSecurity(Response.redirect('https://site.example/giris',302));assert.equal(redirect.status,302);assert.equal(redirect.headers.get('Location'),'https://site.example/giris');
 });
+test('pages can only be framed by the site itself and HTTPS is remembered',()=>{
+ const result=withResponseSecurity(new Response('<html></html>',{headers:{'Content-Type':'text/html'}}));
+ assert.equal(result.headers.get('Content-Security-Policy'),"frame-ancestors 'self'; object-src 'none'; base-uri 'self'");
+ assert.equal(result.headers.get('X-Frame-Options'),'SAMEORIGIN');
+ assert.equal(result.headers.get('Strict-Transport-Security'),'max-age=31536000');
+});

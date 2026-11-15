@@ -52,10 +52,12 @@ export function sameOrigin(request:Request) {
   const origin = request.headers.get("origin");
   return !origin || origin === new URL(request.url).origin || origin === requestOrigin(request);
 }
-// Visitor IP for rate limits: Cloudflare's header, else the address Mittwald's proxy appended last
-// to X-Forwarded-For (earlier entries can be supplied by the client).
-export function clientIp(request:Request) {
-  const cf = request.headers.get("CF-Connecting-IP");
+// Visitor IP for rate limits. On Cloudflare Workers, Cloudflare sets CF-Connecting-IP itself. Anywhere
+// else (the Mittwald container) a client could send that header, so only the address Mittwald's proxy
+// appended last to X-Forwarded-For counts (earlier entries can be supplied by the client).
+const onCloudflareWorkers = () => (globalThis as {navigator?:{userAgent?:string}}).navigator?.userAgent === "Cloudflare-Workers";
+export function clientIp(request:Request, workers = onCloudflareWorkers()) {
+  const cf = workers ? request.headers.get("CF-Connecting-IP") : null;
   if (cf) return cf;
   const forwarded = request.headers.get("x-forwarded-for")?.split(",").map((part) => part.trim()).filter(Boolean);
   return forwarded?.at(-1) || request.headers.get("x-real-ip") || "local";

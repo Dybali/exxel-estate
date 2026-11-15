@@ -140,17 +140,12 @@ export async function validAdmin2faCookie(cookieHeader: string, key: string, use
   return equalStrings(signature, await hmacHex("em24-admin-2fa-cookie:" + key, cookieMessage(userId, sessionHash, expires)));
 }
 
-// True when this administrator enabled 2FA and the current session has not confirmed it yet.
-// Without a usable ADMIN_TOTP_KEY the feature is off. Database errors fail closed.
-// db() returns a new object per call; keep one per factory so the CREATE TABLE check runs once.
-const shared = new WeakMap<() => TotpDatabase, TotpDatabase>();
-export async function admin2faPending(database: () => TotpDatabase, userId: string, sessionHash: string, cookieHeader: string, rawKey: string | undefined, nowMs = Date.now()) {
+// True while the current session has not confirmed a second factor. With a usable ADMIN_TOTP_KEY
+// 2FA is mandatory: an administrator who has not enrolled yet is also pending and can only reach
+// the enrolment screen (/yonetim/guvenlik) until enrolment is confirmed. Without the key the
+// feature is off. The database is not needed: only a valid confirmation cookie clears it.
+export async function admin2faPending(_database: () => TotpDatabase, userId: string, sessionHash: string, cookieHeader: string, rawKey: string | undefined, nowMs = Date.now()) {
   const key = usableKey(rawKey);
   if (!key) return false;
-  if (await validAdmin2faCookie(cookieHeader, key, userId, sessionHash, nowMs)) return false;
-  try {
-    let db = shared.get(database);
-    if (!db) { db = database(); shared.set(database, db); }
-    return (await twoFactorStatus(db, userId)).enabled;
-  } catch { return true; }
+  return !(await validAdmin2faCookie(cookieHeader, key, userId, sessionHash, nowMs));
 }

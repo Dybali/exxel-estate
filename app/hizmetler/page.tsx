@@ -26,7 +26,7 @@ export default async function ServicesPage() {
   ];
   // Sample firms (lib/service-samples.ts) fill the firm lists after the real ones; counts and stats stay real.
   return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\u003c") }}/>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>
     <ServicesLanding counts={counts} stats={stats} sampleCounts={samples.length ? sampleCategoryCounts(samples) : undefined}
       featured={fillWithSamples(featured, matchSampleFirms(samples, { featured: true }), SERVICE_FEATURED_LIMIT)}
       newest={fillWithSamples(newest, matchSampleFirms(samples, { sort: "newest" }), SERVICE_FEATURED_LIMIT)}/>

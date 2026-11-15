@@ -105,8 +105,11 @@ export async function POST(request:Request) {
     // Count before verification with atomic UPSERTs. A shared IP budget also
     // bounds attempts spread over many e-mail addresses; successful logins do
     // not reset this aggregate budget.
+    // A per-account budget that ignores the IP stops guessing one password from many addresses.
+    const accountKey=await sha256(`login-account:${email}`);
     try{
       await consumeRecoveryLimit(db(),await sha256(`login-ip:${ip}`),100);
+      await consumeRecoveryLimit(db(),accountKey,30);
       await consumeRecoveryLimit(db(),limitKey,10);
     }catch(cause){if(cause instanceof RecoveryError)return error(cause.message,cause.status);throw cause;}
     const row=await db().prepare("SELECT id,email,password_hash,email_verified,name,role,agent_status,phone,whatsapp_enabled,company FROM users WHERE email=?").bind(email).first<Record<string,unknown>>();
@@ -114,7 +117,7 @@ export async function POST(request:Request) {
       // Same message for every failure; it also guides accounts created with Google (no local password).
       return error("E-posta veya şifre hatalı. Google ile kaydolduysanız Google ile giriş yapın ya da “Şifremi unuttum” ile yeni bir şifre belirleyin.",401);
     }
-    await db().prepare("DELETE FROM auth_limits WHERE key=?").bind(limitKey).run();
+    await db().prepare("DELETE FROM auth_limits WHERE key IN (?,?)").bind(limitKey,accountKey).run();
     const token=await createSession(String(row.id));
     const user={id:row.id,email:row.email,email_verified:row.email_verified,name:row.name,role:row.role,agent_status:row.agent_status,phone:row.phone,whatsapp_enabled:row.whatsapp_enabled,company:row.company};
     return ok({user:{...user,isAdmin:isAdmin(user as Parameters<typeof isAdmin>[0])}},{headers:{"Set-Cookie":sessionCookie(token)}});

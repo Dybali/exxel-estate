@@ -45,6 +45,8 @@ Alan adı yeni Worker'a bağlanıp her şey denendikten sonra (bkz. `docs/cloudf
 4. Uygulamadaki kodu girip **Kurulumu tamamla**. Gösterilen 10 kurtarma kodunu parola yöneticisine kaydedin; bir daha gösterilmez.
 5. Bundan sonra her yeni oturumda şifreden sonra 6 haneli kod istenir. Onay 12 saat veya tarayıcı kapanana kadar geçerlidir.
 
+**Zorunluluk (2026-11-15):** `ADMIN_TOTP_KEY` tanımlı olduğu anda 2FA bütün yöneticiler için zorunludur. Kurulumu yapmamış bir yönetici giriş yapınca doğrudan `/yonetim/guvenlik` sayfasına gönderilir; kurulum tamamlanana kadar yalnızca bu sayfayı açabilir, yönetim uçları kapalıdır. Mittwald'da anahtar mStudio'da konteynerin ortam değişkeni olarak girilir (`npx wrangler secret put` yalnızca Cloudflare içindir). Anahtar tanımlı değilse 2FA kapalı kalır ve hiçbir şey değişmez.
+
 Nasıl çalışır: 2FA'yı açmış bir yönetici, oturumu kodu onaylayana kadar sitede normal üye gibi görünür (`isAdmin` yanlış döner); bu yüzden tüm `/api/admin/*` uçları, `/yonetim` sayfaları ve yöneticiye özel yetkiler (ilan düzenleme, medya, dışa aktarma vb.) kod girilene kadar kapalıdır. 5 hatalı denemede 15 dakika kilit vardır; aynı kod ikinci kez kullanılamaz.
 
 Kilitlenme (telefon ve kurtarma kodları kayıp): Neon SQL Editor'da `DELETE FROM admin_totp WHERE user_id='<yönetici kullanıcı id>';` çalıştırın; 2FA kapanır, sonra yeniden kurun.

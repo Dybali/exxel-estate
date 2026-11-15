@@ -181,7 +181,7 @@ function googleFixture(){
  const env={GOOGLE_CLIENT_ID:'client-id',GOOGLE_CLIENT_SECRET:'client-secret',GOOGLE_REDIRECT_URI:'https://p-r9al26.project.space/api/auth/callback/google'};
  const realServer=load('lib/server.ts',{'./runtime':{env},'./d1-publication':{},'./listing-policy':{},'./price-history':{},'./listing-location':{},'./listings':{PUBLIC_DEMO_LISTINGS:[]},'./neon-d1':{},'./pg-d1':{},'@/lib/postgres-driver':{},'./private-bucket':{},'./admin-totp':{}});
  const server={...realServer,db:()=>db,currentUser:async()=>null,createSession:async userId=>{const token='tok-'+userId;sql.prepare('INSERT INTO sessions VALUES(?,?,?)').run(await sha(token),userId,'2099-01-01');return token;}};
- const auth=load('lib/google-auth.ts',{'./runtime':{env}});
+ const auth=load('lib/google-auth.ts',{'./runtime':{env},'./safe-next':load('lib/safe-next.ts',{})});
  const start=load('app/api/auth/google/route.ts',{'@/lib/server':server,'@/lib/google-auth':auth});
  const callback=load('app/api/auth/callback/google/route.ts',{'@/lib/server':server,'@/lib/google-auth':auth});
  const proxied=(pathAndQuery,headers={})=>new Request('http://site:3000'+pathAndQuery,{headers:{'x-forwarded-proto':'https','x-forwarded-host':'p-r9al26.project.space',...headers}});

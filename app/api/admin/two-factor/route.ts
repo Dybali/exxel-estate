@@ -30,7 +30,8 @@ export async function POST(request: Request) {
       const status = await twoFactorStatus(database, userId);
       return ok({ verified: true, method, recoveryCodesLeft: status.recoveryCodesLeft }, { headers: { ...noStore, "Set-Cookie": await admin2faCookie(key, userId, admin.sessionHash) } });
     }
-    if (admin.pending) return error("Önce iki adımlı doğrulama kodunu girin.", 403);
+    // Pending and not enrolled (2FA is mandatory): only enrolment is allowed.
+    if (admin.pending && ((await twoFactorStatus(database, userId)).enabled || (action !== "start" && action !== "confirm"))) return error("Önce iki adımlı doğrulama kodunu girin.", 403);
     if (action === "start") return ok(await startEnrolment(database, key, userId, admin.user.email), { headers: noStore });
     if (action === "confirm") {
       const result = await confirmEnrolment(database, key, userId, code);

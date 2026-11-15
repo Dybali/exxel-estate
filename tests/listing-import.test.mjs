@@ -13,3 +13,9 @@ test('XML prices are accepted only in Turkish lira; a missing currency means TRY
 test('the same ref and account always give the same UUID-shaped submission id',async()=>{const a=await importSubmissionId('u1','A-1'),b=await importSubmissionId('u1','A-1'),c=await importSubmissionId('u2','A-1');assert.equal(a,b);assert.notEqual(a,c);assert.match(a,/^[a-f0-9]{8}-[a-f0-9]{4}-5[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);});
 test('neighbourhood names match regardless of case, accents and the Mah. suffix',()=>{assert.equal(neighborhoodKey('BEŞYOL Mah.'),neighborhoodKey('Beşyol'));const list=[{id:1,name:'Beşyol',postalCode:'35040'},{id:2,name:'Atatürk',postalCode:'35030'},{id:3,name:'Atatürk',postalCode:'35090'}];assert.equal(matchNeighborhood(list,'besyol mahallesi').id,1);assert.equal(matchNeighborhood(list,'Atatürk'),null);assert.equal(matchNeighborhood(list,'Atatürk','35090').id,3);});
 test('photo downloads accept only public https host names',()=>{for(const ok of ['https://cdn.example.com/a.jpg','https://example.com:443/a.png'])assert.ok(safeImageUrl(ok),ok);for(const bad of ['http://example.com/a.jpg','https://127.0.0.1/a.jpg','https://[::1]/a.jpg','https://localhost/a.jpg','https://intranet/a.jpg','https://user:pw@example.com/a.jpg','https://example.com:8443/a.jpg','https://printer.local/a.jpg','ftp://example.com/a.jpg',42])assert.equal(safeImageUrl(bad),null,String(bad));});
+test('photo fetcher refuses internal addresses',async()=>{
+ const {privateAddress,resolvesToPublicAddress}=load('safe-image-url');
+ for(const ip of ['127.0.0.1','10.1.2.3','172.16.0.1','192.168.1.1','169.254.169.254','100.64.0.1','0.0.0.0','::1','fd00::1','fe80::1','::ffff:127.0.0.1'])assert.equal(privateAddress(ip),true,ip);
+ for(const ip of ['8.8.8.8','93.184.216.34','2606:4700::1111','172.32.0.1'])assert.equal(privateAddress(ip),false,ip);
+ assert.equal(await resolvesToPublicAddress('localhost'),false);
+});

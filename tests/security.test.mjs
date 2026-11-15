@@ -84,9 +84,9 @@ test('the 2FA cookie is bound to the session and gates pending admins',async()=>
  assert.equal(await A.validAdmin2faCookie(header,KEY,'other-user','session-a',now),false);
  assert.equal(await A.validAdmin2faCookie(header,KEY,USER,'session-a',now+13*3600_000),false,'expired');
  assert.equal(await A.admin2faPending(factory,USER,'session-a','',undefined,now),false,'no key: feature off');
- assert.equal(await A.admin2faPending(factory,USER,'session-a','',KEY,now),false,'not enrolled');
+ assert.equal(await A.admin2faPending(factory,USER,'session-a','',KEY,now),true,'not enrolled: 2FA is mandatory, enrolment comes first');
  const {secret}=await A.startEnrolment(db,KEY,USER,'a@example.com',now);
- assert.equal(await A.admin2faPending(factory,USER,'session-a','',KEY,now),false,'enrolment not confirmed yet');
+ assert.equal(await A.admin2faPending(factory,USER,'session-a','',KEY,now),true,'enrolment not confirmed yet');
  await A.confirmEnrolment(db,KEY,USER,await T.totp(secret,now),now);
  assert.equal(await A.admin2faPending(factory,USER,'session-a','',KEY,now),true);
  assert.equal(await A.admin2faPending(factory,USER,'session-a','x=1; '+header,KEY,now),false);

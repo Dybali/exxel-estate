@@ -1,5 +1,5 @@
 import { body, currentUser, error, sameOrigin } from "@/lib/server";
-import { safeImageUrl } from "@/lib/safe-image-url";
+import { resolvesToPublicAddress, safeImageUrl } from "@/lib/safe-image-url";
 
 const MAX_BYTES = 25_000_000;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -22,6 +22,7 @@ export async function POST(request: Request) {
   if (!url) return error("Fotoğraf adresi https ile başlayan herkese açık bir adres olmalı.");
   let response: Response | null = null;
   for (let hop = 0; hop < 4; hop++) {
+    if (!(await resolvesToPublicAddress(url.hostname))) return error("Fotoğraf adresi https ile başlayan herkese açık bir adres olmalı.");
     try {
       response = await fetch(url, { redirect: "manual", headers: { Accept: TYPES.join(",") }, signal: AbortSignal.timeout(15000) });
     } catch { return error("Fotoğraf indirilemedi.", 502); }

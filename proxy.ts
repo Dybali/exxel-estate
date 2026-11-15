@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { negotiateLocale } from "./lib/locale-negotiation";
 import { LOCALE_HEADER, PATH_HEADER } from "./lib/request-headers";
+import { applySecurityHeaders } from "./lib/response-security";
 
 // Request context for the standard Next.js server (Mittwald container): pass the language and the path
 // to server components, replacing any client-supplied values, and add the basic security
@@ -12,12 +13,11 @@ export function proxy(request: NextRequest) {
   headers.set(LOCALE_HEADER, negotiateLocale(lang, request.headers.get("cookie"), request.headers.get("accept-language")));
   headers.set(PATH_HEADER, request.nextUrl.pathname);
   const response = NextResponse.next({ request: { headers } });
-  response.headers.set("X-Content-Type-Options", "nosniff");
   // Temporary and test addresses (Mittwald project domain, test.*) must stay out of search results.
   // Behind Mittwald's proxy nextUrl carries the internal host; the public one is in the headers.
   const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.hostname).split(",")[0].trim().replace(/:\d+$/, "");
   if (host.endsWith(".project.space") || host.startsWith("test.")) response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  if (!response.headers.has("Referrer-Policy")) response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  applySecurityHeaders(response.headers);
   return response;
 }
 
