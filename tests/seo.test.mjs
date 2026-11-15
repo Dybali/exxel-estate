@@ -47,3 +47,19 @@ test('sample companies are labelled noindex, follow like sample listings',()=>{
  assert.match(read('app/sirketler/[id]/page.tsx'),/sample \? \{ robots: \{ index: false, follow: true \} \}/);
  assert.match(read('app/ilan/[id]/page.tsx'),/listing\.source==='demo'\?\{robots:\{index:false,follow:true\}\}/);
 });
+
+test('robots.txt: runtime sitemap address, private pages closed, public read-only APIs open',async()=>{
+ const source=read('app/robots.ts');
+ assert.match(source,/export const dynamic = "force-dynamic"/);
+ // app/robots.ts imports "@/lib/request-context" (next/headers); evaluate it with a stubbed siteUrl.
+ const ts=(await import('typescript')).default;
+ const code=ts.transpileModule(source.replace('"@/lib/request-context"','"data:text/javascript,export const siteUrl=()=>\'https://site.example\'"'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+ const {default:robots}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+ const result=robots(),[rule]=result.rules;
+ assert.equal(result.sitemap,'https://site.example/sitemap.xml');
+ for(const path of ['/api/','/hesabim','/yonetim','/ilan-ver','/ilan-duzenle','/giris','/karsilastir','/api/projects/mine','/api/listings/*/view','/api/listings/*/contact'])assert.ok(rule.disallow.includes(path),path);
+ for(const path of ['/','/ilan/','/api/listings','/api/companies','/api/projects','/api/profiles','/api/media/listings/'])assert.ok(rule.allow.includes(path),path);
+ // The browser loads exactly these paths on the public pages.
+ assert.match(read('app/page.tsx'),/fetch\("\/api\/listings\?/);assert.match(read('components/Explorer.tsx'),/fetch\(`\/api\/listings\?/);
+ assert.match(read('components/ProjectDetail.tsx'),/fetch\(`\/api\/projects\//);assert.match(read('components/CompanyProfile.tsx'),/fetch\(`\/api\/companies\//);
+});
