@@ -63,7 +63,7 @@ export function validateContact(input: Record<string, unknown>): ContactInput {
   if (!isSubject(subject)) throw new ContactError("Bir konu seçin.");
   if (message.length < CONTACT_LIMITS.messageMin) throw new ContactError("Mesajınız en az 10 karakter olmalıdır.");
   if (message.length > CONTACT_LIMITS.messageMax) throw new ContactError("Mesajınız en fazla 2000 karakter olabilir.");
-  if (input.consent !== true) throw new ContactError("Devam etmek için kişisel verilerin işlenmesini onaylayın.");
+  // No consent needed: answering the request is the legal basis (GDPR art. 6(1)(b), KVKK art. 5(2)(c)).
   return { name, email, subject: subject as ContactSubject, message, locale: LOCALES.includes(locale) ? locale : "tr" };
 }
 

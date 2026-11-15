@@ -106,7 +106,7 @@ export async function GET(request:Request) {
   if(realLimit>0){const rows=await db().prepare(`SELECT l.*,u.name AS owner_name,${OWNER_VERIFIED_SQL},${PRICE_DROP_SQL} FROM listings l JOIN users u ON u.id=l.owner_id WHERE ${query} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,realLimit,realOffset).all<Record<string,unknown>>();real=(rows.results||[]).map(row=>publicListing(parseListing(row)))}
   const demoOffset=Math.max(0,pageStart-realCount);
   const listings=ordered?[...real,...demo].sort(compareListings(sort,rates)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
-  return ok({listings:mapMode?listings.map(mapRow):listings,total:demo.length+realCount,page,pageSize,unlocated:await unlocated()},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
+  return ok({listings:mapMode?listings.map(mapRow):listings,total:demo.length+realCount,realTotal:realCount,sampleTotal:demo.length,page,pageSize,unlocated:await unlocated()},{headers:{"Cache-Control":"public,max-age=20,s-maxage=45,stale-while-revalidate=180"}});
 }
 
 export async function POST(request:Request) {

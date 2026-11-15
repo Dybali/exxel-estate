@@ -9,7 +9,7 @@ import {CONTACT_LIMITS, CONTACT_SUBJECTS, type ContactSubject} from "@/lib/conta
 // Contact page (/iletisim): company details from the legal notice and the contact form.
 export function ContactPage() {
   const {t, locale} = useLocale();
-  const [form, setForm] = useState({name: "", email: "", subject: "" as ContactSubject | "", message: "", website: "", consent: false});
+  const [form, setForm] = useState({name: "", email: "", subject: "" as ContactSubject | "", message: "", website: ""});
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [sent, setSent] = useState(false);
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((old) => ({...old, [key]: value}));
   async function submit(event: FormEvent) {
@@ -57,7 +57,7 @@ export function ContactPage() {
           <label>{t("Mesajınız")}<textarea required rows={7} minLength={CONTACT_LIMITS.messageMin} maxLength={CONTACT_LIMITS.messageMax} value={form.message} onChange={(e) => set("message", e.target.value)}/><small className="contact-count">{form.message.length} / {CONTACT_LIMITS.messageMax}</small></label>
           {/* Hidden from people; automated form fillers that complete it are ignored by the server. */}
           <div className="contact-trap" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => set("website", e.target.value)}/></label></div>
-          <label className="contact-consent"><input type="checkbox" required checked={form.consent} onChange={(e) => set("consent", e.target.checked)}/><span>{t("Mesajımın yanıtlanması için adımın, e-posta adresimin ve mesajımın işlenmesini kabul ediyorum.")} <Link href="/gizlilik-politikasi" target="_blank">{t("Gizlilik politikası")}</Link></span></label>
+          <p className="contact-consent">{t("Mesajınızı yanıtlamak için adınızı, e-posta adresinizi ve mesajınızı kullanırız.")} <Link href="/gizlilik-politikasi" target="_blank">{t("Gizlilik politikası")}</Link></p>
           <p className="contact-hint">{t("Şifre, doğrulama kodu veya kimlik belgesi göndermeyin.")}</p>
           {error && <p className="form-error" role="alert">{t(error)}</p>}
           <button type="submit" className="info-button" disabled={busy}><Send size={17}/>{t(busy ? "Gönderiliyor…" : "Mesajı gönder")}</button>

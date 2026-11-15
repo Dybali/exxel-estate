@@ -22,8 +22,8 @@ test('validation rejects missing or malformed fields and normalises the rest',as
   await rejects(C.submitContact(db,valid({subject:'__proto__'})),400,/konu/);
   await rejects(C.submitContact(db,valid({message:'kısa'})),400,/en az 10/);
   await rejects(C.submitContact(db,valid({message:'x'.repeat(2001)})),400,/2000/);
-  await rejects(C.submitContact(db,valid({consent:'true'})),400,/onaylayın/);
-  await rejects(C.submitContact(db,valid({consent:undefined})),400,/onaylayın/);
+  // Answering a request needs no consent checkbox (the privacy notice is linked instead).
+  assert.ok(C.validateContact(valid({consent:undefined})));
   const saved=await C.submitContact(db,valid({message:'x'.repeat(2000),locale:'xx'}),'user-1');
   assert.equal(saved.name,'Ayşe Yılmaz');assert.equal(saved.email,'ayse@example.com');assert.equal(saved.locale,'tr');assert.equal(saved.userId,'user-1');assert.equal(saved.status,'new');
   const row=sql.prepare('SELECT * FROM contact_messages').get();assert.equal(row.subject,'listing');assert.equal(row.message.length,2000);

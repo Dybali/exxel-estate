@@ -219,6 +219,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
               {t(loading ? "Lütfen bekleyin..." : mode === "login" ? "Giriş Yap" : "Hesap Oluştur")}
               <ArrowRight size={18} />
             </button>
+            {mode === "register" && <p className="form-helper auth-legal">{t("Kayıt olarak kullanım koşullarını kabul etmiş olursunuz. Kişisel verilerinizin nasıl işlendiğini gizlilik politikasında bulabilirsiniz.")} <Link href="/kullanim-kosullari" target="_blank">{t("Kullanım koşulları")}</Link> · <Link href="/gizlilik-politikasi" target="_blank">{t("Gizlilik politikası")}</Link></p>}
           </form>
 
           {!showBuyerGoogle && (

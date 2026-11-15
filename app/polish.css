@@ -107,3 +107,5 @@
 /* Agent licence number (Taşınmaz Ticareti Yetki Belgesi) on profiles and listings */
 .seller-profile-licence{font-size:13px;color:#2f5d52}
 .property-licence{margin:6px 0 0;font-size:12px;color:#4d6a60}
+/* Featured (öne çıkan) listings are labelled on cards so a higher position is never hidden promotion. */
+.listing-photo-meta .listing-featured-badge{background:#fff;color:var(--brand-petrol,#0b5f63)}

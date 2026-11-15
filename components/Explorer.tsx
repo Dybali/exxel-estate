@@ -81,6 +81,8 @@ export function Explorer() {
   const [map, setMap] = useState(() => params.get("view") === "map");
   const [listings, setListings] = useState<Listing[]>([]);
   const [total, setTotal] = useState(0);
+  // Sample listings fill the page but never count as found properties (CLAUDE.md: samples are not counted).
+  const [counts, setCounts] = useState<{ real: number; samples: number } | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchError,setSearchError]=useState("");
@@ -109,13 +111,14 @@ export function Explorer() {
     const delay = requestedOnce.current && page === 1 ? 250 : 0;
     requestedOnce.current = true;
     const timer = window.setTimeout(() => fetch(`/api/listings?${search}`, { signal: controller.signal })
-      .then(async (response): Promise<{ listings: Listing[]; total: number }> => {
+      .then(async (response): Promise<{ listings: Listing[]; total: number; realTotal?: number; sampleTotal?: number }> => {
         if (!response.ok) throw new Error("Search failed");
         return response.json();
       })
       .then((data) => {
         setListings((old) => page === 1 ? data.listings : [...old, ...data.listings.filter((item) => !old.some((existing) => existing.id === item.id))]);
         setTotal(data.total);
+        setCounts(typeof data.realTotal === "number" ? { real: data.realTotal, samples: data.sampleTotal || 0 } : null);
         setLoading(false);
       })
       .catch(() => { if (!controller.signal.aborted){setLoading(false);setSearchError("İlanlar yüklenemedi. Tekrar deneyin.");} }), delay);
@@ -214,7 +217,7 @@ export function Explorer() {
         <button className="mobile-apply" onClick={() => setMobileFilters(false)}>{total} {t("ilanı göster")}<ArrowRight size={17}/></button>
       </aside>
       <section className="results" aria-busy={loading}>
-        <div className="results-toolbar"><div><span className="eyebrow dark-eyebrow">{t("ARAMA SONUÇLARI")}</span><h2>{loading && page === 1 ? t("İlanlar yükleniyor...") : `${total} ${t("gayrimenkul bulundu")}`}</h2></div><div className="results-tools"><CurrencySwitch className="results-currency"/><button className="filter-mobile-button" onClick={() => setMobileFilters(true)}><SlidersHorizontal size={17}/>{t("Filtreler")} {active.length > 0 && `(${active.length})`}</button><button className="save-search-button" onClick={() => { setSearchName(searchNameSuggestion); setSaveOpen(!saveOpen); }} aria-expanded={saveOpen}><Bookmark size={16}/><span>{t("Aramayı kaydet")}</span></button><select value={sort} onChange={(event) => { setSort(event.target.value);setPage(1); }} aria-label={t("Sıralama")}><option value="new">{t("Önerilen")}</option><option value="newest">{t("En yeni ilanlar")}</option><option value="priceAsc">{t("Fiyat: düşükten yükseğe")}</option><option value="priceDesc">{t("Fiyat: yüksekten düşüğe")}</option><option value="area">{t("m²: büyükten küçüğe")}</option></select><div className="view-toggle"><button className={!map ? "active" : ""} onClick={() => setMap(false)} aria-label={t("Liste görünümü")} aria-pressed={!map}><Grid2X2 size={18}/></button><button className={map ? "active" : ""} onClick={() => setMap(true)} aria-label={t("Harita görünümü")} aria-pressed={map}><Map size={18}/></button></div></div></div>
+        <div className="results-toolbar"><div><span className="eyebrow dark-eyebrow">{t("ARAMA SONUÇLARI")}</span><h2>{loading && page === 1 ? t("İlanlar yükleniyor...") : `${counts ? counts.real : total} ${t("gayrimenkul bulundu")}${counts?.samples ? ` · ${t("Örnek ilanlar")}: ${counts.samples}` : ""}`}</h2></div><div className="results-tools"><CurrencySwitch className="results-currency"/><button className="filter-mobile-button" onClick={() => setMobileFilters(true)}><SlidersHorizontal size={17}/>{t("Filtreler")} {active.length > 0 && `(${active.length})`}</button><button className="save-search-button" onClick={() => { setSearchName(searchNameSuggestion); setSaveOpen(!saveOpen); }} aria-expanded={saveOpen}><Bookmark size={16}/><span>{t("Aramayı kaydet")}</span></button><select value={sort} onChange={(event) => { setSort(event.target.value);setPage(1); }} aria-label={t("Sıralama")}><option value="new">{t("Önerilen")}</option><option value="newest">{t("En yeni ilanlar")}</option><option value="priceAsc">{t("Fiyat: düşükten yükseğe")}</option><option value="priceDesc">{t("Fiyat: yüksekten düşüğe")}</option><option value="area">{t("m²: büyükten küçüğe")}</option></select><div className="view-toggle"><button className={!map ? "active" : ""} onClick={() => setMap(false)} aria-label={t("Liste görünümü")} aria-pressed={!map}><Grid2X2 size={18}/></button><button className={map ? "active" : ""} onClick={() => setMap(true)} aria-label={t("Harita görünümü")} aria-pressed={map}><Map size={18}/></button></div></div></div>
         {saveOpen && <div className="saved-search-panel"><div><div><strong>{t("Aramayı kaydet")}</strong><p>{t("Aramanız hesabınıza kaydedilir. Uygun yeni ilanlarda site içi bildirim alırsınız.")}</p></div><button className="saved-search-close" onClick={() => setSaveOpen(false)} aria-label={t("Kapat")}><X size={17}/></button></div><form onSubmit={(event) => { event.preventDefault(); saveSearch(); }}><input value={searchName} onChange={(event) => setSearchName(event.target.value)} maxLength={70} aria-label={t("Arama adı")} placeholder={t("Arama adı")} required/><button type="submit" disabled={saving}>{t(saving?"Kaydediliyor...":"Kaydet")}</button></form>{saveError&&<p role="alert">{t(saveError)}</p>}{saved.length > 0 && <div className="saved-search-list"><small>{t("KAYITLI ARAMALAR")}</small>{saved.map((item) => <div key={item.id}><button onClick={() => openSaved(item)}>{item.name}</button><button onClick={() => removeSaved(item.id)} aria-label={t("Kaydı sil")}><X size={15}/></button></div>)}</div>}</div>}
         {boundsFilter&&<div className="active-filters"><button className="clear-all" onClick={()=>changeBounds("")}>{t("Harita alanı seçili")} ×</button></div>}{areaFilter&&<div className="active-filters"><button className="clear-all" onClick={()=>changeArea("")}>{t("Çizilen alan seçili")} ×</button></div>}
         {active.length > 0 && <div className="active-filters"><div className="filter-chips">{active.map((item) => <button key={item.key} onClick={() => remove(item.key)} aria-label={`${item.label} · ${t("Kaldır")}`}>{item.label}<X size={13}/></button>)}</div><button className="clear-all" onClick={reset}>{t("Tümünü temizle")}</button></div>}

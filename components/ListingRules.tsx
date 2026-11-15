@@ -16,7 +16,7 @@ const RULES: Rule[] = [
     "Kişiler, araç plakaları ve belgeler tanınabilir şekilde gösterilmez.",
   ]},
   {title: "Mükerrer ilan yasağı", text: "Her taşınmaz için yalnızca bir ilan yayımlayın. Aynı taşınmazı farklı başlık, fiyat veya fotoğraflarla yeniden yayımlamak mükerrer ilan sayılır ve yayından kaldırılır. Bilgileri değiştirmek için mevcut ilanınızı düzenleyin."},
-  {title: "Emlak ofisleri: yetki belgesi", text: "Emlak ofisi hesapları, Taşınmaz Ticareti Yetki Belgesini Hesabım üzerinden yükler. Belge ve hesap yönetici tarafından onaylanmadan ilanlar yayımlanmaz. Ofis adınız değişirse belgenin yeniden onaylanması gerekir. Yalnızca satış veya kiralama yetkisine sahip olduğunuz taşınmazların ilanını verin."},
+  {title: "Emlak ofisleri: yetki belgesi", text: "Emlak ofisi hesapları, Taşınmaz Ticareti Yetki Belgesini Hesabım üzerinden yükler. Belge onaylanmadan ilanlar yayımlanmaz: belge otomatik olarak okunup girdiğiniz bilgilerle karşılaştırılır; uyuşmayan veya okunamayan belgeleri bir yönetici inceler. Ofis adınız değişirse belgenin yeniden onaylanması gerekir. Yalnızca satış veya kiralama yetkisine sahip olduğunuz taşınmazların ilanını verin."},
   {title: "EİDS numarası", text: "İlanınız Elektronik İlan Doğrulama Sistemi (EİDS) kapsamındaysa ilan formundaki EİDS numarası alanını doldurun. Bu yükümlülüğün ilanınız için geçerli olup olmadığını güncel mevzuattan kontrol etmek ilan verenin sorumluluğundadır."},
   {title: "Yasak içerik", text: "Aşağıdaki içerikler yayımlanmaz:", points: [
     "Hukuka aykırı, aldatıcı veya dolandırıcılık amaçlı ilanlar ve gerçekte sunulmayan taşınmazlar",
