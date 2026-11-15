@@ -12,9 +12,18 @@ export function applySecurityHeaders(headers: Headers) {
   if (!headers.has('Strict-Transport-Security')) headers.set('Strict-Transport-Security', HSTS);
   return headers;
 }
-/** Preserve route-specific policies, cookies and streaming bodies. */
-export function withResponseSecurity(response: Response): Response {
+// Temporary and test addresses must stay out of search results: the Mittwald project domain, test.*,
+// the Cloudflare Worker address (*.workers.dev) and the old ChatGPT Sites publication (*.chatgpt.site).
+// Only the site's own domain is indexed.
+export const NOINDEX_HOST_TAG = "noindex, nofollow";
+export function temporaryHost(host: string | null | undefined) {
+  const name = (host || "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "");
+  return name.endsWith(".project.space") || name.startsWith("test.") || name.endsWith(".workers.dev") || name.endsWith(".chatgpt.site");
+}
+/** Preserve route-specific policies, cookies and streaming bodies. `noindex` adds X-Robots-Tag (temporary hosts). */
+export function withResponseSecurity(response: Response, options: { noindex?: boolean } = {}): Response {
   if (response.status === 101) return response;
   const headers = applySecurityHeaders(new Headers(response.headers));
+  if (options.noindex) headers.set("X-Robots-Tag", NOINDEX_HOST_TAG);
   return new Response(response.body, {status: response.status, statusText: response.statusText, headers});
 }

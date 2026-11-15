@@ -1,7 +1,7 @@
 import {apiFailureResponse,failureLog} from '../lib/api-failures';
 import {recordOperation} from '../lib/operations';
 import handler from "vinext/server/fetch-handler";
-import { withResponseSecurity } from "../lib/response-security";
+import { temporaryHost, withResponseSecurity } from "../lib/response-security";
 import { negotiateLocale } from "../lib/locale-negotiation";
 import { LOCALE_HEADER, PATH_HEADER } from "../lib/request-headers";
 import { serviceDB } from "../lib/server";
@@ -33,13 +33,15 @@ export default {
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     const request=withRequestContext(incoming);
     const reference=crypto.randomUUID();
+    // The Worker address (*.workers.dev) and other temporary hosts answer with X-Robots-Tag: noindex.
+    const noindex=temporaryHost(new URL(incoming.url).hostname);
     try {
       const response=await handler.fetch(request,env,ctx);
       if(response.status>=500){console.error(failureLog(request,response.status,reference));ctx.waitUntil(recordOperation(serviceDB() as never,'http',String(response.status)).catch(()=>{}));}
-      return withResponseSecurity(apiFailureResponse(request,response,reference));
+      return withResponseSecurity(apiFailureResponse(request,response,reference),{noindex});
     }catch(error){
       console.error(failureLog(request,500,reference));ctx.waitUntil(recordOperation(serviceDB() as never,'http','500').catch(()=>{}));
-      if(new URL(request.url).pathname.startsWith('/api/'))return withResponseSecurity(apiFailureResponse(request,new Response(null,{status:500}),reference));
+      if(new URL(request.url).pathname.startsWith('/api/'))return withResponseSecurity(apiFailureResponse(request,new Response(null,{status:500}),reference),{noindex});
       throw error;
     }
   },

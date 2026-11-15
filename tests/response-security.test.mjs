@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 const code=ts.transpile(readFileSync(new URL('../lib/response-security.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022});
-const {withResponseSecurity}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {withResponseSecurity,temporaryHost}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 test('response hardening preserves private caching, cookies and body',async()=>{
  const source=new Response('private response',{status:401,headers:{'Set-Cookie':'session=; HttpOnly; Secure','Cache-Control':'private, no-store','Content-Type':'application/json'}});
  const result=withResponseSecurity(source);
@@ -21,4 +21,15 @@ test('pages can only be framed by the site itself and HTTPS is remembered',()=>{
  assert.equal(result.headers.get('Content-Security-Policy'),"frame-ancestors 'self'; object-src 'none'; base-uri 'self'");
  assert.equal(result.headers.get('X-Frame-Options'),'SAMEORIGIN');
  assert.equal(result.headers.get('Strict-Transport-Security'),'max-age=31536000');
+});
+test('temporary hosts (Worker, Sites, Mittwald project domain, test.*) are kept out of search results',()=>{
+ for(const host of ['exxel-estate.estatemarket24.workers.dev','estatemarket24-showcase.tastymole36.chatgpt.site','p-r9al26.project.space','test.estatemarket24.com','EXXEL.WORKERS.DEV:443','p-r9al26.project.space, proxy.internal'])assert.equal(temporaryHost(host),true,host);
+ for(const host of ['estatemarket24.com','www.estatemarket24.com','workers.dev.example.com','latest.estatemarket24.com','',null])assert.equal(temporaryHost(host),false,String(host));
+ const tagged=withResponseSecurity(new Response('<html></html>',{status:404,headers:{'Content-Type':'text/html'}}),{noindex:true});
+ assert.equal(tagged.headers.get('X-Robots-Tag'),'noindex, nofollow');assert.equal(tagged.status,404);assert.equal(tagged.headers.get('X-Frame-Options'),'SAMEORIGIN');
+ assert.equal(withResponseSecurity(new Response('ok')).headers.get('X-Robots-Tag'),null);
+ // Both entry points use the same check: the Cloudflare Worker and the Next.js proxy (Mittwald).
+ const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
+ assert.match(read('build/sites-worker.ts'),/temporaryHost\(new URL\(incoming\.url\)\.hostname\)/);assert.match(read('build/sites-worker.ts'),/\{noindex\}\)/);
+ assert.match(read('proxy.ts'),/temporaryHost\(request\.headers\.get\("x-forwarded-host"\)/);
 });
