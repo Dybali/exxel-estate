@@ -67,6 +67,7 @@ import { isRtl } from "@/lib/i18n-dictionary";
 import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
 import { privatePage, seoCopy } from "@/lib/seo-copy";
 import { shareMetadata } from "@/lib/share-metadata";
+import { jsonLd, siteStructuredData } from "@/lib/structured-data";
 
 export const viewport: Viewport = { themeColor: "#0B5F63" };
 
@@ -110,7 +111,7 @@ export default async function RootLayout({
   const gaId = gaMeasurementId();
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
-      <body><LocaleProvider initialLocale={locale}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
+      <body><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }

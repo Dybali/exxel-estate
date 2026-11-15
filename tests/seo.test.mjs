@@ -63,3 +63,45 @@ test('robots.txt: runtime sitemap address, private pages closed, public read-onl
  assert.match(read('app/page.tsx'),/fetch\("\/api\/listings\?/);assert.match(read('components/Explorer.tsx'),/fetch\(`\/api\/listings\?/);
  assert.match(read('components/ProjectDetail.tsx'),/fetch\(`\/api\/projects\//);assert.match(read('components/CompanyProfile.tsx'),/fetch\(`\/api\/companies\//);
 });
+
+// lib modules that import ./request-context (next/headers) load with a stubbed site address.
+async function seoModule(file,extra={}){
+ const ts=(await import('typescript')).default;
+ const url=code=>'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
+ const transpile=f=>ts.transpileModule(read(f),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+ const stubs={'./request-context':url("export const siteUrl=()=>'https://site.example';export const localizedUrl=(path,locale)=>{const u=new URL(path,'https://site.example');if(locale==='tr')u.searchParams.delete('lang');else u.searchParams.set('lang',locale);return u.toString();};"),'./listing-language':url(transpile('lib/listing-language.ts')),...extra};
+ let code=transpile(file);for(const [from,to] of Object.entries(stubs))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
+ return import(url(code));
+}
+const listing=(extra={})=>({id:'11111111-1111-4111-8111-111111111111',title:'Deniz manzaralı daire',description:'Açıklama',purpose:'satilik',propertyType:'daire',price:5000000,currency:'TRY',city:'Muğla',district:'Bodrum',grossArea:120,amenities:[],images:['/api/media/listings/a.webp'],ownerName:'Ayşe',ownerRole:'agent',publishedAt:'2026-11-11 13:22:11.846189+00',source:'user',...extra});
+
+test('listing JSON-LD: ISO dates, the source language, seller type by owner role',async()=>{
+ const {listingStructuredData,localizedListingText,isoDate}=await seoModule('lib/listing-seo.ts');
+ assert.equal(isoDate('2026-11-11 13:22:11.846189+00'),'2026-11-11T13:22:11.846Z');
+ assert.equal(isoDate('2026-11-11 16:22:11+03'),'2026-11-11T13:22:11.000Z');
+ assert.equal(isoDate('2026-11-11T13:22:11.846Z'),'2026-11-11T13:22:11.846Z');
+ for(const bad of ['', null, undefined, 'not a date'])assert.equal(isoDate(bad),undefined);
+ const agent=listingStructuredData(listing(),localizedListingText(listing(),'en'));
+ assert.equal(agent.datePosted,'2026-11-11T13:22:11.846Z');assert.equal(agent.inLanguage,'tr');assert.equal(agent.offers.seller['@type'],'RealEstateAgent');
+ assert.equal(agent.url,'https://site.example/ilan/11111111-1111-4111-8111-111111111111');
+ const owner=listingStructuredData(listing({ownerRole:'individual',publishedAt:'garbage'}),localizedListingText(listing(),'tr'));
+ assert.equal(owner.offers.seller['@type'],'Person');assert.equal('datePosted' in owner,false);
+ // Written in German: the text is German wherever no owner translation exists, Turkish pages included.
+ const german=listing({presentation:{language:'de'},translations:{en:{title:'Sea view flat',description:'Text'}}});
+ assert.equal(localizedListingText(german,'tr').locale,'de');assert.equal(localizedListingText(german,'fr').locale,'de');
+ assert.equal(localizedListingText(german,'en').locale,'en');assert.equal(localizedListingText(german,'en').title,'Sea view flat');
+ const de=listingStructuredData(german,localizedListingText(german,'tr'));assert.equal(de.inLanguage,'de');assert.match(de.url,/\?lang=de$/);
+});
+
+test('breadcrumb and site-wide JSON-LD, with "<" escaped',async()=>{
+ const {breadcrumbStructuredData,siteStructuredData,jsonLd}=await seoModule('lib/structured-data.ts',{'./i18n-dictionary':'data:text/javascript,'+encodeURIComponent("export const locales=['tr','de','fr','en','ar','fa','ru','nl'].map(code=>({code}));")});
+ const crumbs=breadcrumbStructuredData([{name:'Listings',path:'/ilanlar'},{name:'Muğla',path:'/emlak/mugla'},{name:'Flat',path:'/ilan/x'}],'en');
+ assert.equal(crumbs['@type'],'BreadcrumbList');assert.deepEqual(crumbs.itemListElement.map(i=>i.position),[1,2,3]);
+ assert.equal(crumbs.itemListElement[1].item,'https://site.example/emlak/mugla?lang=en');
+ const [organization,website]=siteStructuredData('https://site.example/');
+ assert.equal(organization['@type'],'Organization');assert.equal(organization.name,'EstateMarket24');assert.equal(organization.url,'https://site.example/');assert.equal(organization.logo,'https://site.example/brand/logo-horizontal.svg');
+ assert.equal(website['@type'],'WebSite');assert.deepEqual(website.publisher,{'@id':organization['@id']});assert.equal(website.inLanguage.length,8);
+ assert.equal(jsonLd({name:'</script><script>alert(1)</script>'}).includes('<'),false);
+ assert.match(read('app/layout.tsx'),/jsonLd\(siteStructuredData\(siteUrl\(\)\)\)/);
+ const page=read('app/ilan/[id]/page.tsx');assert.match(page,/breadcrumbStructuredData\(\[\{name:translate\('İlanlar',locale\),path:'\/ilanlar'\},\{name:listing\.city,path:cityPath\}/);assert.match(page,/jsonLd\(structured\)/);
+});

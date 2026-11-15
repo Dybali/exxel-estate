@@ -37,6 +37,7 @@ import { storedNearby } from "@/lib/neighborhood-info";
 import { ServiceSuggestions } from "@/components/ServiceSuggestions";
 import { listingAuthorityNumber } from "@/lib/office-verification-server";
 import { listingStructuredData, localizedListingText } from "@/lib/listing-seo";
+import { breadcrumbStructuredData, jsonLd } from "@/lib/structured-data";
 import { pageAlternates, requestLocale } from "@/lib/request-context";
 import { shareMetadata } from "@/lib/share-metadata";
 import { listingShareImages } from "@/lib/share-image-policy";
@@ -73,10 +74,12 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   ]);
   const history=priceHistory(historyRows,listing);
   // Breadcrumb city and district open the region pages (/emlak/...) when the place is a known Turkish location.
-  const districtPath=regionPath({city:listing.city,district:listing.district});
-  const structured=listing.source==='demo'?null:listingStructuredData(listing,localizedListingText(listing,locale));
-  return <main className="property-detail-page">{structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structured).replace(/</g,'\\u003c')}}/>}<ListingViewTracker id={listing.id}/><div className="container">
-    <nav className="property-breadcrumb" aria-label={translate("Sayfa konumu",locale)}><Link href="/ilanlar"><ArrowLeft size={15}/><T id="İlanlar"/></Link><ChevronRight size={13}/><Link href={regionPath({city:listing.city})||`/ilanlar?city=${encodeURIComponent(listing.city)}`}>{listing.city}</Link><ChevronRight size={13}/>{districtPath?<Link href={districtPath}>{listing.district}</Link>:<span>{listing.district}</span>}</nav>
+  const districtPath=regionPath({city:listing.city,district:listing.district}),cityPath=regionPath({city:listing.city})||`/ilanlar?city=${encodeURIComponent(listing.city)}`;
+  // RealEstateListing plus a BreadcrumbList that repeats the visible breadcrumb (İlanlar › city › district › listing).
+  const text=localizedListingText(listing,locale);
+  const structured=listing.source==='demo'?null:[listingStructuredData(listing,text),breadcrumbStructuredData([{name:translate('İlanlar',locale),path:'/ilanlar'},{name:listing.city,path:cityPath},...(districtPath?[{name:listing.district,path:districtPath}]:[]),{name:text.title,path:`/ilan/${listing.id}`}],locale)];
+  return <main className="property-detail-page">{structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd(structured)}}/>}<ListingViewTracker id={listing.id}/><div className="container">
+    <nav className="property-breadcrumb" aria-label={translate("Sayfa konumu",locale)}><Link href="/ilanlar"><ArrowLeft size={15}/><T id="İlanlar"/></Link><ChevronRight size={13}/><Link href={cityPath}>{listing.city}</Link><ChevronRight size={13}/>{districtPath?<Link href={districtPath}>{listing.district}</Link>:<span>{listing.district}</span>}</nav>
     <ListingGallery listingId={listing.id} images={listing.images} title={listing.title} panoramas={listing.presentation?.panoramas} floorPlan={listing.presentation?.floorPlan} video={video}/>
     <div className="property-detail-layout"><article className="property-detail-main"><div className="property-heading"><div className="property-labels"><span><T id={purposeLabel(listing.purpose)}/></span><span><T id={typeLabel(listing.propertyType)}/></span>{listing.source==='demo'&&<span className="sample"><T id="Örnek ilan"/></span>}{listing.ownerVerified&&<VerifiedBadge/>}</div><h1><PropertyText listing={listing} field="title"/></h1><p><MapPin size={18}/>{listing.postalCode?`${listing.postalCode} `:''}{listing.city}, {listing.district}{listing.neighborhood?`, ${listing.neighborhood}`:''}</p></div>
     <ListingDates publishedAt={listing.publishedAt} updatedAt={listing.updatedAt}/>
