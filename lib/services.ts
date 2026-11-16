@@ -8,10 +8,10 @@
 // docs/services.md. Room for later: `plan` (paid packages), reviews; the one-firm-per-owner index can be dropped for teams.
 import { locales, translate } from "./i18n-dictionary";
 import { normalizeContactPhone } from "./phone";
-import { cityBySlug, districtBySlug, regionSlug } from "./region-pages";
+import { regionSlug } from "./region-pages";
 import { isServiceSlug, SERVICE_CATEGORIES, serviceCategory, type ServiceSlug } from "./service-categories";
 import { serviceNameSortKey, serviceSearchKey, serviceSearchTokens } from "./service-text";
-import { CITIES, validDistrict } from "./turkey-locations";
+import { areaCityBySlug, areaDistrictBySlug, validArea } from "./service-locations";
 
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
 export type ServiceDatabase = { prepare(sql: string): Statement };
@@ -106,10 +106,10 @@ export function servicePath(category: string, city?: string | null, district?: s
   if (!isServiceSlug(category)) return SERVICE_BASE;
   const parts = [SERVICE_BASE, category];
   const citySlug = city ? regionSlug(city) : "";
-  if (city && cityBySlug(citySlug) === city) {
+  if (city && areaCityBySlug(citySlug) === city) {
     parts.push(citySlug);
     const districtSlug = district ? regionSlug(district) : "";
-    if (district && districtBySlug(city, districtSlug) === district) parts.push(districtSlug);
+    if (district && areaDistrictBySlug(city, districtSlug) === district) parts.push(districtSlug);
   }
   return parts.join("/");
 }
@@ -120,9 +120,9 @@ export function quoteHref(input: { category?: string | null; city?: string | nul
   const params = new URLSearchParams();
   if (input.firmId) params.set("firma", input.firmId);
   if (input.category && isServiceSlug(input.category)) params.set("kategori", input.category);
-  if (input.city && cityBySlug(regionSlug(input.city)) === input.city) {
+  if (input.city && areaCityBySlug(regionSlug(input.city)) === input.city) {
     params.set("il", regionSlug(input.city));
-    if (input.district && districtBySlug(input.city, regionSlug(input.district)) === input.district) params.set("ilce", regionSlug(input.district));
+    if (input.district && areaDistrictBySlug(input.city, regionSlug(input.district)) === input.district) params.set("ilce", regionSlug(input.district));
   }
   const query = params.toString();
   return query ? `${SERVICE_QUOTE_PATH}?${query}` : SERVICE_QUOTE_PATH;
@@ -132,11 +132,11 @@ export function resolveServicePath(segments: string[]): ServiceScope | null {
   if (!segments.length || segments.length > 3 || !isServiceSlug(segments[0])) return null;
   const scope: ServiceScope = { category: segments[0] };
   if (segments.length === 1) return scope;
-  const city = cityBySlug(segments[1]);
+  const city = areaCityBySlug(segments[1]);
   if (!city) return null;
   scope.city = city;
   if (segments.length === 2) return scope;
-  const district = districtBySlug(city, segments[2]);
+  const district = areaDistrictBySlug(city, segments[2]);
   return district ? { ...scope, district } : null;
 }
 
@@ -152,7 +152,7 @@ function areasInput(value: unknown): ServiceArea[] {
   for (const item of value) {
     if (!item || typeof item !== "object" || Array.isArray(item)) throw new ServiceError("Hizmet bölgelerini kontrol edin.");
     const city = clean((item as Record<string, unknown>).city), district = clean((item as Record<string, unknown>).district);
-    if (!CITIES.includes(city) || (district && !validDistrict(city, district))) throw new ServiceError("Hizmet bölgelerini kontrol edin.");
+    if (!validArea(city, district)) throw new ServiceError("Hizmet bölgelerini kontrol edin.");
     areas.set(`${city}|${district}`, { city, district });
   }
   // A whole province already covers its districts.

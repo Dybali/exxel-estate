@@ -48,3 +48,7 @@ Bir hesap tek türdür: Bireysel, Emlakçı, Müteahhit veya Hizmet firması (`l
 ## Firma paneli ve istatistikler (2026-11-13)
 
 Müteahhit hesabının paneli Müteahhitler alt sitesinin içindedir: `/muteahhitler/panel` (`CONTRACTOR_PANEL`). Panelde Profil, Kat karşılığı talepleri ve İstatistikler sekmeleri vardır. `contractor_firm_stats` (`lib/firm-stats.ts`): aramalarda görünme, profil görüntülenme, telefon/WhatsApp/e-posta/web sitesi tıklaması (`POST /api/contractors/track`), gelen kat karşılığı talebi ve gönderilen teklif (sunucu sayar).
+
+## Almanya (2026-11-16)
+
+Çalışma bölgeleri, aramalar ve teklif formu Türkiye illerinin yanında Almanya şehirlerini de kabul eder (`lib/service-locations.ts`, 82 şehir, ilçe yok). Şehir adı olduğu gibi saklanır; ülke addan anlaşılır, veritabanı değişmedi. Şehir seçimlerinde iller "Türkiye", şehirler "Almanya" başlığı altında gruplanır. Kat karşılığı talepleri Türk uygulamasına özgü olduğu için yalnızca Türkiye illeriyle kalır.

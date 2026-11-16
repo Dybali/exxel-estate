@@ -14,7 +14,7 @@
 import { countFirmStat, firmDailyStats, type FirmStats } from "./firm-stats";
 import { isServiceSlug, serviceCategory, type ServiceSlug } from "./service-categories";
 import { normalizeContactPhone } from "./phone";
-import { CITIES, validDistrict } from "./turkey-locations";
+import { validArea } from "./service-locations";
 import { firmBadges, ServiceError, validFirmId, type ServiceDatabase } from "./services";
 
 export { firmBadges };
@@ -189,7 +189,7 @@ export function validateQuoteRequest(input: Record<string, unknown>): QuoteReque
   if (clean(input.phone) && !phone) throw new ServiceError("Geçerli bir telefon numarası yazın.");
   if (!isServiceSlug(input.category)) throw new ServiceError("Hizmet kategorisini seçin.");
   const city = clean(input.city), district = clean(input.district);
-  if (!CITIES.includes(city) || (district && !validDistrict(city, district))) throw new ServiceError("İşin yapılacağı il ve ilçeyi seçin.");
+  if (!validArea(city, district)) throw new ServiceError("İşin yapılacağı il ve ilçeyi seçin.");
   const description = clean(input.description);
   if (description.length < QUOTE_LIMITS.descriptionMin || description.length > QUOTE_LIMITS.descriptionMax) throw new ServiceError("İşi en az 20, en fazla 2000 karakterle anlatın.");
   const timing = Object.hasOwn(QUOTE_TIMINGS, String(input.timing)) ? input.timing as QuoteTiming : "flexible";

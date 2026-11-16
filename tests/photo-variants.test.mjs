@@ -86,7 +86,8 @@ test('upload: variants are stored next to the generated main key and count once 
  assert.equal(response.status,201);
  const {url}=await response.json(),key=url.slice('/api/media/'.length);
  assert.match(key,new RegExp(`^listings/${owner}/[a-f0-9-]+\\.webp$`));
- assert.deepEqual(puts.map(p=>p.key),[key,...media.photoVariantKeys(key)]);
+ // The copies are stored in parallel, so compare without depending on their order.
+ assert.equal(puts[0].key,key);assert.deepEqual(puts.map(p=>p.key).sort(),[key,...media.photoVariantKeys(key)].sort());
  assert.ok(puts.every(p=>p.key.startsWith(`listings/${owner}/`)),'client-named keys are ignored');
  assert.ok(puts.slice(1).every(p=>p.type==='image/webp'));
  assert.equal(limits.filter(k=>k===`upload:${owner}`).length,1);

@@ -10,7 +10,8 @@ import { locales, useLocale } from "@/lib/i18n";
 import { appendPhotoVariants, preparePhotoUpload } from "@/lib/photo-optimize";
 import { categoriesOf, SERVICE_GROUPS } from "@/lib/service-categories";
 import { firmPath, SERVICE_LIMITS, SERVICE_STATUS_LABELS, SERVICE_TRANSLATION_LOCALES, type ServiceArea, type ServiceFirm } from "@/lib/services";
-import { CITIES, districtsFor } from "@/lib/turkey-locations";
+import { areaDistricts as districtsFor } from "@/lib/service-locations";
+import { AreaCityOptions } from "@/components/AreaCityOptions";
 
 type Form = {
   name: string; description: string; translations: Record<string, string>; categories: string[]; areas: ServiceArea[]; phone: string; whatsapp: string; email: string; website: string;
@@ -95,8 +96,8 @@ function FirmForm({ firm, onSaved, onCancel }: { firm: ServiceFirm | null; onSav
     <fieldset className="service-area-picker"><legend>{t("Hizmet bölgeleri")} <small>({form.areas.length}/{SERVICE_LIMITS.areas})</small></legend>
       <p>{t("Tüm ili seçerseniz firmanız o ilin bütün ilçe sayfalarında da listelenir.")}</p>
       <div className="service-area-add">
-        <label>{t("İl")}<select value={place.city} onChange={(event) => setPlace({ city: event.target.value, district: "" })}><option value="">{t("Seçin")}</option>{CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
-        <label>{t("İlçe")}<select value={place.district} disabled={!place.city} onChange={(event) => setPlace((old) => ({ ...old, district: event.target.value }))}><option value="">{t("Tüm il")}</option>{districtsFor(place.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
+        <label>{t("İl")}<select value={place.city} onChange={(event) => setPlace({ city: event.target.value, district: "" })}><option value="">{t("Seçin")}</option><AreaCityOptions/></select></label>
+        <label>{t("İlçe")}<select value={place.district} disabled={!districtsFor(place.city).length} onChange={(event) => setPlace((old) => ({ ...old, district: event.target.value }))}><option value="">{t("Tüm il")}</option>{districtsFor(place.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
         <button type="button" className="outline-button" disabled={!place.city || form.areas.length >= SERVICE_LIMITS.areas} onClick={addArea}><Plus size={16}/>{t("Bölge ekle")}</button>
       </div>
       {form.areas.length > 0 && <ul className="service-area-chips">{form.areas.map((area) => <li key={`${area.city}|${area.district}`}>{area.district ? `${area.district}, ${area.city}` : `${area.city} (${t("tüm il")})`}<button type="button" onClick={() => setForm((old) => ({ ...old, areas: old.areas.filter((item) => item !== area) }))} aria-label={t("Bölgeyi kaldır")}><X size={13}/></button></li>)}</ul>}

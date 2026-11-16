@@ -5,7 +5,8 @@ import { useLocale } from "@/lib/i18n";
 import { SERVICE_CATEGORIES, type ServiceSlug } from "@/lib/service-categories";
 import { serviceSearchHref, withLang } from "@/lib/service-search";
 import { serviceSearchKey } from "@/lib/service-text";
-import { CITIES, districtsFor } from "@/lib/turkey-locations";
+import { areaDistricts as districtsFor } from "@/lib/service-locations";
+import { AreaCityOptions } from "@/components/AreaCityOptions";
 
 /** Typed text that is exactly a category name (in the visitor's language or Turkish) selects that category. */
 export function categoryFromText(text: string, translate: (key: string) => string): ServiceSlug | null {
@@ -35,10 +36,10 @@ export function ServiceFinder() {
     <label className="service-finder-field"><span><MapPin size={15} aria-hidden="true"/>{t("İl")}</span>
       <select value={form.city} onChange={(event) => setForm((old) => ({ ...old, city: event.target.value, district: "" }))}>
         <option value="">{t("Tüm Türkiye")}</option>
-        {CITIES.map((name) => <option key={name} value={name}>{name}</option>)}
+        <AreaCityOptions/>
       </select></label>
     <label className="service-finder-field"><span>{t("İlçe")}</span>
-      <select value={form.district} disabled={!form.city} onChange={(event) => setForm((old) => ({ ...old, district: event.target.value }))}>
+      <select value={form.district} disabled={!districtsFor(form.city).length} onChange={(event) => setForm((old) => ({ ...old, district: event.target.value }))}>
         <option value="">{t("Tüm ilçeler")}</option>
         {districtsFor(form.city).map((name) => <option key={name} value={name}>{name}</option>)}
       </select></label>

@@ -2,7 +2,7 @@ import { ContractorDirectory, type ContractorFilters } from "@/components/Contra
 import { matchSampleContractors } from "@/lib/contractor-samples";
 import { CONTRACTOR_PER_PAGE, contractorStats, isSpecialty, searchContractors, type ContractorResults } from "@/lib/contractors";
 import { contractorSamples, contractorsDB } from "@/lib/contractors-server";
-import { CITIES } from "@/lib/turkey-locations";
+import { AREA_CITIES } from "@/lib/service-locations";
 
 // Title, description and link preview come from lib/seo-copy.ts ("/muteahhitler") through the root layout.
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ const one = (value: string | string[] | undefined) => (Array.isArray(value) ? va
 export default async function ContractorsPage({ searchParams }: Props) {
   const params = await searchParams, city = one(params.il), specialty = one(params.tur), sort = one(params.sirala);
   const filters: ContractorFilters = {
-    q: one(params.q).slice(0, 100), city: CITIES.includes(city) ? city : "", specialty: isSpecialty(specialty) ? specialty : "",
+    q: one(params.q).slice(0, 100), city: AREA_CITIES.includes(city) ? city : "", specialty: isSpecialty(specialty) ? specialty : "",
     verified: one(params.dogrulanmis) === "1", landDeals: one(params.kat) === "1", sort: ["featured", "newest", "az"].includes(sort) ? sort : "featured",
   };
   const page = Number(one(params.sayfa)) || 1;

@@ -52,3 +52,7 @@ Bir hesap tek türdür: Bireysel, Emlakçı, Müteahhit veya Hizmet firması (`l
 ## Firma paneli ve istatistikler (2026-11-13)
 
 Hizmet firması hesabının paneli Hizmetler alt sitesinin içindedir: `/hizmetler/panel` (`components/FirmPanelPage.tsx`); Hesabım'daki firma sekmesi ve e-posta bağlantıları buraya yönlendirir, mesajlar ve hesap ayarları Hesabım'da kalır. İstatistikler `lib/firm-stats.ts` ile günlük toplam olarak tutulur: aramalarda görünme (`search`, sonuç sayfasında listelenen firmalar, `lib/firm-track-client.ts`), profil görüntülenme, telefon/WhatsApp/e-posta/web sitesi tıklaması, gelen teklif talebi ve gönderilen teklif. Aynı ziyaretçi, firma ve tür 30 dakikada bir sayılır (`lib/firm-track.ts`); botlar sayılmaz.
+
+## Almanya (2026-11-16)
+
+Çalışma bölgeleri, aramalar ve teklif formu Türkiye illerinin yanında Almanya şehirlerini de kabul eder (`lib/service-locations.ts`, 82 şehir, ilçe yok). Şehir adı olduğu gibi saklanır; ülke addan anlaşılır, veritabanı değişmedi. Şehir seçimlerinde iller "Türkiye", şehirler "Almanya" başlığı altında gruplanır.

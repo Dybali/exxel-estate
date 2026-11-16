@@ -14,6 +14,7 @@ import { countFirmStat, firmDailyStats, firmStatsSchema, type FirmStats } from "
 import { normalizeContactPhone } from "./phone";
 import { serviceNameSortKey, serviceSearchKey, serviceSearchTokens } from "./service-text";
 import { CITIES, validDistrict } from "./turkey-locations";
+import { AREA_CITIES, validArea } from "./service-locations";
 
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
 export type ContractorDatabase = { prepare(sql: string): Statement };
@@ -118,9 +119,11 @@ const EMAIL = /^[^\s@<>()[\]\\,;:"]{1,64}@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 const integer = (value: unknown) => { const n = typeof value === "string" && value.trim() ? Number(value) : typeof value === "number" ? value : NaN; return Number.isSafeInteger(n) ? n : null; };
 
 // --- Validation -----------------------------------------------------------------------------------
-function placeInput(value: Record<string, unknown>, message: string) {
+// Work areas and completed projects may be in Türkiye or Germany (lib/service-locations.ts); kat karşılığı
+// land requests are a Turkish arrangement and stay Türkiye-only (turkeyOnly).
+function placeInput(value: Record<string, unknown>, message: string, turkeyOnly = false) {
   const city = clean(value.city), district = clean(value.district);
-  if (!CITIES.includes(city) || (district && !validDistrict(city, district))) throw new ContractorError(message);
+  if (turkeyOnly ? !CITIES.includes(city) || (district && !validDistrict(city, district)) : !validArea(city, district)) throw new ContractorError(message);
   return { city, district };
 }
 function areasInput(value: unknown): ContractorArea[] {
@@ -345,7 +348,7 @@ export async function searchContractors(db: ContractorDatabase, query: Contracto
   const requested = Math.floor(Number(query.page)), page = Number.isFinite(requested) && requested >= 1 ? Math.min(requested, CONTRACTOR_MAX_PAGE) : 1;
   const sort: ContractorSort = (CONTRACTOR_SORTS as readonly unknown[]).includes(query.sort) ? query.sort as ContractorSort : "featured";
   const where = ["f.status='approved'"], values: (string | number)[] = [];
-  if (query.city && CITIES.includes(query.city)) { where.push("EXISTS(SELECT 1 FROM contractor_areas a WHERE a.firm_id=f.id AND a.city=?)"); values.push(query.city); }
+  if (query.city && AREA_CITIES.includes(query.city)) { where.push("EXISTS(SELECT 1 FROM contractor_areas a WHERE a.firm_id=f.id AND a.city=?)"); values.push(query.city); }
   // Specialties are stored as a JSON array of known slugs, so the quoted slug matches exactly.
   if (isSpecialty(query.specialty)) { where.push("f.specialties LIKE ?"); values.push(`%"${query.specialty}"%`); }
   if (query.verified) where.push("f.verified=1");
@@ -441,7 +444,7 @@ export type LandRequest = {
 };
 
 export function validateLandRequest(input: Record<string, unknown>) {
-  const place = placeInput(input, "Arsanın il ve ilçesini seçin.");
+  const place = placeInput(input, "Arsanın il ve ilçesini seçin.", true);
   const area = integer(input.areaM2);
   if (area == null || area < 50 || area > 1000000) throw new ContractorError("Arsa alanı 50 ile 1.000.000 m² arasında olmalıdır.");
   if (!LAND_ZONINGS.some((item) => item.slug === input.zoning)) throw new ContractorError("İmar durumunu seçin.");

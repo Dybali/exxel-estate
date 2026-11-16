@@ -5,7 +5,7 @@ import { ArrowRight, BadgeCheck, Building2, CheckCircle2, FlaskConical, HardHat,
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
 import { CONTRACTOR_BASE, CONTRACTOR_PANEL, CONTRACTOR_SPECIALTIES, contractorPath, LAND_PATH, specialtyName, type ContractorFirm, type ContractorResults } from "@/lib/contractors";
-import { CITIES } from "@/lib/turkey-locations";
+import { AreaCityOptions } from "@/components/AreaCityOptions";
 
 export type ContractorFilters = { q: string; city: string; specialty: string; verified: boolean; landDeals: boolean; sort: string };
 
@@ -86,7 +86,7 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
         <p>{t("Tamamladıkları projeler, çalıştıkları iller ve yetki belgeleriyle müteahhitleri karşılaştırın; arsanız için kat karşılığı teklif alın.")}</p>
         <form className="ctr-search" action={CONTRACTOR_BASE} method="get" role="search">
           <label className="ctr-search-text"><Search size={17} aria-hidden="true"/><span className="sr-only">{t("Firma adı veya proje")}</span><input name="q" defaultValue={filters.q} maxLength={100} placeholder={t("Firma adı veya proje")}/></label>
-          <label><span className="sr-only">{t("İl")}</span><select name="il" defaultValue={filters.city}><option value="">{t("Tüm iller")}</option>{CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
+          <label><span className="sr-only">{t("İl")}</span><select name="il" defaultValue={filters.city}><option value="">{t("Tüm iller")}</option><AreaCityOptions/></select></label>
           <label><span className="sr-only">{t("Uzmanlık")}</span><select name="tur" defaultValue={filters.specialty}><option value="">{t("Tüm uzmanlıklar")}</option>{CONTRACTOR_SPECIALTIES.map((item) => <option key={item.slug} value={item.slug}>{t(item.name)}</option>)}</select></label>
           <button type="submit" className="btn btn-accent"><Search size={16} aria-hidden="true"/>{t("Ara")}</button>
           <div className="ctr-search-flags">

@@ -5,7 +5,8 @@
 //   kategori     category slug, repeatable (or grup=<group id> for a whole group)
 //   il, ilce     province and district slugs (lib/region-pages.ts regionSlug)
 //   dogrulanmis=1, belgeli=1, acil=1 (7/24), fotografli=1, sirala=yeni|a-z, sayfa=2…
-import { cityBySlug, districtBySlug, regionSlug } from "./region-pages";
+import { regionSlug } from "./region-pages";
+import { areaCityBySlug, areaDistrictBySlug } from "./service-locations";
 import { categoriesOf, isServiceSlug, serviceGroup, type ServiceSlug } from "./service-categories";
 import { SERVICE_BASE, SERVICE_MAX_PAGE, servicePath, type ServiceQuery, type ServiceSort } from "./services";
 
@@ -38,8 +39,8 @@ export function parseServiceFilters(params: Params): ServiceFilters {
   let categories = [...new Set(all(params, "kategori").filter(isServiceSlug))].slice(0, 31) as ServiceSlug[];
   const group = one(params, "grup");
   if (!categories.length && serviceGroup(group)) categories = categoriesOf(group).map((item) => item.slug as ServiceSlug);
-  const city = cityBySlug(one(params, "il")) || "";
-  const district = city ? districtBySlug(city, one(params, "ilce")) || "" : "";
+  const city = areaCityBySlug(one(params, "il")) || "";
+  const district = city ? areaDistrictBySlug(city, one(params, "ilce")) || "" : "";
   const sortParam = one(params, "sirala");
   const sort = (Object.entries(SORT_PARAM).find(([, value]) => value && value === sortParam)?.[0] || "featured") as ServiceSort;
   return {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ServiceQuoteForm } from "@/components/ServiceQuoteForm";
 import { translate } from "@/lib/i18n-dictionary";
-import { cityBySlug, districtBySlug } from "@/lib/region-pages";
+import { areaCityBySlug, areaDistrictBySlug } from "@/lib/service-locations";
 import { pageAlternates, requestLocale } from "@/lib/request-context";
 import { isServiceSlug } from "@/lib/service-categories";
 import { firmById, SERVICE_QUOTE_PATH, validFirmId } from "@/lib/services";
@@ -21,7 +21,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function QuoteRequestPage({ searchParams }: { searchParams: Promise<Search> }) {
   const params = await searchParams;
-  const category = one(params.kategori), city = cityBySlug(one(params.il)) || "", district = city ? districtBySlug(city, one(params.ilce)) || "" : "";
+  const category = one(params.kategori), city = areaCityBySlug(one(params.il)) || "", district = city ? areaDistrictBySlug(city, one(params.ilce)) || "" : "";
   const firmId = one(params.firma);
   const firm = validFirmId(firmId) ? await firmById(servicesDB(), firmId).catch(() => null) : null;
   return <ServiceQuoteForm initial={{ category: isServiceSlug(category) ? category : firm?.categories[0] || "", city: city || (firm?.areas.length === 1 ? firm.areas[0].city : ""), district }}
