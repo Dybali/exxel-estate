@@ -21,7 +21,8 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 # PostgreSQL 18 client (pg_dump/pg_restore, Alpine main repo, /usr/libexec/postgresql18) for the daily
 # offsite database backup (lib/db-backup-node.ts, docs/backups-monitoring.md). It must match the
 # server's major version (postgres 18 container); the build fails here if the package changes.
-RUN apk add --no-cache ffmpeg postgresql18-client \
+# Liberation Sans (Arial metrics) and fontconfig so sharp can draw the photo watermark text (lib/photo-watermark-node.ts).
+RUN apk add --no-cache ffmpeg postgresql18-client ttf-liberation fontconfig \
   && /usr/libexec/postgresql18/pg_dump --version | grep -q " 18\." \
   && /usr/libexec/postgresql18/pg_restore --version | grep -q " 18\."
 COPY --from=build --chown=node:node /app/.next/standalone ./

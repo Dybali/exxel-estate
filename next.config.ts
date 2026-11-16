@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
       "@/lib/video-worker": "./lib/video-worker-node.ts",
       "@/lib/db-backup": "./lib/db-backup-node.ts",
       "@/lib/email-smtp": "./lib/email-smtp-node.ts",
+      // Server-side listing-photo watermark with sharp (lib/photo-watermark.ts).
+      "@/lib/photo-watermark": "./lib/photo-watermark-node.ts",
     } },
   } : {}),
 };

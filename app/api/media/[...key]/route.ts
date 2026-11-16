@@ -39,11 +39,22 @@ async function videoMedia(request: Request, key: string, id: string) {
   return new Response(request.method === "HEAD" ? null : upstream.body, { status: upstream.status, headers });
 }
 
+/** A cross-site image embed from a page that is not ours (Sec-Fetch headers, then the Referer). */
+function hotlinked(request:Request){
+  if(request.headers.get("sec-fetch-dest")!=="image"||request.headers.get("sec-fetch-site")!=="cross-site")return false;
+  const own=new URL(request.url).host,referer=request.headers.get("referer");
+  // No Referer (privacy settings, webmail showing our e-mails) is let through, so e-mail photos keep working.
+  try{return Boolean(referer)&&new URL(referer!).host!==own;}catch{return false;}
+}
 export async function GET(request:Request,{params}:{params:Promise<{key:string[]}>}) {
   const key=(await params).key.join("/");
   const video=key.match(VIDEO_MEDIA_KEY);
   if(video) return videoMedia(request,key,video[1]);
   if(!/^listings\/[a-f0-9-]+\/[a-f0-9-]+\.(jpg|png|webp)$/.test(key)) return new Response(null,{status:404});
+  // Hotlink protection (owner's request 2026-11-16): another website may not show our photos in its own pages.
+  // Only a browser that says the image is embedded cross-site is refused; search engines, link previews and our
+  // own pages are unaffected.
+  if(hotlinked(request)) return new Response(null,{status:403,headers:{"Cache-Control":"no-store"}});
   const row=await db().prepare("SELECT l.status,l.owner_id FROM property_images p JOIN listings l ON l.id=p.property_id WHERE p.object_key=?").bind(key).first<{status:string;owner_id:string}>();
   const profile=row?null:await db().prepare('SELECT id FROM users WHERE avatar_url=?').bind('/api/media/'+key).first();
   // Photos of approved projects (lib/projects.ts) are public as well.

@@ -49,6 +49,7 @@ import "./feedback.css";
 import "./legal.css";
 import "./polish.css";
 import {CookieConsentProvider} from "@/components/CookieConsent";
+import {PhotoGuard} from "@/components/PhotoGuard";
 import {GoogleAnalytics} from "@/components/GoogleAnalytics";
 import {gaMeasurementId,googleSiteVerification} from "@/lib/analytics";
 import {AssistantLauncher} from "@/components/AssistantLauncher";
@@ -111,7 +112,7 @@ export default async function RootLayout({
   const gaId = gaMeasurementId();
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
-      <body><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
+      <body><PhotoGuard/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }

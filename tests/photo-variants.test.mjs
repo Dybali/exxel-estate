@@ -1,5 +1,5 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import path from 'node:path';import {createRequire} from 'node:module';import ts from 'typescript';
-const root=path.resolve(new URL('..',import.meta.url).pathname),nativeRequire=createRequire(import.meta.url);
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import path from 'node:path';import {createRequire} from 'node:module';import ts from 'typescript';import {fileURLToPath} from 'node:url';
+const root=path.resolve(fileURLToPath(new URL('..',import.meta.url))),nativeRequire=createRequire(import.meta.url);
 function load(file,overrides={}){const full=path.resolve(root,file),module={exports:{}};const code=ts.transpile(readFileSync(full,'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true});new Function('require','module','exports',code)(name=>{if(overrides[name])return overrides[name];if(name.startsWith('.')||name.startsWith('@/')){const resolved=name.startsWith('@/')?path.resolve(root,name.slice(2)):path.resolve(path.dirname(full),name);return load(resolved+'.ts',overrides);}return nativeRequire(name);},module,module.exports);return module.exports;}
 const media=load('lib/listing-media.ts');
 const owner='af102d54-cbdf-438f-b531-1e5c9d233b87',other='0b6f3a52-7d0e-4c1a-9a8e-2f4b1c3d5e6f',photo='3c9e1f20-5a6b-4c7d-8e9f-0a1b2c3d4e5f';

@@ -1,20 +1,15 @@
 import { dHashFromGray } from "./listing-risk";
+import { centerMarkLayout, WATERMARK_TEXT, watermarkLayout } from "./photo-watermark-svg";
+export { WATERMARK_TEXT, watermarkLayout };
 // Browser-side photo preparation before upload: resize, re-encode and watermark.
 // Re-encoding also drops EXIF metadata such as GPS coordinates.
 export const MAX_PHOTO_EDGE = 2560;
-export const WATERMARK_TEXT = "estatemarket24";
 
 export function scaledSize(width: number, height: number, maxEdge = MAX_PHOTO_EDGE) {
   const scale = Math.min(1, maxEdge / Math.max(width, height));
   return { width: Math.round(width * scale), height: Math.round(height * scale) };
 }
 
-// Watermark size and margin follow the shorter edge so it reads the same on any aspect ratio.
-export function watermarkLayout(width: number, height: number) {
-  const fontSize = Math.max(14, Math.round(Math.min(width, height) * 0.035));
-  const margin = Math.round(fontSize * 0.9);
-  return { fontSize, x: width - margin, y: height - margin };
-}
 
 async function encode(canvas: HTMLCanvasElement, type: string, quality: number) {
   return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
@@ -39,6 +34,20 @@ function render(bitmap: ImageBitmap, maxEdge: number, watermark: boolean) {
   context.drawImage(bitmap, 0, 0, width, height);
   // Every copy carries the watermark, laid out for its own size.
   if (watermark) {
+    // Large, faint diagonal mark across the centre: cannot be cropped away (lib/photo-watermark-svg.ts).
+    const center = centerMarkLayout(width, height);
+    context.save();
+    context.translate(center.x, center.y);
+    context.rotate(center.angle * Math.PI / 180);
+    context.font = `700 ${center.fontSize}px Arial, sans-serif`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.lineWidth = Math.max(1, Math.round(center.fontSize / 40));
+    context.strokeStyle = `rgba(0,0,0,${center.opacity / 2})`;
+    context.strokeText(WATERMARK_TEXT, 0, 0);
+    context.fillStyle = `rgba(255,255,255,${center.opacity})`;
+    context.fillText(WATERMARK_TEXT, 0, 0);
+    context.restore();
     const { fontSize, x, y } = watermarkLayout(width, height);
     context.font = `700 ${fontSize}px Arial, sans-serif`;
     context.textAlign = "right";
@@ -88,8 +97,17 @@ export async function optimizeListingPhoto(file: File, { watermark = true } = {}
 }
 
 // Never fails: when the photo cannot be decoded in the browser the original is uploaded alone.
+// The Mittwald server watermarks listing photos itself (GET /api/media → serverWatermark); then the browser sends
+// the photo unmarked so it is not marked twice, and the server makes the copies.
+let serverMarks: Promise<boolean> | null = null;
+export function serverWatermarks() {
+  serverMarks ??= fetch("/api/media", { cache: "no-store" }).then((r) => r.ok ? r.json() as Promise<{ serverWatermark?: boolean }> : {}).then((d) => Boolean((d as { serverWatermark?: boolean }).serverWatermark)).catch(() => false);
+  return serverMarks;
+}
 export async function preparePhotoUpload(file: File, options: { watermark?: boolean; variants?: boolean } = {}): Promise<PreparedPhoto> {
-  return prepareListingPhoto(file, options).catch(() => ({ file, variants: [] }));
+  const wanted = options.watermark !== false;
+  const server = wanted && await serverWatermarks();
+  return prepareListingPhoto(file, { ...options, watermark: wanted && !server, variants: server ? false : options.variants }).catch(() => ({ file, variants: [] }));
 }
 
 // Adds the copies to the upload form next to "file" (fields variant640 / variant1280, app/api/media/route.ts).

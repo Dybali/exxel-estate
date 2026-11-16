@@ -5,6 +5,10 @@ import { externalR2Ready, putExternalImage } from "@/lib/external-r2";
 import {panoramaDimensions} from '@/lib/panoramas';
 import {validPhotoHash} from '@/lib/listing-risk';
 import {PHOTO_VARIANT_WIDTHS,validPhotoVariant,variantUploadKey} from '@/lib/listing-media';
+import {serverWatermark} from '@/lib/photo-watermark';
+
+// Tells the browser whether this server watermarks listing photos itself (Mittwald: yes; Cloudflare: no).
+export async function GET(){return ok({serverWatermark:Boolean(serverWatermark)},{headers:{'Cache-Control':'no-store'}});}
 
 const sha256Hex=async(bytes:Uint8Array<ArrayBuffer>)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map((item)=>item.toString(16).padStart(2,"0")).join("");
 // The multipart File can come from a different runtime realm, so instanceof File is unreliable.
@@ -37,7 +41,11 @@ export async function POST(request:Request) {
   const original=new Uint8Array(await file.arrayBuffer());
   if(purpose==='panorama'){try{if(file.type!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(original);}catch(cause){return error((cause as Error).message);}}
   // GPS and other personal metadata never reach storage, even when the browser re-encode was skipped.
-  const bytes=stripImageMetadata(original,file.type,{keepXmp:purpose==='panorama'});
+  let bytes=stripImageMetadata(original,file.type,{keepXmp:purpose==='panorama'});
+  // Listing photos: the server draws the watermark and makes the copies, whatever the browser sent.
+  const marked=!purpose&&serverWatermark?await serverWatermark(bytes,file.type,PHOTO_VARIANT_WIDTHS).catch(()=>null):null;
+  if(!purpose&&serverWatermark&&!marked)return error("Fotoğraf işlenemedi. Başka bir fotoğraf deneyin.");
+  if(marked)bytes=marked.bytes;
   const digest=await sha256Hex(bytes);
   // Listing photos carry a dHash computed in the browser (Workers cannot decode WebP/JPEG; docs/listing-risk.md).
   // It is advisory only: a malformed value is dropped, never an error.
@@ -47,7 +55,8 @@ export async function POST(request:Request) {
   // above, and they are stored only next to the key generated here, never at a key the client names. They are
   // checked like the main photo (signature, size, metadata) plus their pixel size; any bad copy refuses the upload.
   const variants:{key:string;bytes:Uint8Array<ArrayBuffer>}[]=[];
-  if(purpose!=='panorama'&&purpose!=='profile') for(const width of PHOTO_VARIANT_WIDTHS){
+  if(marked)for(const variant of marked.variants){const target=variantUploadKey(key,user.id,variant.width as (typeof PHOTO_VARIANT_WIDTHS)[number]);if(target)variants.push({key:target,bytes:variant.bytes});}
+  else if(purpose!=='panorama'&&purpose!=='profile') for(const width of PHOTO_VARIANT_WIDTHS){
     const entry=form.get(`variant${width}`);if(entry===null)continue;
     const part=filePart(entry),target=variantUploadKey(key,user.id,width);
     if(!part||!target) return error("Geçersiz dosya.");
