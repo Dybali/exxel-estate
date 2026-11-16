@@ -10,6 +10,8 @@ The Nest API uses Prisma with the **existing** Neon schema. The introspected sch
 
 Cloudflare R2 stores image bytes. Neon stores image metadata and object keys in `property_images`. The API supports direct upload with a five-minute presigned URL (`/api/media/presign`, then `/api/media/complete`) and a compatible multipart endpoint for the current listing form. The API checks identity, image size, type, signature, ownership, and actual R2 object presence before publishing image references. Published photos may be served through a configured Cloudflare CDN media domain; until then, the API serves cached image responses.
 
+Listing photos are stored at up to 2560px. At upload the browser (`lib/photo-optimize.ts`) also makes watermarked WebP copies at 640px and 1280px long edge and sends them in the same `POST /api/media` request (fields `variant640`, `variant1280`; one request, so one count against the upload limit). The server stores them next to the key it generated, `listings/<uid>/<uuid>.w640.webp` / `.w1280.webp` (`lib/listing-media.ts`), after the same signature and metadata checks plus a WebP size check; the database and `images` keep main keys only. `GET /api/media/<main key>?w=640|1280` applies the main photo's access rules and serves the copy, or the original when there is none (all photos uploaded earlier). Cards and the listing gallery use them through `photoVariantUrl` / `photoSrcSet`; `removeListingMedia` deletes the copies with the photo.
+
 Published listing reads are public. Registration, login, favorites, messaging, photo uploads, and seller actions require a server-side session. Emlakçı accounts and listings require administrator approval. Passwords and OAuth secrets belong in runtime environment variables only.
 
 ## Hosting
