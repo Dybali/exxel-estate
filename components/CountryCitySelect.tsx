@@ -6,7 +6,7 @@ import { AREA_COUNTRIES, areaCountry } from "@/lib/service-locations";
 type Country = (typeof AREA_COUNTRIES)[number]["code"];
 type Props = {
   /** Controlled use: the chosen city ("" for none) and its change handler. */
-  value?: string; onChange?: (city: string) => void;
+  value?: string; onChange?: (city: string, info?: { countrySwitch: boolean }) => void;
   /** Uncontrolled use inside a GET form (Müteahhitler filter): field name and initial city. */
   name?: string; defaultValue?: string;
   required?: boolean;
@@ -23,8 +23,9 @@ export function CountryCitySelect({ value, onChange, name, defaultValue = "", re
   const city = controlled ? value : own;
   const [country, setCountry] = useState<Country>(areaCountry(city) || "TR");
   const shown = AREA_COUNTRIES.find((item) => item.code === country)!;
-  const change = (next: string) => { if (!controlled) setOwn(next); onChange?.(next); };
-  const pick = (code: Country) => { if (code === country) return; setCountry(code); change(""); };
+  const change = (next: string, countrySwitch = false) => { if (!controlled) setOwn(next); onChange?.(next, { countrySwitch }); };
+  // The cleared city is flagged, so a filter that reloads on every change (ServiceResults) can wait for a city.
+  const pick = (code: Country) => { if (code === country) return; setCountry(code); change("", true); };
   return <span className="country-city">
     <span className="country-switch" role="radiogroup" aria-label={t("Ülke")}>
       {/* Spans, not buttons: the picker sits inside the field's <label>, which would forward clicks on its

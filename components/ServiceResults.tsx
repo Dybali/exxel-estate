@@ -28,7 +28,7 @@ function ServiceFilterForm({ filters, counts, onClose }: { filters: ServiceFilte
       <input type="search" value={form.q} maxLength={100} placeholder={t("Örn. boyacı, nakliyat, firma adı")} enterKeyHint="search" onChange={(event) => setForm({ ...form, q: event.target.value })}/>
     </label>
     <label className="svc-filter-field"><span>{t("İl")}</span>
-      <CountryCitySelect value={form.city} onChange={(city) => apply({ ...form, city, district: "" })} placeholder={{ TR: "Tüm Türkiye", DE: "Şehir seçin" }}/></label>
+      <CountryCitySelect value={form.city} onChange={(city, info) => info?.countrySwitch ? setForm({ ...form, city, district: "" }) : apply({ ...form, city, district: "" })} placeholder={{ TR: "Tüm Türkiye", DE: "Şehir seçin" }}/></label>
     <label className="svc-filter-field"><span>{t("İlçe")}</span>
       <select value={form.district} disabled={!districtsFor(form.city).length} onChange={(event) => apply({ ...form, district: event.target.value })}>
         <option value="">{t("Tüm ilçeler")}</option>
