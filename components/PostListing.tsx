@@ -7,6 +7,7 @@ import {SUBTYPES,SUBTYPE_FIELDS} from '@/lib/property-subtypes';
 import {HEATING_OPTIONS,ROOM_OPTIONS} from '@/lib/search-categories';
 import {apiJson} from '@/lib/api-client';
 import {IndividualPolicyNotice} from "./IndividualPolicyNotice";
+import {PostListingIntro} from "./PostListingIntro";
 import {PURPOSES,purposeLabel,pricePeriod} from "@/lib/property-categories";
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import Link from '@/components/SafeLink';
@@ -63,7 +64,7 @@ export function PostListing(){
  const input=(key:string,label:string,options:{type?:string;min?:number;maxLength?:number;required?:boolean;minLength?:number}={})=><label key={key}>{t(label)}<input name={key} value={fields[key]||''} onChange={e=>set(key,e.target.value)} {...options}/></label>;
  if(user===undefined&&!error)return <main className="form-page"><div className="container section">{t('Hesabınız kontrol ediliyor...')}</div></main>;
  if(!ready&&error)return <main className="form-page"><div className="container form-gate"><h1>{t('Taslak yüklenemedi. Sayfayı yenileyin.')}</h1><button className="primary-button" onClick={()=>location.reload()}>{t('Yeniden dene')}</button></div></main>;
- if(!user)return <main className="form-page"><div className="container form-gate"><ImagePlus size={37}/><h1>{t('İlan vermek için giriş yapın.')}</h1><p>{t('Ücretsiz hesap oluşturup ilan bilgilerinizi eklemeye başlayabilirsiniz.')}</p><Link className="primary-button" href="/giris?next=/ilan-ver">{t('Giriş Yap / Üye Ol')} <ArrowRight size={18}/></Link></div></main>;
+ if(!user)return <PostListingIntro/>;
  if(user.role==='buyer'&&!team)return <main className="form-page"><div className="container form-gate"><h1>{t('İlan verme hesabı gerekli.')}</h1><p>{t('Hesabınız ilan arayan kullanıcı türünde. Profilinizden bireysel mal sahibi veya emlakçı hesabına geçebilirsiniz.')}</p><Link className="primary-button" href="/hesabim?tab=profil">{t('Profilime Dön')}</Link></div></main>;
  const needsOffice=user.role==='agent'&&!user.isAdmin&&!team;
  const officeReady=!needsOffice||officeLoaded&&!!office&&office.state!=='rejected';
