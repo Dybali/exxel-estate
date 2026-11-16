@@ -13,7 +13,8 @@ import Link from "@/components/SafeLink";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Globe2, MapPin } from "lucide-react";
 import { typeLabel } from "@/lib/listings";
-import { db, listingById, OWNER_VERIFIED_SQL, parseListing } from "@/lib/server";
+import { db, listingById, OWNER_VERIFIED_SQL, parseListing, serviceDB } from "@/lib/server";
+import { storedListingTranslation } from "@/lib/translation-stored";
 import { PUBLIC_DEMO_LISTINGS } from "@/lib/listings";
 import { similarIn, SIMILAR_LIMIT, similarListings, similarSearchHref, type SimilarDatabase } from "@/lib/similar-listings";
 import { PRICE_DROP_SQL, PRICE_HISTORY_SQL, priceHistory, type PriceHistoryRow } from "@/lib/price-history";
@@ -45,13 +46,17 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params, listing=await listingById(id);
   if(!listing || listing.source==='user'&&listing.status!=='published')return {title:`${translate('İlan bulunamadı',await requestLocale())} | estatemarket24`,robots:{index:false,follow:false}};
-  const locale=await requestLocale(),text=localizedListingText(listing,locale),description=text.description.slice(0,155);
+  // A saved machine translation for the page language gives each ?lang= URL its own title and description;
+  // only stored rows are read, never a provider (lib/translation-stored.ts).
+  const locale=await requestLocale(),stored=await storedListingTranslation(serviceDB() as never,listing,locale),text=localizedListingText(listing,locale,stored?.fields),description=text.description.slice(0,155);
   const path=`/ilan/${listing.id}`;
   return {title:`${text.title} | estatemarket24`,description,alternates:await pageAlternates(path),...(listing.source==='demo'?{robots:{index:false,follow:true}}:{}),...shareMetadata({title:text.title,description,path,locale,image:listingShareImages(listing,locale)})};
 }
 export default async function Detail({params}:{params:Promise<{id:string}>}) {
   const {id}=await params,original=await listingById(id),listing=original?publicListing(original):null,locale=await requestLocale();
   if(!listing||listing.status&&listing.status!=='published'&&listing.source!=='demo')notFound();
+  // Saved translation for this language (none: original text, and the browser asks for it as before).
+  const stored=await storedListingTranslation(serviceDB() as never,listing,locale);
   const map=listing.latitude!=null&&listing.longitude!=null?`https://www.openstreetmap.org/export/embed.html?bbox=${listing.longitude-.012}%2C${listing.latitude-.009}%2C${listing.longitude+.012}%2C${listing.latitude+.009}&layer=mapnik&marker=${listing.latitude}%2C${listing.longitude}`:null;
   const facts:[string,React.ReactNode][]=[['İlan türü',<T key="purpose" id={purposeLabel(listing.purpose)}/>],['Gayrimenkul tipi',<T key="type" id={typeLabel(listing.propertyType)}/>],['Brüt alan',`${listing.grossArea} m²`]];
   const subtype=SUBTYPES[listing.propertyType],subtypeValue=subtype&&listing.presentation?.[subtype.field];
@@ -76,18 +81,18 @@ export default async function Detail({params}:{params:Promise<{id:string}>}) {
   // Breadcrumb city and district open the region pages (/emlak/...) when the place is a known Turkish location.
   const districtPath=regionPath({city:listing.city,district:listing.district}),cityPath=regionPath({city:listing.city})||`/ilanlar?city=${encodeURIComponent(listing.city)}`;
   // RealEstateListing plus a BreadcrumbList that repeats the visible breadcrumb (İlanlar › city › district › listing).
-  const text=localizedListingText(listing,locale);
+  const text=localizedListingText(listing,locale,stored?.fields);
   const structured=listing.source==='demo'?null:[listingStructuredData(listing,text),breadcrumbStructuredData([{name:translate('İlanlar',locale),path:'/ilanlar'},{name:listing.city,path:cityPath},...(districtPath?[{name:listing.district,path:districtPath}]:[]),{name:text.title,path:`/ilan/${listing.id}`}],locale)];
   return <main className="property-detail-page">{structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd(structured)}}/>}<ListingViewTracker id={listing.id}/><div className="container">
     <nav className="property-breadcrumb" aria-label={translate("Sayfa konumu",locale)}><Link href="/ilanlar"><ArrowLeft size={15}/><T id="İlanlar"/></Link><ChevronRight size={13}/><Link href={cityPath}>{listing.city}</Link><ChevronRight size={13}/>{districtPath?<Link href={districtPath}>{listing.district}</Link>:<span>{listing.district}</span>}</nav>
     <ListingGallery listingId={listing.id} images={listing.images} title={listing.title} panoramas={listing.presentation?.panoramas} floorPlan={listing.presentation?.floorPlan} video={video}/>
-    <div className="property-detail-layout"><article className="property-detail-main"><div className="property-heading"><div className="property-labels"><span><T id={purposeLabel(listing.purpose)}/></span><span><T id={typeLabel(listing.propertyType)}/></span>{listing.source==='demo'&&<span className="sample"><T id="Örnek ilan"/></span>}{listing.ownerVerified&&<VerifiedBadge/>}</div><h1><PropertyText listing={listing} field="title"/></h1><p><MapPin size={18}/>{listing.postalCode?`${listing.postalCode} `:''}{listing.city}, {listing.district}{listing.neighborhood?`, ${listing.neighborhood}`:''}</p></div>
+    <div className="property-detail-layout"><article className="property-detail-main"><div className="property-heading"><div className="property-labels"><span><T id={purposeLabel(listing.purpose)}/></span><span><T id={typeLabel(listing.propertyType)}/></span>{listing.source==='demo'&&<span className="sample"><T id="Örnek ilan"/></span>}{listing.ownerVerified&&<VerifiedBadge/>}</div><h1><PropertyText listing={listing} field="title" initial={stored}/></h1><p><MapPin size={18}/>{listing.postalCode?`${listing.postalCode} `:''}{listing.city}, {listing.district}{listing.neighborhood?`, ${listing.neighborhood}`:''}</p></div>
     <ListingDates publishedAt={listing.publishedAt} updatedAt={listing.updatedAt}/>
     <div className="property-key-facts"><div className="property-main-price"><strong><DisplayMoney value={listing.price} currency={listing.currency}/>{pricePeriod(listing.purpose)&&<small> <T id={pricePeriod(listing.purpose)}/></small>}</strong><BasePrice value={listing.price} currency={listing.currency}/>{history?.drop&&<PriceDropNote drop={history.drop} currency={listing.currency}/>}<span>{listing.grossArea>0&&<><DisplayMoney value={listing.price/listing.grossArea} currency={listing.currency} fractionDigits={2}/> / m²{pricePeriod(listing.purpose)&&<> <T id={pricePeriod(listing.purpose)}/></>}</>}</span><RateSource currency={listing.currency}/><CurrencyNotice/><div className="property-price-convert"><CurrencySwitch/></div></div>{listing.rooms&&<div><strong>{listing.rooms}</strong><span><T id="Oda düzeni"/></span></div>}<div><strong>{listing.netArea||listing.grossArea} m²</strong><span><T id={listing.netArea?'Net alan':'Brüt alan'}/></span></div></div>
     {history&&<PriceHistoryPanel history={history}/>}
     {listing.amenities.length>0&&<div className="property-amenity-tags">{listing.amenities.slice(0,4).map(a=><span key={a}><T id={a}/></span>)}</div>}
     <section className="property-section"><h2><T id="Gayrimenkul bilgileri"/></h2><dl className="property-facts-grid">{facts.map(([label,value])=><div key={label}><dt><T id={label}/></dt><dd>{value}</dd></div>)}</dl>{foreignSale==="Evet"&&<aside className="property-foreign-note"><Globe2 size={20} aria-hidden="true"/><div><strong><T id="Bu ilan, ilan verenin beyanına göre yabancılara satışa uygundur."/></strong><p><T id="Satın almadan önce uygunluğu tapu müdürlüğünden ve bağımsız bir avukattan teyit edin."/></p><div className="property-foreign-links"><Link href={FOREIGN_BUYER_PATH}><T id="Yabancı alıcılar için rehber"/><ArrowRight size={15}/></Link><Link href={CITIZENSHIP_PATH}><T id="Yatırım yoluyla vatandaşlık"/><ArrowRight size={15}/></Link></div></div></aside>}</section>
-    <section className="property-section"><h2><T id="İlan açıklaması"/></h2><p className="property-description"><PropertyText listing={listing} field="description"/></p>{listing.source==='demo'&&<p className="property-example-note"><T id="Bu ilan patron sunumu için hazırlanmış örnek içeriktir. Konum, fiyat ve fotoğraflar gerçek bir satış teklifini temsil etmez."/></p>}</section>
+    <section className="property-section"><h2><T id="İlan açıklaması"/></h2><p className="property-description"><PropertyText listing={listing} field="description" initial={stored}/></p>{listing.source==='demo'&&<p className="property-example-note"><T id="Bu ilan patron sunumu için hazırlanmış örnek içeriktir. Konum, fiyat ve fotoğraflar gerçek bir satış teklifini temsil etmez."/></p>}</section>
     {listing.amenities.length>0&&<section className="property-section"><h2><T id="Öne çıkan imkânlar"/></h2><div className="property-amenities">{listing.amenities.map(a=><span key={a}><Check size={16}/><T id={a}/></span>)}</div></section>}
     <PropertyPresentation value={listing.presentation} video={video}/>
     <BuyerTools listing={listing}/>

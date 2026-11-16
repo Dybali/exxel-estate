@@ -8,10 +8,13 @@ async function preparationSlot<T>(run:()=>Promise<T>){if(preparing>=2)await new 
 async function hash(value:string){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');}
 // `sourceLanguage` is the language the text is written in (Turkish unless a listing says otherwise,
 // lib/listing-language.ts); readers in that language get the original and no request is made.
-export function useContentTranslation(kind:'listing'|'blog',id:string,source:Record<string,string>,sourceLanguage:string='tr'){
+// `initial`: a saved translation the server already rendered (lib/translation-stored.ts); shown from the first
+// paint and not requested again. Without it (nothing saved yet) the browser asks /api/translations as before.
+export function useContentTranslation(kind:'listing'|'blog',id:string,source:Record<string,string>,sourceLanguage:string='tr',initial?:{locale:string;fields:Record<string,string>;machine:boolean}|null){
  const {locale}=useLocale(),serialized=JSON.stringify(source),identity=kind+':'+id+':'+locale+':'+serialized;
+ const seeded=initial&&initial.locale===locale&&locale!==sourceLanguage?initial:null,hasSeed=Boolean(seeded);
  const [result,setResult]=useState<{identity:string;value:Result}|null>(null);
- useEffect(()=>{if(locale===sourceLanguage)return;let active=true;
+ useEffect(()=>{if(locale===sourceLanguage||hasSeed)return;let active=true;
   void(async()=>{const revision=await hash(serialized),key=kind+':'+id+':'+locale+':'+revision;let entry=requests.get(key);
    if(!entry||entry.until<Date.now()){
     if(requests.size>300)requests.clear();
@@ -29,7 +32,8 @@ export function useContentTranslation(kind:'listing'|'blog',id:string,source:Rec
    }
    const value=await entry.promise;if(active)setResult({identity,value});
   })().catch(()=>{});return()=>{active=false;};
- },[kind,id,locale,serialized,identity,sourceLanguage]);
+ },[kind,id,locale,serialized,identity,sourceLanguage,hasSeed]);
+ if(seeded)return {fields:seeded.fields,machine:seeded.machine};
  return locale!==sourceLanguage&&result?.identity===identity?result.value:{fields:{},machine:false};
 }
 export function TranslationNotice({machine,hasTranslation,sourceLanguage='tr'}:{machine:boolean;hasTranslation:boolean;sourceLanguage?:string}){const {locale}=useLocale();if(locale===sourceLanguage)return null;const text=machine?{tr:'Yapay zekâ ile otomatik çevrildi. Önemli ayrıntıları asıl metinle karşılaştırın.',en:'Automatically translated by AI. Check important details against the original.',de:'Automatisch per KI übersetzt. Wichtige Angaben mit dem Original abgleichen.',fr:'Traduction automatique par IA. Vérifiez les informations importantes dans l’original.',ar:'ترجمة آلية بالذكاء الاصطناعي. راجع التفاصيل المهمة في النص الأصلي.',fa:'ترجمهٔ خودکار با هوش مصنوعی. جزئیات مهم را با متن اصلی مقایسه کنید.',ru:'Автоматический перевод с помощью ИИ. Сверяйте важные сведения с оригиналом.',nl:'Automatisch vertaald met AI. Controleer belangrijke gegevens aan de hand van het origineel.'}[locale]:!hasTranslation?{tr:'Asıl metin · Çeviri henüz hazır değil.',en:'Original text · Translation is not available yet.',de:'Originaltext · Übersetzung noch nicht verfügbar.',fr:'Texte original · Traduction non disponible.',ar:'النص الأصلي · الترجمة غير متاحة بعد.',fa:'متن اصلی · ترجمه هنوز در دسترس نیست.',ru:'Исходный текст · Перевод пока недоступен.',nl:'Originele tekst · Vertaling is nog niet beschikbaar.'}[locale]:'';return text?<small className="content-translation-notice">{text}</small>:null;}
