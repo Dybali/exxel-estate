@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
-import { Mail, UserRound } from "lucide-react";
+import { Mail, Package, UserRound } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { ServiceFirmPanel } from "./ServiceFirmPanel";
 import { ContractorPanel } from "./ContractorPanel";
@@ -32,6 +32,7 @@ export function FirmPanelPage({ kind }: { kind: "service" | "contractor" }) {
   </main>;
   return <main className="container section firm-panel-page">
     <nav className="firm-panel-links" aria-label={t("Hesabım")}>
+      <Link href={kind === "service" ? "/hizmetler/paketler" : "/muteahhitler/paketler"}><Package size={16} aria-hidden="true"/>{t("Paketim")}</Link>
       <Link href="/hesabim?tab=mesajlar"><Mail size={16} aria-hidden="true"/>{t("Mesajlar")}</Link>
       <Link href="/hesabim?tab=profil"><UserRound size={16} aria-hidden="true"/>{t("Hesap ayarları")}</Link>
     </nav>

@@ -1,5 +1,6 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {readFileSync} from 'node:fs';import ts from 'typescript';
-const load=p=>import('data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64'));
+const source=p=>'data:text/javascript;base64,'+Buffer.from(ts.transpile(readFileSync(new URL('../lib/'+p+'.ts',import.meta.url),'utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}).replace(/from "\.\/([\w-]+)"/g,(_,dep)=>`from "${source(dep)}"`)).toString('base64');
+const load=p=>import(source(p));
 const {createOrder,fulfillOrder,cancelOrder,userOrders,adminOrders,expirePromotions,CATALOG}=await load('orders');
 const {bankTransfer}=await load('payment-providers');
 function fixture(){const sql=new DatabaseSync(':memory:');sql.exec("CREATE TABLE users(id TEXT,name TEXT,email TEXT);CREATE TABLE listings(id TEXT,owner_id TEXT,status TEXT,title TEXT,featured INTEGER DEFAULT 0);CREATE TABLE agent_plan_grants(id TEXT PRIMARY KEY,user_id TEXT,plan_id TEXT,listing_limit INTEGER,starts_at TEXT,ends_at TEXT,revoked_at TEXT,note TEXT,granted_by TEXT,created_at TEXT);CREATE UNIQUE INDEX one_active ON agent_plan_grants(user_id) WHERE revoked_at IS NULL");

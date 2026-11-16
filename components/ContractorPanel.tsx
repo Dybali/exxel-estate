@@ -33,7 +33,8 @@ async function uploadPhoto(file: File) {
   return data.url;
 }
 
-function ContractorForm({ firm, onSaved, onCancel }: { firm: ContractorFirm | null; onSaved: (status: string) => void; onCancel: () => void }) {
+// projectLimit / photoLimit: what the firm's package allows (lib/firm-plans.ts); the server checks it as well.
+function ContractorForm({ firm, onSaved, onCancel, projectLimit = 30, photoLimit = 20 }: { firm: ContractorFirm | null; onSaved: (status: string) => void; onCancel: () => void; projectLimit?: number; photoLimit?: number }) {
   const { t } = useLocale();
   const [form, setForm] = useState<Form>(() => formFrom(firm));
   const [place, setPlace] = useState({ city: "", district: "" });
@@ -54,7 +55,7 @@ function ContractorForm({ firm, onSaved, onCancel }: { firm: ContractorFirm | nu
   async function upload(target: "logo" | "cover" | number, files: FileList | null) {
     if (!files?.length || uploading) return;
     setUploading(String(target)); setError("");
-    const room = typeof target === "number" ? CONTRACTOR_LIMITS.projectPhotos - latest.current.projects[target].photos.length : 1;
+    const room = typeof target === "number" ? Math.max(0, photoLimit - latest.current.projects[target].photos.length) : 1;
     for (const file of Array.from(files).slice(0, room)) {
       try {
         const url = await uploadPhoto(file);
@@ -113,7 +114,7 @@ function ContractorForm({ firm, onSaved, onCancel }: { firm: ContractorFirm | nu
     <fieldset className="project-photos service-photo-editor"><legend>{t("Logo ve kapak")}</legend>
       <div className="service-upload-row">{image("logo", "Logo")}{image("cover", "Kapak fotoğrafı")}</div>
     </fieldset>
-    <fieldset className="ctr-project-editor"><legend>{t("Tamamlanan projeler")} <small>({form.projects.length}/{CONTRACTOR_LIMITS.projects})</small></legend>
+    <fieldset className="ctr-project-editor"><legend>{t("Tamamlanan projeler")} <small>({form.projects.length}/{projectLimit})</small></legend>
       <p>{t("Teslim ettiğiniz projeler profilinizde listelenir; arsa sahipleri en çok buna bakar.")}</p>
       {form.projects.map((project, index) => <div key={project.id || index} className="ctr-project-form">
         <div className="ctr-project-form-head"><strong>{t("{n}. proje").replace("{n}", String(index + 1))}</strong><button type="button" className="icon-button" onClick={() => setForm((old) => ({ ...old, projects: old.projects.filter((_, i) => i !== index) }))} aria-label={t("Projeyi kaldır")}><Trash2 size={15}/></button></div>
@@ -127,9 +128,9 @@ function ContractorForm({ firm, onSaved, onCancel }: { firm: ContractorFirm | nu
         </div>
         <label>{t("Kısa açıklama (isteğe bağlı)")}<textarea rows={2} maxLength={1000} value={project.description} onChange={(event) => setProject(index, { description: event.target.value })}/></label>
         <div className="project-photo-grid">{project.photos.map((src) => <figure key={src}><img src={src} alt=""/><figcaption><button type="button" onClick={() => setProject(index, { photos: project.photos.filter((value) => value !== src) })} aria-label={t("Fotoğrafı kaldır")}><Trash2 size={14}/></button></figcaption></figure>)}</div>
-        {project.photos.length < CONTRACTOR_LIMITS.projectPhotos && <label className="outline-button project-upload"><ImagePlus size={16}/>{t(uploading === String(index) ? "Fotoğraflar yükleniyor..." : "Fotoğraf ekle")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={Boolean(uploading)} onChange={(event) => { void upload(index, event.target.files); event.target.value = ""; }}/></label>}
+        {project.photos.length < photoLimit && <label className="outline-button project-upload"><ImagePlus size={16}/>{t(uploading === String(index) ? "Fotoğraflar yükleniyor..." : "Fotoğraf ekle")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={Boolean(uploading)} onChange={(event) => { void upload(index, event.target.files); event.target.value = ""; }}/></label>}
       </div>)}
-      {form.projects.length < CONTRACTOR_LIMITS.projects && <button type="button" className="outline-button" onClick={() => setForm((old) => ({ ...old, projects: [...old.projects, emptyProject()] }))}><Plus size={16}/>{t("Tamamlanan proje ekle")}</button>}
+      {form.projects.length < projectLimit && <button type="button" className="outline-button" onClick={() => setForm((old) => ({ ...old, projects: [...old.projects, emptyProject()] }))}><Plus size={16}/>{t("Tamamlanan proje ekle")}</button>}
     </fieldset>
     <fieldset className="service-tax"><legend>{t("Yetki belgesi ve vergi bilgileri")}</legend>
       <p>{t("Yetki belgesi numarası profilinizde gösterilir; yönetici kontrol ettikten sonra \"Doğrulanmış müteahhit\" rozeti alırsınız. Vergi bilgilerini yalnızca yöneticiler görür.")}</p>
@@ -158,12 +159,14 @@ const STATUS: Record<LandRequest["status"], string> = { open: "Açık", accepted
 function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () => void }) {
   const { t, locale } = useLocale();
   const [requests, setRequests] = useState<InboxRequest[] | null>(null), [error, setError] = useState(""), [open, setOpen] = useState(""), [busy, setBusy] = useState(false);
+  // Package (lib/firm-plans.ts): locked = no access, delayHours = requests appear a day later.
+  const [access, setAccess] = useState<{ locked?: boolean; delayHours?: number }>({});
   const [offer, setOffer] = useState({ ownerShare: "", deliveryMonths: "", message: "" });
   const load = useCallback(async () => {
     try {
-      const response = await fetch("/api/contractors/mine/land", { cache: "no-store" }), data = await apiJson<{ error?: string; requests?: InboxRequest[] }>(response);
+      const response = await fetch("/api/contractors/mine/land", { cache: "no-store" }), data = await apiJson<{ error?: string; requests?: InboxRequest[]; locked?: boolean; delayHours?: number }>(response);
       if (!response.ok) throw new Error(data.error || "Talepler yüklenemedi.");
-      setRequests(data.requests || []); onSeen();
+      setRequests(data.requests || []); setAccess({ locked: data.locked, delayHours: data.delayHours }); onSeen();
     } catch (cause) { setError((cause as Error).message); }
   }, [onSeen]);
   useEffect(() => { void load(); }, [load]);
@@ -178,8 +181,10 @@ function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () =
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
   }
   if (requests === null) return error ? <p className="form-error" role="alert">{t(error)}</p> : <p>{t("Yükleniyor...")}</p>;
+  if (access.locked) return <div className="panel-empty"><Inbox size={26}/><p>{t("Kat karşılığı taleplerini görmek için Plus veya Pro paket gerekir.")}</p><Link className="small-primary" href="/muteahhitler/paketler">{t("Paketleri gör")}</Link></div>;
   return <div className="svc-inbox">
     {!approved && <p className="project-editor-note">{t("Firmanız yayında olmadığı için yeni talep almıyorsunuz ve teklif veremezsiniz.")}</p>}
+    {Boolean(access.delayHours) && <p className="project-editor-note">{t("Plus pakette yeni talepler 24 saat sonra görünür. Pro paket talepleri hemen gösterir.")} <Link href="/muteahhitler/paketler">{t("Paketleri gör")}</Link></p>}
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {!requests.length && <div className="panel-empty"><Inbox size={26}/><p>{t("Henüz kat karşılığı talebi gelmedi. Talepler çalıştığınız bölgelerdeki arsalar için gönderilir.")}</p></div>}
     {requests.map((request) => <article key={request.id} className="svc-inbox-item">
@@ -206,15 +211,16 @@ function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () =
 export function ContractorPanel() {
   const { t, locale } = useLocale();
   const [firm, setFirm] = useState<ContractorFirm | null | undefined>(undefined), [unseen, setUnseen] = useState(0);
+  const [plan, setPlan] = useState<{ limits: { projects: number; projectPhotos: number; statsDays: number } } | null>(null);
   // ?bolum=talepler (links in the request e-mails) opens the requests directly.
   const [section, setSection] = useState<"profil" | "talepler" | "istatistik">(() => { const wanted = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bolum") : null; return wanted === "talepler" || wanted === "istatistik" ? wanted : "profil"; });
   const [editing, setEditing] = useState(false), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const seen = useCallback(() => setUnseen(0), []);
   const load = useCallback(async () => {
     try {
-      const response = await fetch("/api/contractors/mine", { cache: "no-store" }), data = await apiJson<{ error?: string; firm: ContractorFirm | null; newRequests?: number }>(response);
+      const response = await fetch("/api/contractors/mine", { cache: "no-store" }), data = await apiJson<{ error?: string; firm: ContractorFirm | null; newRequests?: number; plan?: { limits: { projects: number; projectPhotos: number; statsDays: number } } }>(response);
       if (!response.ok) throw new Error(data.error || "Firma bilgileri yüklenemedi.");
-      setFirm(data.firm); setUnseen(data.newRequests || 0); setError("");
+      setFirm(data.firm); setUnseen(data.newRequests || 0); setPlan(data.plan || null); setError("");
     } catch (cause) { setError((cause as Error).message); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -233,7 +239,7 @@ export function ContractorPanel() {
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {notice && <p className="profile-save-success" role="status">{t(notice)}</p>}
     {firm === undefined && !error && <p>{t("Yükleniyor...")}</p>}
-    {editing && firm !== undefined && <ContractorForm firm={firm} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında yayınlanır."); void load(); }}/>}
+    {editing && firm !== undefined && <ContractorForm firm={firm} projectLimit={plan?.limits.projects} photoLimit={plan?.limits.projectPhotos} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında yayınlanır."); void load(); }}/>}
     {!editing && firm === null && <div className="panel-empty service-account-intro"><HardHat size={28}/><h3>{t("Müteahhitseniz firmanızı ekleyin")}</h3>
       <p>{t("Konut, villa, ticari veya kentsel dönüşüm projeleri yapan firmalar Müteahhitler bölümünde ücretsiz profil açabilir ve arsa sahiplerinden kat karşılığı talebi alabilir.")}</p>
       <Link href={CONTRACTOR_BASE}>{t("Müteahhitler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
@@ -243,7 +249,7 @@ export function ContractorPanel() {
       <button type="button" aria-pressed={section === "istatistik"} onClick={() => setSection("istatistik")}><BarChart3 size={16} aria-hidden="true"/>{t("İstatistikler")}</button>
     </nav>}
     {!editing && firm && section === "talepler" && <ContractorInbox approved={firm.status === "approved"} onSeen={seen}/>}
-    {!editing && firm && section === "istatistik" && <FirmStatsPanel endpoint="/api/contractors/mine/stats" tiles={CONTRACTOR_TILES}/>}
+    {!editing && firm && section === "istatistik" && <FirmStatsPanel endpoint="/api/contractors/mine/stats" tiles={CONTRACTOR_TILES} maxDays={plan?.limits.statsDays}/>}
     {!editing && firm && section === "profil" && <article className={`service-account-card status-${firm.status}`}>
       <div className="service-account-head">
         <span className="service-firm-logo">{firm.logo ? <img src={firm.logo} alt=""/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>

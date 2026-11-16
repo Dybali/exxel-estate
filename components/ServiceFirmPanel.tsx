@@ -35,7 +35,8 @@ async function uploadPhoto(file: File) {
   return data.url;
 }
 
-function FirmForm({ firm, onSaved, onCancel }: { firm: ServiceFirm | null; onSaved: (status: string) => void; onCancel: () => void }) {
+// photoLimit: work photos the firm's package allows (lib/firm-plans.ts); the server checks it as well.
+function FirmForm({ firm, onSaved, onCancel, photoLimit = 20 }: { firm: ServiceFirm | null; onSaved: (status: string) => void; onCancel: () => void; photoLimit?: number }) {
   const { t } = useLocale();
   const [form, setForm] = useState<Form>(firm ? formFrom(firm) : emptyForm());
   const [place, setPlace] = useState({ city: "", district: "" });
@@ -56,7 +57,7 @@ function FirmForm({ firm, onSaved, onCancel }: { firm: ServiceFirm | null; onSav
   async function upload(kind: "logo" | "cover" | "photos", files: FileList | null) {
     if (!files?.length || uploading) return;
     setUploading(kind); setError("");
-    const list = kind === "photos" ? Array.from(files).slice(0, SERVICE_LIMITS.photos - latest.current.photos.length) : [files[0]];
+    const list = kind === "photos" ? Array.from(files).slice(0, Math.max(0, photoLimit - latest.current.photos.length)) : [files[0]];
     for (const file of list) {
       try {
         const url = await uploadPhoto(file);
@@ -116,9 +117,9 @@ function FirmForm({ firm, onSaved, onCancel }: { firm: ServiceFirm | null; onSav
     <p className="project-editor-note">{t("Telefon, WhatsApp, e-posta ve web sitesi onaydan sonra profilinizde herkese açık gösterilir.")}</p>
     <fieldset className="project-photos service-photo-editor"><legend>{t("Logo ve fotoğraflar")}</legend>
       <div className="service-upload-row">{image("logo", "Logo")}{image("cover", "Kapak fotoğrafı")}</div>
-      <span>{t("İş örnekleri")} <small>({form.photos.length}/{SERVICE_LIMITS.photos})</small></span>
+      <span>{t("İş örnekleri")} <small>({form.photos.length}/{photoLimit})</small></span>
       <div className="project-photo-grid">{form.photos.map((src) => <figure key={src}><img src={src} alt=""/><figcaption><button type="button" onClick={() => setForm((old) => ({ ...old, photos: old.photos.filter((value) => value !== src) }))} aria-label={t("Fotoğrafı kaldır")}><Trash2 size={14}/></button></figcaption></figure>)}</div>
-      {form.photos.length < SERVICE_LIMITS.photos && <label className="outline-button project-upload"><ImagePlus size={16}/>{t(uploading === "photos" ? "Fotoğraflar yükleniyor..." : "Fotoğraf ekle")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={Boolean(uploading)} onChange={(event) => { void upload("photos", event.target.files); event.target.value = ""; }}/></label>}
+      {form.photos.length < photoLimit && <label className="outline-button project-upload"><ImagePlus size={16}/>{t(uploading === "photos" ? "Fotoğraflar yükleniyor..." : "Fotoğraf ekle")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={Boolean(uploading)} onChange={(event) => { void upload("photos", event.target.files); event.target.value = ""; }}/></label>}
     </fieldset>
     <fieldset className="service-tax"><legend>{t("Vergi bilgileri (isteğe bağlı)")}</legend>
       <p>{t("Yalnızca yöneticiler görür; doğrulanmış firma rozeti için kullanılır.")}</p>
@@ -140,11 +141,12 @@ const SECTIONS = [
 ] as const;
 type Section = typeof SECTIONS[number]["id"];
 type Extras = { details: ServiceDetails; documents: ServiceDocument[]; unseen: number; responseHours: number | null };
+type Plan = { limits: { photos: number; statsDays: number } };
 
 export function ServiceFirmPanel() {
   const { t, locale } = useLocale();
   const [firm, setFirm] = useState<ServiceFirm | null | undefined>(undefined);
-  const [extras, setExtras] = useState<Extras>({ details: EMPTY_SERVICE_DETAILS, documents: [], unseen: 0, responseHours: null });
+  const [extras, setExtras] = useState<Extras>({ details: EMPTY_SERVICE_DETAILS, documents: [], unseen: 0, responseHours: null }), [plan, setPlan] = useState<Plan | null>(null);
   // ?bolum=talepler (links in the quote e-mails) opens a section directly.
   const [section, setSection] = useState<Section>(() => {
     if (typeof window === "undefined") return "profil";
@@ -162,9 +164,9 @@ export function ServiceFirmPanel() {
   const load = useCallback(async () => {
     try {
       const response = await fetch("/api/services/mine", { cache: "no-store" });
-      const data = await apiJson<{ error?: string; firm: ServiceFirm | null } & Partial<Extras>>(response);
+      const data = await apiJson<{ error?: string; firm: ServiceFirm | null; plan?: Plan } & Partial<Extras>>(response);
       if (!response.ok) throw new Error(data.error || "Firma bilgileri yüklenemedi.");
-      setFirm(data.firm); setError("");
+      setFirm(data.firm); setPlan(data.plan || null); setError("");
       if (data.firm) setExtras({ details: data.details || EMPTY_SERVICE_DETAILS, documents: data.documents || [], unseen: data.unseen || 0, responseHours: data.responseHours ?? null });
     } catch (cause) { setError((cause as Error).message); }
   }, []);
@@ -185,7 +187,7 @@ export function ServiceFirmPanel() {
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {notice && <p className="profile-save-success" role="status">{t(notice)}</p>}
     {firm === undefined && !error && <p>{t("Yükleniyor...")}</p>}
-    {editing && firm !== undefined && <FirmForm firm={firm} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında Hizmetler bölümünde yayınlanır."); void load(); }}/>}
+    {editing && firm !== undefined && <FirmForm firm={firm} photoLimit={plan?.limits.photos} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında Hizmetler bölümünde yayınlanır."); void load(); }}/>}
     {!editing && firm === null && <div className="panel-empty service-account-intro"><Store size={28}/><h3>{t("Hizmet veriyorsanız firmanızı ekleyin")}</h3>
       <p>{t("Boyacı, tesisatçı, nakliyeci, avukat veya tercüman gibi hizmet veren firmalar Hizmetler bölümünde ücretsiz profil açabilir.")}</p>
       <Link href="/hizmetler">{t("Hizmetler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
@@ -194,7 +196,7 @@ export function ServiceFirmPanel() {
     {!editing && firm && section === "talepler" && <ServiceInbox approved={firm.status === "approved"} onSeen={seen}/>}
     {!editing && firm && section === "calisma" && <ServiceDetailsForm initial={extras.details} onSaved={(details) => setExtras((old) => ({ ...old, details }))}/>}
     {!editing && firm && section === "belgeler" && <ServiceDocuments initial={extras.documents} onChanged={(documents) => setExtras((old) => ({ ...old, documents }))}/>}
-    {!editing && firm && section === "istatistik" && <ServiceStatsPanel/>}
+    {!editing && firm && section === "istatistik" && <ServiceStatsPanel maxDays={plan?.limits.statsDays}/>}
     {!editing && firm && section === "profil" && <article className={`service-account-card status-${firm.status}`}>
       <div className="service-account-head">
         <span className="service-firm-logo">{firm.logo ? <img src={firm.logo} alt=""/> : <b>{firm.name.charAt(0).toLocaleUpperCase("tr")}</b>}</span>

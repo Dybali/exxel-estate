@@ -3,6 +3,7 @@ import { firmAllowed, firmRefusal, type KindDatabase } from "@/lib/account-kind"
 import { body, bucket, currentUser, db, error, ok, sameOrigin, sha256 } from "@/lib/server";
 import { firmDetails, firmDocuments, responseHours, unseenQuotes } from "@/lib/service-extras";
 import { createFirm, deleteFirm, firmImageKeys, ownerFirm, ServiceError, updateFirm } from "@/lib/services";
+import { firmPlanState, overLimit } from "@/lib/firm-plans-server";
 import { removeServiceMedia, serviceActor, serviceImagesStored, servicesDB } from "@/lib/services-server";
 
 const privateHeaders = { headers: { "Cache-Control": "private, no-store" } };
@@ -17,6 +18,12 @@ async function member(request: Request) {
 async function limited(userId: string) {
   try { await consumeRecoveryLimit(db(),await sha256("service-firm:" + userId), 30); return null; }
   catch (cause) { if (cause instanceof RecoveryError) return error(cause.message, cause.status); throw cause; }
+}
+// Package limit on work photos (lib/firm-plans.ts); photos a firm already has are kept.
+async function photoProblem(data: Record<string, unknown>, userId: string, previous = 0) {
+  const count = Array.isArray(data.photos) ? data.photos.length : 0;
+  const { limits } = await firmPlanState(userId, "service");
+  return overLimit(count, previous, limits.photos) ? error("Paketinizin fotoğraf sınırına ulaştınız. Daha fazla fotoğraf için paketinizi yükseltin.", 403) : null;
 }
 const failure = (cause: unknown) => { if (cause instanceof ServiceError) return error(cause.message, cause.status); throw cause; };
 // New photos (by this member) must exist in storage before the profile may use them.
@@ -33,7 +40,7 @@ export async function GET(request: Request) {
   if (!firm) return ok({ firm: null }, privateHeaders);
   // Phase 2 (lib/service-extras.ts): working information, documents, new quote requests, answer time.
   const [details, documents, unseen, response] = await Promise.all([firmDetails(servicesDB(), firm.id), firmDocuments(servicesDB(), firm.id), unseenQuotes(servicesDB(), firm.id), responseHours(servicesDB(), firm.id)]);
-  return ok({ firm, details, documents, unseen, responseHours: response }, privateHeaders);
+  return ok({ firm, details, documents, unseen, responseHours: response, plan: await firmPlanState(user.id, "service") }, privateHeaders);
 }
 
 export async function POST(request: Request) {
@@ -46,7 +53,7 @@ export async function POST(request: Request) {
   try { data = await body(request); } catch { return error("Firma bilgilerini kontrol edin."); }
   // Only a service-firm account opens a service firm (one account, one type).
   if (!await firmAllowed(servicesDB() as unknown as KindDatabase, user, "service")) return error(firmRefusal("service"), 403);
-  const problem = await storedProblem(data, user.id);
+  const problem = await photoProblem(data, user.id) || await storedProblem(data, user.id);
   if (problem) return problem;
   try { return ok(await createFirm(servicesDB(), serviceActor(user), data), { status: 201, ...privateHeaders }); }
   catch (cause) { return failure(cause); }
@@ -63,7 +70,7 @@ export async function PATCH(request: Request) {
   try {
     const current = await ownerFirm(servicesDB(), user.id);
     if (!current) return error("Firma bulunamadı.", 404);
-    const problem = await storedProblem(data, user.id, firmImageKeys(current));
+    const problem = await photoProblem(data, user.id, current.photos.length) || await storedProblem(data, user.id, firmImageKeys(current));
     if (problem) return problem;
     const result = await updateFirm(servicesDB(), serviceActor(user), current.id, data);
     await removeServiceMedia(result.removedKeys);

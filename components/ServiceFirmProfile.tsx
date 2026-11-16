@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
 import { ServiceDocumentedBadge, ServiceEmergencyBadge, ServiceFirmCard, ServiceSampleBadge, ServiceVerifiedBadge } from "@/components/ServiceFirmCard";
 import { ServiceIcon } from "@/components/ServiceIcon";
+import { FirmMessage } from "@/components/FirmMessage";
 import { useLocale } from "@/lib/i18n";
 import { whatsappHref } from "@/lib/phone";
 import { serviceCategory } from "@/lib/service-categories";
@@ -37,7 +38,7 @@ function ServiceWorkInfo({ details, responseHours }: { details: ServiceDetails; 
 }
 
 /** Public firm profile (/hizmetler/firma/{id}); the owner and administrators also see it before approval. */
-export function ServiceFirmProfile({ firm, similar = [], details, responseHours = null }: { firm: ServiceFirm; similar?: ServiceFirm[]; details?: ServiceDetails; responseHours?: number | null }) {
+export function ServiceFirmProfile({ firm, similar = [], details, responseHours = null, messaging = false }: { firm: ServiceFirm; similar?: ServiceFirm[]; details?: ServiceDetails; responseHours?: number | null; messaging?: boolean }) {
   const { t, locale } = useLocale();
   const live = firm.status === "approved" && !firm.sample;
   useEffect(() => { if (live) trackService(firm.id, "view"); }, [live, firm.id]);
@@ -90,6 +91,7 @@ export function ServiceFirmProfile({ firm, similar = [], details, responseHours 
         {live && <Link className="btn btn-accent btn-block" href={quoteHref({ firmId: firm.id })}><Send size={17} aria-hidden="true"/>{t("Bu firmadan teklif iste")}</Link>}
         <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`} onClick={track("phone")}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
         {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer" onClick={track("whatsapp")}><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
+        {live && messaging && <FirmMessage kind="service" firmId={firm.id}/>}
         {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`} onClick={track("email")}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
         {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={track("website")}><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
         <p className="service-contact-note">{t("Fiyat ve iş koşullarını firmayla yazılı olarak netleştirin. estatemarket24 hizmetin tarafı değildir.")}</p>

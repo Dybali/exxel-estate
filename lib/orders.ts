@@ -1,5 +1,7 @@
 // Provider-independent orders for paid features. Today they are paid by bank transfer and
 // confirmed by an administrator; a card provider can later confirm the same orders.
+import { expireFirmPlans, grantFirmPlan, parsePlanId } from "./firm-plans";
+
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
 export type OrderDatabase = { prepare(sql: string): Statement };
 
@@ -9,6 +11,15 @@ export const CATALOG = {
   "featured-30": { kind: "featured", days: 30, amount: 790, currency: "TRY", label: "İlanı 30 gün öne çıkar" },
   "plan-professional": { kind: "plan", plan: "professional", listingLimit: 5, days: 30, amount: 1490, currency: "TRY", label: "Profesyonel paket (30 gün)" },
   "plan-prestige": { kind: "plan", plan: "prestige", listingLimit: 20, days: 30, amount: 3990, currency: "TRY", label: "Prestij paket (30 gün)" },
+  // Firm packages (lib/firm-plans.ts): a year costs ten months.
+  "service-plus": { kind: "firm-plan", plan: "service-plus", days: 30, amount: 490, currency: "TRY", label: "Hizmet Plus (1 ay)" },
+  "service-plus-year": { kind: "firm-plan", plan: "service-plus", days: 365, amount: 4900, currency: "TRY", label: "Hizmet Plus (1 yıl)" },
+  "service-pro": { kind: "firm-plan", plan: "service-pro", days: 30, amount: 990, currency: "TRY", label: "Hizmet Pro (1 ay)" },
+  "service-pro-year": { kind: "firm-plan", plan: "service-pro", days: 365, amount: 9900, currency: "TRY", label: "Hizmet Pro (1 yıl)" },
+  "contractor-plus": { kind: "firm-plan", plan: "contractor-plus", days: 30, amount: 1000, currency: "TRY", label: "Müteahhit Plus (1 ay)" },
+  "contractor-plus-year": { kind: "firm-plan", plan: "contractor-plus", days: 365, amount: 10000, currency: "TRY", label: "Müteahhit Plus (1 yıl)" },
+  "contractor-pro": { kind: "firm-plan", plan: "contractor-pro", days: 30, amount: 4000, currency: "TRY", label: "Müteahhit Pro (1 ay)" },
+  "contractor-pro-year": { kind: "firm-plan", plan: "contractor-pro", days: 365, amount: 40000, currency: "TRY", label: "Müteahhit Pro (1 yıl)" },
 } as const;
 export type CatalogItem = keyof typeof CATALOG;
 export const ORDER_STATUSES = ["awaiting_payment", "fulfilled", "cancelled"] as const;
@@ -34,7 +45,7 @@ const addDays = (iso: string, days: number) => new Date(Date.parse(iso) + days *
 
 export type Order = { id: string; item: CatalogItem; listing_id: string | null; listing_title?: string | null; amount: number; currency: string; status: string; provider: string; reference: string; admin_note: string; created_at: string; fulfilled_at: string | null; user_name?: string; user_email?: string; featured_until?: string | null };
 
-export async function createOrder(db: OrderDatabase, user: { id: string; role: string }, input: Record<string, unknown>, provider: string, at = new Date()) {
+export async function createOrder(db: OrderDatabase, user: { id: string; role: string; accountKind?: string }, input: Record<string, unknown>, provider: string, at = new Date()) {
   const item = typeof input.item === "string" && input.item in CATALOG ? input.item as CatalogItem : null;
   if (!item) throw new OrderError("Geçersiz ürün.");
   const product = CATALOG[item];
@@ -45,6 +56,8 @@ export async function createOrder(db: OrderDatabase, user: { id: string; role: s
     const listing = await db.prepare("SELECT CAST(owner_id AS TEXT) AS owner_id,status FROM listings WHERE CAST(id AS TEXT)=?").bind(listingId).first<{ owner_id: string; status: string }>();
     if (!listing || listing.owner_id !== user.id) throw new OrderError("İlan bulunamadı.", 404);
     if (listing.status !== "published") throw new OrderError("Yalnızca yayındaki ilanlar öne çıkarılabilir.");
+  } else if (product.kind === "firm-plan") {
+    if (parsePlanId(product.plan)?.kind !== user.accountKind) throw new OrderError(product.plan.startsWith("service") ? "Bu paket hizmet firması hesapları içindir." : "Bu paket müteahhit hesapları içindir.", 403);
   } else if (user.role !== "agent") throw new OrderError("Paketler emlakçı hesapları içindir.", 403);
   const open = await db.prepare("SELECT reference FROM orders WHERE user_id=? AND item=? AND COALESCE(listing_id,'')=? AND status='awaiting_payment'").bind(user.id, item, listingId || "").first<{ reference: string }>();
   if (open) throw new OrderError(`Bu ürün için bekleyen bir siparişiniz var: ${open.reference}`, 409);
@@ -96,6 +109,10 @@ export async function fulfillOrder(db: OrderDatabase, adminId: string, orderId: 
       .bind(crypto.randomUUID(), order.user_id, product.plan, product.listingLimit, stamp, ends, `Sipariş ${order.reference}`, adminId, stamp).run();
     return { reference: order.reference, planEndsAt: ends };
   }
+  if (product.kind === "firm-plan") {
+    const granted = await grantFirmPlan(db, order.user_id, product.plan, product.days, order.id, at);
+    return { reference: order.reference, planEndsAt: granted.endsAt };
+  }
   return { reference: order.reference };
 }
 
@@ -105,4 +122,6 @@ export async function expirePromotions(db: OrderDatabase, at = new Date()) {
   const stamp = at.toISOString();
   await db.prepare("UPDATE listings SET featured=0 WHERE CAST(id AS TEXT) IN (SELECT listing_id FROM listing_promotions WHERE featured_until<=?)").bind(stamp).run();
   await db.prepare("DELETE FROM listing_promotions WHERE featured_until<=?").bind(stamp).run();
+  // Firm packages end the same way (lib/firm-plans.ts).
+  await expireFirmPlans(db, at);
 }

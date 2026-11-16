@@ -70,3 +70,22 @@
 .firm-panel-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
 .firm-panel-links a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #d6e2da;border-radius:20px;background:#fff;color:#24463d;font-size:13px;font-weight:600;text-decoration:none}
 .firm-panel-links a:hover{border-color:#17676b;color:#17676b}
+/* Firm packages (components/FirmPlans.tsx) and "Mesaj gönder" on firm profiles (components/FirmMessage.tsx) */
+.firm-plans .pricing-heading h1{font-size:34px;color:#16494c;margin:12px 0 8px}
+.firm-plans-period{justify-content:center;margin:0 auto 26px;display:flex}
+.firm-plans-off{max-width:900px;margin:0 auto 18px;text-align:center}
+.firm-plans .pricing-plan-cta{border:0;cursor:pointer;width:100%;justify-content:center;font-family:inherit}
+.firm-plans .pricing-plan-cta:disabled{opacity:.55;cursor:default}
+.firm-plans .pricing-plan-features>span>svg{width:17px}
+.firm-plans .pricing-plan-features>span>span{flex:1}
+.firm-plans-current{font-size:12px;font-weight:650;color:#17676b;margin:10px 0 0}
+.firm-plans-note{font-size:12px;color:#71857b;margin:22px 0}
+.firm-plans-transfer{max-width:620px;margin:30px auto 0;border:1px solid #dce6df;border-radius:14px;padding:20px 24px;background:#fff}
+.firm-plans-transfer h2{font-size:18px;margin:0 0 12px;color:#20494b}
+.firm-plans-foot{max-width:900px;margin:26px auto 0;text-align:center;font-size:11px;color:#71857b;line-height:1.7}
+.firm-message{display:grid;gap:8px}
+.firm-message label{font-size:13px;font-weight:600;color:#24463d}
+.firm-message textarea{width:100%;border:1px solid #d6e2da;border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical}
+.firm-message-note{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:#5c7567;margin:0;line-height:1.5}
+.firm-message-note svg{flex-shrink:0;margin-top:2px}
+.firm-message-sent{font-size:13px}

@@ -2,6 +2,7 @@ import { env } from "@/lib/runtime";
 import { body, currentUser, db, error, ok, sameOrigin } from "@/lib/server";
 import { CATALOG, cancelOrder, createOrder, OrderError, userOrders, type OrderDatabase } from "@/lib/orders";
 import { bankTransfer, type PaymentSettings } from "@/lib/payment-providers";
+import { accountKind, type KindDatabase } from "@/lib/account-kind";
 
 const headers = { headers: { "Cache-Control": "private, no-store" } };
 const database = () => db() as unknown as OrderDatabase;
@@ -22,7 +23,9 @@ export async function POST(request: Request) {
     if (data.action === "cancel") { await cancelOrder(database(), { id: user.id, admin: false }, String(data.id || "")); return ok({ cancelled: true }, headers); }
     const bank = bankTransfer(env as unknown as PaymentSettings);
     if (!bank) return error("Ödeme alma henüz etkin değil.", 503);
-    return ok({ order: await createOrder(database(), user, data, bank.provider), bank }, { status: 201, ...headers });
+    // Firm packages (lib/firm-plans.ts) are sold only to that kind of account.
+    const kind = await accountKind(db() as unknown as KindDatabase, user);
+    return ok({ order: await createOrder(database(), { ...user, accountKind: kind }, data, bank.provider), bank }, { status: 201, ...headers });
   } catch (cause) {
     if (cause instanceof OrderError) return error(cause.message, cause.status);
     throw cause;

@@ -10,6 +10,10 @@
 | `featured-30` | İlanı 30 gün öne çıkar | 790 TRY |
 | `plan-professional` | Profesyonel paket, 30 gün, 5 ilan (yalnızca emlakçı) | 1.490 TRY |
 | `plan-prestige` | Prestij paket, 30 gün, 20 ilan (yalnızca emlakçı) | 3.990 TRY |
+| `service-plus` / `service-pro` | Hizmet firması paketi, 30 gün (`-year`: 365 gün, 10 ay fiyatına) | 490 / 990 TRY |
+| `contractor-plus` / `contractor-pro` | Müteahhit paketi, 30 gün (`-year`: 365 gün) | 1.000 / 4.000 TRY |
+
+Firma paketleri: `docs/firm-plans.md`.
 
 Fiyatlar `/paketler` sayfasındaki örnek fiyatlarla aynıdır. Gerçek satıştan önce bu dosyada güncellenmeli; KDV ve fatura düzeni muhasebeciyle netleştirilmelidir.
 

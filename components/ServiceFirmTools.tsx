@@ -189,11 +189,12 @@ export const CONTRACTOR_TILES: StatTile[] = [
   { kind: "search", label: "Aramalarda görünme", icon: Search }, { kind: "view", label: "Profil görüntülenme", icon: Eye }, { kind: "phone", label: "Telefon tıklaması", icon: Phone }, { kind: "whatsapp", label: "WhatsApp tıklaması", icon: MessageCircle },
   { kind: "email", label: "E-posta tıklaması", icon: Mail }, { kind: "website", label: "Web sitesi tıklaması", icon: Globe }, { kind: "request", label: "Gelen kat karşılığı talebi", icon: Inbox }, { kind: "offer", label: "Gönderilen teklif", icon: Send },
 ];
-export function ServiceStatsPanel() { return <FirmStatsPanel endpoint="/api/services/mine/stats" tiles={SERVICE_TILES}/>; }
-/** Firm profile statistics (lib/firm-stats.ts) for service firms and contractors. */
-export function FirmStatsPanel({ endpoint, tiles }: { endpoint: string; tiles: StatTile[] }) {
+export function ServiceStatsPanel({ maxDays = 90 }: { maxDays?: number }) { return <FirmStatsPanel endpoint="/api/services/mine/stats" tiles={SERVICE_TILES} maxDays={maxDays}/>; }
+/** Firm profile statistics (lib/firm-stats.ts) for service firms and contractors. maxDays: how far back the
+ * firm's package reaches (lib/firm-plans.ts); longer ranges stay visible but disabled. */
+export function FirmStatsPanel({ endpoint, tiles, maxDays = 90 }: { endpoint: string; tiles: StatTile[]; maxDays?: number }) {
   const { t, locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value);
-  const [days, setDays] = useState(30), [stats, setStats] = useState<FirmStats<string> | null>(null), [error, setError] = useState("");
+  const [chosen, setDays] = useState(30), days = Math.min(chosen, maxDays), [stats, setStats] = useState<FirmStats<string> | null>(null), [error, setError] = useState("");
   useEffect(() => {
     let active = true;
     call<{ stats: FirmStats<string> }>(`${endpoint}?gun=${days}`).then((data) => { if (active) { setStats(data.stats); setError(""); } }).catch((cause) => { if (active) setError((cause as Error).message); });
@@ -202,7 +203,7 @@ export function FirmStatsPanel({ endpoint, tiles }: { endpoint: string; tiles: S
   const peak = stats ? Math.max(1, ...stats.daily.map((item) => item.views + item.contacts)) : 1;
   return <section className="svc-tool-card">
     <div className="svc-tool-head"><Eye size={20} aria-hidden="true"/><div><h3>{t("İstatistikler")}</h3><p>{t("Firmanızın aramalarda kaç kez göründüğü, profilinizin kaç kez açıldığı ve müşterilerin sizinle nasıl iletişime geçtiği. Ziyaretçilerin kimliği saklanmaz.")}</p></div>
-      <div className="admin-tabs svc-range">{[7, 30, 90].map((value) => <button key={value} type="button" aria-pressed={days === value} onClick={() => setDays(value)}>{t("{n} gün").replace("{n}", String(value))}</button>)}</div></div>
+      <div className="admin-tabs svc-range">{[7, 30, 90].map((value) => <button key={value} type="button" aria-pressed={days === value} disabled={value > maxDays} title={value > maxDays ? t("Daha uzun dönem için paketinizi yükseltin.") : undefined} onClick={() => setDays(value)}>{t("{n} gün").replace("{n}", String(value))}</button>)}</div></div>
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {!stats && !error && <p>{t("Yükleniyor...")}</p>}
     {stats && <>

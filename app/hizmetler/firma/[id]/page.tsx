@@ -12,6 +12,8 @@ import { EMPTY_SERVICE_DETAILS, firmDetails, responseHours } from "@/lib/service
 import { firmById, firmDescription, firmPath, SERVICE_SIMILAR_LIMIT, similarFirms, validFirmId, type ServiceFirm } from "@/lib/services";
 import { serviceActor, serviceSamples, servicesDB } from "@/lib/services-server";
 import { currentUser } from "@/lib/server";
+import { firmThreadInfo } from "@/lib/firm-plans-server";
+import { firmThreadKey } from "@/lib/firm-plans";
 import { coverShareImage } from "@/lib/share-image-policy";
 import { shareMetadata } from "@/lib/share-metadata";
 
@@ -54,6 +56,8 @@ export default async function ServiceFirmPage({ params }: Props) {
   const [details, response] = firm.sample ? [{ ...EMPTY_SERVICE_DETAILS, emergency: Boolean(firm.emergency) }, null] as const : await Promise.all([
     firmDetails(servicesDB(), firm.id).catch(() => EMPTY_SERVICE_DETAILS), responseHours(servicesDB(), firm.id).catch(() => null),
   ]);
+  // "Mesaj gönder" only when the firm's package includes messaging (lib/firm-plans.ts).
+  const messaging = !firm.sample && Boolean((await firmThreadInfo(firmThreadKey("service", firm.id)).catch(() => null))?.messaging);
   const WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   // Legal and financial advice firms are ProfessionalService; trades and the rest LocalBusiness.
   const professional = firm.categories.every((slug) => serviceCategory(slug)?.group === "hukuk-finans");
@@ -70,6 +74,6 @@ export default async function ServiceFirmPage({ params }: Props) {
   };
   return <>
     {structured && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>}
-    <ServiceFirmProfile firm={firm} similar={similar} details={details} responseHours={response}/>
+    <ServiceFirmProfile firm={firm} similar={similar} details={details} responseHours={response} messaging={messaging}/>
   </>;
 }

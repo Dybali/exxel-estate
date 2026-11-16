@@ -21,7 +21,7 @@ export const SERVICE_STATUSES = ["pending", "approved", "rejected", "suspended"]
 export type ServiceStatus = typeof SERVICE_STATUSES[number];
 export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = { pending: "Onay bekliyor", approved: "Yayında", rejected: "Reddedildi", suspended: "Askıya alındı" };
 export const SERVICE_TRANSLATION_LOCALES = ["en", "de", "fr", "ru", "ar", "fa", "nl"] as const;
-export const SERVICE_LIMITS = { nameMin: 3, nameMax: 100, descriptionMin: 30, descriptionMax: 3000, categories: 8, areas: 30, photos: 12, noteMax: 1000 } as const;
+export const SERVICE_LIMITS = { nameMin: 3, nameMax: 100, descriptionMin: 30, descriptionMax: 3000, categories: 8, areas: 30, photos: 20, noteMax: 1000 } as const;
 /** Firms per results page (/hizmetler/ara and the category and region pages, ?sayfa=2…). */
 export const SERVICE_PER_PAGE = 24;
 /** Highest page number accepted; with 24 per page this covers 240,000 firms. */
@@ -197,7 +197,7 @@ export function validateFirm(input: Record<string, unknown>, ownerId: string) {
   const pattern = new RegExp(`^/api/media/listings/${ownerId.replace(/[^a-zA-Z0-9-]/g, "")}/[a-f0-9-]+\\.(jpg|png|webp)$`);
   const logo = photoInput(input.logo, pattern), cover = photoInput(input.cover, pattern);
   const photos = input.photos == null ? [] : input.photos;
-  if (!Array.isArray(photos) || photos.length > SERVICE_LIMITS.photos) throw new ServiceError("En fazla 12 iş fotoğrafı ekleyebilirsiniz.");
+  if (!Array.isArray(photos) || photos.length > SERVICE_LIMITS.photos) throw new ServiceError("En fazla 20 iş fotoğrafı ekleyebilirsiniz.");
   for (const url of photos) photoInput(url, pattern);
   const all = [logo, cover, ...photos].filter(Boolean);
   if (new Set(all).size !== all.length) throw new ServiceError("Aynı fotoğraf birden fazla eklenemez.");

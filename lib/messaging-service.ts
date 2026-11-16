@@ -24,6 +24,15 @@ export async function ensureMessagingSchema(database: ChatDatabase) {
 const text = (v: unknown) => typeof v === "string" ? v.trim() : "";
 const uuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const supportKey = (admin: string, member: string) => `admin:${admin}:${member}`;
+// Threads with a service firm or contractor use "firm:service:<id>" / "firm:contractor:<id>" instead of a
+// listing id (lib/firm-plans.ts); whether the firm's package allows messaging is checked by the route.
+const firmThread = (key: string) => /^firm:(service|contractor):([A-Za-z0-9-]{1,60})$/.exec(key);
+async function firmOwner(database: ChatDatabase, key: string) {
+  const match = firmThread(key);
+  if (!match) return null;
+  const table = match[1] === "service" ? "service_firms" : "contractor_firms";
+  return database.prepare(`SELECT owner_id,status FROM ${table} WHERE id=?`).bind(match[2]).first<{ owner_id: string; status: string }>().catch(() => null);
+}
 function threadInput(listing: unknown, peer: unknown, user: string) {
   const listingId = text(listing), peerId = text(peer).toLowerCase();
   if (!listingId || listingId.length > 80 || !uuid(peerId) || peerId === user) throw new ChatError("Görüşme seçimi geçersiz.");
@@ -101,7 +110,7 @@ export async function chatPost(database: ChatDatabase, actor: ChatActor, data: R
   if (message.length < 2 || message.length > 2000) throw new ChatError("Mesaj 2–2000 karakter olmalı.");
   let targetPeer = data.peerId;
   if (!text(targetPeer) && text(data.listingId) && !text(data.listingId).startsWith("admin:")) {
-    const owner = await database.prepare("SELECT owner_id FROM listings WHERE CAST(id AS TEXT)=?").bind(text(data.listingId)).first<{ owner_id: string }>();
+    const owner = firmThread(text(data.listingId)) ? await firmOwner(database, text(data.listingId)) : await database.prepare("SELECT owner_id FROM listings WHERE CAST(id AS TEXT)=?").bind(text(data.listingId)).first<{ owner_id: string }>();
     targetPeer = owner?.owner_id;
   }
   const { listingId, peerId } = threadInput(data.listingId || (actor.admin && uuid(text(targetPeer)) ? supportKey(actor.id, text(targetPeer)) : ""), targetPeer, actor.id);
@@ -116,6 +125,14 @@ export async function chatPost(database: ChatDatabase, actor: ChatActor, data: R
       if (!invitation) throw new ChatError("Bu görüşmeye mesaj gönderemezsiniz.", 403);
       recipientId = peerId;
     }
+  } else if (firmThread(listingId)) {
+    const firm = await firmOwner(database, listingId);
+    if (!firm) throw new ChatError("Firma bulunamadı.", 404);
+    const existing = await database.prepare("SELECT id FROM messages WHERE listing_id=? AND ((sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?)) LIMIT 1", [1,2,3,4]).bind(listingId, actor.id, peerId, peerId, actor.id).first();
+    if (String(firm.owner_id) === actor.id) {
+      if (!existing) throw new ChatError("Bu üyeyle firma görüşmeniz bulunamadı.", 403);
+    } else if (peerId !== String(firm.owner_id) || (firm.status !== "approved" && !existing && !actor.admin)) throw new ChatError("Bu firma için görüşme seçimi geçersiz.", 403);
+    recipientId = peerId;
   } else {
     const listing = await database.prepare("SELECT owner_id,status,expires_at FROM listings WHERE CAST(id AS TEXT)=?").bind(listingId).first<{ owner_id: string; status: string; expires_at?:string }>();
     if (!listing) throw new ChatError("İlan bulunamadı.", 404);

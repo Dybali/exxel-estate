@@ -54,7 +54,7 @@ export const zoningName = (slug: string) => LAND_ZONINGS.find((item) => item.slu
 export const CONTRACTOR_STATUSES = ["pending", "approved", "rejected", "suspended"] as const;
 export type ContractorStatus = typeof CONTRACTOR_STATUSES[number];
 export const CONTRACTOR_STATUS_LABELS: Record<ContractorStatus, string> = { pending: "Onay bekliyor", approved: "Yayında", rejected: "Reddedildi", suspended: "Askıya alındı" };
-export const CONTRACTOR_LIMITS = { nameMin: 3, nameMax: 100, descriptionMin: 30, descriptionMax: 3000, specialties: 8, areas: 30, projects: 30, projectPhotos: 6, noteMax: 1000 } as const;
+export const CONTRACTOR_LIMITS = { nameMin: 3, nameMax: 100, descriptionMin: 30, descriptionMax: 3000, specialties: 8, areas: 30, projects: 30, projectPhotos: 20, noteMax: 1000 } as const;
 export const CONTRACTOR_PER_PAGE = 24;
 export const CONTRACTOR_MAX_PAGE = 5000;
 export const CONTRACTOR_FEATURED_LIMIT = 6;
@@ -158,7 +158,7 @@ function projectsInput(value: unknown, pattern: RegExp, year: number): Contracto
     if (units != null && (units < 1 || units > 100000)) throw new ContractorError(`${label}: bağımsız bölüm sayısı 1 ile 100000 arasında olmalıdır.`);
     if (description.length > 1000) throw new ContractorError(`${label}: açıklama en fazla 1000 karakter olabilir.`);
     const photos = input.photos == null ? [] : input.photos;
-    if (!Array.isArray(photos) || photos.length > CONTRACTOR_LIMITS.projectPhotos) throw new ContractorError(`${label}: en fazla 6 fotoğraf ekleyebilirsiniz.`);
+    if (!Array.isArray(photos) || photos.length > CONTRACTOR_LIMITS.projectPhotos) throw new ContractorError(`${label}: en fazla 20 fotoğraf ekleyebilirsiniz.`);
     for (const url of photos) photoInput(url, pattern);
     const id = validContractorId(input.id) ? String(input.id).toLowerCase() : crypto.randomUUID();
     return { id, title, ...place, year: built, kind: input.kind, units, description, photos: photos as string[] };
@@ -531,16 +531,17 @@ export async function myLandRequests(db: ContractorDatabase, userId: string, at 
   }));
 }
 
-/** Requests that reached the member's firm, newest first; marks new ones as seen. */
-export async function contractorInbox(db: ContractorDatabase, ownerId: string, at = new Date()) {
+/** Requests that reached the member's firm, newest first; marks new ones as seen. cutoff: the firm's package
+ * (lib/firm-plans.ts) only shows requests created at or before this time (Plus sees them a day later). */
+export async function contractorInbox(db: ContractorDatabase, ownerId: string, at = new Date(), cutoff?: string) {
   await ensureContractors(db);
   const firm = await db.prepare("SELECT id,status FROM contractor_firms WHERE owner_id=?").bind(ownerId).first<Row>();
   if (!firm) return { firmId: null, requests: [] };
   const firmId = String(firm.id);
   const rows = (await db.prepare(`SELECT r.*,x.state AS recipient_state,o.id AS offer_id,o.owner_share,o.delivery_months,o.message AS offer_message,o.state AS offer_state
     FROM land_request_recipients x JOIN land_requests r ON r.id=x.request_id LEFT JOIN land_offers o ON o.request_id=r.id AND o.firm_id=x.firm_id
-    WHERE x.firm_id=? ORDER BY r.created_at DESC,r.id ASC LIMIT 100`).bind(firmId).all<Row>()).results || [];
-  await db.prepare("UPDATE land_request_recipients SET state='seen' WHERE firm_id=? AND state='new'").bind(firmId).run();
+    WHERE x.firm_id=? AND r.created_at<=? ORDER BY r.created_at DESC,r.id ASC LIMIT 100`).bind(firmId, cutoff ?? "9999").all<Row>()).results || [];
+  await db.prepare("UPDATE land_request_recipients SET state='seen' WHERE firm_id=? AND state='new' AND request_id IN (SELECT id FROM land_requests WHERE created_at<=?)").bind(firmId, cutoff ?? "9999").run();
   return {
     firmId, requests: rows.map((row) => ({
       ...toRequest(row, at, flag(row.share_contact) || row.offer_state === "accepted"),
@@ -548,26 +549,26 @@ export async function contractorInbox(db: ContractorDatabase, ownerId: string, a
     })),
   };
 }
-export async function newLandRequestCount(db: ContractorDatabase, ownerId: string) {
+export async function newLandRequestCount(db: ContractorDatabase, ownerId: string, cutoff?: string) {
   await ensureContractors(db);
-  const row = await db.prepare("SELECT COUNT(*) AS n FROM land_request_recipients x JOIN contractor_firms f ON f.id=x.firm_id JOIN land_requests r ON r.id=x.request_id WHERE f.owner_id=? AND x.state='new' AND r.status='open'").bind(ownerId).first<Row>();
+  const row = await db.prepare("SELECT COUNT(*) AS n FROM land_request_recipients x JOIN contractor_firms f ON f.id=x.firm_id JOIN land_requests r ON r.id=x.request_id WHERE f.owner_id=? AND x.state='new' AND r.status='open' AND r.created_at<=?").bind(ownerId, cutoff ?? "9999").first<Row>();
   return Number(row?.n) || 0;
 }
 
-async function recipientRequest(db: ContractorDatabase, ownerId: string, requestId: unknown, at: Date) {
+async function recipientRequest(db: ContractorDatabase, ownerId: string, requestId: unknown, at: Date, cutoff?: string) {
   if (!validContractorId(requestId)) throw new ContractorError("Talep bulunamadı.", 404);
   await ensureContractors(db);
   const firm = await db.prepare("SELECT id,name,status FROM contractor_firms WHERE owner_id=?").bind(ownerId).first<Row>();
   if (!firm || firm.status !== "approved") throw new ContractorError("Teklif vermek için firmanızın yayında olması gerekir.", 403);
   const row = await db.prepare("SELECT r.* FROM land_requests r JOIN land_request_recipients x ON x.request_id=r.id WHERE r.id=? AND x.firm_id=?").bind(requestId, String(firm.id)).first<Row>();
-  if (!row) throw new ContractorError("Talep bulunamadı.", 404);
+  if (!row || (cutoff !== undefined && String(row.created_at) > cutoff)) throw new ContractorError("Talep bulunamadı.", 404);
   if (requestStatus(row, at) !== "open") throw new ContractorError("Bu talep artık teklif almıyor.", 409);
   return { firmId: String(firm.id), firmName: String(firm.name), request: row };
 }
 
 /** One offer per firm and request: landowner's share of the flats (%), delivery time (months), a note. */
-export async function sendLandOffer(db: ContractorDatabase, ownerId: string, requestId: unknown, input: Record<string, unknown>, at = new Date()) {
-  const { firmId, firmName, request } = await recipientRequest(db, ownerId, requestId, at);
+export async function sendLandOffer(db: ContractorDatabase, ownerId: string, requestId: unknown, input: Record<string, unknown>, at = new Date(), cutoff?: string) {
+  const { firmId, firmName, request } = await recipientRequest(db, ownerId, requestId, at, cutoff);
   const share = integer(input.ownerShare), months = integer(input.deliveryMonths), message = clean(input.message);
   if (share == null || share < 1 || share > 99) throw new ContractorError("Arsa sahibine kalacak pay yüzde 1 ile 99 arasında olmalıdır.");
   if (months == null || months < 1 || months > 120) throw new ContractorError("Teslim süresi 1 ile 120 ay arasında olmalıdır.");
@@ -579,8 +580,8 @@ export async function sendLandOffer(db: ContractorDatabase, ownerId: string, req
   await countFirmStat(db as never, "contractor_firm_stats", firmId, "offer", at).catch(() => undefined);
   return { id, firmName, requestUserId: String(request.user_id), ownerShare: share, deliveryMonths: months };
 }
-export async function passLandRequest(db: ContractorDatabase, ownerId: string, requestId: unknown, at = new Date()) {
-  const { firmId, request } = await recipientRequest(db, ownerId, requestId, at);
+export async function passLandRequest(db: ContractorDatabase, ownerId: string, requestId: unknown, at = new Date(), cutoff?: string) {
+  const { firmId, request } = await recipientRequest(db, ownerId, requestId, at, cutoff);
   await db.prepare("UPDATE land_request_recipients SET state='passed' WHERE request_id=? AND firm_id=? AND state<>'offered'").bind(String(request.id), firmId).run();
   return { id: String(request.id) };
 }

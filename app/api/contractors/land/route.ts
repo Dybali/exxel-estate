@@ -2,6 +2,7 @@ import { body, error, ok, sameOrigin } from "@/lib/server";
 import { privateHeaders, serviceLimited, serviceMember } from "@/lib/service-api";
 import { waitUntil } from "@/lib/runtime";
 import { notifyLandAccepted, notifyLandRequest } from "@/lib/contractor-emails";
+import { firmPlanState } from "@/lib/firm-plans-server";
 import { acceptLandOffer, closeLandRequest, ContractorError, createLandRequest, myLandRequests } from "@/lib/contractors";
 import { contractorEmailSettings, contractorNotifyDB, contractorsDB } from "@/lib/contractors-server";
 
@@ -25,7 +26,12 @@ export async function POST(request: Request) {
   try { data = await body(request); } catch { return error("Talep bilgilerini kontrol edin."); }
   try {
     const created = await createLandRequest(contractorsDB(), user.id, data);
-    waitUntil(notifyLandRequest(contractorNotifyDB(), contractorEmailSettings(), created.recipients, created.summary).catch(() => {}));
+    // Only firms whose package shows the request at once are e-mailed now (lib/firm-plans.ts).
+    waitUntil((async () => {
+      const now: typeof created.recipients = [];
+      for (const firm of created.recipients) if ((await firmPlanState(firm.ownerId, "contractor")).limits.land === "first") now.push(firm);
+      if (now.length) await notifyLandRequest(contractorNotifyDB(), contractorEmailSettings(), now, created.summary);
+    })().catch(() => {}));
     return ok({ id: created.id, recipients: created.recipients.length }, { status: 201, ...privateHeaders });
   } catch (cause) { return failure(cause); }
 }

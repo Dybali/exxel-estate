@@ -11,7 +11,7 @@ type Catalog=Record<CatalogItem,{kind:string;days:number;amount:number;currency:
 type Data={orders:Order[];catalog:Catalog;bank:BankTransfer|null};
 const STATUS:Record<string,string>={awaiting_payment:"Ödeme bekleniyor",fulfilled:"Tamamlandı",cancelled:"İptal edildi"};
 
-function TransferDetails({bank,order}:{bank:BankTransfer;order:{reference:string;amount:number;currency:string}}){
+export function TransferDetails({bank,order}:{bank:BankTransfer;order:{reference:string;amount:number;currency:string}}){
  const {t}=useLocale();
  return <dl className="transfer-details"><div><dt>{t("Alıcı")}</dt><dd>{bank.accountName}</dd></div>{bank.bankName&&<div><dt>{t("Banka")}</dt><dd>{bank.bankName}</dd></div>}<div><dt>IBAN</dt><dd dir="ltr">{bank.iban}</dd></div><div><dt>{t("Tutar")}</dt><dd><Money value={order.amount} currency={order.currency}/></dd></div><div><dt>{t("Açıklama (zorunlu)")}</dt><dd><strong dir="ltr">{order.reference}</strong></dd></div><p>{t("Havale veya EFT açıklamasına sipariş kodunu yazın. Ödemeniz kontrol edildikten sonra ürün hesabınıza tanımlanır.")}</p></dl>;
 }

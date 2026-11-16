@@ -6,11 +6,12 @@ import Link from "@/components/SafeLink";
 import { specialtyHref } from "@/components/ContractorChrome";
 import { ContractorSampleBadge, ContractorVerifiedBadge } from "@/components/ContractorDirectory";
 import { useLocale } from "@/lib/i18n";
+import { FirmMessage } from "@/components/FirmMessage";
 import { whatsappHref } from "@/lib/phone";
 import { CONTRACTOR_BASE, CONTRACTOR_STATUS_LABELS, LAND_PATH, specialtyName, type ContractorFirm, type ContractorListing } from "@/lib/contractors";
 
 /** Public contractor profile (/muteahhitler/firma/{id}); the owner and administrators also see it before approval. */
-export function ContractorProfile({ firm, listings }: { firm: ContractorFirm; listings: ContractorListing[] }) {
+export function ContractorProfile({ firm, listings, messaging = false }: { firm: ContractorFirm; listings: ContractorListing[]; messaging?: boolean }) {
   const { t, locale } = useLocale();
   const live = firm.status === "approved" && !firm.sample;
   const whatsapp = firm.whatsapp ? `${whatsappHref(firm.whatsapp)}?text=${encodeURIComponent(t("Merhaba, firmanızı estatemarket24'te gördüm."))}` : null;
@@ -81,6 +82,7 @@ export function ContractorProfile({ firm, listings }: { firm: ContractorFirm; li
           {live && firm.landDeals && <Link className="btn btn-accent btn-block" href={`${LAND_PATH}?firma=${firm.id}`}><Send size={17} aria-hidden="true"/>{t("Bu firmadan kat karşılığı teklif iste")}</Link>}
           <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`} onClick={() => track("phone")}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
           {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp")}><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
+          {live && messaging && <FirmMessage kind="contractor" firmId={firm.id}/>}
           {firm.email && <a className="btn btn-secondary btn-block" href={`mailto:${firm.email}`} onClick={() => track("email")}><Mail size={17} aria-hidden="true"/>{t("E-posta gönder")}</a>}
           {firm.website && <a className="btn btn-secondary btn-block" href={firm.website} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={() => track("website")}><Globe size={17} aria-hidden="true"/><bdi>{website}</bdi><ExternalLink size={14} aria-hidden="true"/></a>}
           <p className="service-contact-note">{t("Kat karşılığı anlaşmalarını noter onaylı sözleşmeyle yapın; yetki belgesini Bakanlığın sisteminden kontrol edin. estatemarket24 sözleşmenin tarafı değildir.")}</p>

@@ -82,7 +82,7 @@ test('validation: lengths, categories, areas, phone, e-mail, website, foreign ph
   await rejects(S.createFirm(db,me,valid(owner,{website:'javascript:alert(1)'})),400,/https/);
   await rejects(S.createFirm(db,me,valid(owner,{logo:photo(other)})),403);
   await rejects(S.createFirm(db,me,valid(owner,{photos:['https://evil.test/x.jpg']})),403);
-  await rejects(S.createFirm(db,me,valid(owner,{photos:Array.from({length:13},()=>photo())})),400,/12/);
+  await rejects(S.createFirm(db,me,valid(owner,{photos:Array.from({length:21},()=>photo())})),400,/20/);
   const twice=photo();await rejects(S.createFirm(db,me,valid(owner,{logo:twice,photos:[twice]})),400,/birden fazla/);
   await rejects(S.createFirm(db,me,valid(owner,{taxNumber:'12ab'})),400,/Vergi numarası/);
   await rejects(S.createFirm(db,me,valid(owner,{terms:false})),400,/onaylayın/);

@@ -7,12 +7,22 @@ import type { EmailSettings } from "@/lib/email";
 import { MessageTranslationError, translateMessages } from "@/lib/message-translations";
 import { translationSettings } from "@/lib/translation-runtime";
 import { aiSettings } from "@/lib/ai-limits-server";
+import { firmThreadInfo } from "@/lib/firm-plans-server";
 let database: ChatDatabase;
 const connection = () => { if (!database) { const raw = db(); database = { prepare: (source) => raw.prepare(source) as unknown as import("@/lib/messaging-service").ChatStatement }; } return database; };
 export async function GET(request: Request) {
   const user = await currentUser(request);
   if (!user) return error("Giriş gerekli.", 401);
-  try { return ok(await chatGet(connection(), { id: user.id, admin: isAdmin(user) }, new URL(request.url).searchParams), { headers: { "Cache-Control": "no-store" } }); }
+  try {
+    const result = await chatGet(connection(), { id: user.id, admin: isAdmin(user) }, new URL(request.url).searchParams);
+    // Firm threads (lib/firm-plans.ts) carry the firm's name and page instead of a listing.
+    if ("conversations" in result) for (const row of result.conversations as Record<string, unknown>[]) {
+      const firm = typeof row.listing_id === "string" && row.listing_id.startsWith("firm:") ? await firmThreadInfo(row.listing_id) : null;
+      if (firm) Object.assign(row, { listing_title: firm.name, listing_status: "firm", firm_path: firm.path, firm_messaging: firm.messaging });
+      else if (typeof row.listing_id === "string" && row.listing_id.startsWith("firm:")) Object.assign(row, { listing_title: "Firma artık mevcut değil", listing_status: null });
+    }
+    return ok(result, { headers: { "Cache-Control": "no-store" } });
+  }
   catch (cause) { if (cause instanceof ChatError) return error(cause.message, cause.status); throw cause; }
 }
 export async function POST(request: Request) {
@@ -26,6 +36,8 @@ export async function POST(request: Request) {
     catch (cause) { if (cause instanceof MessageTranslationError) return error(cause.message, cause.status); throw cause; }
   }
   if(data.action!=='read'&&!user.email_verified)return error('Mesaj göndermek için önce e-posta adresinizi doğrulayın. Hesabım bölümünden doğrulayabilirsiniz.',403);
+  // Messaging with a firm needs the firm's Plus or Pro package (lib/firm-plans.ts), in both directions.
+  if(data.action!=='read'&&typeof data.listingId==='string'&&data.listingId.startsWith('firm:')&&!isAdmin(user)){const firm=await firmThreadInfo(data.listingId);if(!firm)return error('Firma bulunamadı.',404);if(!firm.messaging)return error('Bu firma site üzerinden mesaj almıyor. Telefon veya WhatsApp ile ulaşabilirsiniz.',403);}
   try {
     const result = await chatPost(connection(), { id: user.id, admin: isAdmin(user) }, data);
     // Email the recipient in the background; failures never affect sending the message.

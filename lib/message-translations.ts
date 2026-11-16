@@ -15,7 +15,7 @@ export const MESSAGE_TRANSLATIONS_SCHEMA=`CREATE TABLE IF NOT EXISTS message_tra
   locale text NOT NULL, translated_text text NOT NULL, source_language text NOT NULL, created_at text NOT NULL,
   PRIMARY KEY(message_id,locale))`;
 export const MESSAGE_TRANSLATION_BATCH=20;
-const context='Private chat between a property buyer and a seller or estate agent about a real estate listing in Türkiye. Keep names, places, prices and units unchanged.';
+const context='Private chat on a real estate site in Türkiye between a member and a seller, estate agent, contractor or service firm (painter, plumber, mover, lawyer…). Keep names, places, prices and units unchanged.';
 const uuid=(v:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const initialized=new WeakMap<Database,Promise<unknown>>();
 async function ensureSchema(database:Database){

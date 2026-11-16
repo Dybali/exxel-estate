@@ -9,6 +9,8 @@ import { isSampleContractorId, sampleContractorById } from "@/lib/contractor-sam
 import { contractorById, contractorListings, contractorOwnerId, contractorPath, specialtyName, validContractorId, type ContractorListing } from "@/lib/contractors";
 import { contractorActor, contractorSamples, contractorsDB } from "@/lib/contractors-server";
 import { currentUser } from "@/lib/server";
+import { firmThreadInfo } from "@/lib/firm-plans-server";
+import { firmThreadKey } from "@/lib/firm-plans";
 import { coverShareImage } from "@/lib/share-image-policy";
 import { shareMetadata } from "@/lib/share-metadata";
 
@@ -44,6 +46,8 @@ export default async function ContractorPage({ params }: Props) {
   const locale = await requestLocale(), url = localizedUrl(contractorPath(firm.id), locale);
   // The owner's approved housing projects on /projeler.
   const ownerId = firm.sample ? null : await contractorOwnerId(contractorsDB(), firm.id).catch(() => null);
+  // "Mesaj gönder" only when the firm's package includes messaging (lib/firm-plans.ts).
+  const messaging = !firm.sample && Boolean((await firmThreadInfo(firmThreadKey("contractor", firm.id)).catch(() => null))?.messaging);
   const listings = ownerId ? await contractorListings(contractorsDB(), ownerId).catch(() => [] as ContractorListing[]) : [];
   const structured = firm.status !== "approved" || firm.sample ? null : {
     "@context": "https://schema.org", "@type": "GeneralContractor", "@id": url, url, name: firm.name, description: firm.description.slice(0, 500), telephone: firm.phone,
@@ -54,6 +58,6 @@ export default async function ContractorPage({ params }: Props) {
   };
   return <>
     {structured && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }}/>}
-    <ContractorProfile firm={firm} listings={listings}/>
+    <ContractorProfile firm={firm} listings={listings} messaging={messaging}/>
   </>;
 }
