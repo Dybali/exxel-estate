@@ -35,6 +35,7 @@ import { favoritesChanged } from "@/lib/favorites-client";
 import {OfficeVerification} from './OfficeVerification';
 import { SellerUpgrade } from "@/components/SellerUpgrade";
 import { MessagesInbox, type Conversation } from "@/components/MessagesInbox";
+import {photoVariantUrl} from "@/lib/listing-media";
 
 type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; bio?:string; companyCategory?:string|null; isAdmin?: boolean; accountKind?: AccountKind };
 const ICONS:Record<PanelTabId,typeof Heart>={genel:LayoutDashboard,favoriler:Heart,aramalar:Search,ilanlarim:Bookmark,projelerim:Building2,mesajlar:Mail,randevular:CalendarDays,crm:BarChart3,talepler:Users,siparisler:ShoppingBag,teklifler:ClipboardList,firma:Store,ekip:Users,muteahhit:HardHat,hizmet:Wrench,profil:UserRound};
@@ -120,7 +121,7 @@ export function Dashboard() {
         </>}
         {active === "favoriler" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("KAYDETTİKLERİNİZ")}</span><h2>{t("Favori ilanlarım")}</h2></div></div>
-          {favorites.length ? <div className="favorite-dashboard-grid">{favorites.map(listing=><article className="favorite-dashboard-card" key={listing.id}><Link href={`/ilan/${listing.id}`}><img src={listing.images[0]} alt=""/><div><h3>{locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title}</h3><p>{listing.district}, {listing.city} · {listing.grossArea} m²</p><strong><DisplayMoney value={listing.price} currency={listing.currency}/></strong></div></Link><button type="button" onClick={()=>removeFavorite(listing.id)} aria-label={t("Favorilerden çıkar")}><Heart size={17} fill="currentColor"/>{t("Favorilerden çıkar")}</button></article>)}</div> : <div className="panel-empty"><Heart size={28}/><h3>{t("Henüz favori ilanınız yok.")}</h3><Link href="/ilanlar">{t("İlanlara göz atın")}<ForwardArrow/></Link></div>}
+          {favorites.length ? <div className="favorite-dashboard-grid">{favorites.map(listing=><article className="favorite-dashboard-card" key={listing.id}><Link href={`/ilan/${listing.id}`}><img src={listing.images[0]?photoVariantUrl(listing.images[0],640):undefined} alt="" loading="lazy" decoding="async"/><div><h3>{locale==="tr"?listing.title:listing.translations?.[locale]?.title||listing.title}</h3><p>{listing.district}, {listing.city} · {listing.grossArea} m²</p><strong><DisplayMoney value={listing.price} currency={listing.currency}/></strong></div></Link><button type="button" onClick={()=>removeFavorite(listing.id)} aria-label={t("Favorilerden çıkar")}><Heart size={17} fill="currentColor"/>{t("Favorilerden çıkar")}</button></article>)}</div> : <div className="panel-empty"><Heart size={28}/><h3>{t("Henüz favori ilanınız yok.")}</h3><Link href="/ilanlar">{t("İlanlara göz atın")}<ForwardArrow/></Link></div>}
 
         </>}
         {active === "ilanlarim" && <>

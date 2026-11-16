@@ -5,6 +5,7 @@ import {VerifiedBadge} from "@/components/VerifiedBadge";
 import {useLocale} from "@/lib/i18n";
 import {formatPrice} from "@/lib/listings";
 import {PROJECT_STATUS_LABELS, priceFrom, type Project} from "@/lib/projects";
+import {photoVariantUrl} from "@/lib/listing-media";
 
 // "2027-06" → "June 2027" in the visitor's language.
 export function deliveryLabel(value: string | null, locale: string) {
@@ -30,7 +31,7 @@ export function ProjectCard({project}: {project: Project}) {
   const cover = project.images[0];
   return <article className="project-card">
     <Link href={`/projeler/${project.id}`} className="project-card-photo">
-      {cover ? <img src={cover} alt={project.name} loading="lazy"/> : <span aria-hidden="true"><Building2 size={40}/></span>}
+      {cover ? <img src={photoVariantUrl(cover, 640)} alt={project.name} loading="lazy" decoding="async"/> : <span aria-hidden="true"><Building2 size={40}/></span>}
       <ProjectStatusBadge status={project.status}/>
     </Link>
     <div className="project-card-body">

@@ -7,16 +7,20 @@ import { ListingActions } from "./ListingActions";
 import {PanoramaTour} from './PanoramaTour';
 import {useLocale} from '@/lib/i18n';
 import type {PanoramaScene} from '@/lib/panoramas';
+import {photoSrcSet,photoVariantUrl} from '@/lib/listing-media';
+// Smaller stored copies (lib/listing-media.ts): the large grid photo and the phone slides use the 1280px copy,
+// the side tiles the 640px one; the lightbox shows the original.
+const MAIN_SIZES='(max-width: 700px) 100vw, 640px',TILE_SIZES='(max-width: 700px) 40vw, 320px';
 export function ListingGallery({ images, title, listingId,panoramas=[],floorPlan='',video=null }: {images:string[];title:string;listingId?:string;panoramas?:PanoramaScene[];floorPlan?:string;video?:{id:string;width:number;height:number}|null}) {
   const {t}=useLocale();const [active,setActive]=useState<number|null>(null),[reportOpen,setReportOpen]=useState(false);const reportButton=useRef<HTMLButtonElement>(null);const [slide,setSlide]=useState(0);const dialog=useRef<HTMLDialogElement>(null),videoDialog=useRef<HTMLDialogElement>(null),[videoOpen,setVideoOpen]=useState(false);const gallery=images.filter(Boolean);
   useEffect(()=>{const el=dialog.current;if(active===null||!el)return;el.showModal();const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{el.close();document.body.style.overflow=overflow;};},[active!==null]);
   useEffect(()=>{const el=videoDialog.current;if(!videoOpen||!el)return;el.showModal();const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{el.close();document.body.style.overflow=overflow;};},[videoOpen]);
   const go=(direction:number)=>setActive(n=>n===null?0:(n+direction+gallery.length)%gallery.length);
   return <><div className="property-gallery" data-count={Math.min(gallery.length,5)}>
-    {gallery.length?gallery.slice(0,5).map((src,index)=><button className={index===0?'property-gallery-main':'property-gallery-tile'} key={`${src}-${index}`} onClick={()=>setActive(index)} aria-label={t('{n}. fotoğrafı büyüt').replace('{n}',String(index+1))}><img src={src} alt={`${title} — ${t('fotoğraf')} ${index+1}`} loading={index===0?'eager':'lazy'}/></button>):<div className="property-gallery-empty"><Building2 size={44}/><span>{t('Bu ilan için fotoğraf eklenmemiş.')}</span></div>}
+    {gallery.length?gallery.slice(0,5).map((src,index)=><button className={index===0?'property-gallery-main':'property-gallery-tile'} key={`${src}-${index}`} onClick={()=>setActive(index)} aria-label={t('{n}. fotoğrafı büyüt').replace('{n}',String(index+1))}><img src={photoVariantUrl(src,index===0?1280:640)} srcSet={photoSrcSet(src)} sizes={index===0?MAIN_SIZES:TILE_SIZES} alt={`${title} — ${t('fotoğraf')} ${index+1}`} loading={index===0?'eager':'lazy'} decoding="async"/></button>):<div className="property-gallery-empty"><Building2 size={44}/><span>{t('Bu ilan için fotoğraf eklenmemiş.')}</span></div>}
     {/* Phones: one full-width photo at a time, swiped sideways (app/polish.css); the grid above is for wider screens. */}
     {gallery.length>0&&<div className="property-gallery-swipe" onScroll={e=>{const el=e.currentTarget;if(el.clientWidth)setSlide(Math.min(gallery.length-1,Math.round(Math.abs(el.scrollLeft)/el.clientWidth)));}}>
-     {gallery.map((src,index)=><button key={`${src}-${index}`} onClick={()=>setActive(index)} aria-label={t('{n}. fotoğrafı büyüt').replace('{n}',String(index+1))}><img src={src} alt={`${title} — ${t('fotoğraf')} ${index+1}`} loading={index===0?'eager':'lazy'}/></button>)}
+     {gallery.map((src,index)=><button key={`${src}-${index}`} onClick={()=>setActive(index)} aria-label={t('{n}. fotoğrafı büyüt').replace('{n}',String(index+1))}><img src={photoVariantUrl(src,1280)} srcSet={photoSrcSet(src)} sizes="100vw" alt={`${title} — ${t('fotoğraf')} ${index+1}`} loading={index===0?'eager':'lazy'} decoding="async"/></button>)}
     </div>}
     {gallery.length>1&&<span className="property-gallery-position" aria-hidden="true">{slide+1} / {gallery.length}</span>}
     {listingId&&<ListingActions listingId={listingId} title={title} canViewPhotos={gallery.length>0} onGallery={()=>{if(gallery.length)setActive(0);}}/>}

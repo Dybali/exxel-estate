@@ -7,6 +7,7 @@ import {type Listing} from "@/lib/listings";
 import {useDisplayCurrency,useMoneyText} from "./DisplayCurrency";
 import {useLocale} from "@/lib/i18n";
 import {compactMoney,mapImage} from "@/lib/listing-map";
+import {photoVariantUrl} from "@/lib/listing-media";
 type Props={query:string;selectedId:string|null;onSelect:(listing:Listing)=>void;onBounds:(bounds:string)=>void;onClearBounds:()=>void;area?:string;onArea?:(area:string)=>void;onShowList?:()=>void};
 const parseArea=(value:string)=>value.split(";").map(point=>point.split(",").map(Number)).filter(p=>p.length===2&&p.every(Number.isFinite)).map(([lng,lat])=>[lat,lng] as [number,number]);
 const boxOf=(map:Leaflet.Map)=>{const b=map.getBounds();return [b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].map(n=>n.toFixed(5)).join(",");};
@@ -24,7 +25,7 @@ export function PropertyMap({query,selectedId,onSelect,onBounds,onClearBounds,ar
  const shortPrice=useCallback((amount:number,currency:string)=>{const shown=view(amount,currency);return compactMoney(shown.amount,shown.currency,locale,shown.kind==="converted");},[view,locale]);
  const card=(row:Listing)=>{
   const box=document.createElement("article");box.className="map-popup-card";box.dir=document.documentElement.dir||"ltr";
-  const image=mapImage(row.images[0]);if(image){const img=document.createElement("img");img.src=image;img.alt="";img.loading="lazy";box.appendChild(img);}
+  const image=mapImage(row.images[0]);if(image){const img=document.createElement("img");img.src=photoVariantUrl(image,640);img.alt="";img.loading="lazy";box.appendChild(img);}
   const body=document.createElement("div");
   const title=document.createElement("strong");title.textContent=locale==="tr"?row.title:row.translations?.[locale as "en"]?.title||row.title;body.appendChild(title);
   const price=document.createElement("b");price.textContent=formatPrice(row.price,row.currency);body.appendChild(price);

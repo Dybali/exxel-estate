@@ -5,6 +5,7 @@ import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
 import { serviceCategory } from "@/lib/service-categories";
 import { firmDescription, firmPath, type ServiceArea, type ServiceFirm } from "@/lib/services";
+import {photoVariantUrl} from "@/lib/listing-media";
 
 /** "Bodrum, Muğla · İzmir (tüm il) · +2" */
 export function useAreaLabel() {
@@ -43,7 +44,7 @@ export function ServiceFirmCard({ firm, highlight }: { firm: ServiceFirm; highli
   return <article className={firm.sample ? "service-firm-card is-sample" : "service-firm-card"}>
     <Link href={firmPath(firm.id)} className="service-firm-card-link" aria-label={firm.sample ? `${firm.name} · ${t("Örnek firma")}` : firm.name}>
       <div className="service-firm-card-media">
-        {firm.cover || firm.photos[0] ? <img src={firm.cover || firm.photos[0]} alt="" loading="lazy"/> : <span className="service-firm-card-placeholder">{first && <ServiceIcon name={first.icon} size={34}/>}</span>}
+        {firm.cover || firm.photos[0] ? <img src={photoVariantUrl((firm.cover || firm.photos[0])!, 640)} alt="" loading="lazy" decoding="async"/> : <span className="service-firm-card-placeholder">{first && <ServiceIcon name={first.icon} size={34}/>}</span>}
         {firm.featured && <span className="service-featured"><Star size={13} aria-hidden="true"/>{t("Öne çıkan")}</span>}
         {firm.sample && <ServiceSampleBadge/>}
       </div>
