@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/i18n";
 import { appendPhotoVariants, preparePhotoUpload } from "@/lib/photo-optimize";
 import { CONTRACTOR_BASE, CONTRACTOR_LIMITS, CONTRACTOR_SPECIALTIES, CONTRACTOR_STATUS_LABELS, contractorPath, LAND_PATH, zoningName, type ContractorArea, type ContractorFirm, type LandOffer, type LandRequest } from "@/lib/contractors";
 import { areaDistricts as districtsFor } from "@/lib/service-locations";
-import { AreaCityOptions } from "@/components/AreaCityOptions";
+import { CountryCitySelect } from "@/components/CountryCitySelect";
 
 type ProjectForm = { id?: string; title: string; city: string; district: string; year: string; kind: string; units: string; description: string; photos: string[] };
 type Form = {
@@ -95,7 +95,7 @@ function ContractorForm({ firm, onSaved, onCancel }: { firm: ContractorFirm | nu
     <fieldset className="service-area-picker"><legend>{t("Çalıştığı bölgeler")} <small>({form.areas.length}/{CONTRACTOR_LIMITS.areas})</small></legend>
       <p>{t("Kat karşılığı talepleri bu bölgelerdeki arsalar için size gönderilir.")}</p>
       <div className="service-area-add">
-        <label>{t("İl")}<select value={place.city} onChange={(event) => setPlace({ city: event.target.value, district: "" })}><option value="">{t("Seçin")}</option><AreaCityOptions/></select></label>
+        <label>{t("İl")}<CountryCitySelect value={place.city} onChange={(city) => setPlace({ city, district: "" })} placeholder={{ TR: "Seçin", DE: "Şehir seçin" }}/></label>
         <label>{t("İlçe")}<select value={place.district} disabled={!districtsFor(place.city).length} onChange={(event) => setPlace((old) => ({ ...old, district: event.target.value }))}><option value="">{t("Tüm il")}</option>{districtsFor(place.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
         <button type="button" className="outline-button" disabled={!place.city || form.areas.length >= CONTRACTOR_LIMITS.areas} onClick={addArea}><Plus size={16}/>{t("Bölge ekle")}</button>
       </div>
@@ -120,7 +120,7 @@ function ContractorForm({ firm, onSaved, onCancel }: { firm: ContractorFirm | nu
         <div className="project-editor-grid">
           <label>{t("Proje adı")}<input required minLength={3} maxLength={120} value={project.title} onChange={(event) => setProject(index, { title: event.target.value })}/></label>
           <label>{t("Proje türü")}<select value={project.kind} onChange={(event) => setProject(index, { kind: event.target.value })}>{CONTRACTOR_SPECIALTIES.map((item) => <option key={item.slug} value={item.slug}>{t(item.name)}</option>)}</select></label>
-          <label>{t("İl")}<select required value={project.city} onChange={(event) => setProject(index, { city: event.target.value, district: "" })}><option value="">{t("Seçin")}</option><AreaCityOptions/></select></label>
+          <label>{t("İl")}<CountryCitySelect required value={project.city} onChange={(city) => setProject(index, { city, district: "" })} placeholder={{ TR: "Seçin", DE: "Şehir seçin" }}/></label>
           <label>{t("İlçe")}<select value={project.district} disabled={!districtsFor(project.city).length} onChange={(event) => setProject(index, { district: event.target.value })}><option value="">{t("Seçin")}</option>{districtsFor(project.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
           <label>{t("Tamamlanma yılı")}<input required type="number" inputMode="numeric" min={1950} max={year} value={project.year} onChange={(event) => setProject(index, { year: event.target.value })}/></label>
           <label>{t("Bağımsız bölüm sayısı (isteğe bağlı)")}<input type="number" inputMode="numeric" min={1} max={100000} value={project.units} onChange={(event) => setProject(index, { units: event.target.value })}/></label>

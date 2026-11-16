@@ -11,7 +11,7 @@ import { categoriesOf, SERVICE_GROUPS, type ServiceSlug } from "@/lib/service-ca
 import { EMPTY_SERVICE_FILTERS, SERVICE_SEARCH_PATH, serviceSearchHref, servicePageList, withLang, type ServiceFilters } from "@/lib/service-search";
 import type { ServiceFirm, ServiceSort } from "@/lib/services";
 import { areaDistricts as districtsFor } from "@/lib/service-locations";
-import { AreaCityOptions } from "@/components/AreaCityOptions";
+import { CountryCitySelect } from "@/components/CountryCitySelect";
 
 const go = (filters: ServiceFilters) => window.location.assign(withLang(serviceSearchHref(filters), new URLSearchParams(window.location.search).get("lang")));
 const SORT_LABELS: Record<ServiceSort, string> = { featured: "Öne çıkanlar", newest: "En yeni", az: "A–Z" };
@@ -28,10 +28,7 @@ function ServiceFilterForm({ filters, counts, onClose }: { filters: ServiceFilte
       <input type="search" value={form.q} maxLength={100} placeholder={t("Örn. boyacı, nakliyat, firma adı")} enterKeyHint="search" onChange={(event) => setForm({ ...form, q: event.target.value })}/>
     </label>
     <label className="svc-filter-field"><span>{t("İl")}</span>
-      <select value={form.city} onChange={(event) => apply({ ...form, city: event.target.value, district: "" })}>
-        <option value="">{t("Tüm Türkiye")}</option>
-        <AreaCityOptions/>
-      </select></label>
+      <CountryCitySelect value={form.city} onChange={(city) => apply({ ...form, city, district: "" })} placeholder={{ TR: "Tüm Türkiye", DE: "Şehir seçin" }}/></label>
     <label className="svc-filter-field"><span>{t("İlçe")}</span>
       <select value={form.district} disabled={!districtsFor(form.city).length} onChange={(event) => apply({ ...form, district: event.target.value })}>
         <option value="">{t("Tüm ilçeler")}</option>

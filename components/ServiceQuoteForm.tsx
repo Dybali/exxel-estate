@@ -8,7 +8,7 @@ import { categoriesOf, SERVICE_GROUPS, serviceCategory } from "@/lib/service-cat
 import { QUOTE_LIMITS, QUOTE_TIMINGS, type QuoteTiming } from "@/lib/service-extras";
 import { firmPath, SERVICE_BASE, SERVICE_QUOTE_PATH } from "@/lib/services";
 import { areaDistricts as districtsFor } from "@/lib/service-locations";
-import { AreaCityOptions } from "@/components/AreaCityOptions";
+import { CountryCitySelect } from "@/components/CountryCitySelect";
 
 type Initial = { category: string; city: string; district: string };
 type Account = { name: string; email: string; phone?: string | null; email_verified?: number } | null;
@@ -79,7 +79,7 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
           </fieldset>
           <fieldset><legend><span>2</span>{t("İş nerede?")}</legend>
             <div className="project-editor-grid">
-              <label>{t("İl")}<select required value={form.city} onChange={(event) => setForm((old) => ({ ...old, city: event.target.value, district: "" }))}><option value="">{t("Seçin")}</option><AreaCityOptions/></select></label>
+              <label>{t("İl")}<CountryCitySelect required value={form.city} onChange={(city) => setForm((old) => ({ ...old, city, district: "" }))} placeholder={{ TR: "Seçin", DE: "Şehir seçin" }}/></label>
               <label>{t("İlçe")}<select value={form.district} disabled={!districtsFor(form.city).length} onChange={(event) => setForm((old) => ({ ...old, district: event.target.value }))}><option value="">{t("Tüm il")}</option>{districtsFor(form.city).map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
             </div>
           </fieldset>
