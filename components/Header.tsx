@@ -13,17 +13,21 @@ import { useEffect, useState } from "react";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
 import { CurrencySwitch } from "@/components/DisplayCurrency";
 import { useLocale } from "@/lib/i18n";
+import { viewerActions, viewerOf } from "@/lib/account-actions";
 
 export function Header() {
   const path = usePathname();
   const isHome = path === "/";
   const [menu, setMenu] = useState(false);
-  const [user, setUser] = useState<{ id: string; name: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; accountKind?: string } | null>(null);
   const [discoveryUnread,setDiscoveryUnread]=useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const { t } = useLocale();
+  // Firm accounts have no listing manager (lib/account-actions.ts): their main button opens the firm panel.
+  const viewer = viewerOf(user), post = viewerActions(viewer).postListing;
+  const postHref = post ? "/ilan-ver" : viewer === "service" ? "/hizmetler/panel" : "/muteahhitler/panel", postLabel = post ? "İlan Ver" : "Firma panelim";
   useEffect(() => {
-    const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(async (response) => await response.json() as { user?: { id:string; name:string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(async (response) => await response.json() as { user?: { id:string; name:string; accountKind?: string } }).then((data) => setUser(data.user || null)).catch(() => {});
     refresh();window.addEventListener("salesorrent:profile-changed",refresh);
     return()=>window.removeEventListener("salesorrent:profile-changed",refresh);
   }, [path]);
@@ -63,9 +67,9 @@ export function Header() {
     {isHome && <div className="home-fixed-exchange"><div className="container"><ExchangeRates /></div></div>}
     <div className={isHome ? "topline home-topline" : "topline"}><div className="container top-inner"><span>{t("Türkiye'de gayrimenkul aramanın yeni adresi")}</span><div className="top-switches"><CurrencySwitch className="header-currency"/><LocaleSwitch/></div></div></div>
     <header className={isHome ? "site-header home-header" : "site-header"}><div className="container header-inner"><Link href="/" className="brand" aria-label="estatemarket24 — Your gateway to Turkish real estate — ana sayfa"><Brand/></Link>
-      <nav id="main-navigation" className={menu ? "main-nav open" : "main-nav"}><Link className="nav-post-listing" href="/ilan-ver" onClick={() => setMenu(false)}>{t("İlan Ver")} <ArrowRight size={17}/></Link>{links.map((link) => <Link key={link.href} className={[link.className, link.active ? "active" : ""].filter(Boolean).join(" ")} href={link.href} onClick={() => setMenu(false)}>{"icon" in link && link.icon && <link.icon size={14} aria-hidden="true"/>}{t(link.label)}</Link>)}<Link className="main-messages-link" href={user ? "/hesabim?tab=mesajlar" : `/giris?next=${encodeURIComponent("/hesabim?tab=mesajlar")}`} onClick={() => setMenu(false)}><Mail size={16}/><span>{t("Mesajlarım")}</span>{unreadMessages > 0 && <b className="message-count">{unreadMessages > 99 ? "99+" : unreadMessages}</b>}</Link></nav>
-      <div className="header-actions">{user&&<Link className="discovery-bell" href="/hesabim?tab=bildirimler" aria-label={`${t("Bildirimler")}: ${discoveryUnread}`}><Bell size={20}/>{discoveryUnread>0&&<b>{discoveryUnread>99?"99+":discoveryUnread}</b>}</Link>}{user && <Link className="header-messages-link mobile-inbox-link" href="/hesabim?tab=mesajlar" aria-label={`${t("Mesajlarım")}${unreadMessages ? `, ${unreadMessages} ${t("okunmamış")}` : ""}`}><Mail size={20}/>{unreadMessages > 0 && <span>{unreadMessages > 99 ? "99+" : unreadMessages}</span>}</Link>}<Link className="icon-link desktop-only" href="/hesabim?tab=favoriler" aria-label={t("Favoriler")}><Heart size={20}/></Link>{isHome && !user ? <div className="home-account-guest"><UserRound size={18} aria-hidden="true"/><div><Link href={loginHref}>{t("Giriş Yap")}</Link><Link href={`/giris?mode=register&next=${encodeURIComponent(loginNext)}`}>{t("Kayıt Ol")}</Link></div></div> : <Link className="account-link" href={loginHref}><UserRound size={18}/><span>{user ? user.name.split(" ")[0] : t("Giriş Yap")}</span></Link>}<Link className="header-post" href="/ilan-ver">{t("İlan Ver")} <ArrowRight size={17}/></Link><button className="mobile-menu" onClick={() => setMenu(!menu)} aria-label={t("Menü")} aria-expanded={menu} aria-controls="main-navigation">{menu ? <X size={25}/> : <Menu size={25}/>}</button></div>
-    </div><div className="container compact-post-row"><Link className="compact-post-listing" href="/ilan-ver" onClick={() => setMenu(false)}>{t("İlan Ver")} <ArrowRight size={18}/></Link></div></header>
+      <nav id="main-navigation" className={menu ? "main-nav open" : "main-nav"}><Link className="nav-post-listing" href={postHref} onClick={() => setMenu(false)}>{t(postLabel)} <ArrowRight size={17}/></Link>{links.map((link) => <Link key={link.href} className={[link.className, link.active ? "active" : ""].filter(Boolean).join(" ")} href={link.href} onClick={() => setMenu(false)}>{"icon" in link && link.icon && <link.icon size={14} aria-hidden="true"/>}{t(link.label)}</Link>)}<Link className="main-messages-link" href={user ? "/hesabim?tab=mesajlar" : `/giris?next=${encodeURIComponent("/hesabim?tab=mesajlar")}`} onClick={() => setMenu(false)}><Mail size={16}/><span>{t("Mesajlarım")}</span>{unreadMessages > 0 && <b className="message-count">{unreadMessages > 99 ? "99+" : unreadMessages}</b>}</Link></nav>
+      <div className="header-actions">{user&&<Link className="discovery-bell" href="/hesabim?tab=bildirimler" aria-label={`${t("Bildirimler")}: ${discoveryUnread}`}><Bell size={20}/>{discoveryUnread>0&&<b>{discoveryUnread>99?"99+":discoveryUnread}</b>}</Link>}{user && <Link className="header-messages-link mobile-inbox-link" href="/hesabim?tab=mesajlar" aria-label={`${t("Mesajlarım")}${unreadMessages ? `, ${unreadMessages} ${t("okunmamış")}` : ""}`}><Mail size={20}/>{unreadMessages > 0 && <span>{unreadMessages > 99 ? "99+" : unreadMessages}</span>}</Link>}<Link className="icon-link desktop-only" href="/hesabim?tab=favoriler" aria-label={t("Favoriler")}><Heart size={20}/></Link>{isHome && !user ? <div className="home-account-guest"><UserRound size={18} aria-hidden="true"/><div><Link href={loginHref}>{t("Giriş Yap")}</Link><Link href={`/giris?mode=register&next=${encodeURIComponent(loginNext)}`}>{t("Kayıt Ol")}</Link></div></div> : <Link className="account-link" href={loginHref}><UserRound size={18}/><span>{user ? user.name.split(" ")[0] : t("Giriş Yap")}</span></Link>}<Link className="header-post" href={postHref}>{t(postLabel)} <ArrowRight size={17}/></Link><button className="mobile-menu" onClick={() => setMenu(!menu)} aria-label={t("Menü")} aria-expanded={menu} aria-controls="main-navigation">{menu ? <X size={25}/> : <Menu size={25}/>}</button></div>
+    </div><div className="container compact-post-row"><Link className="compact-post-listing" href={postHref} onClick={() => setMenu(false)}>{t(postLabel)} <ArrowRight size={18}/></Link></div></header>
   </>;
 }
 

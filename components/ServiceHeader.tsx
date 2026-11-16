@@ -6,6 +6,7 @@ import { LocaleSwitch } from "@/components/LocaleSwitch";
 import Link from "@/components/SafeLink";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
+import { viewerActions, viewerOf } from "@/lib/account-actions";
 import { categoriesOf, SERVICE_GROUPS } from "@/lib/service-categories";
 import { SERVICE_SEARCH_PATH } from "@/lib/service-search";
 import { SERVICE_BASE, SERVICE_QUOTE_PATH, servicePath } from "@/lib/services";
@@ -37,6 +38,7 @@ export function ServiceHeader() {
   const { t } = useLocale();
   const path = usePathname() || SERVICE_BASE;
   const { user, accountHref, addFirmHref } = useAccount();
+  const can = viewerActions(viewerOf(user));
   const [open, setOpen] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   const nav = useRef<HTMLElement>(null);
@@ -59,8 +61,8 @@ export function ServiceHeader() {
       <Link href={SERVICE_SEARCH_PATH} className="svc-header-search"><Search size={16} aria-hidden="true"/><span>{t("Firma veya hizmet ara")}</span></Link>
       <div className="svc-header-actions">
         <LocaleSwitch className="svc-locale"/>
-        <Link href={SERVICE_QUOTE_PATH} className="btn btn-accent btn-sm svc-quote-link"><Send size={16} aria-hidden="true"/>{t("Teklif iste")}</Link>
-        <Link href={addFirmHref} className="btn btn-secondary btn-sm svc-add-firm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>
+        {can.serviceQuote && <Link href={SERVICE_QUOTE_PATH} className="btn btn-accent btn-sm svc-quote-link"><Send size={16} aria-hidden="true"/>{t("Teklif iste")}</Link>}
+        {can.addServiceFirm && <Link href={addFirmHref} className="btn btn-secondary btn-sm svc-add-firm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
         <Link href={accountHref} className="svc-account"><UserRound size={18} aria-hidden="true"/><span>{user ? user.name.split(" ")[0] : t("Giriş Yap")}</span></Link>
         <button type="button" className="svc-menu-button" onClick={() => setDrawer(true)} aria-label={t("Menü")} aria-expanded={drawer} aria-controls="svc-drawer"><Menu size={24} aria-hidden="true"/></button>
       </div>
@@ -99,8 +101,8 @@ export function ServiceHeader() {
         </details>)}
       </div>
       <div className="svc-drawer-actions">
-        <Link href={SERVICE_QUOTE_PATH} className="btn btn-accent btn-block"><Send size={17} aria-hidden="true"/>{t("Teklif iste")}</Link>
-        <Link href={addFirmHref} className="btn btn-secondary btn-block"><Plus size={17} aria-hidden="true"/>{t("Firmanı ekle")}</Link>
+        {can.serviceQuote && <Link href={SERVICE_QUOTE_PATH} className="btn btn-accent btn-block"><Send size={17} aria-hidden="true"/>{t("Teklif iste")}</Link>}
+        {can.addServiceFirm && <Link href={addFirmHref} className="btn btn-secondary btn-block"><Plus size={17} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
         <Link href={accountHref} className="btn btn-secondary btn-block"><UserRound size={17} aria-hidden="true"/>{user ? t("Hesabım") : t("Giriş Yap")}</Link>
         <LocaleSwitch className="svc-locale svc-drawer-locale"/>
         <Link href="/" className="svc-drawer-back"><ArrowLeft size={16} aria-hidden="true"/>{t("Emlak ilanlarına dön")}</Link>

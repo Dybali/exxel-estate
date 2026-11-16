@@ -7,6 +7,8 @@ import { FeedbackLink } from "@/components/FeedbackWidget";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
+import { viewerActions, viewerOf } from "@/lib/account-actions";
+import { ViewerGate } from "@/components/ViewerGate";
 import { CONTRACTOR_BASE, CONTRACTOR_PANEL, CONTRACTOR_SPECIALTIES, LAND_PATH } from "@/lib/contractors";
 
 export const specialtyHref = (slug: string) => `${CONTRACTOR_BASE}?tur=${slug}#sonuclar`;
@@ -34,6 +36,7 @@ function useAccount() {
 export function ContractorHeader() {
   const { t } = useLocale();
   const { user, accountHref, addFirmHref } = useAccount();
+  const can = viewerActions(viewerOf(user));
   const [drawer, setDrawer] = useState(false);
   useEffect(() => {
     const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setDrawer(false); };
@@ -47,8 +50,8 @@ export function ContractorHeader() {
       <Link href={`${CONTRACTOR_BASE}#sonuclar`} className="svc-header-search"><Search size={16} aria-hidden="true"/><span>{t("Müteahhit ara")}</span></Link>
       <div className="svc-header-actions">
         <LocaleSwitch className="svc-locale"/>
-        <Link href={LAND_PATH} className="btn btn-accent btn-sm svc-quote-link"><Send size={16} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link>
-        <Link href={addFirmHref} className="btn btn-secondary btn-sm svc-add-firm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>
+        {can.landQuote && <Link href={LAND_PATH} className="btn btn-accent btn-sm svc-quote-link"><Send size={16} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link>}
+        {can.addContractorFirm && <Link href={addFirmHref} className="btn btn-secondary btn-sm svc-add-firm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
         <Link href={accountHref} className="svc-account"><UserRound size={18} aria-hidden="true"/><span>{user ? user.name.split(" ")[0] : t("Giriş Yap")}</span></Link>
         <button type="button" className="svc-menu-button" onClick={() => setDrawer(true)} aria-label={t("Menü")} aria-expanded={drawer} aria-controls="ctr-drawer"><Menu size={24} aria-hidden="true"/></button>
       </div>
@@ -69,8 +72,8 @@ export function ContractorHeader() {
         <li><Link href="/projeler"><Building2 size={16} aria-hidden="true"/>{t("Satıştaki projeler")}</Link></li>
       </ul></div>
       <div className="svc-drawer-actions">
-        <Link href={LAND_PATH} className="btn btn-accent btn-block"><Send size={17} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link>
-        <Link href={addFirmHref} className="btn btn-secondary btn-block"><Plus size={17} aria-hidden="true"/>{t("Firmanı ekle")}</Link>
+        {can.landQuote && <Link href={LAND_PATH} className="btn btn-accent btn-block"><Send size={17} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link>}
+        {can.addContractorFirm && <Link href={addFirmHref} className="btn btn-secondary btn-block"><Plus size={17} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
         <Link href={accountHref} className="btn btn-secondary btn-block"><UserRound size={17} aria-hidden="true"/>{user ? t("Hesabım") : t("Giriş Yap")}</Link>
         <LocaleSwitch className="svc-locale svc-drawer-locale"/>
         <Link href="/" className="svc-drawer-back"><ArrowLeft size={16} aria-hidden="true"/>{t("Emlak ilanlarına dön")}</Link>
@@ -87,12 +90,12 @@ export function ContractorFooter() {
       <div className="svc-footer-about">
         <ContractorBrand/>
         <p>{t("Arsanız ve projeniz için güvenilir müteahhitler")}</p>
-        <Link href={CONTRACTOR_PANEL} className="btn btn-accent btn-sm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>
+        <ViewerGate action="addContractorFirm"><Link href={`/giris?mode=register&role=contractor&next=${encodeURIComponent(CONTRACTOR_PANEL)}`} className="btn btn-accent btn-sm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link></ViewerGate>
         <Link href="/" className="svc-footer-back"><ArrowLeft size={16} aria-hidden="true"/>{t("Emlak ilanlarına dön")}</Link>
       </div>
       <nav className="svc-footer-groups" aria-label={t("Uzmanlık alanları")}>
         <div><h2>{t("Uzmanlık alanları")}</h2><ul>{CONTRACTOR_SPECIALTIES.map((item) => <li key={item.slug}><Link href={specialtyHref(item.slug)}>{t(item.name)}</Link></li>)}</ul></div>
-        <div><h2>{t("Arsa sahipleri")}</h2><ul><li><Link href={LAND_PATH}>{t("Kat karşılığı teklif al")}</Link></li><li><Link href="/ilanlar?purpose=satilik&type=arsa">{t("Satılık arsalar")}</Link></li></ul></div>
+        <div><h2>{t("Arsa sahipleri")}</h2><ul><ViewerGate action="landQuote"><li><Link href={LAND_PATH}>{t("Kat karşılığı teklif al")}</Link></li></ViewerGate><li><Link href="/ilanlar?purpose=satilik&type=arsa">{t("Satılık arsalar")}</Link></li></ul></div>
         <div><h2>{t("Diğer bölümler")}</h2><ul><li><Link href="/projeler">{t("Satıştaki projeler")}</Link></li><li><Link href="/hizmetler">{t("Hizmetler")}</Link></li><li><Link href="/sirketler">{t("Şirketler")}</Link></li></ul></div>
       </nav>
     </div>

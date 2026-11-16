@@ -5,6 +5,7 @@ import { FeedbackLink } from "@/components/FeedbackWidget";
 import Link from "@/components/SafeLink";
 import { groupSearchHref, SERVICE_SIGNUP_HREF, ServiceBrand } from "@/components/ServiceHeader";
 import { useLocale } from "@/lib/i18n";
+import { ViewerGate } from "@/components/ViewerGate";
 import { categoriesOf, SERVICE_GROUPS } from "@/lib/service-categories";
 import { servicePath } from "@/lib/services";
 
@@ -16,7 +17,7 @@ export function ServiceFooter() {
       <div className="svc-footer-about">
         <ServiceBrand/>
         <p>{t("Eviniz için güvenilir hizmet firmaları")}</p>
-        <Link href={SERVICE_SIGNUP_HREF} className="btn btn-accent btn-sm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>
+        <ViewerGate action="addServiceFirm"><Link href={`/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}`} className="btn btn-accent btn-sm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link></ViewerGate>
         <Link href="/" className="svc-footer-back"><ArrowLeft size={16} aria-hidden="true"/>{t("Emlak ilanlarına dön")}</Link>
       </div>
       <nav className="svc-footer-groups" aria-label={t("Hizmet kategorileri")}>

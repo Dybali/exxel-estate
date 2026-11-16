@@ -6,12 +6,17 @@ import { ServiceFirmCard } from "@/components/ServiceFirmCard";
 import { groupSearchHref, SERVICE_SIGNUP_HREF } from "@/components/ServiceHeader";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useLocale } from "@/lib/i18n";
+import { ViewerGate } from "@/components/ViewerGate";
 import { categoriesOf, SERVICE_CATEGORIES, SERVICE_GROUPS, type ServiceSlug } from "@/lib/service-categories";
 import { SERVICE_SEARCH_PATH } from "@/lib/service-search";
 import { SERVICE_QUOTE_PATH, servicePath, type ServiceFirm } from "@/lib/services";
 
 /** Hizmet veren firmalar için davet (landing, results and category pages). */
+// Only for visitors without an account (lib/account-actions.ts): other accounts do not open a firm.
 export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
+  return <ViewerGate action="addServiceFirm"><ProviderCta compact={compact}/></ViewerGate>;
+}
+function ProviderCta({ compact }: { compact: boolean }) {
   const { t } = useLocale();
   return <section className={compact ? "service-cta compact" : "service-cta"} aria-labelledby="service-cta-title">
     <div className="service-cta-text">
@@ -23,7 +28,7 @@ export function ServiceProviderCta({ compact = false }: { compact?: boolean }) {
         <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Müşteriler sizi telefon, WhatsApp veya e-posta ile doğrudan arar.")}</li>
       </ul>}
     </div>
-    <Link href={SERVICE_SIGNUP_HREF} className="btn btn-accent service-cta-button">{t("Firmanızı ekleyin")}<ArrowRight size={17} aria-hidden="true"/></Link>
+    <Link href={`/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}`} className="btn btn-accent service-cta-button">{t("Firmanızı ekleyin")}<ArrowRight size={17} aria-hidden="true"/></Link>
   </section>;
 }
 

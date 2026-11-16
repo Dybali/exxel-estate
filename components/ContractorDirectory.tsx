@@ -4,6 +4,7 @@ import { trackFirmSearch } from "@/lib/firm-track-client";
 import { ArrowRight, BadgeCheck, Building2, CheckCircle2, FlaskConical, HardHat, Handshake, Info, MapPin, Search, Send, Star } from "lucide-react";
 import Link from "@/components/SafeLink";
 import { useLocale } from "@/lib/i18n";
+import { ViewerGate } from "@/components/ViewerGate";
 import { CONTRACTOR_BASE, CONTRACTOR_PANEL, CONTRACTOR_SPECIALTIES, contractorPath, LAND_PATH, specialtyName, type ContractorFirm, type ContractorResults } from "@/lib/contractors";
 import { CountryCitySelect } from "@/components/CountryCitySelect";
 
@@ -136,7 +137,7 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
     </section>}
 
     <div className="container ctr-split">
-      <section className="service-cta" aria-labelledby="ctr-land-title">
+      <ViewerGate action="landQuote"><section className="service-cta" aria-labelledby="ctr-land-title">
         <div className="service-cta-text">
           <span className="service-kicker"><Handshake size={15} aria-hidden="true"/>{t("Arsa sahipleri için")}</span>
           <h2 id="ctr-land-title">{t("Arsanızı bir kez anlatın, müteahhitler teklif versin")}</h2>
@@ -147,8 +148,8 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
           </ul>
         </div>
         <Link href={LAND_PATH} className="btn btn-accent service-cta-button">{t("Kat karşılığı teklif al")}<ArrowRight size={17} aria-hidden="true"/></Link>
-      </section>
-      <section className="service-cta" aria-labelledby="ctr-provider-title">
+      </section></ViewerGate>
+      <ViewerGate action="addContractorFirm"><section className="service-cta" aria-labelledby="ctr-provider-title">
         <div className="service-cta-text">
           <span className="service-kicker"><HardHat size={15} aria-hidden="true"/>{t("Müteahhit misiniz?")}</span>
           <h2 id="ctr-provider-title">{t("Firmanızı ekleyin, arsa sahiplerine ulaşın")}</h2>
@@ -158,8 +159,8 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
             <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Satıştaki projelerinizi Projeler bölümünde ayrıca yayınlayabilirsiniz.")}</li>
           </ul>
         </div>
-        <Link href={CONTRACTOR_PANEL} className="btn btn-secondary service-cta-button">{t("Firmanızı ekleyin")}<ArrowRight size={17} aria-hidden="true"/></Link>
-      </section>
+        <Link href={`/giris?mode=register&role=contractor&next=${encodeURIComponent(CONTRACTOR_PANEL)}`} className="btn btn-secondary service-cta-button">{t("Firmanızı ekleyin")}<ArrowRight size={17} aria-hidden="true"/></Link>
+      </section></ViewerGate>
     </div>
     <div className="container"><p className="region-up"><Link href="/projeler"><Building2 size={15} aria-hidden="true"/>{t("Satıştaki konut projelerini görün")}<ArrowRight size={15} aria-hidden="true"/></Link></p></div>
     <p className="container services-disclaimer">{t("estatemarket24 müteahhitleri yayınlamadan önce bilgilerini inceler; ancak taraflar arasındaki sözleşmenin tarafı değildir. Kat karşılığı anlaşmalarını noter onaylı sözleşmeyle ve bir avukata danışarak yapın.")}</p>
