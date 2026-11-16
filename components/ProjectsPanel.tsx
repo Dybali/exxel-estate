@@ -8,7 +8,7 @@ import {apiJson} from "@/lib/api-client";
 import {AMENITIES} from "@/lib/listings";
 import {CITIES, districtsFor} from "@/lib/turkey-locations";
 import {ROOM_OPTIONS} from "@/lib/search-categories";
-import {optimizeListingPhoto} from "@/lib/photo-optimize";
+import {appendPhotoVariants, preparePhotoUpload} from "@/lib/photo-optimize";
 import {MAX_PROJECT_IMAGES, MAX_UNIT_TYPES, PROJECT_CURRENCIES, PROJECT_MODERATION_LABELS, PROJECT_STATUSES, PROJECT_STATUS_LABELS, RESERVATION_STATUSES, RESERVATION_STATUS_LABELS, type Project, type Reservation, type ReservationStatus} from "@/lib/projects";
 
 type Unit = {rooms: string; minArea: string; maxArea: string; priceFrom: string; currency: string};
@@ -31,9 +31,9 @@ function ProjectForm({project, onSaved, onCancel}: {project: Project | null; onS
     for (const file of Array.from(files).slice(0, MAX_PROJECT_IMAGES - latest.current.images.length)) {
       try {
         if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 40000000) throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");
-        const prepared = await optimizeListingPhoto(file).catch(() => file);
+        const {file: prepared, variants} = await preparePhotoUpload(file);
         if (prepared.size > 8000000) throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");
-        const body = new FormData(); body.append("file", prepared);
+        const body = new FormData(); body.append("file", prepared); appendPhotoVariants(body, variants);
         const response = await fetch("/api/media", {method: "POST", body}), data = await apiJson<{url?: string; error?: string}>(response);
         if (!response.ok || !data.url) throw new Error(data.error || "Fotoğraf yüklenemedi.");
         const url = data.url;

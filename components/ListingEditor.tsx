@@ -14,7 +14,7 @@ import {apiJson} from '@/lib/api-client';
 
 import {PURPOSES,purposeLabel,pricePeriod} from "@/lib/property-categories";
 import {checkListingPhoto} from '@/lib/photo-quality';
-import {optimizeListingPhoto,photoFingerprint} from '@/lib/photo-optimize';
+import {appendPhotoVariants,photoFingerprint,preparePhotoUpload} from '@/lib/photo-optimize';
 import {PresentationFields} from "./PropertyPresentation";
 import {PhotoManager} from "./PhotoManager";
 import { useEffect, useState } from "react";
@@ -82,7 +82,7 @@ export function ListingEditor({id}:{id:string}) {
     setUploading(true);setError("");
     for(const file of Array.from(files).slice(0,target==='floorPlan'?1:30-images.length)){
       if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>40000000){setError("JPG, PNG veya WEBP; en fazla 8 MB.");continue;}
-      try{if(target==="photos")await checkListingPhoto(file);const prepared=await optimizeListingPhoto(file,{watermark:target==="photos"}).catch(()=>file);if(prepared.size>8000000)throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");const form=new FormData();form.append("file",prepared);if(target==="photos"){const hash=await photoFingerprint(prepared);if(hash)form.append("photoHash",hash);}const response=await fetch("/api/media",{method:"POST",body:form});const data=await response.json() as {url?:string;error?:string};if(!response.ok||!data.url)throw new Error(data.error||"Fotoğraf yüklenemedi.");if(target==='floorPlan')setPresentation(old=>({...old,floorPlan:data.url!}));else setImages((old)=>[...old,data.url!]);}
+      try{if(target==="photos")await checkListingPhoto(file);const {file:prepared,variants}=await preparePhotoUpload(file,{watermark:target==="photos",variants:target==="photos"});if(prepared.size>8000000)throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");const form=new FormData();form.append("file",prepared);appendPhotoVariants(form,variants);if(target==="photos"){const hash=await photoFingerprint(prepared);if(hash)form.append("photoHash",hash);}const response=await fetch("/api/media",{method:"POST",body:form});const data=await response.json() as {url?:string;error?:string};if(!response.ok||!data.url)throw new Error(data.error||"Fotoğraf yüklenemedi.");if(target==='floorPlan')setPresentation(old=>({...old,floorPlan:data.url!}));else setImages((old)=>[...old,data.url!]);}
       catch(cause){setError(cause instanceof Error?cause.message:"Fotoğraf yüklenemedi.");}
     }
     setUploading(false);

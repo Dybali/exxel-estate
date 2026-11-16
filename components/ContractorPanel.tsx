@@ -5,7 +5,7 @@ import { CheckCircle2, ExternalLink, HardHat, ImagePlus, Inbox, Pencil, Plus, Tr
 import Link from "@/components/SafeLink";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
-import { optimizeListingPhoto } from "@/lib/photo-optimize";
+import { appendPhotoVariants, preparePhotoUpload } from "@/lib/photo-optimize";
 import { CONTRACTOR_BASE, CONTRACTOR_LIMITS, CONTRACTOR_SPECIALTIES, CONTRACTOR_STATUS_LABELS, contractorPath, LAND_PATH, zoningName, type ContractorArea, type ContractorFirm, type LandOffer, type LandRequest } from "@/lib/contractors";
 import { CITIES, districtsFor } from "@/lib/turkey-locations";
 
@@ -24,9 +24,9 @@ const formFrom = (firm: ContractorFirm | null): Form => firm ? {
 // Uploads one photo through the listing photo pipeline (resize in the browser, signature check and R2 on the server).
 async function uploadPhoto(file: File) {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 40000000) throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");
-  const prepared = await optimizeListingPhoto(file).catch(() => file);
+  const { file: prepared, variants } = await preparePhotoUpload(file);
   if (prepared.size > 8000000) throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");
-  const body = new FormData(); body.append("file", prepared);
+  const body = new FormData(); body.append("file", prepared); appendPhotoVariants(body, variants);
   const response = await fetch("/api/media?purpose=contractor", { method: "POST", body }), data = await apiJson<{ url?: string; error?: string }>(response);
   if (!response.ok || !data.url) throw new Error(data.error || "Fotoğraf yüklenemedi.");
   return data.url;

@@ -7,7 +7,7 @@ import { ServiceDetailsForm, ServiceDocuments, ServiceInbox, ServiceStatsPanel }
 import { EMPTY_SERVICE_DETAILS, type ServiceDetails, type ServiceDocument } from "@/lib/service-extras";
 import { apiJson } from "@/lib/api-client";
 import { locales, useLocale } from "@/lib/i18n";
-import { optimizeListingPhoto } from "@/lib/photo-optimize";
+import { appendPhotoVariants, preparePhotoUpload } from "@/lib/photo-optimize";
 import { categoriesOf, SERVICE_GROUPS } from "@/lib/service-categories";
 import { firmPath, SERVICE_LIMITS, SERVICE_STATUS_LABELS, SERVICE_TRANSLATION_LOCALES, type ServiceArea, type ServiceFirm } from "@/lib/services";
 import { CITIES, districtsFor } from "@/lib/turkey-locations";
@@ -26,9 +26,9 @@ const formFrom = (firm: ServiceFirm): Form => ({
 // Uploads one photo through the listing photo pipeline (resize in the browser, signature check and R2 on the server).
 async function uploadPhoto(file: File) {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 40000000) throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");
-  const prepared = await optimizeListingPhoto(file).catch(() => file);
+  const { file: prepared, variants } = await preparePhotoUpload(file);
   if (prepared.size > 8000000) throw new Error("JPG, PNG veya WEBP; en fazla 8 MB.");
-  const body = new FormData(); body.append("file", prepared);
+  const body = new FormData(); body.append("file", prepared); appendPhotoVariants(body, variants);
   const response = await fetch("/api/media?purpose=service", { method: "POST", body }), data = await apiJson<{ url?: string; error?: string }>(response);
   if (!response.ok || !data.url) throw new Error(data.error || "Fotoğraf yüklenemedi.");
   return data.url;
