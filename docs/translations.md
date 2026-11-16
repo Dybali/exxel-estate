@@ -39,6 +39,10 @@ Luna'nın çevirileri Arapça, Farsça ve Rusçada eşit veya daha iyiydi. Luna'
 - Düzenlenen ilanda yalnızca değişen alanlar çevrilir; diğerleri önbellekte olduğu için işe konmaz.
 - **Gemini'de Batch API yalnızca faturalandırması açık (ücretli) projelerde çalışır** (OpenAI'de bu sınır yok). Ücretsiz katman anahtarı `400 FAILED_PRECONDITION` döner. O zaman `translation_batch_mode` "direct" olur ve saatlik görev, o gece sırada olan ilanlardan saatte en fazla 6'sını normal fiyatla tek tek çevirir (`translateQueueDirectly`; ücretsiz katmanın istek sınırlarına göre). Sınır, bekleme veya hata çalışmayı durdurur, ilan sırada kalır. Gece işi her gece yeni ilanlarla Batch API'yi tekrar dener; faturalandırma açılınca kendiliğinden toplu moda (yarı fiyata) döner.
 
+## Sunucuda gösterim (arama motorları)
+
+İlan sayfası (`app/ilan/[id]/page.tsx`) ve blog yazısı (`app/blog/[slug]/page.tsx`) sayfa dilinin **kayıtlı** çevirisini sunucuda okur (`lib/translation-stored.ts`): `<title>`, meta açıklama, görünen başlık/açıklama ve JSON-LD (`name`, `description`, `inLanguage` = sayfa dili) böylece her `?lang=` adresinde o dilde gelir. Sayfa oluşturulurken hiçbir zaman çeviri sağlayıcısı çağrılmaz. Elle girilen çeviri önceliklidir; ilanın kendi dilinde bakılmaz; yalnızca bütün alanları kayıtlıysa kullanılır (GET `/api/translations` gibi). Kayıtlı çeviri yoksa sayfa asıl metinle gelir ve tarayıcı çeviriyi eskisi gibi ister; varsa tarayıcı tekrar istemez ve "Yapay zekâ ile otomatik çevrildi" notu ilk görünümde gösterilir.
+
 ## Bot koruması
 
 `lib/translation-guard.ts`: kayıtlı bir çeviri herkese (arama motorları dahil) ücretsiz verilir. **Yeni (ücretli) bir çeviri** yalnızca şu üç koşul sağlanınca yapılır; sağlanmazsa ziyaretçi/bot asıl metni alır (`status: "original"`), hata almaz:
@@ -59,4 +63,4 @@ Bunların hepsini aşan bir saldırıda bile günlük/aylık karakter sınırı 
 
 ## Testler
 
-`tests/translation.test.mjs` (önbellek, kilit, sınırlar, Gemini isteği ve hata kodları), `tests/translation-batch.test.mjs` (Gemini ve OpenAI toplu işi, Luna istekleri, faturalandırma olmadan saatlik çeviri), `tests/message-translations.test.mjs`, `tests/translation-trial.test.mjs`.
+`tests/translation.test.mjs` (önbellek, kilit, sınırlar, Gemini isteği ve hata kodları), `tests/translation-batch.test.mjs` (Gemini ve OpenAI toplu işi, Luna istekleri, faturalandırma olmadan saatlik çeviri), `tests/message-translations.test.mjs`, `tests/translation-trial.test.mjs`, `tests/translation-stored.test.mjs` (sunucuda kayıtlı çeviriyi okuma).
