@@ -18,7 +18,8 @@ function config() {
 }
 
 function objectUrl(endpoint: string, key: string) {
-  if (!/^listings\/[a-f0-9-]+\/[a-f0-9-]+\.(jpg|png|webp)$/.test(key)) throw new Error("Invalid R2 object key");
+  // Main photos and their smaller WebP copies (lib/listing-media.ts photoVariantKey).
+  if (!/^listings\/[a-f0-9-]+\/[a-f0-9-]+(\.(jpg|png|webp)|\.w(640|1280)\.webp)$/.test(key)) throw new Error("Invalid R2 object key");
   return `${endpoint}/${key}`;
 }
 

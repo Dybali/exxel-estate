@@ -9,6 +9,7 @@ import { contractorsDB } from "@/lib/contractors-server";
 import { VIDEO_MEDIA_KEY } from "@/lib/listing-video";
 import { videoMediaAccess, type VideoDatabase } from "@/lib/listing-video-store";
 import { videoFeatureEnabled, videoStorageFromEnv } from "@/lib/listing-video-server";
+import { photoVariantKey, photoVariantWidth } from "@/lib/listing-media";
 
 // Single byte range ("bytes=0-1", "bytes=100-", "bytes=-500"); anything else is ignored and the
 // whole file is sent, as HTTP allows.
@@ -58,7 +59,10 @@ export async function GET(request:Request,{params}:{params:Promise<{key:string[]
     if(!user || (!isAdmin(user) && user.id!==(row?.owner_id || uploaderId))) return new Response(null,{status:404});
   }
   const cacheControl=isPublic?"public,max-age=31536000,immutable":"private,no-store";
-  const external=await getExternalImage(key);
+  // ?w=640|1280: the smaller WebP copy stored at upload (lib/listing-media.ts), under the access decided above
+  // for the main photo. Photos uploaded before copies existed have none, so the original is sent instead.
+  const variant=photoVariantKey(key,photoVariantWidth(new URL(request.url).searchParams.get("w"))||0);
+  const external=(variant?await getExternalImage(variant).catch(()=>null):null)||await getExternalImage(key);
   if(external?.body) return new Response(external.body,{headers:{"Content-Type":external.contentType,"Cache-Control":cacheControl}});
   const legacy=await bucket()?.get(key);
   if(!legacy) return new Response(null,{status:404});
