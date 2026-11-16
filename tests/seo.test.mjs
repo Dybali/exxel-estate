@@ -60,7 +60,7 @@ test('robots.txt: runtime sitemap address, private pages closed, public read-onl
  for(const path of ['/api/','/hesabim','/yonetim','/ilan-ver','/ilan-duzenle','/giris','/karsilastir','/api/projects/mine','/api/listings/*/view','/api/listings/*/contact'])assert.ok(rule.disallow.includes(path),path);
  for(const path of ['/','/ilan/','/api/listings','/api/companies','/api/projects','/api/profiles','/api/media/listings/'])assert.ok(rule.allow.includes(path),path);
  // The browser loads exactly these paths on the public pages.
- assert.match(read('app/page.tsx'),/fetch\("\/api\/listings\?/);assert.match(read('components/Explorer.tsx'),/fetch\(`\/api\/listings\?/);
+ assert.match(read('components/HomePage.tsx'),/fetch\("\/api\/listings\?/);assert.match(read('components/Explorer.tsx'),/fetch\(`\/api\/listings\?/);
  assert.match(read('components/ProjectDetail.tsx'),/fetch\(`\/api\/projects\//);assert.match(read('components/CompanyProfile.tsx'),/fetch\(`\/api\/companies\//);
 });
 

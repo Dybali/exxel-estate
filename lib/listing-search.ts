@@ -110,9 +110,3 @@ export async function searchListings(q:URLSearchParams,deps:ListingSearchDeps):P
   const listings=ordered?[...real,...demo].sort(compareListings(sort,rates)).slice(pageStart-realOffset,pageStart-realOffset+pageSize):[...real,...demo.slice(demoOffset,demoOffset+pageSize-real.length)];
   return {listings:mapMode?listings.map(mapRow):listings,total:demo.length+realCount,realTotal:realCount,sampleTotal:demo.length,page,pageSize,unlocated:await unlocated()};
 }
-
-/** Home page "Öne çıkan ilanlar": featured listings with photos first, then the rest of the first page. */
-export function featuredFirst(listings:Listing[],limit=4){
-  const featured=listings.filter((listing)=>listing.featured&&listing.images.length>0);
-  return [...featured,...listings.filter((listing)=>!featured.some((item)=>item.id===listing.id))].slice(0,limit);
-}
