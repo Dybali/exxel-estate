@@ -6,64 +6,29 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Link from "@/components/SafeLink";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Bookmark, Grid2X2, Map, MapPin, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
-import { AMENITIES, CITIES, PROPERTY_TYPES, type Listing } from "@/lib/listings";
+import { CITIES, PROPERTY_TYPES, type Listing } from "@/lib/listings";
 import { districtsFor } from "@/lib/turkey-locations";
 import { useLocale } from "@/lib/i18n";
 import {PropertyMap} from "./PropertyMap";
 import {discoveryAction,type SavedSearch} from "@/lib/discovery-client";
-import {priceCurrency} from "@/lib/price-filters";
 import {PROPERTY_CATEGORIES,PURPOSES,purposeLabel} from "@/lib/property-categories";
 import { ListingCard } from "./ListingCard";
-import {DAY_OPTIONS,EXTRA_FILTERS,HEATING_OPTIONS,ROOM_OPTIONS,SEARCH_CATEGORIES,SIDEBARS,searchCategory,type ExtraFilter} from "@/lib/search-categories";
+import {DAY_OPTIONS,HEATING_OPTIONS,ROOM_OPTIONS,SEARCH_CATEGORIES,SIDEBARS,searchCategory} from "@/lib/search-categories";
 import {LAND_CREDIT,LAND_DEED,LAND_ZONING} from "@/lib/land";
 import {SUBTYPES} from "@/lib/property-subtypes";
 import {detailsFor,FOREIGN_SALE} from "@/lib/listing-details";
 import {CurrencyNotice,CurrencySwitch,useDisplayCurrency} from "./DisplayCurrency";
 import {FOREIGN_BUYER_PATH} from "@/lib/citizenship-guide";
+import {emptyFilters,explorerQuery,readFilters,type Filters} from "@/lib/explorer-query";
+import type {ListingSearchResult} from "@/lib/listing-search";
 
-type Filters = {
-  q:string; category:string; neighborhood:string; currency:string; purpose: string; city: string; district: string; type: string;
-  minPrice: string; maxPrice: string; minArea: string; maxArea: string;
-  bedrooms: string; bathrooms: string; furnished: boolean;
-  amenities: string[];
-} & Record<ExtraFilter,string>;
-const emptyExtras=Object.fromEntries(EXTRA_FILTERS.map(key=>[key,""])) as Record<ExtraFilter,string>;
-const emptyFilters: Filters = {
-  q:"", category:"", neighborhood:"", currency:"", purpose: "", city: "", district: "", type: "", minPrice: "", maxPrice: "",
-  minArea: "", maxArea: "", bedrooms: "", bathrooms: "",
-  furnished: false, amenities: [], ...emptyExtras,
-};
+/** First page rendered on the server (app/ilanlar/page.tsx) for the query it was computed for. */
+export type ExplorerInitial = { query: string; result: ListingSearchResult };
+
 // Filters that only make sense inside one category; they are cleared when the category changes.
 const CATEGORY_FILTERS:(keyof Filters)[]=["type","rooms","bedrooms","bathrooms","minNetArea","maxNetArea","minAge","maxAge","minFloor","maxFloor","minFloors","maxFloors","heating","zoning","deed","credit","businessType","tourismType","detailKitchen","detailUsage","detailSite","detailCredit","detailDeed","detailSwap"];
 const DAY_LABELS:Record<string,string>={"1":"Son 24 saat","3":"Son 3 gün","7":"Son 7 gün","15":"Son 15 gün","30":"Son 30 gün"};
 const FILTER_LABELS:Record<string,string>={category:"Gayrimenkul kategorileri",neighborhood:"Mahalle",purpose:"İlan türü",city:"Şehir",district:"İlçe",type:"Gayrimenkul tipi",currency:"Para birimi",minPrice:"En az",maxPrice:"En çok",minArea:"Min m²",maxArea:"Max m²",bedrooms:"En az yatak odası",bathrooms:"En az banyo",rooms:"Oda sayısı",minNetArea:"Min net m²",maxNetArea:"Max net m²",minAge:"En az bina yaşı",maxAge:"En çok bina yaşı",minFloor:"En az bulunduğu kat",maxFloor:"En çok bulunduğu kat",minFloors:"En az kat sayısı",maxFloors:"En çok kat sayısı",heating:"Isıtma",from:"Kimden",days:"İlan tarihi",video:"Videolu ilanlar",tour:"Sanal tura sahip ilanlar",mapped:"Haritalı ilanlar",zoning:"İmar Durumu",deed:"Tapu Durumu",credit:"Krediye Uygunluk",businessType:"İş yeri tipi",tourismType:"Tesis tipi",detailKitchen:"Mutfak",detailUsage:"Kullanım Durumu",detailSite:"Site İçerisinde",detailCredit:"Krediye Uygun",detailDeed:"Tapu Durumu",detailSwap:"Takas",foreignSale:FOREIGN_SALE.label};
-const filterKeys = Object.keys(emptyFilters) as (keyof Filters)[];
-
-function readFilters(params: { get: (key: string) => string | null }): Filters {
-  return {
-    q:(params.get("q")||"").slice(0,160),category:params.get("category")==="devren"?"":params.get("category")||"",neighborhood:params.get("neighborhood")||"",
-    currency:(()=>{try{return priceCurrency(params);}catch{return "";}})(),
-    purpose: params.get("category")==="devren"?"devren":params.get("purpose") || "", city: params.get("city") || "",
-    district: params.get("district") || "", type: params.get("type") || "",
-    minPrice: params.get("minPrice") || "", maxPrice: params.get("maxPrice") || "",
-    minArea: params.get("minArea") || "", maxArea: params.get("maxArea") || "",
-    bedrooms: params.get("bedrooms") || "",
-    bathrooms: params.get("bathrooms") || "", furnished: params.get("furnished") === "1",
-    amenities: (params.get("amenities") || "").split(",").filter((item) => AMENITIES.includes(item)),
-    ...Object.fromEntries(EXTRA_FILTERS.map(key=>[key,(params.get(key)||"").slice(0,400)])) as Record<ExtraFilter,string>,
-  };
-}
-function filterQuery(filters: Filters, sort: string) {
-  const query = new URLSearchParams();
-  for (const key of filterKeys) {
-    const value = filters[key];
-    if (key === "amenities") { if (filters.amenities.length) query.set(key, filters.amenities.join(",")); }
-    else if (key === "furnished") { if (filters.furnished) query.set(key, "1"); }
-    else if (value) query.set(key, String(value));
-  }
-  if (sort !== "new") query.set("sort", sort);
-  return query;
-}
 function Block({ title, open = true, children }: { title: string; open?: boolean; children: ReactNode }) {
   return <details className="filter-block" open={open}><summary><h3>{title}</h3></summary><div className="filter-block-body">{children}</div></details>;
 }
@@ -71,7 +36,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="filter-field"><span>{label}</span>{children}</label>;
 }
 
-export function Explorer() {
+export function Explorer({ initial }: { initial?: ExplorerInitial }) {
   const { t, locale } = useLocale();
   // A price range is entered in the display currency and converted to TL on the server (TCMB).
   const display = useDisplayCurrency(), rangeCurrency = display.supported ? display.currency : "TRY";
@@ -79,12 +44,12 @@ export function Explorer() {
   const [filters, setFilters] = useState<Filters>(() => readFilters(params));
   const [sort, setSort] = useState(() => params.get("sort") || "new");
   const [map, setMap] = useState(() => params.get("view") === "map");
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [total, setTotal] = useState(0);
+  const [listings, setListings] = useState<Listing[]>(() => initial?.result.listings || []);
+  const [total, setTotal] = useState(() => initial?.result.total || 0);
   // Sample listings fill the page but never count as found properties (CLAUDE.md: samples are not counted).
-  const [counts, setCounts] = useState<{ real: number; samples: number } | null>(null);
+  const [counts, setCounts] = useState<{ real: number; samples: number } | null>(() => typeof initial?.result.realTotal === "number" ? { real: initial.result.realTotal, samples: initial.result.sampleTotal || 0 } : null);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initial);
   const [searchError,setSearchError]=useState("");
   const [retry,setRetry]=useState(0);
   const [mobileFilters, setMobileFilters] = useState(false);
@@ -100,10 +65,14 @@ export function Explorer() {
   const changeArea=useCallback((value:string)=>{setAreaFilter(value);if(value)setBoundsFilter("");setPage(1);},[]);
   const [saveOpen, setSaveOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
-  const requestedOnce = useRef(false);
-  const query = useMemo(() => {const q=filterQuery(filters,sort);if(params.get('assistant')==='1'){q.set('assistant','1');if(!filters.furnished&&params.get('furnished')==='0')q.set('furnished','0');}if(boundsFilter)q.set("bbox",boundsFilter);if(areaFilter)q.set("area",areaFilter);return q.toString();}, [filters, sort,boundsFilter,areaFilter,params]);
+  const requestedOnce = useRef(Boolean(initial));
+  // The server already rendered page 1 of this query: no request until the search changes.
+  const serverPage = useRef(initial ? `${initial.query}|1|0` : "");
+  const query = useMemo(() => explorerQuery(filters, sort, params, boundsFilter, areaFilter), [filters, sort,boundsFilter,areaFilter,params]);
 
   useEffect(() => {
+    if (serverPage.current === `${query}|${page}|${retry}`) return;
+    serverPage.current = "";
     const controller = new AbortController();
     const search = new URLSearchParams(query);
     search.set("page", String(page));
