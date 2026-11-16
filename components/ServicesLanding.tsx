@@ -29,6 +29,7 @@ function ProviderCta({ compact }: { compact: boolean }) {
       </ul>}
     </div>
     <Link href={`/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}`} className="btn btn-accent service-cta-button">{t("Firmanızı ekleyin")}<ArrowRight size={17} aria-hidden="true"/></Link>
+    <Link href="/hizmetler/paketler" className="service-cta-plans">{t("Paketleri gör")}</Link>
   </section>;
 }
 

@@ -1,5 +1,5 @@
 "use client";
-import { ArrowLeft, Building2, HardHat, Menu, Plus, Search, Send, UserRound, X } from "lucide-react";
+import { ArrowLeft, Building2, HardHat, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { openCookiePreferences } from "@/components/CookieConsent";
@@ -61,6 +61,7 @@ export function ContractorHeader() {
         {CONTRACTOR_SPECIALTIES.map((item) => <li key={item.slug} className="svc-nav-item"><Link href={specialtyHref(item.slug)}>{t(item.name)}</Link></li>)}
         <li className="svc-nav-item"><Link href="/projeler"><Building2 size={14} aria-hidden="true"/>{t("Satıştaki projeler")}</Link></li>
       </ul>
+      {can.contractorPlans && <Link href="/muteahhitler/paketler" className="svc-nav-back svc-nav-plans"><Package size={15} aria-hidden="true"/>{t("Paketler")}</Link>}
       <Link href="/" className="svc-nav-back"><ArrowLeft size={15} aria-hidden="true"/>{t("Emlak ilanları")}</Link>
     </div></nav>
     {drawer && <div className="svc-drawer-backdrop" onClick={() => setDrawer(false)} aria-hidden="true"/>}
@@ -74,6 +75,7 @@ export function ContractorHeader() {
       <div className="svc-drawer-actions">
         {can.landQuote && <Link href={LAND_PATH} className="btn btn-accent btn-block"><Send size={17} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link>}
         {can.addContractorFirm && <Link href={addFirmHref} className="btn btn-secondary btn-block"><Plus size={17} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
+        {can.contractorPlans && <Link href="/muteahhitler/paketler" className="btn btn-secondary btn-block"><Package size={17} aria-hidden="true"/>{t("Paketler")}</Link>}
         <Link href={accountHref} className="btn btn-secondary btn-block"><UserRound size={17} aria-hidden="true"/>{user ? t("Hesabım") : t("Giriş Yap")}</Link>
         <LocaleSwitch className="svc-locale svc-drawer-locale"/>
         <Link href="/" className="svc-drawer-back"><ArrowLeft size={16} aria-hidden="true"/>{t("Emlak ilanlarına dön")}</Link>

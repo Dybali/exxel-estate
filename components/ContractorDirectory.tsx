@@ -160,6 +160,7 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
           </ul>
         </div>
         <Link href={`/giris?mode=register&role=contractor&next=${encodeURIComponent(CONTRACTOR_PANEL)}`} className="btn btn-secondary service-cta-button">{t("Firmanızı ekleyin")}<ArrowRight size={17} aria-hidden="true"/></Link>
+        <Link href="/muteahhitler/paketler" className="service-cta-plans">{t("Paketleri gör")}</Link>
       </section></ViewerGate>
     </div>
     <div className="container"><p className="region-up"><Link href="/projeler"><Building2 size={15} aria-hidden="true"/>{t("Satıştaki konut projelerini görün")}<ArrowRight size={15} aria-hidden="true"/></Link></p></div>

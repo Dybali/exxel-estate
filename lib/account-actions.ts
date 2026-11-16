@@ -6,7 +6,7 @@
 import type { AccountKind } from "./account-kind";
 
 export type Viewer = "guest" | AccountKind;
-export type ViewerAction = "postListing" | "addServiceFirm" | "addContractorFirm" | "serviceQuote" | "landQuote";
+export type ViewerAction = "postListing" | "addServiceFirm" | "addContractorFirm" | "serviceQuote" | "landQuote" | "servicePlans" | "contractorPlans";
 
 export function viewerActions(viewer: Viewer): Record<ViewerAction, boolean> {
   const firm = viewer === "service" || viewer === "contractor";
@@ -16,6 +16,9 @@ export function viewerActions(viewer: Viewer): Record<ViewerAction, boolean> {
     addContractorFirm: viewer === "guest",
     serviceQuote: viewer !== "service",
     landQuote: viewer !== "contractor",
+    // Packages (docs/firm-plans.md): for visitors weighing a sign-up and for firms of that kind.
+    servicePlans: viewer === "guest" || viewer === "service",
+    contractorPlans: viewer === "guest" || viewer === "contractor",
   };
 }
 

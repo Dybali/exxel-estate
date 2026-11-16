@@ -89,3 +89,5 @@
 .firm-message-note{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:#5c7567;margin:0;line-height:1.5}
 .firm-message-note svg{flex-shrink:0;margin-top:2px}
 .firm-message-sent{font-size:13px}
+/* "Paketleri gör" next to the add-your-firm button (ServicesLanding, ContractorDirectory) */
+.service-cta-plans{flex:none;align-self:center;font-size:14px;font-weight:650;color:inherit;text-decoration:underline;text-underline-offset:3px}
