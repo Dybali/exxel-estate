@@ -1,3 +1,31 @@
 .company-profile{max-width:1240px}.portfolio-hero{border:1px solid #dce9e7;border-radius:14px;background:#fff;overflow:hidden}.portfolio-cover{height:205px;background:radial-gradient(ellipse at 85% 20%,#97d4d7 0%,transparent 46%),linear-gradient(112deg,#104548,#398e93 64%,#c1f4da)}.portfolio-cover img{width:100%;height:100%;object-fit:cover}.portfolio-identity{display:flex;align-items:center;gap:23px;padding:0 28px 25px}.portfolio-logo{display:grid;place-items:center;flex:none;width:138px;height:138px;margin-top:-53px;background:#eff9fa;color:#137176;border:6px solid white;border-radius:15px;box-shadow:0 4px 16px #183f3024;position:relative;overflow:hidden;font-size:29px;font-weight:800}.portfolio-logo img{width:100%;height:100%;object-fit:cover}.portfolio-identity-text{min-width:0;padding-top:22px;flex:1}.portfolio-identity h1{font-size:clamp(26px,3vw,38px);margin:7px 0;overflow-wrap:anywhere}.portfolio-meta{display:flex;flex-wrap:wrap;gap:16px;color:#57726e;font-size:13px}.portfolio-meta span{display:inline-flex;align-items:center;gap:5px}.portfolio-contact,.portfolio-about a{display:inline-flex;align-items:center;gap:8px;border-radius:7px;background:#0d747a;color:white;padding:13px 16px;font-size:13px;font-weight:700}.portfolio-contact{margin-top:22px}.portfolio-nav{display:flex;align-items:stretch;margin:30px 0;border-bottom:1px solid #dce8e5;gap:8px}.portfolio-nav button{background:transparent;border:0;border-bottom:3px solid transparent;padding:16px 22px;color:#536d69;font-weight:700;cursor:pointer}.portfolio-nav button.active{border-color:#378a8f;color:#0d747a}.portfolio-nav span{margin:auto 0 auto auto;color:#637974;font-size:13px}.portfolio-about{border:1px solid #dce8e5;border-radius:12px;background:#fff;padding:30px;margin-bottom:40px}.portfolio-about h2{font-size:26px;margin:10px 0}.portfolio-about p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;color:#536b67}.portfolio-about a{margin-top:12px}.portfolio-nav button:focus-visible,.portfolio-contact:focus-visible{outline:3px solid #0d747a;outline-offset:2px}@media(max-width:700px){.portfolio-cover{height:135px}.portfolio-identity{padding:0 18px 20px;gap:14px;flex-wrap:wrap}.portfolio-logo{width:90px;height:90px;margin-top:-34px;border-width:4px}.portfolio-identity-text{padding-top:14px}.portfolio-identity h1{font-size:23px}.portfolio-contact{margin:0;width:100%;justify-content:center}.portfolio-nav{gap:0;flex-wrap:wrap}.portfolio-nav button{padding:14px 12px}.portfolio-nav span{font-size:11px}.portfolio-about{padding:22px}}
 
 .portfolio-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.portfolio-team-card{display:flex;align-items:center;gap:15px;background:#f5faf8;border:1px solid #dce8e5;border-radius:8px;padding:17px;color:#244c44}.portfolio-team-card img{width:58px;height:58px;object-fit:cover;border-radius:8px}.portfolio-team-card span{display:grid;gap:6px;flex:1}.portfolio-team-card small{color:#627975}@media(max-width:600px){.portfolio-team{grid-template-columns:1fr}}
+/* Office page (components/CompanyProfile.tsx, lib/company-office.ts): licence, phone, consultants, languages */
+.office-contact{display:grid;gap:10px;min-width:240px;margin-inline-start:auto}
+.office-licence{display:flex;gap:9px;align-items:flex-start;padding:11px 13px;border-radius:12px;background:#f2f6f4;color:#24463d}
+.office-licence svg{color:#17676b;flex-shrink:0;margin-top:2px}
+.office-licence strong{display:block;font-size:12px}
+.office-licence bdi{font-size:13px;color:#5c7567}
+.office-contact .outline-button,.office-contact .primary-button{justify-content:center;width:100%}
+.office-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
+.office-aside{display:grid;gap:16px;position:sticky;top:90px}
+.office-aside section{background:#fff;border:1px solid #e1e9e4;border-radius:14px;padding:16px}
+.office-aside h2{font-size:15px;margin:0 0 12px;color:#16494c}
+.office-team{list-style:none;margin:0;padding:0;display:grid;gap:12px;max-height:520px;overflow:auto}
+.office-team li{display:flex;gap:10px;align-items:center;padding:6px;border-radius:10px}
+.office-team li.active{background:#eef6f2}
+.office-team img,.office-avatar{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#e7f0ec;display:grid;place-items:center;font-weight:800;color:#17676b}
+.office-team strong{display:block;font-size:14px;color:#1d2733}
+.office-team small{display:block;font-size:12px;color:#5c7567}
+.office-team button{border:0;background:none;padding:2px 0;color:#c2410c;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+.office-languages{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.office-languages li{display:flex;align-items:center;gap:7px;font-size:13px;color:#24463d}
+.office-languages img{border-radius:3px;box-shadow:0 0 0 1px #0001}
+.office-languages b{font-size:11px;background:#eef3f0;border-radius:4px;padding:1px 4px}
+.office-filter{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e1e9e4;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-weight:600;color:#1d2733}
+.listing-agent{display:flex;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid #edf1ee;text-decoration:none;color:#1d2733}
+.listing-agent img,.listing-agent>span:first-child{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#e7f0ec;display:grid;place-items:center;font-size:12px;font-weight:800;color:#17676b}
+.listing-agent strong{display:block;font-size:12.5px}
+.listing-agent small{display:block;font-size:11px;color:#5c7567}
+@media(max-width:900px){.office-layout{grid-template-columns:1fr}.office-aside{position:static}.office-contact{margin-inline-start:0;width:100%}}

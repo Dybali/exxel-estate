@@ -1,5 +1,9 @@
 import { body, db, error, ok, sameOrigin, currentUser } from "@/lib/server";
 import { agentLanguages, agentPhone, setAgentLanguages, type AgentDirectoryDatabase } from "@/lib/agent-directory";
+import { activeTeamCompany } from "@/lib/company-team-server";
+
+// Estate agents and the consultants of an office choose their languages.
+const eligible = async (user: { id: string; role: string }) => user.role === "agent" || Boolean(await activeTeamCompany(user.id).catch(() => null));
 
 // GET ?phone=<id>: "Telefonu göster" on /danismanlar. GET ?languages=1 / POST { languages }: the signed-in
 // agent's spoken languages (Hesabım › Profilim). lib/agent-directory.ts.
@@ -15,14 +19,14 @@ export async function GET(request: Request) {
   }
   const user = await currentUser(request);
   if (!user) return error("Giriş gerekli.", 401);
-  return ok({ languages: await agentLanguages(database(), user.id) }, privateHeaders);
+  return ok({ languages: await agentLanguages(database(), user.id), eligible: await eligible(user) }, privateHeaders);
 }
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return error("Geçersiz kaynak.", 403);
   const user = await currentUser(request);
   if (!user) return error("Giriş gerekli.", 401);
-  if (user.role !== "agent") return error("Bu ayar emlakçı hesapları içindir.", 403);
+  if (!await eligible(user)) return error("Bu ayar emlakçı hesapları içindir.", 403);
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Geçersiz istek."); }
   return ok({ languages: await setAgentLanguages(database(), user.id, data.languages) }, privateHeaders);

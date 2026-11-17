@@ -15,7 +15,7 @@ export function useLanguageName() {
   return (code: string) => { const name = names?.of(code) || code; return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1); };
 }
 
-function PhoneButton({ id }: { id: string }) {
+export function PhoneButton({ id }: { id: string }) {
   const { t } = useLocale();
   const [phone, setPhone] = useState<string | null>(null), [error, setError] = useState(false);
   if (phone) return <a className="primary-button" href={`tel:${phone}`}><Phone size={15} aria-hidden="true"/><bdi>{phone}</bdi></a>;

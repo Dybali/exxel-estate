@@ -128,7 +128,7 @@ export function Dashboard() {
         </>}
         {active === "ilanlarim" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLAN YÖNETİMİ")}</span><h2>{t("İlanlarım")}</h2></div><Link href="/ilan-ver" className="small-primary">{t("İlan ver")}<Plus size={17}/></Link></div>
-          {user.role==="individual"&&!user.isAdmin&&<IndividualPolicyNotice/>}{user.role==="agent"&&user.agent_status==="approved"&&<p className="profile-save-success">{t("Onaylı emlakçı hesabınızla ilanlarınız doğrudan yayımlanır.")}</p>}{user.role==="agent"&&<AgentLanguagesSetting/>}
+          {user.role==="individual"&&!user.isAdmin&&<IndividualPolicyNotice/>}{user.role==="agent"&&user.agent_status==="approved"&&<p className="profile-save-success">{t("Onaylı emlakçı hesabınızla ilanlarınız doğrudan yayımlanır.")}</p>}{(user.role==="agent"||user.role==="buyer")&&<AgentLanguagesSetting/>}
           {mine.length ? <ManagedListings listings={mine} onChange={setMine}/> : <div className="panel-empty"><Bookmark size={28}/><h3>{t("Henüz ilan eklemediniz.")}</h3><Link href="/ilan-ver">{t("İlk ilanınızı oluşturun")}<ForwardArrow/></Link></div>}
 
         </>}

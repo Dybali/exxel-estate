@@ -33,3 +33,16 @@ The homepage category is **Devren mülk**, with `category=devren&purpose=devren`
 Tests exercise consent validation/expiration, revocation, measurement denial before storage, transfer semantics, registration status, owner isolation, stale profile updates, document file signatures and existing direct-publication restrictions. Browser checks and production build results are reported separately at delivery.
 
 The 14 scoped tests passed. A local Worker HTTP check also confirmed that rejecting optional cookies sets the preference cookie, clears the viewer cookie and returns `recorded:false` for an unconsented view. The broad TypeScript check is not clean: existing Cloudflare environment and unknown-JSON type errors remain elsewhere in the project; it is not reported as passed.
+
+## Ofis sayfası ve danışmanlar (2026-11-17)
+
+`lib/company-office.ts`, `components/CompanyProfile.tsx`, `app/api/companies/[id]`:
+
+- Üst bölüm: logo, ad, onay, il, **Taşınmaz Ticareti Yetki Belgesi** numarası (ofis doğrulamasından) ve "Telefonu göster" (`/api/agents?phone=`).
+- Sol sütun **Danışmanlarımız**: önce ofis sahibi, sonra aktif ekip üyeleri; fotoğraf, unvan, ilan sayısı ve **Danışmanın ilanları** (`?danisman=<kullanıcı id>`: ofis sahibinin kendi ve ofis ilanları ya da bir danışmanın ofis ilanları). Listelenmeyen id tüm ofisi gösterir.
+- **Hizmet verdiğimiz diller**: ofis sahibi ve danışmanların seçtiği dillerin birleşimi (`agent_languages`); ekip üyeleri de dillerini Hesabım › Profilim'den seçer.
+- **Unvan**: ofis sahibi Hesabım › Ekip ve davetler'de her danışmana unvan verir (`company_team_titles`, ekip tablolarıyla ilk kullanımda oluşur). Ekipten çıkarma aynı ekranda.
+- Ofis sayfasındaki ilan kartlarında ilanı veren danışmanın adı, fotoğrafı ve unvanı görünür (`Listing.agent`).
+- `/danismanlar` onaylı ofislerin aktif danışmanlarını da ofis adıyla listeler; telefonları "Telefonu göster" ile açılır.
+
+Testler: `tests/company-office.test.mjs`, `tests/buyer-owner-tools.test.mjs`, `tests/company-team-route.test.mjs`.
