@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n-dictionary";
+import type { Locale } from "./locales";
 import type { RegionPurpose, RegionType } from "./region-pages";
 
 // Headings, titles and descriptions of the region pages (lib/region-pages.ts) in every language.

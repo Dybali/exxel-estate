@@ -1,4 +1,5 @@
 "use client";
+import { loadAccount } from "@/lib/account-client";
 import { ArrowLeft, Building2, HardHat, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,7 +27,7 @@ function useAccount() {
   const path = usePathname();
   const [user, setUser] = useState<{ name: string; accountKind?: string } | null>(null);
   useEffect(() => {
-    fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: { name: string; accountKind?: string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    loadAccount().then((data) => setUser((data.user as { name: string; accountKind?: string } | null | undefined) || null)).catch(() => {});
   }, [path]);
   const next = (target: string) => `/giris?next=${encodeURIComponent(target)}`;
   return { user, accountHref: user ? (user.accountKind === "contractor" ? CONTRACTOR_PANEL : "/hesabim") : next(path || CONTRACTOR_BASE), addFirmHref: user ? CONTRACTOR_PANEL : `/giris?mode=register&role=contractor&next=${encodeURIComponent(CONTRACTOR_PANEL)}` };

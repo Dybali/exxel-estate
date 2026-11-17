@@ -1,4 +1,5 @@
 "use client";
+import { loadAccount } from "@/lib/account-client";
 import {apiJson} from '@/lib/api-client';
 
 import { Brand } from "@/components/Brand";
@@ -27,7 +28,7 @@ export function Header() {
   const viewer = viewerOf(user), post = viewerActions(viewer).postListing;
   const postHref = post ? "/ilan-ver" : viewer === "service" ? "/hizmetler/panel" : "/muteahhitler/panel", postLabel = post ? "İlan Ver" : "Firma panelim";
   useEffect(() => {
-    const refresh=()=>fetch("/api/account",{cache:"no-store"}).then(async (response) => await response.json() as { user?: { id:string; name:string; accountKind?: string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    const refresh=(event?:Event)=>loadAccount(Boolean(event)).then((data) => setUser((data.user as { id:string; name:string; accountKind?: string } | null | undefined) || null)).catch(() => {});
     refresh();window.addEventListener("salesorrent:profile-changed",refresh);
     return()=>window.removeEventListener("salesorrent:profile-changed",refresh);
   }, [path]);

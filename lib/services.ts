@@ -6,7 +6,7 @@
 // SQLite, with no migration file (the convention for feature tables, as projects, leads and orders).
 // Phase 2 (working information, documents, statistics, quote requests) is in lib/service-extras.ts,
 // docs/services.md. Room for later: `plan` (paid packages), reviews; the one-firm-per-owner index can be dropped for teams.
-import { locales, translate } from "./i18n-dictionary";
+import { locales, translate } from "@/lib/i18n-dictionary";
 import { normalizeContactPhone } from "./phone";
 import { regionSlug } from "./region-pages";
 import { isServiceSlug, SERVICE_CATEGORIES, serviceCategory, type ServiceSlug } from "./service-categories";

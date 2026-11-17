@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
       "@/lib/email-smtp": "./lib/email-smtp-node.ts",
       // Server-side listing-photo watermark with sharp (lib/photo-watermark.ts).
       "@/lib/photo-watermark": "./lib/photo-watermark-node.ts",
+      // Small WebP copies of old listing photos made on first request (lib/image-resize.ts).
+      "@/lib/image-resize": "./lib/image-resize-node.ts",
+      // Browser bundle: one language at a time instead of the whole dictionary (lib/i18n-runtime.ts).
+      "@/lib/i18n-dictionary": { browser: "./lib/i18n-runtime.ts" },
     } },
   } : {}),
 };

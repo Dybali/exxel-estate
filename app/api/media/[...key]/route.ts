@@ -1,5 +1,6 @@
 import { bucket, currentUser, db, isAdmin } from "@/lib/server";
-import { getExternalImage } from "@/lib/external-r2";
+import { getExternalImage, putExternalImage } from "@/lib/external-r2";
+import { resizeToWebp } from "@/lib/image-resize";
 import { projectMediaPublic } from "@/lib/projects";
 import { projectsDB } from "@/lib/projects-server";
 import { serviceMediaPublic } from "@/lib/services";
@@ -73,7 +74,20 @@ export async function GET(request:Request,{params}:{params:Promise<{key:string[]
   // ?w=640|1280: the smaller WebP copy stored at upload (lib/listing-media.ts), under the access decided above
   // for the main photo. Photos uploaded before copies existed have none, so the original is sent instead.
   const variant=photoVariantKey(key,photoVariantWidth(new URL(request.url).searchParams.get("w"))||0);
-  const external=(variant?await getExternalImage(variant).catch(()=>null):null)||await getExternalImage(key);
+  const stored=variant?await getExternalImage(variant).catch(()=>null):null;
+  if(stored?.body) return new Response(stored.body,{headers:{"Content-Type":stored.contentType,"Cache-Control":cacheControl}});
+  const external=await getExternalImage(key);
+  // No stored copy (photo uploaded before copies existed): on Mittwald make it now from the original, keep it
+  // for next time and send it (lib/image-resize-node.ts); elsewhere the original is sent as before.
+  if(external?.body&&variant&&resizeToWebp){
+    try{
+      const original=new Uint8Array(await new Response(external.body).arrayBuffer());
+      const copy=await resizeToWebp(original,photoVariantWidth(new URL(request.url).searchParams.get("w"))||640);
+      const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",copy)),b=>b.toString(16).padStart(2,"0")).join("");
+      await putExternalImage(variant,copy,"image/webp",digest).catch(()=>{});
+      return new Response(copy,{headers:{"Content-Type":"image/webp","Cache-Control":cacheControl}});
+    }catch{ const again=await getExternalImage(key); if(again?.body) return new Response(again.body,{headers:{"Content-Type":again.contentType,"Cache-Control":cacheControl}}); }
+  }
   if(external?.body) return new Response(external.body,{headers:{"Content-Type":external.contentType,"Cache-Control":cacheControl}});
   const legacy=await bucket()?.get(key);
   if(!legacy) return new Response(null,{status:404});

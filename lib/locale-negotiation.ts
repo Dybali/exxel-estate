@@ -2,7 +2,7 @@
 // ?lang=xx, then the visitor's saved choice, then the first of the browser's languages the site offers,
 // else Turkish. The browser (lib/i18n.tsx) keeps that language and only follows ?lang or a saved choice,
 // so the first HTML, the page title and the hydrated page stay in one language.
-import { isLocale, type Locale } from "./i18n-dictionary";
+import { isLocale, type Locale } from "./locales";
 
 /** The saved language choice; written by the browser (lib/i18n.tsx), listed in the cookie policy. */
 export const LOCALE_COOKIE = "em24_locale";

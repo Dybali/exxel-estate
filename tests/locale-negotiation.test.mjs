@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
-const source=readFileSync('lib/locale-negotiation.ts','utf8').replace('import { isLocale, type Locale } from "./i18n-dictionary";','const isLocale=v=>["tr","de","fr","en","ar","fa","ru","nl"].includes(v);');
+const source=readFileSync('lib/locale-negotiation.ts','utf8').replace('import { isLocale, type Locale } from "./locales";','const isLocale=v=>["tr","de","fr","en","ar","fa","ru","nl"].includes(v);');
 const {negotiateLocale,preferredLocale,acceptedLanguages,LOCALE_COOKIE}=await import('data:text/javascript,'+encodeURIComponent(ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText));
 test('?lang wins, then the saved choice, then the browser languages, else Turkish',()=>{
  assert.equal(negotiateLocale('fr',`${LOCALE_COOKIE}=de`,'en-GB,en;q=0.9'),'fr');

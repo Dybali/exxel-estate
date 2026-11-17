@@ -1,4 +1,5 @@
 "use client";
+import { loadAccount } from "@/lib/account-client";
 import { ArrowLeft, ChevronDown, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +28,7 @@ function useAccount() {
   const path = usePathname();
   const [user, setUser] = useState<{ name: string; accountKind?: string } | null>(null);
   useEffect(() => {
-    fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: { name: string; accountKind?: string } }).then((data) => setUser(data.user || null)).catch(() => {});
+    loadAccount().then((data) => setUser((data.user as { name: string; accountKind?: string } | null | undefined) || null)).catch(() => {});
   }, [path]);
   const next = (target: string) => `/giris?next=${encodeURIComponent(target)}`;
   return { user, accountHref: user ? (user.accountKind === "service" ? SERVICE_SIGNUP_HREF : "/hesabim") : next(path || SERVICE_BASE), addFirmHref: user ? SERVICE_SIGNUP_HREF : `/giris?mode=register&role=service&next=${encodeURIComponent(SERVICE_SIGNUP_HREF)}` };

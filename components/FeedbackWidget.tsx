@@ -1,4 +1,5 @@
 'use client';
+import { loadAccount } from '@/lib/account-client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {CheckCircle2,Lightbulb,X} from 'lucide-react';
@@ -24,7 +25,7 @@ export function FeedbackWidget({launcher=true,defaultSource='widget'}:{launcher?
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[done,setDone]=useState(false);
  const show=useCallback((from:FeedbackSource)=>{
   opener.current=document.activeElement as HTMLElement|null;setSource(from);setOpen(true);setDone(false);setError('');openedAt.current=performance.now();
-  fetch('/api/account',{cache:'no-store'}).then(r=>r.ok?r.json() as Promise<{user?:Account}>:null).then(d=>{const user=d?.user;setAccount(user&&user.email_verified?user:null);if(user?.email_verified)setEmail(user.email);}).catch(()=>{});
+  loadAccount().then(d=>{const user=d?.user as Account|null|undefined;setAccount(user&&user.email_verified?user:null);if(user?.email_verified)setEmail(user.email);}).catch(()=>{});
  },[]);
  useEffect(()=>{const listen=(event:Event)=>show(((event as CustomEvent).detail?.source as FeedbackSource)||defaultSource);window.addEventListener(EVENT,listen);return()=>window.removeEventListener(EVENT,listen);},[show,defaultSource]);
  useEffect(()=>{const d=dialog.current;if(!d)return;if(open&&!d.open)d.showModal();if(!open&&d.open)d.close();},[open]);

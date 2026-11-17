@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n-dictionary";
+import type { Locale } from "./locales";
 
 type Copy = Record<Locale, [title: string, description: string]>;
 

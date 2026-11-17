@@ -64,3 +64,7 @@ Bunların hepsini aşan bir saldırıda bile günlük/aylık karakter sınırı 
 ## Testler
 
 `tests/translation.test.mjs` (önbellek, kilit, sınırlar, Gemini isteği ve hata kodları), `tests/translation-batch.test.mjs` (Gemini ve OpenAI toplu işi, Luna istekleri, faturalandırma olmadan saatlik çeviri), `tests/message-translations.test.mjs`, `tests/translation-trial.test.mjs`, `tests/translation-stored.test.mjs` (sunucuda kayıtlı çeviriyi okuma).
+
+## Tarayıcıya giden çeviriler (2026-11-17)
+
+Sözlüğün tamamı (8 dil, ~2,4 MB JavaScript) artık tarayıcıya gönderilmiyor. Tarayıcı paketinde `@/lib/i18n-dictionary` yerine `lib/i18n-runtime.ts` kullanılır (Cloudflare: `vite.config.ts` eklentisi, Mittwald: `next.config.ts` `resolveAlias` `browser` koşulu). Tarayıcı sayfanın dilini `/i18n/<dil>.json?v=<sürüm>` adresinden bir kez yükler (`app/i18n/[file]/route.ts`, bir yıl önbellek; sürüm sözlük değişince değişir). Türkçe için hiçbir şey yüklenmez. `LocaleProvider` mesajlar gelene kadar uygulamayı askıda tutar (sunucunun HTML'i ekranda kalır, hidrasyon uyuşmazlığı olmaz); dil değiştirilince yeni dil yüklendikten sonra geçilir. Sunucu tarafı her zaman tam sözlüğü kullanır. Yalnızca dil listesine ihtiyacı olan dosyalar `lib/locales.ts`'i içe aktarır. Test: `tests/i18n-runtime.test.mjs`, `tests/localization.test.mjs` (sunucu ve tarayıcı metinleri aynı).

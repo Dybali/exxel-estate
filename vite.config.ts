@@ -1,5 +1,20 @@
 import vinext from "vinext";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+import { fileURLToPath } from "node:url";
+
+// The browser bundle gets lib/i18n-runtime.ts instead of the 2.4 MB dictionary of every language: it loads one
+// language from /i18n/<locale>.json. The server environments (rsc, ssr) keep the real dictionary.
+const BROWSER_DICTIONARY = fileURLToPath(new URL("./lib/i18n-runtime.ts", import.meta.url));
+function browserDictionary(): Plugin {
+  return {
+    name: "em24-browser-dictionary",
+    enforce: "pre",
+    resolveId(source) {
+      if (this.environment?.name !== "client") return null;
+      return /(^|\/)i18n-dictionary(\.ts)?$/.test(source) ? BROWSER_DICTIONARY : null;
+    },
+  };
+}
 
 export default defineConfig(async () => {
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
@@ -18,6 +33,7 @@ export default defineConfig(async () => {
 
   return {
     plugins: [
+      browserDictionary(),
       vinext(),
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },

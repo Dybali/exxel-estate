@@ -22,14 +22,10 @@ import {serviceQuoteWords} from "./service-quote-translations";
 import {privacyClauseWords} from "./privacy-clause-translations";
 
 
-export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl";
-export const locales: { code: Locale; label: string; flag: string }[] = [
-  { code: "tr", label: "Türkçe", flag: "tr" }, { code: "de", label: "Deutsch", flag: "de" },
-  { code: "fr", label: "Français", flag: "fr" }, { code: "en", label: "English", flag: "gb" },
-  { code: "ar", label: "العربية", flag: "sa" }, { code: "fa", label: "فارسی", flag: "ir" },
-  { code: "ru", label: "Русский", flag: "ru" }, { code: "nl", label: "Nederlands", flag: "nl" },
-];
-export const isRtl = (locale: string) => locale === "ar" || locale === "fa";
+// Server-side dictionary. The browser bundle gets lib/i18n-runtime.ts instead (aliases in vite.config.ts and
+// next.config.ts) and loads one language at a time from /i18n/<locale>.json (messagesFor below).
+import { isLocale, isRtl, locales, translateWith, type Locale } from "./locales";
+export { isLocale, isRtl, locales, type Locale };
 
 type Translations = Partial<Record<Locale, string>>;
 export const words: Record<string, Translations> = {
@@ -710,13 +706,25 @@ Object.assign(words,legalWords);
 Object.assign(words,serviceQuoteWords);
 Object.assign(words,privacyClauseWords);
 
-export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);
 const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);
-// "Label: value" messages translate the label and keep the value (e.g. "Geçersiz para birimi: JPY").
 export function translate(key: string, locale: Locale) {
-  const direct = lookup(key, locale);
-  if (direct) return direct;
-  const at = key.indexOf(": ");
-  const label = at > 0 ? lookup(key.slice(0, at), locale) : undefined;
-  return label ? `${label}: ${key.slice(at + 2)}` : key;
+  return translateWith((item) => lookup(item, locale), key);
 }
+
+// One language's messages for the browser (app/i18n/[file]/route.ts): every key with its translation, Persian
+// and Dutch already falling back to English. Built once per process.
+const cache: Partial<Record<Locale, Record<string, string>>> = {};
+export function messagesFor(locale: Locale) {
+  if (locale === "tr") return {};
+  return cache[locale] ??= Object.fromEntries(Object.keys(words).flatMap((key) => { const value = lookup(key, locale); return value ? [[key, value]] : []; }));
+}
+// Changes whenever any translation changes, so browsers may cache /i18n/<locale>.json for a year.
+let version = "";
+export function messagesVersion() {
+  if (!version) { let hash = 2166136261; const text = JSON.stringify(words); for (let i = 0; i < text.length; i++) { hash ^= text.charCodeAt(i); hash = Math.imul(hash, 16777619); } version = (hash >>> 0).toString(36); }
+  return version;
+}
+// Same interface as lib/i18n-runtime.ts: on the server every language is always ready.
+export const messagesReady = (_locale: Locale) => true;
+export const loadMessages = (_locale: Locale) => Promise.resolve();
+export function setMessagesVersion(_value: string) {}

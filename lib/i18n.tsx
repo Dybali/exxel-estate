@@ -1,6 +1,6 @@
 "use client";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { isLocale, isRtl, locales, translate, type Locale } from "./i18n-dictionary";
+import { createContext, Suspense, use, useContext, useEffect, useMemo, useState } from "react";
+import { isLocale, isRtl, loadMessages, locales, messagesReady, setMessagesVersion, translate, type Locale } from "@/lib/i18n-dictionary";
 import { LOCALE_COOKIE } from "./locale-negotiation";
 export { isLocale, isRtl, locales, translate, type Locale };
 
@@ -10,8 +10,18 @@ const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale
 
 // initialLocale comes from the server (?lang=xx, saved choice or browser language), so crawlers and
 // visitors receive the page in that language from the first byte.
-export function LocaleProvider({ children, initialLocale = "tr" }: { children: React.ReactNode; initialLocale?: Locale }) {
-  const [locale, setLocale] = useState<Locale>(initialLocale);
+// In the browser the messages of the page's language load from /i18n/<locale>.json (lib/i18n-runtime.ts).
+// Until they arrive the app stays suspended: during hydration React keeps the server's HTML on screen, so
+// visitors never see untranslated text and there is no hydration mismatch.
+function MessagesGate({ locale, children }: { locale: Locale; children: React.ReactNode }) {
+  if (!messagesReady(locale)) use(loadMessages(locale));
+  return <>{children}</>;
+}
+export function LocaleProvider({ children, initialLocale = "tr", messagesVersion = "" }: { children: React.ReactNode; initialLocale?: Locale; messagesVersion?: string }) {
+  setMessagesVersion(messagesVersion);
+  const [locale, setLocaleNow] = useState<Locale>(initialLocale);
+  // Another language is shown once its messages are loaded, so the page never flashes untranslated keys.
+  const setLocale = (next: Locale) => { if (messagesReady(next)) setLocaleNow(next); else void loadMessages(next).then(() => setLocaleNow(next)); };
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("lang");
     const saved = window.localStorage.getItem("exxel_locale");
@@ -38,7 +48,7 @@ export function LocaleProvider({ children, initialLocale = "tr" }: { children: R
     setLocale(next);
   };
   const value = useMemo(() => ({ locale, setLocale: choose, t: (key: string) => translate(key, locale) }), [locale]);
-  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
+  return <LocaleContext.Provider value={value}><Suspense fallback={null}><MessagesGate locale={locale}>{children}</MessagesGate></Suspense></LocaleContext.Provider>;
 }
 export const useLocale = () => useContext(LocaleContext);
 export function T({ id }: { id: string }) { const { t } = useLocale(); return <>{t(id)}</>; }

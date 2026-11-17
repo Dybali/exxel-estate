@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,Globe2,LoaderCircle,Plus,Send,Sparkles,X} from 'lucide-react';
 import Link from './SafeLink';
 import {useLocale,locales,isRtl,translate} from '@/lib/i18n';
+import {loadMessages,messagesReady} from '@/lib/i18n-dictionary';
 import {assistantCopy,assistantMemberCopy,assistantResultLabel} from '@/lib/assistant-copy';
 import {assistantHistory,emptyFilters,type AssistantFilters,type AssistantLanguage} from '@/lib/assistant';
 import {type Listing} from '@/lib/listings';
@@ -21,6 +22,8 @@ export function EstateAssistant({compact=false,onClose}:{compact?:boolean;onClos
  const [selected,setSelected]=useState<'auto'|AssistantLanguage>('auto'),[detected,setDetected]=useState<AssistantLanguage|null>(null);
  const language=selected==='auto'?(detected||locale):selected,copy=assistantCopy[language],t=(key:string)=>translate(key,language);
  const [available,setAvailable]=useState<boolean|null>(null),[authenticated,setAuthenticated]=useState<boolean|null>(null),[draft,setDraft]=useState(''),[turns,setTurns]=useState<Turn[]>([]),[answer,setAnswer]=useState<Answer|null>(null),[busy,setBusy]=useState(false),[pending,setPending]=useState(''),[error,setError]=useState('');
+ // The assistant may speak another language than the page: load its messages (lib/i18n-runtime.ts), then re-render.
+ const [,setMessagesLoaded]=useState(0);useEffect(()=>{if(!messagesReady(language))void loadMessages(language).then(()=>setMessagesLoaded(n=>n+1));},[language]);
  const [filters,setFilters]=useState(emptyFilters),end=useRef<HTMLDivElement>(null),input=useRef<HTMLTextAreaElement>(null),controller=useRef<AbortController|null>(null);
  useEffect(()=>{let active=true;const check=()=>fetch('/api/assistant',{cache:'no-store'}).then(r=>r.json() as Promise<{available:boolean;authenticated:boolean}>).then(d=>{if(active){setAvailable(d.available===true);setAuthenticated(d.authenticated===true);if(!d.authenticated){controller.current?.abort();setTurns([]);setAnswer(null);setFilters(emptyFilters());setBusy(false);setPending('');setDraft('');}}}).catch(()=>{if(active)setAvailable(false);});check();window.addEventListener('salesorrent:profile-changed',check);const interval=setInterval(check,30000);return()=>{active=false;clearInterval(interval);window.removeEventListener('salesorrent:profile-changed',check);controller.current?.abort();};},[]);
  useEffect(()=>{if(turns.length||pending)end.current?.scrollIntoView({behavior:'smooth',block:'nearest'});},[turns,pending]);

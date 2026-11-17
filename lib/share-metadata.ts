@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { locales, type Locale } from "./i18n-dictionary";
+import { locales, type Locale } from "./locales";
 import { openGraphLocale } from "./seo-copy";
 import { localizedUrl, siteUrl } from "./request-context";
 import { absoluteShareUrl, DEFAULT_SHARE_IMAGE, type ShareImage } from "./share-image-policy";

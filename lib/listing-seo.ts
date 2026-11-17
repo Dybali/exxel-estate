@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n-dictionary";
+import type { Locale } from "./locales";
 import { listingLanguage } from "./listing-language";
 import type { Listing } from "./listings";
 import { localizedUrl, siteUrl } from "./request-context";

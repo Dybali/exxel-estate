@@ -42,3 +42,9 @@ test('user-facing messages have a translation in every language',()=>{
   const visit=n=>{if((ts.isCallExpression(n)||ts.isNewExpression(n))&&n.arguments?.[0]&&ts.isStringLiteral(n.arguments[0])&&TURKISH.test(n.arguments[0].text)){const name=n.expression.getText(source);if(/^(error|set\w*(Error|Message|Status|Notice|Info|Result)|Error|[A-Z]\w*Error)$/.test(name)){const key=n.arguments[0].text,label=key.includes(': ')?key.slice(0,key.indexOf(': ')):key;for(const locale of locales)if(!dictionary[key]?.[locale]?.trim()&&!dictionary[label]?.[locale]?.trim()){missing.add(`${path.relative(root,file)}: ${key}`);break;}}}ts.forEachChild(n,visit);};visit(source);}
  assert.deepEqual([...missing],[]);
 });
+// The browser's per-language messages (/i18n/<locale>.json) give the same text as the server's translate().
+test('per-language messages match the server dictionary, with the English fallback for fa and nl',()=>{
+ const D=load('lib/i18n-dictionary.ts');
+ for(const locale of ['de','fa','nl']){const messages=D.messagesFor(locale);for(const key of Object.keys(D.words)){assert.equal(messages[key]??key,D.translate(key,locale),`${locale}: ${key}`);}}
+ assert.deepEqual(D.messagesFor('tr'),{});assert.match(D.messagesVersion(),/^[0-9a-z]+$/);
+});

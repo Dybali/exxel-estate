@@ -64,7 +64,8 @@ import { currencyFromCookies } from "@/lib/display-currency";
 import { requestRates } from "@/lib/tcmb-server";
 import { headers } from "next/headers";
 import { ServiceWorker } from "@/components/ServiceWorker";
-import { isRtl } from "@/lib/i18n-dictionary";
+import { isRtl, messagesVersion } from "@/lib/i18n-dictionary";
+import { messagesUrl } from "@/lib/locales";
 import { languageAlternates, localizedUrl, requestLocale, requestPath, siteUrl } from "@/lib/request-context";
 import { privatePage, seoCopy } from "@/lib/seo-copy";
 import { shareMetadata } from "@/lib/share-metadata";
@@ -112,7 +113,9 @@ export default async function RootLayout({
   const gaId = gaMeasurementId();
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
-      <body><PhotoGuard/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
+      {/* The browser needs this language's messages before hydrating (lib/i18n-runtime.ts): fetch them early. */}
+      {locale !== "tr" && <head><link rel="preload" href={messagesUrl(locale, messagesVersion())} as="fetch" crossOrigin="anonymous"/></head>}
+      <body><PhotoGuard/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale} messagesVersion={messagesVersion()}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }

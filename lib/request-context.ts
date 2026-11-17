@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { isLocale, locales, type Locale } from "./i18n-dictionary";
+import { isLocale, locales, type Locale } from "./locales";
 import { LOCALE_HEADER, PATH_HEADER } from "./request-headers";
 import { siteUrl } from "./site-url";
 

@@ -1,4 +1,4 @@
-import { translate, type Locale } from "./i18n-dictionary";
+import { translate, type Locale } from "@/lib/i18n-dictionary";
 import { serviceCategory } from "./service-categories";
 import { SERVICE_BASE, servicePath } from "./services";
 

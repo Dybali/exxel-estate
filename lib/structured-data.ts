@@ -1,4 +1,4 @@
-import { locales, type Locale } from "./i18n-dictionary";
+import { locales, type Locale } from "./locales";
 import { localizedUrl } from "./request-context";
 
 /** JSON-LD for a <script type="application/ld+json">, with "<" escaped so page text cannot close the tag. */

@@ -1,11 +1,12 @@
 "use client";
+import { loadAccount } from "@/lib/account-client";
 import { useEffect, useState, type ReactNode } from "react";
 import { viewerActions, viewerOf, type Viewer, type ViewerAction } from "@/lib/account-actions";
 
 // Shares one /api/account request between the gates that mount together on a page.
 let pending: { at: number; viewer: Promise<Viewer> } | null = null;
 function loadViewer() {
-  if (!pending || Date.now() - pending.at > 3000) pending = { at: Date.now(), viewer: fetch("/api/account", { cache: "no-store" }).then((response) => response.json() as Promise<{ user?: { accountKind?: string } | null }>).then((data) => viewerOf(data.user)).catch(() => "guest" as const) };
+  if (!pending || Date.now() - pending.at > 3000) pending = { at: Date.now(), viewer: loadAccount().then((data) => viewerOf(data.user)).catch(() => "guest" as const) };
   return pending.viewer;
 }
 /** The visitor's account type, or null while it loads. */

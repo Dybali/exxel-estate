@@ -94,7 +94,7 @@ test('listing JSON-LD: ISO dates, the source language, seller type by owner role
 });
 
 test('breadcrumb and site-wide JSON-LD, with "<" escaped',async()=>{
- const {breadcrumbStructuredData,siteStructuredData,jsonLd}=await seoModule('lib/structured-data.ts',{'./i18n-dictionary':'data:text/javascript,'+encodeURIComponent("export const locales=['tr','de','fr','en','ar','fa','ru','nl'].map(code=>({code}));")});
+ const {breadcrumbStructuredData,siteStructuredData,jsonLd}=await seoModule('lib/structured-data.ts',{'./locales':'data:text/javascript,'+encodeURIComponent("export const locales=['tr','de','fr','en','ar','fa','ru','nl'].map(code=>({code}));")});
  const crumbs=breadcrumbStructuredData([{name:'Listings',path:'/ilanlar'},{name:'Muğla',path:'/emlak/mugla'},{name:'Flat',path:'/ilan/x'}],'en');
  assert.equal(crumbs['@type'],'BreadcrumbList');assert.deepEqual(crumbs.itemListElement.map(i=>i.position),[1,2,3]);
  assert.equal(crumbs.itemListElement[1].item,'https://site.example/emlak/mugla?lang=en');
