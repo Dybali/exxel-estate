@@ -1,6 +1,6 @@
 "use client";
 import { loadAccount } from "@/lib/account-client";
-import { ArrowLeft, ChevronDown, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, House, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
@@ -61,6 +61,7 @@ export function ServiceHeader() {
       <ServiceBrand/>
       <Link href={SERVICE_SEARCH_PATH} className="svc-header-search"><Search size={16} aria-hidden="true"/><span>{t("Firma veya hizmet ara")}</span></Link>
       <div className="svc-header-actions">
+        <Link href="/" className="svc-home-link" title={t("Emlak ilanlarına dön")}><House size={17} aria-hidden="true"/><span>{t("Emlak ilanları")}</span></Link>
         <LocaleSwitch className="svc-locale"/>
         {can.serviceQuote && <Link href={SERVICE_QUOTE_PATH} className="btn btn-accent btn-sm svc-quote-link"><Send size={16} aria-hidden="true"/>{t("Teklif iste")}</Link>}
         {can.addServiceFirm && <Link href={addFirmHref} className="btn btn-secondary btn-sm svc-add-firm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
@@ -88,7 +89,6 @@ export function ServiceHeader() {
         })}
       </ul>
       {can.servicePlans && <Link href="/hizmetler/paketler" className="svc-nav-back svc-nav-plans"><Package size={15} aria-hidden="true"/>{t("Paketler")}</Link>}
-      <Link href="/" className="svc-nav-back"><ArrowLeft size={15} aria-hidden="true"/>{t("Emlak ilanları")}</Link>
     </div></nav>
 
     {drawer && <div className="svc-drawer-backdrop" onClick={() => setDrawer(false)} aria-hidden="true"/>}

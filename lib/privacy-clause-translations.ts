@@ -462,6 +462,8 @@ export const privacyClauseWords: Record<string,{de:string;fr:string;en:string;ar
  "Kart görünümü":{de:"Kachelansicht",fr:"Vue en cartes",en:"Card view",ar:"عرض البطاقات",fa:"نمای کارتی",ru:"Плитка",nl:"Kaartweergave"},
  "{n} yatak odası":{de:"{n} Schlafzimmer",fr:"{n} chambres",en:"{n} bedrooms",ar:"{n} غرف نوم",fa:"{n} اتاق خواب",ru:"Спален: {n}",nl:"{n} slaapkamers"},
  "Popüler tatil bölgeleri":{de:"Beliebte Urlaubsregionen",fr:"Destinations de vacances populaires",en:"Popular holiday destinations",ar:"وجهات العطلات الشائعة",fa:"مقاصد محبوب تعطیلات",ru:"Популярные курорты",nl:"Populaire vakantiebestemmingen"},
+ "Geri":{de:"Zurück",fr:"Retour",en:"Back",ar:"رجوع",fa:"بازگشت",ru:"Назад",nl:"Terug"},
+ "Önceki sayfaya dön":{de:"Zur vorherigen Seite",fr:"Revenir à la page précédente",en:"Go to the previous page",ar:"العودة إلى الصفحة السابقة",fa:"بازگشت به صفحه قبل",ru:"Вернуться на предыдущую страницу",nl:"Naar de vorige pagina"},
  "GEMINI_API_KEY ayarlı değil.":{de:"GEMINI_API_KEY ist nicht gesetzt.",fr:"GEMINI_API_KEY n’est pas configuré.",en:"GEMINI_API_KEY is not set.",ar:"لم يتم ضبط GEMINI_API_KEY.",fa:"GEMINI_API_KEY تنظیم نشده است.",ru:"GEMINI_API_KEY не задан.",nl:"GEMINI_API_KEY is niet ingesteld."},
  "Model":{de:"Modell",fr:"Modèle",en:"Model",ar:"النموذج",fa:"مدل",ru:"Модель",nl:"Model"},
  "İlan sayısı":{de:"Anzahl Inserate",fr:"Nombre d’annonces",en:"Number of listings",ar:"عدد الإعلانات",fa:"تعداد آگهی",ru:"Количество объявлений",nl:"Aantal advertenties"},

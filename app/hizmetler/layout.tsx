@@ -1,4 +1,5 @@
 import { ServiceFooter } from "@/components/ServiceFooter";
+import { BackButton } from "@/components/BackButton";
 import { ServiceHeader } from "@/components/ServiceHeader";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 
@@ -6,5 +7,5 @@ import { FeedbackWidget } from "@/components/FeedbackWidget";
 // which components/SiteFrame.tsx leaves out for /hizmetler (lib/site-chrome.ts). The root layout
 // still provides <html>, metadata, language and cookie consent.
 export default function ServicesLayout({ children }: { children: React.ReactNode }) {
-  return <div className="svc-site"><ServiceHeader/>{children}<ServiceFooter/><FeedbackWidget defaultSource="services"/></div>;
+  return <div className="svc-site"><ServiceHeader/><BackButton className="svc-back-row"/>{children}<ServiceFooter/><FeedbackWidget defaultSource="services"/></div>;
 }

@@ -1,6 +1,6 @@
 "use client";
 import { loadAccount } from "@/lib/account-client";
-import { ArrowLeft, Building2, HardHat, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
+import { ArrowLeft, Building2, HardHat, House, Menu, Package, Plus, Search, Send, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { openCookiePreferences } from "@/components/CookieConsent";
@@ -50,6 +50,7 @@ export function ContractorHeader() {
       <ContractorBrand/>
       <Link href={`${CONTRACTOR_BASE}#sonuclar`} className="svc-header-search"><Search size={16} aria-hidden="true"/><span>{t("Müteahhit ara")}</span></Link>
       <div className="svc-header-actions">
+        <Link href="/" className="svc-home-link" title={t("Emlak ilanlarına dön")}><House size={17} aria-hidden="true"/><span>{t("Emlak ilanları")}</span></Link>
         <LocaleSwitch className="svc-locale"/>
         {can.landQuote && <Link href={LAND_PATH} className="btn btn-accent btn-sm svc-quote-link"><Send size={16} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link>}
         {can.addContractorFirm && <Link href={addFirmHref} className="btn btn-secondary btn-sm svc-add-firm"><Plus size={16} aria-hidden="true"/>{t("Firmanı ekle")}</Link>}
@@ -63,7 +64,6 @@ export function ContractorHeader() {
         <li className="svc-nav-item"><Link href="/projeler"><Building2 size={14} aria-hidden="true"/>{t("Satıştaki projeler")}</Link></li>
       </ul>
       {can.contractorPlans && <Link href="/muteahhitler/paketler" className="svc-nav-back svc-nav-plans"><Package size={15} aria-hidden="true"/>{t("Paketler")}</Link>}
-      <Link href="/" className="svc-nav-back"><ArrowLeft size={15} aria-hidden="true"/>{t("Emlak ilanları")}</Link>
     </div></nav>
     {drawer && <div className="svc-drawer-backdrop" onClick={() => setDrawer(false)} aria-hidden="true"/>}
     <div id="ctr-drawer" className={drawer ? "svc-drawer open" : "svc-drawer"} role="dialog" aria-modal="true" aria-label={t("Menü")} hidden={!drawer}>
