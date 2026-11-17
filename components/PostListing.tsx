@@ -65,6 +65,9 @@ export function PostListing(){
  if(user===undefined&&!error)return <main className="form-page"><div className="container section">{t('Hesabınız kontrol ediliyor...')}</div></main>;
  if(!ready&&error)return <main className="form-page"><div className="container form-gate"><h1>{t('Taslak yüklenemedi. Sayfayı yenileyin.')}</h1><button className="primary-button" onClick={()=>location.reload()}>{t('Yeniden dene')}</button></div></main>;
  if(!user)return <PostListingIntro/>;
+ // Firm accounts (lib/account-actions.ts) have no listing manager: send them to their own panel.
+ const firmKind=(user as {accountKind?:string}).accountKind;
+ if((firmKind==='service'||firmKind==='contractor')&&!team)return <main className="form-page"><div className="container form-gate"><h1>{t('Firma hesapları ilan vermez.')}</h1><p>{t('Hizmet firması ve müteahhit hesapları firma panelinden çalışır. Ev veya arsa ilanı vermek için bireysel ya da emlakçı hesabı kullanın.')}</p><Link className="primary-button" href={firmKind==='service'?'/hizmetler/panel':'/muteahhitler/panel'}>{t('Firma panelim')}</Link></div></main>;
  if(user.role==='buyer'&&!team)return <main className="form-page"><div className="container form-gate"><h1>{t('İlan verme hesabı gerekli.')}</h1><p>{t('Hesabınız ilan arayan kullanıcı türünde. Profilinizden bireysel mal sahibi veya emlakçı hesabına geçebilirsiniz.')}</p><Link className="primary-button" href="/hesabim?tab=profil">{t('Profilime Dön')}</Link></div></main>;
  const needsOffice=user.role==='agent'&&!user.isAdmin&&!team;
  const officeReady=!needsOffice||officeLoaded&&!!office&&office.state!=='rejected';

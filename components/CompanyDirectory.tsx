@@ -1,4 +1,5 @@
 "use client";
+import { ViewerGate } from "@/components/ViewerGate";
 
 import { ForwardArrow } from "@/components/DirectionalArrow";
 import { useEffect, useState } from "react";
@@ -48,7 +49,7 @@ export function CompanyDirectory({ preview = false }: { preview?: boolean }) {
 
   return <main className="directory-page"><div className="container">
     <div className="directory-heading"><span className="market-overline">ESTATEMARKET24 / {t("İş ortakları")}</span><h1>{t("Emlak ofisleri ve inşaat firmaları")}</h1><p>{t("Onaylı şirketleri ve sunum amaçlı örnek portföyleri inceleyin.")}</p></div>
-    <div className="company-enroll"><div><strong>{t("İnşaat firması mısınız?")}</strong><p>{t("Kurumsal hesabınızla firmanızı ve portföyünüzü tanıtın.")}</p></div><Link className="outline-button" href="/kurumsal-uyelik">{t("İnşaat firması üyeliği")}<ForwardArrow/></Link></div>
+    <ViewerGate action="signUp"><div className="company-enroll"><div><strong>{t("İnşaat firması mısınız?")}</strong><p>{t("Kurumsal hesabınızla firmanızı ve portföyünüzü tanıtın.")}</p></div><Link className="outline-button" href="/kurumsal-uyelik">{t("İnşaat firması üyeliği")}<ForwardArrow/></Link></div></ViewerGate>
     <div className="directory-tabs" role="group" aria-label={t("Şirket türü")}>
       {[{ value: "", label: "Tüm şirketler" }, { value: "agency", label: "Emlak ofisleri" }, { value: "developer", label: "İnşaat firmaları" }].map((item) => <button key={item.value} type="button" className={category === item.value ? "active" : ""} onClick={() => { setCategory(item.value); setPage(1); }}>{t(item.label)}</button>)}
     </div>

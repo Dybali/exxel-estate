@@ -6,7 +6,7 @@
 import type { AccountKind } from "./account-kind";
 
 export type Viewer = "guest" | AccountKind;
-export type ViewerAction = "postListing" | "addServiceFirm" | "addContractorFirm" | "serviceQuote" | "landQuote" | "servicePlans" | "contractorPlans";
+export type ViewerAction = "postListing" | "addServiceFirm" | "addContractorFirm" | "serviceQuote" | "landQuote" | "servicePlans" | "contractorPlans" | "signUp" | "bulkUpload" | "projectSales" | "abroadListing";
 
 export function viewerActions(viewer: Viewer): Record<ViewerAction, boolean> {
   const firm = viewer === "service" || viewer === "contractor";
@@ -19,6 +19,12 @@ export function viewerActions(viewer: Viewer): Record<ViewerAction, boolean> {
     // Packages (docs/firm-plans.md): for visitors weighing a sign-up and for firms of that kind.
     servicePlans: viewer === "guest" || viewer === "service",
     contractorPlans: viewer === "guest" || viewer === "contractor",
+    // Real-estate side: sign-up invitations only for visitors; XML bulk upload and project sales are estate-agent
+    // tools (Hesabım › Projelerim is an agent tab); "advertise from abroad" speaks to private owners.
+    signUp: viewer === "guest",
+    bulkUpload: viewer === "guest" || viewer === "agent",
+    projectSales: viewer === "guest" || viewer === "agent",
+    abroadListing: viewer === "guest" || viewer === "individual",
   };
 }
 
