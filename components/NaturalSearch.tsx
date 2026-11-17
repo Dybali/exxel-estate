@@ -11,6 +11,22 @@ type Chip={key:string;label:string};
 type Result={url:string;chips:Chip[];ignored:string[];unsupported:string[];ai:string};
 const STORE="em24:nl-search";
 const normal=(url:string)=>{const params=new URLSearchParams(url.split("?")[1]||"");for(const key of ["lang","sort","view","page"])params.delete(key);params.sort();return params.toString();};
+// Home page: example searches typed into the empty box one after another (owner's request 2026-11-17).
+// Stops while the visitor types or the box has focus; reduced motion shows the usual static placeholder.
+export const TYPING_EXAMPLES=["Bodrum'da deniz manzaralı, havuzlu villa","İzmir'de krediye uygun 3+1 daire, 6 milyona kadar","İstanbul Kadıköy'de metroya yakın kiralık 2+1","Antalya'da yatırım için satılık arsa"] as const;
+function useTypingPlaceholder(examples:string[],enabled:boolean){
+ const [shown,setShown]=useState<string|null>(null);
+ useEffect(()=>{
+  if(!enabled||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  let example=0,length=0,deleting=false,timer=0;
+  const step=()=>{const target=examples[example];
+   if(!deleting){length++;setShown(target.slice(0,length));if(length>=target.length){deleting=true;timer=window.setTimeout(step,2200);return;}timer=window.setTimeout(step,55);}
+   else{length=Math.max(0,length-3);setShown(target.slice(0,length));if(length===0){deleting=false;example=(example+1)%examples.length;timer=window.setTimeout(step,500);return;}timer=window.setTimeout(step,25);}};
+  timer=window.setTimeout(step,1200);
+  return()=>window.clearTimeout(timer);
+ },[examples,enabled]);
+ return shown;
+}
 const validResult=(value:unknown):value is Result=>{const r=value as Result;return Boolean(r&&typeof r.url==="string"&&r.url.startsWith("/ilanlar")&&Array.isArray(r.chips)&&Array.isArray(r.ignored)&&Array.isArray(r.unsupported));};
 
 export function NaturalSearch({variant,current,onApply,onEdit}:{variant:"home"|"listings";current?:string;onApply?:(url:string)=>void;onEdit?:()=>void}){
@@ -18,6 +34,8 @@ export function NaturalSearch({variant,current,onApply,onEdit}:{variant:"home"|"
  const [text,setText]=useState(""),[busy,setBusy]=useState(false),[result,setResult]=useState<Result|null>(null),[error,setError]=useState("");
  // One box per page: fixed ids keep server and client markup identical.
  const id=`nl-search-${variant}`,controller=useRef<AbortController|null>(null);
+ const [focused,setFocused]=useState(false),[examples]=useState(()=>TYPING_EXAMPLES.map(item=>t(item)));
+ const typing=useTypingPlaceholder(examples,variant==="home"&&!focused&&!text);
  useEffect(()=>{
   if(variant!=="listings")return;
   try{const saved=JSON.parse(window.sessionStorage.getItem(STORE)||"null");if(saved&&validResult(saved.result)&&normal(saved.result.url)===normal(window.location.search)){setText(String(saved.query||"").slice(0,300));setResult(saved.result);}}catch{/* storage unavailable */}
@@ -50,7 +68,7 @@ export function NaturalSearch({variant,current,onApply,onEdit}:{variant:"home"|"
    <label id={`${id}-label`} htmlFor={`${id}-input`} className="nl-search-label"><Sparkles size={14} aria-hidden="true"/><span>{t("Doğal dil araması")}</span><small>estateAI</small></label>
    <div className="nl-search-field">
     <Sparkles className="nl-search-icon" size={18} aria-hidden="true"/>
-    <input id={`${id}-input`} type="search" dir="auto" enterKeyHint="search" autoComplete="off" maxLength={300} value={text} onChange={event=>setText(event.target.value)} placeholder={t("Ne arıyorsunuz? Örn: Bodrum’da havuzlu 3+1 satılık villa, 15 milyona kadar")} aria-describedby={`${id}-hint`}/>
+    <input id={`${id}-input`} type="search" dir="auto" enterKeyHint="search" autoComplete="off" maxLength={300} value={text} onChange={event=>setText(event.target.value)} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} placeholder={typing?`${typing}▍`:t("Ne arıyorsunuz? Örn: Bodrum’da havuzlu 3+1 satılık villa, 15 milyona kadar")} aria-describedby={`${id}-hint`}/>
     <button type="submit" className="nl-search-submit" disabled={busy||!text.trim()} aria-busy={busy}>{busy?<LoaderCircle className="nl-search-spin" size={18} aria-hidden="true"/>:<Search size={18} aria-hidden="true"/>}<span>{t("Ara")}</span></button>
    </div>
    <p id={`${id}-hint`} className="nl-search-hint">{t("Kişisel bilgi yazmayın. Anlaşılmayan kısımlar gerekirse Google Gemini ile yorumlanır.")}</p>

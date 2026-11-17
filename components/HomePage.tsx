@@ -8,6 +8,7 @@ import Link from "@/components/SafeLink";
 import { ArrowRight } from "lucide-react";
 import { HomeSearch } from "@/components/HomeSearch";
 import { HomeTools } from "@/components/HomeTools";
+import { HeroSlides } from "@/components/HeroSlides";
 import { NaturalSearch } from "@/components/NaturalSearch";
 import {HomeEditorial} from '@/components/Editorial';
 import { ListingCard } from "@/components/ListingCard";
@@ -58,13 +59,12 @@ export function HomePage({ featured }: { featured?: Promise<Listing[] | null> })
   const [companiesRef, companiesVisible] = useNearViewport<HTMLElement>();
   return <main className="market-home">
     <section className="market-hero">
-      <div className="market-hero-media" aria-hidden="true"><img src="/villa-sunset-1920.webp" srcSet="/villa-sunset-720.webp 720w, /villa-sunset-1280.webp 1280w, /villa-sunset-1920.webp 1920w" sizes="100vw" width={2400} height={1601} alt="" loading="eager" fetchPriority="high" decoding="async"/></div>
+      <HeroSlides/>
       <div className="container market-hero-inner">
       <div className="market-hero-copy"><span className="market-kicker">ESTATEMARKET24 · {t("TÜRKİYE")}</span><h1>{t("Türkiye'de satılık ve kiralık gayrimenkuller")}</h1><p>{t("Şehir, semt ve özelliklere göre arayın. Size uygun evi, arsayı veya iş yerini bulun.")}</p></div>
       <NaturalSearch variant="home" />
       <HomeSearch />
       <div className="market-hero-links"><span>{t("Popüler aramalar")}</span><Link href="/ilanlar?purpose=satilik&type=daire">{t("Satılık daire")}</Link><Link href="/ilanlar?purpose=kiralik&type=daire">{t("Kiralık daire")}</Link><Link href="/ilanlar?type=villa">{t("Villa")}</Link><Link href="/ilanlar?city=İstanbul">İstanbul</Link></div>
-      <span className="hero-photo-credit">{t("Fotoğraf")}: <a href="https://www.pexels.com/photo/luxurious-modern-villa-with-infinity-pool-at-sunset-31817157/" target="_blank" rel="noreferrer">Ahmet ÇÖTÜR / Pexels</a></span>
     </div></section>
     <section className="market-shortcuts container" aria-label={t("Hızlı bağlantılar")}>
       <Link href="/ilanlar?purpose=satilik"><span className="shortcut-icon"><img src="/shortcuts/buy.webp" width={72} height={72} alt="" decoding="async"/></span><span><strong>{t("Satın al")}</strong><small>{t("Satılık gayrimenkulleri keşfedin")}</small></span><ArrowRight size={18}/></Link>

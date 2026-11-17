@@ -249,3 +249,14 @@
 .home-tool small{display:block;font-size:12.5px;color:#5c7567;line-height:1.5}
 @media(max-width:900px){.home-tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.home-tools-grid{grid-template-columns:1fr}}
+/* Home hero slideshow (components/HeroSlides.tsx): slow zoom and 1.6 s cross-fade; still for reduced motion */
+.market-home .hero-slides img.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.6s ease-in-out;transform:scale(1.02);will-change:opacity,transform}
+.market-home .hero-slides img.hero-slide.active{opacity:1;animation:hero-zoom 9s ease-out forwards}
+.market-home .hero-slides.hero-still img.hero-slide.active{animation:none;transform:none}
+@keyframes hero-zoom{from{transform:scale(1.02)}to{transform:scale(1.1)}}
+@media(prefers-reduced-motion:reduce){.market-home .hero-slides img.hero-slide{transition:none}.market-home .hero-slides img.hero-slide.active{animation:none;transform:none}}
+.market-home .market-hero>.hero-photo-credit{z-index:2;right:max(56px,calc((100% - 1440px)/2))}
+@media(max-width:1200px){.market-home .market-hero>.hero-photo-credit{right:32px}}
+@media(max-width:700px){.market-home .market-hero>.hero-photo-credit{right:16px}}
+/* Typing examples in the home search box (components/NaturalSearch.tsx) */
+.nl-search-home input::placeholder{transition:opacity .2s}
