@@ -20,7 +20,7 @@ import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
 import {CrmPanel} from "./CrmPanel";
 import {BarChart3} from "lucide-react";
-import {ACCOUNT_KIND_LABELS,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
+import {ACCOUNT_KIND_LABELS,accountTypeLabel,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
 import type {AccountKind} from "@/lib/account-kind";
 
 import { useEffect, useState } from "react";
@@ -54,6 +54,9 @@ export function Dashboard() {
   const [draft,setDraft]=useState<{payload:{fields:Record<string,string>};updatedAt:string}|null>(null);
   const [mine, setMine] = useState<Listing[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  // Office a consultant belongs to (Hesabım shows "Danışman · office", lib/account-panel.ts accountTypeLabel).
+  const [office, setOffice] = useState<string | null>(null);
+  useEffect(() => { fetch("/api/company-team", { cache: "no-store" }).then((response) => response.ok ? response.json() as Promise<{ membership?: { name?: string } | null }> : null).then((data) => setOffice(data?.membership?.name || null)).catch(() => {}); }, []);
 
   useEffect(() => {
     Promise.all([
@@ -95,6 +98,7 @@ export function Dashboard() {
 
   // One panel per account type (lib/account-panel.ts): individuals, agents, contractors and service firms.
   const kind:AccountKind=user.accountKind||(user.role==="agent"?"agent":"individual");
+  const typeLabel=accountTypeLabel({kind,role:user.role,companyCategory:user.companyCategory,isAdmin:user.isAdmin,office});
   const items=panelTabs(kind,{hasListings:mine.length>0,developer:user.companyCategory==="developer"}).map(item=>({...item,icon:ICONS[item.id]}));
   const active=panelTab(tab,items);
   // Firm panels live in their own sub-site (/hizmetler/panel, /muteahhitler/panel); Hesabım keeps messages and settings.
@@ -105,7 +109,7 @@ export function Dashboard() {
     <div className="account-head"><div className="container"><span className="eyebrow dark-eyebrow">{t("ESTATEMARKET24 HESABIM")}</span><h1>{t("Hoş geldiniz,")} <em>{user.name.split(" ")[0]}.</em></h1><p>{t("Yaşam alanlarınızı ve görüşmelerinizi buradan yönetin.")}</p></div></div>
     <div className="container account-layout">
       <aside className="account-sidebar">
-        <div className="account-user">{user.avatar_url ? <img src={user.avatar_url} alt="" width={42} height={42} className="account-avatar-img"/> : <div>{user.name.charAt(0).toUpperCase()}</div>}<span><strong>{user.name}</strong><small>{user.email}</small></span></div>
+        <div className="account-user">{user.avatar_url ? <img src={user.avatar_url} alt="" width={42} height={42} className="account-avatar-img"/> : <div>{user.name.charAt(0).toUpperCase()}</div>}<span><strong>{user.name}</strong><small>{user.email}</small><em className="account-type-badge">{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</em></span></div>
         <div className="account-nav">
           {items.map((item) => <button key={item.id} className={active === item.id ? "active" : ""} onClick={() => { setTab(item.id); history.replaceState(null, "", `/hesabim?tab=${item.id}`); }}><item.icon size={17}/>{t(item.label)}</button>)}
           {user.isAdmin && <Link href="/yonetim"><LayoutDashboard size={17}/>{t("Yönetim Paneli")}</Link>}
@@ -136,7 +140,7 @@ export function Dashboard() {
         {active === "aramalar" && <><MyHomeRequests/><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&kind==="agent"&&user.agent_status==="approved"&&<AgentHomeRequests/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}
         {active === "ekip" && <CompanyTeam/>}
         {active === "firma" && user.role==='agent' && <><CompanyAccount/><OfficeVerification/></>}
-        {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : ACCOUNT_KIND_LABELS[kind])}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}
+        {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}
       </section>
     </div>
   </main>;

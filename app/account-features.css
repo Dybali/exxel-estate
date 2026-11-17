@@ -91,3 +91,5 @@
 .firm-message-sent{font-size:13px}
 /* "Paketleri gör" next to the add-your-firm button (ServicesLanding, ContractorDirectory) */
 .service-cta-plans{flex:none;align-self:center;font-size:14px;font-weight:650;color:inherit;text-decoration:underline;text-underline-offset:3px}
+/* Account type under the name in Hesabım (lib/account-panel.ts accountTypeLabel) */
+.account-type-badge{display:inline-block;margin-top:5px;padding:2px 9px;border-radius:999px;background:#e7f3ee;color:#17676b;font-size:11px;font-weight:700;font-style:normal;width:max-content;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

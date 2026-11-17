@@ -46,3 +46,14 @@ export function panelTab(requested: string | null, tabs: PanelTab[]): PanelTabId
 }
 
 export const ACCOUNT_KIND_LABELS: Record<AccountKind, string> = { individual: "Bireysel", agent: "Emlakçı", contractor: "Müteahhit", service: "Hizmet firması" };
+
+/** What the account is, shown under the name in Hesabım (owner's request 2026-11-17): an office's consultant is
+ *  "Danışman" (with the office's name), an estate agent is an "Emlak ofisi" or "İnşaat firması", a personal
+ *  account that sells is "Bireysel (mal sahibi)". */
+export function accountTypeLabel(account: { kind: AccountKind; role: string; companyCategory?: string | null; isAdmin?: boolean; office?: string | null }) {
+  if (account.isAdmin) return "Yönetici";
+  if (account.office && account.kind === "individual") return "Danışman";
+  if (account.kind === "agent") return account.companyCategory === "developer" ? "İnşaat firması" : "Emlak ofisi";
+  if (account.kind === "individual") return account.role === "individual" ? "Bireysel (mal sahibi)" : "Bireysel";
+  return ACCOUNT_KIND_LABELS[account.kind];
+}

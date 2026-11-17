@@ -61,3 +61,15 @@ test('Yönetim menu: six groups, every screen reachable, old ?view= links keep t
  const dashboard=readFileSync(path.join(root,'components/AdminDashboard.tsx'),'utf8');
  for(const id of views.filter(v=>v!=='security'))assert.ok(dashboard.includes(`${id.includes('-')?`'${id}'`:id}:[`),'page title for '+id+' (a missing title fell back to the overview)');
 });
+// Account type under the name in Hesabım (2026-11-17).
+test('account type label: office consultant, estate office, developer, seller, firms, admin',async()=>{
+ const {accountTypeLabel}=P;
+ assert.equal(accountTypeLabel({kind:'individual',role:'buyer',office:'Şahmeran Emlak'}),'Danışman');
+ assert.equal(accountTypeLabel({kind:'agent',role:'agent'}),'Emlak ofisi');
+ assert.equal(accountTypeLabel({kind:'agent',role:'agent',companyCategory:'developer'}),'İnşaat firması');
+ assert.equal(accountTypeLabel({kind:'individual',role:'individual'}),'Bireysel (mal sahibi)');
+ assert.equal(accountTypeLabel({kind:'individual',role:'buyer'}),'Bireysel');
+ assert.equal(accountTypeLabel({kind:'service',role:'buyer'}),'Hizmet firması');
+ assert.equal(accountTypeLabel({kind:'contractor',role:'buyer'}),'Müteahhit');
+ assert.equal(accountTypeLabel({kind:'agent',role:'admin',isAdmin:true}),'Yönetici');
+});
