@@ -61,5 +61,5 @@ test('listing search: a bad currency or a missing bulletin is a typed error',asy
 
 test('home page picks featured listings with photos first',()=>{
  const l=(id,featured,images=['x'])=>({id,featured,images});
- assert.deepEqual(featuredFirst([l('a',false),l('b',true),l('c',true,[]),l('d',true),l('e',false)]).map(x=>x.id),['b','d','a','c']);
+ assert.deepEqual(featuredFirst([l('a',false),l('b',true),l('c',true,[]),l('d',true),l('e',false)],4).map(x=>x.id),['b','d','a','c']);
 });

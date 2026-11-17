@@ -99,7 +99,7 @@ export const typeLabel = (value:string) => PROPERTY_TYPES.find((item)=>item.valu
 
 export const formatUnitPrice = (value:number,currency="TRY",locale="tr-TR") => new Intl.NumberFormat(locale,{style:"currency",currency,minimumFractionDigits:0,maximumFractionDigits:2}).format(value);
 /** Home page "Öne çıkan ilanlar": featured listings with photos first, then the rest of the first page. */
-export function featuredFirst<T extends {id:string;featured?:boolean;images:string[]}>(listings:T[],limit=4){
+export function featuredFirst<T extends {id:string;featured?:boolean;images:string[]}>(listings:T[],limit=8){
   const featured=listings.filter((listing)=>listing.featured&&listing.images.length>0);
   return [...featured,...listings.filter((listing)=>!featured.some((item)=>item.id===listing.id))].slice(0,limit);
 }
