@@ -3,6 +3,10 @@ import {body,currentUser,error,ok,sameOrigin,str,sha256} from '@/lib/server';
 import {statisticsDB} from '@/lib/listing-statistics-server';
 import {teamDB} from '@/lib/company-team-server';
 import {setTeamTitle} from '@/lib/company-office';
+import {notifyTeamInvitation} from '@/lib/team-emails';
+import {env,waitUntil} from '@/lib/runtime';
+import {siteUrl} from '@/lib/request-context';
+import type {EmailSettings} from '@/lib/email';
 import {inviteTeamMember,acceptTeamInvitation,endTeamMembership,createTeamCode,redeemTeamCode,TeamError} from '@/lib/company-team-service';
 const headers={'Cache-Control':'private, no-store'};
 export async function GET(request:Request){
@@ -26,7 +30,10 @@ export async function POST(request:Request){
  if(action==='create_code'||action==='redeem_code'){await consumeRecoveryLimit(database,await sha256('team-code:'+action+':'+user.id),action==='create_code'?20:12);if(action==='create_code')return ok(await createTeamCode(database,user),{headers});return ok(await redeemTeamCode(database,user,str(data.code,40)),{headers});}
  // Consultant title on the office page (lib/company-office.ts).
  if(action==='title'){try{await setTeamTitle(database as never,user.id,str(data.userId,36),str(data.title,20));}catch(e){return error((e as Error).message,403);}return ok({success:true},{headers});}
- if(action==='invite')return ok(await inviteTeamMember(database,user,str(data.email,254)),{headers});
+ if(action==='invite'){const invited=await inviteTeamMember(database,user,str(data.email,254));
+  // The invited person gets an e-mail with the way in (lib/team-emails.ts); a missing mailer never blocks the invitation.
+  try{const office=await database.prepare("SELECT name FROM agencies WHERE owner_id=?").bind(user.id).first<{name:string}>();waitUntil(notifyTeamInvitation({...(env as unknown as EmailSettings),SITE_URL:siteUrl()},{email:invited.email,officeName:office?.name||'estatemarket24',expires:invited.expires}).catch(()=>{}));}catch{}
+  return ok(invited,{headers});}
  if(action==='accept')return ok(await acceptTeamInvitation(database,user,id),{headers});
  if(action==='remove')return ok(await endTeamMembership(database,user,id),{headers});
  if(action==='feature'){

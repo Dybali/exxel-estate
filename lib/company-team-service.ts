@@ -22,7 +22,7 @@ export async function acceptTeamInvitation(db:TeamDatabase,actor:TeamActor,id:st
     JOIN agencies a ON a.id=i.agency_id JOIN users u ON u.id=?
     WHERE i.id=? AND i.invited_email=LOWER(u.email) AND u.email_verified=1
       AND i.expires_at>? AND i.revoked_at IS NULL AND i.accepted_at IS NULL
-      AND a.status='approved' AND a.owner_id<>u.id AND u.role='buyer'
+      AND a.status='approved' AND a.owner_id<>u.id AND u.role IN ('buyer','individual')
       AND NOT EXISTS(SELECT 1 FROM agencies own WHERE own.owner_id=u.id)
       AND NOT EXISTS(SELECT 1 FROM company_team_memberships m WHERE m.invitation_id=i.id)
       AND NOT EXISTS(SELECT 1 FROM company_team_memberships m WHERE m.user_id=u.id AND m.ended_at IS NULL)
@@ -59,7 +59,7 @@ export async function redeemTeamCode(db:TeamDatabase,actor:TeamActor,rawCode:str
  SELECT ?,i.agency_id,?,i.id,? FROM company_team_codes c JOIN company_team_invitations i ON i.id=c.invitation_id
  JOIN agencies a ON a.id=i.agency_id JOIN users u ON u.id=?
  WHERE c.code_hash=? AND i.expires_at>? AND i.revoked_at IS NULL AND i.accepted_at IS NULL AND a.status='approved'
- AND u.email_verified=1 AND u.role='buyer' AND a.owner_id<>u.id
+ AND u.email_verified=1 AND u.role IN ('buyer','individual') AND a.owner_id<>u.id
  AND NOT EXISTS(SELECT 1 FROM agencies own WHERE own.owner_id=u.id)
  AND NOT EXISTS(SELECT 1 FROM company_team_memberships m WHERE m.invitation_id=i.id)
  AND NOT EXISTS(SELECT 1 FROM company_team_memberships m WHERE m.user_id=u.id AND m.ended_at IS NULL)
