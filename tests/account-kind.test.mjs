@@ -26,7 +26,7 @@ test('account type: agents by role, firms by the table or the firm they already 
 
 test('panel: each type has its own short menu; old links still land on the right tab',()=>{
  const ids=(kind,options)=>P.panelTabs(kind,options).map(tab=>tab.id);
- assert.deepEqual(ids('individual'),['genel','favoriler','aramalar','ilanlarim','mesajlar','randevular','teklifler','profil']);
+ assert.deepEqual(ids('individual'),['genel','favoriler','aramalar','ilanlarim','mesajlar','randevular','teklifler','ekip','profil']);
  assert.ok(ids('individual',{hasListings:true}).includes('crm'),'an individual seller sees listing statistics and leads');
  assert.deepEqual(ids('agent'),['genel','ilanlarim','projelerim','mesajlar','crm','firma','ekip','siparisler','profil']);
  assert.equal(P.panelTab('talepler',P.panelTabs('agent')),'crm');assert.equal(P.panelTab('randevular',P.panelTabs('agent')),'crm','appointments live inside CRM for agents');

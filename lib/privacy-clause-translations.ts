@@ -449,6 +449,7 @@ export const privacyClauseWords: Record<string,{de:string;fr:string;en:string;ar
  "Asistan danışman":{de:"Assistenzberater",fr:"Conseiller assistant",en:"Assistant agent",ar:"وسيط مساعد",fa:"دستیار مشاور",ru:"Помощник агента",nl:"Assistent-makelaar"},
  "Geçersiz unvan.":{de:"Ungültiger Titel.",fr:"Fonction invalide.",en:"Invalid title.",ar:"مسمى غير صالح.",fa:"عنوان نامعتبر است.",ru:"Недопустимая должность.",nl:"Ongeldige functie."},
  "Ekip üyesi bulunamadı.":{de:"Teammitglied nicht gefunden.",fr:"Membre de l’équipe introuvable.",en:"Team member not found.",ar:"لم يُعثر على عضو الفريق.",fa:"عضو تیم پیدا نشد.",ru:"Участник команды не найден.",nl:"Teamlid niet gevonden."},
+ "Ofis ekibi":{de:"Büroteam",fr:"Équipe de l’agence",en:"Office team",ar:"فريق المكتب",fa:"تیم دفتر",ru:"Команда агентства",nl:"Kantoorteam"},
  "GEMINI_API_KEY ayarlı değil.":{de:"GEMINI_API_KEY ist nicht gesetzt.",fr:"GEMINI_API_KEY n’est pas configuré.",en:"GEMINI_API_KEY is not set.",ar:"لم يتم ضبط GEMINI_API_KEY.",fa:"GEMINI_API_KEY تنظیم نشده است.",ru:"GEMINI_API_KEY не задан.",nl:"GEMINI_API_KEY is niet ingesteld."},
  "Model":{de:"Modell",fr:"Modèle",en:"Model",ar:"النموذج",fa:"مدل",ru:"Модель",nl:"Model"},
  "İlan sayısı":{de:"Anzahl Inserate",fr:"Nombre d’annonces",en:"Number of listings",ar:"عدد الإعلانات",fa:"تعداد آگهی",ru:"Количество объявлений",nl:"Aantal advertenties"},

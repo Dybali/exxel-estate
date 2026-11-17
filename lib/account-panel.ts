@@ -25,7 +25,8 @@ export function panelTabs(kind: AccountKind, options: { hasListings?: boolean; d
       tab("genel", "Genel Bakış"), tab("favoriler", "Favorilerim"), tab("aramalar", "Aramalarım ve bildirimler"), tab("ilanlarim", "İlanlarım"),
       tab("mesajlar", "Mesajlar"), tab("randevular", "Randevularım"),
       ...(options.hasListings ? [tab("crm", "İlan istatistikleri"), tab("siparisler", "Siparişlerim")] : []),
-      tab("teklifler", "Tekliflerim"), tab("profil", "Profilim"),
+      // Consultants join an estate office here (invitation or office code, components/CompanyTeam.tsx).
+      tab("teklifler", "Tekliflerim"), tab("ekip", "Ofis ekibi"), tab("profil", "Profilim"),
     ];
   }
 }
