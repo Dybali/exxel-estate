@@ -62,7 +62,8 @@ export function Header() {
     { href: "/danismanlar", label: "Danışmanlar", active: path.startsWith("/danismanlar") },
     { href: "/hizmetler", label: "Hizmetler", active: path.startsWith("/hizmetler"), className: "nav-services", icon: Wrench },
     { href: "/muteahhitler", label: "Müteahhitler", active: path.startsWith("/muteahhitler"), className: "nav-services nav-contractors", icon: HardHat },
-    { href: "/paketler", label: "Fiyatlar", active: path === "/paketler" },
+    // Owner's request 2026-11-17: "Sezonluk kiralık" replaces "Fiyatlar" in the menu (prices stay in the footer).
+    { href: "/ilanlar?purpose=gunluk", label: "Sezonluk kiralık", active: false },
     { href: "/blog", label: "Blog & Haberler", active: path.startsWith("/blog") },
   ];
   return <>
