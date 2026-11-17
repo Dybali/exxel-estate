@@ -30,7 +30,11 @@ Tablolar ilk kullanımda: `home_requests`, `home_request_agents`. Gizlilik polit
 
 `lib/valuation.ts`, `app/api/valuation`, `components/ValuationTool.tsx`. Üyelik gerekmez. Yayındaki satılık ve kiralık ilanlardan (diğer para birimleri TCMB kuruyla TL'ye çevrilir): önce ilçe (en az 5 ilan), yoksa il; benzer büyüklük (±%35) yeterliyse onlar. m² fiyatının çeyrekleri → değer aralığı, ortanca → tahmin; kiralıklardan aylık kira, brüt getiri ve geri dönüş süresi. Sayfa bunun ekspertiz olmadığını açıkça yazar.
 
-## Sezonluk kiralık: `/sezonluk-kiralik`
+## Sezonluk kiralık: `/ilanlar?purpose=gunluk`
+
+2026-11-17: `/sezonluk-kiralik` buraya kalıcı olarak yönlenir. Sonuçlar satır satır listelenir (fotoğraf solda, `ListingCard layout="row"`; arama sayfasında Kart / Liste düğmeleri), üstte tatil bölgesi kısayolları ve izin belgesi notu. Aşağıdaki eski açıklama tarihçe içindir.
+
+### Eski tanıtım sayfası
 
 Var olan "Turistik günlük kiralık" (`purpose = gunluk`) ilan türü için tanıtım sayfası: popüler tatil yerleri (`lib/seasonal-rentals.ts`) ve her birinde yayındaki ilan sayısı. 7464 sayılı Kanun gereği 100 güne kadar turizm amaçlı kiralamada Kültür ve Turizm Bakanlığı izin belgesi gerektiği ev sahiplerine hatırlatılır. **Öneri:** günlük kiralık ilan formuna zorunlu "izin belgesi numarası" alanı eklenmeli.
 
