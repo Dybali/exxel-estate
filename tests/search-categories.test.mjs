@@ -103,3 +103,17 @@ test('portal details are validated per category, shown on the page and searchabl
  for(const bad of ['abc','3+1; DROP','100+1'])assert.equal(validRooms(bad),false,bad);
  assert.equal(pgPresentationJson("json_extract(l.presentation,'$.details.site')=?"),"(l.presentation::jsonb->'details'->>'site')=?");
 });
+
+// "Fiyatı düşenler" (/fiyati-dusen-ilanlar → /ilanlar?priceDrop=1): the latest price change is a decrease in the last 30 days.
+test('price drop filter: latest change down within 30 days, same currency and purpose',()=>{
+ const sql=new DatabaseSync(':memory:');
+ sql.exec("CREATE TABLE listings(id TEXT,price INTEGER,currency TEXT,purpose TEXT);CREATE TABLE price_history(id TEXT,listing_id TEXT,old_price INTEGER,new_price INTEGER,currency TEXT,purpose TEXT,changed_at TEXT)");
+ sql.exec("INSERT INTO listings VALUES('down',900,'TRY','satilik'),('old',900,'TRY','satilik'),('up',1100,'TRY','satilik'),('backup',1000,'TRY','satilik'),('none',500,'TRY','satilik')");
+ sql.exec("INSERT INTO price_history VALUES('1','down',1000,900,'TRY','satilik','2026-11-10T00:00:00Z'),('2','old',1000,900,'TRY','satilik','2026-09-01T00:00:00Z'),('3','up',1000,1100,'TRY','satilik','2026-11-10T00:00:00Z'),('4','backup',1000,900,'TRY','satilik','2026-11-05T00:00:00Z'),('5','backup',900,1000,'TRY','satilik','2026-11-12T00:00:00Z')");
+ const now=Date.parse('2026-11-17T00:00:00Z'),{where,values}=extraFilterSql(new URLSearchParams('priceDrop=1'),now);
+ const ids=sql.prepare(`SELECT id FROM listings l WHERE ${where.join(' AND ')} ORDER BY id`).all(...values).map(r=>r.id);
+ assert.deepEqual(ids,['down']);
+ assert.equal(extraFilterMatches(new URLSearchParams('priceDrop=1'),{priceDrop:{from:1000,at:'2026-11-10T00:00:00Z'}},now),true);
+ assert.equal(extraFilterMatches(new URLSearchParams('priceDrop=1'),{},now),false);
+ sql.close();
+});

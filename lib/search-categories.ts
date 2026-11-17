@@ -42,8 +42,9 @@ const CATEGORY_OF_TYPE:Record<string,string>={ticari:'isyeri',arsa:'arsa',bina:'
 export const searchCategory=(category:string,type:string)=>category||(type?CATEGORY_OF_TYPE[type]||'konut':'');
 
 // Filters beyond the plain column equality ones in app/api/listings; shared by the API and the listings page.
-export const EXTRA_FILTERS=['rooms','minNetArea','maxNetArea','minAge','maxAge','minFloor','maxFloor','minFloors','maxFloors','heating','from','days','video','tour','mapped','zoning','deed','credit','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale'] as const;
+export const EXTRA_FILTERS=['priceDrop','rooms','minNetArea','maxNetArea','minAge','maxAge','minFloor','maxFloor','minFloors','maxFloors','heating','from','days','video','tour','mapped','zoning','deed','credit','businessType','tourismType','detailKitchen','detailUsage','detailSite','detailCredit','detailDeed','detailSwap','foreignSale'] as const;
 export type ExtraFilter=typeof EXTRA_FILTERS[number];
+export const PRICE_DROP_DAYS=30;
 type Query={get:(key:string)=>string|null};
 const LAND_OPTIONS={zoning:LAND_ZONING,deed:LAND_DEED,credit:LAND_CREDIT} as const;
 const small=(value:string|null)=>value&&/^\d{1,3}$/.test(value)?Number(value):null;
@@ -66,6 +67,8 @@ export function extraFilterSql(q:Query,now=Date.now()){
  const heating=heatingValues(q);if(heating.length){where.push(`l.heating IN (${heating.map(()=>'?').join(',')})`);values.push(...heating);}
  const from=q.get('from');if(from==='agent'||from==='owner')where.push(`${from==='owner'?'NOT ':''}EXISTS(SELECT 1 FROM users fu WHERE fu.id=l.owner_id AND fu.role='agent')`);
  const since=sinceDays(q,now);if(since){where.push('COALESCE(l.published_at,l.created_at)>=?');values.push(since);}
+ // "Fiyatı düşenler" (/fiyati-dusen-ilanlar): the latest price change was a decrease in the last PRICE_DROP_DAYS days.
+ if(q.get('priceDrop')==='1'){where.push("(SELECT CASE WHEN h.new_price<h.old_price AND h.new_price=l.price AND h.currency=l.currency AND h.purpose=l.purpose AND h.changed_at>=? THEN 1 ELSE 0 END FROM price_history h WHERE h.listing_id=l.id ORDER BY h.changed_at DESC,h.id DESC LIMIT 1)=1");values.push(new Date(now-PRICE_DROP_DAYS*86400000).toISOString());}
  if(q.get('video')==='1')where.push("(COALESCE(json_extract(l.presentation,'$.videoUrl'),'')<>'' OR COALESCE(json_extract(l.presentation,'$.videoId'),'')<>'')");
  if(q.get('tour')==='1')where.push("COALESCE(json_extract(l.presentation,'$.tourUrl'),'')<>''");
  if(q.get('mapped')==='1')where.push('l.latitude IS NOT NULL');
@@ -78,6 +81,7 @@ export function extraFilterSql(q:Query,now=Date.now()){
 }
 
 export function extraFilterMatches(q:Query,listing:Listing,now=Date.now()){
+ if(q.get('priceDrop')==='1'&&!(listing.priceDrop&&Date.parse(listing.priceDrop.at)>=now-PRICE_DROP_DAYS*86400000))return false;
  for(const [param,,field,op,parse] of RANGES){const value=parse(q.get(param));const actual=listing[field];if(value!=null&&!(actual!=null&&(op==='>='?actual>=value:actual<=value)))return false;}
  const rooms=roomList(q);if(rooms.length&&!rooms.includes(listing.rooms||''))return false;
  const heating=heatingValues(q);if(heating.length&&!heating.includes(listing.heating||''))return false;

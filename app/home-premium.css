@@ -240,3 +240,12 @@
 .home-header .brand-tagline,.footer-brand .brand-tagline{display:block;color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 3px #0009}
 @media(max-width:700px){.brand-tagline,.home-header .brand-tagline,.footer-brand .brand-tagline{font-size:10.5px;letter-spacing:0}}
 @media(max-width:360px){.site-header .brand-tagline,.site-header.home-header .brand-tagline{display:block;font-size:10px;max-width:155px;white-space:normal;line-height:1.3}.site-header .brand-lockup{gap:3px}}
+/* Buyer and owner tools on the home page (components/HomeTools.tsx) */
+.home-tools-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.home-tool{display:flex;gap:14px;align-items:flex-start;padding:18px;border:1px solid #dfe7e2;border-radius:14px;background:#fff;text-decoration:none;color:#16494c;transition:border-color .15s,box-shadow .15s}
+.home-tool:hover{border-color:#17676b;box-shadow:0 6px 18px rgba(23,103,107,.08)}
+.home-tool-icon{width:44px;height:44px;border-radius:12px;background:#e7f3ee;color:#17676b;display:grid;place-items:center;flex-shrink:0}
+.home-tool strong{display:block;font-size:15px;margin-bottom:3px}
+.home-tool small{display:block;font-size:12.5px;color:#5c7567;line-height:1.5}
+@media(max-width:900px){.home-tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.home-tools-grid{grid-template-columns:1fr}}

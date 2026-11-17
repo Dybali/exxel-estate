@@ -9,6 +9,8 @@ import {CompanyTeam} from './CompanyTeam';
 import {AppointmentsPanel} from "./Appointments";
 import {EmailPreferences} from "./EmailPreferences";
 import {MyOrders} from "./Orders";
+import {AgentHomeRequests,MyHomeRequests} from "./HomeRequestsPanels";
+import {AgentLanguagesSetting} from "./AgentLanguagesSetting";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
 import {ProjectsPanel} from "./ProjectsPanel";
@@ -126,12 +128,12 @@ export function Dashboard() {
         </>}
         {active === "ilanlarim" && <>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLAN YÖNETİMİ")}</span><h2>{t("İlanlarım")}</h2></div><Link href="/ilan-ver" className="small-primary">{t("İlan ver")}<Plus size={17}/></Link></div>
-          {user.role==="individual"&&!user.isAdmin&&<IndividualPolicyNotice/>}{user.role==="agent"&&user.agent_status==="approved"&&<p className="profile-save-success">{t("Onaylı emlakçı hesabınızla ilanlarınız doğrudan yayımlanır.")}</p>}
+          {user.role==="individual"&&!user.isAdmin&&<IndividualPolicyNotice/>}{user.role==="agent"&&user.agent_status==="approved"&&<p className="profile-save-success">{t("Onaylı emlakçı hesabınızla ilanlarınız doğrudan yayımlanır.")}</p>}{user.role==="agent"&&<AgentLanguagesSetting/>}
           {mine.length ? <ManagedListings listings={mine} onChange={setMine}/> : <div className="panel-empty"><Bookmark size={28}/><h3>{t("Henüz ilan eklemediniz.")}</h3><Link href="/ilan-ver">{t("İlk ilanınızı oluşturun")}<ForwardArrow/></Link></div>}
 
         </>}
         {active === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {active === "aramalar" && <><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}
+        {active === "aramalar" && <><MyHomeRequests/><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&kind==="agent"&&user.agent_status==="approved"&&<AgentHomeRequests/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}
         {active === "ekip" && <CompanyTeam/>}
         {active === "firma" && user.role==='agent' && <><CompanyAccount/><OfficeVerification/></>}
         {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(user.role === "agent" ? user.companyCategory==="developer"?"İnşaat firması":"Emlakçı" : ACCOUNT_KIND_LABELS[kind])}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}
