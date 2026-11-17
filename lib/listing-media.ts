@@ -76,12 +76,15 @@ export function validPhotoVariant(bytes: Uint8Array, type: string, width: PhotoV
 
 // Image addresses for pages. Only our own main listing photos have variants; anything else (outside URLs,
 // demo images) is returned unchanged. The media route answers ?w= with the original when no variant was
-// stored, which is the case for every photo uploaded before variants existed.
+// stored, which is the case for every photo uploaded before variants existed; on Mittwald it now makes the
+// copy instead (lib/image-resize-node.ts). &c=2 gives the copies a new address, because browsers had cached
+// those full-size originals under the old ?w= address for a year (2026-11-17).
+const COPY_VERSION = "2";
 const MAIN_PHOTO_URL = /^\/api\/media\/listings\/[a-f0-9-]+\/[a-f0-9-]+\.(jpg|png|webp)$/;
-export const photoVariantUrl = (url: string, width: PhotoVariantWidth) => (MAIN_PHOTO_URL.test(url) ? `${url}?w=${width}` : url);
+export const photoVariantUrl = (url: string, width: PhotoVariantWidth) => (MAIN_PHOTO_URL.test(url) ? `${url}?w=${width}&c=${COPY_VERSION}` : url);
 
 // srcset with the variants and the original (stored at up to 2560px) as the large candidate.
 export function photoSrcSet(url: string, widths: readonly PhotoVariantWidth[] = PHOTO_VARIANT_WIDTHS) {
   if (!MAIN_PHOTO_URL.test(url)) return undefined;
-  return [...widths.map((width) => `${url}?w=${width} ${width}w`), `${url} 2560w`].join(", ");
+  return [...widths.map((width) => `${url}?w=${width}&c=${COPY_VERSION} ${width}w`), `${url} 2560w`].join(", ");
 }

@@ -33,8 +33,8 @@ test('variant keys derive from the main key; only main listing photos have varia
 
 test('page addresses: ?w= and srcset for our own photos, anything else unchanged',()=>{
  const url=`/api/media/${mainKey}`;
- assert.equal(media.photoVariantUrl(url,640),`${url}?w=640`);
- assert.equal(media.photoSrcSet(url),`${url}?w=640 640w, ${url}?w=1280 1280w, ${url} 2560w`);
+ assert.equal(media.photoVariantUrl(url,640),`${url}?w=640&c=2`);
+ assert.equal(media.photoSrcSet(url),`${url}?w=640&c=2 640w, ${url}?w=1280&c=2 1280w, ${url} 2560w`);
  for(const outside of ['https://images.example.com/a.jpg','/images/demo.webp','/api/media/videos/x/poster.jpg',`${url}?w=640`]){assert.equal(media.photoVariantUrl(outside,640),outside);assert.equal(media.photoSrcSet(outside),undefined);}
 });
 
