@@ -182,3 +182,16 @@ img[src*="/api/media/"]{-webkit-user-drag:none;-webkit-touch-callout:none;-webki
 .svc-home-link svg{color:#0b5e5e}
 .svc-home-link:hover,.svc-home-link:focus-visible{background:#eef7f5;border-color:#eef7f5;color:#084848}
 @media(max-width:1000px){.svc-home-link span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.svc-home-link{padding:8px}}
+
+/* Header on laptop widths (2026-11-18): with "Sezonluk kiralık" in the menu, "İlan Ver" ran off the screen at
+   1280 px (and in longer languages up to 1800 px). Blog stays in the footer, Mesajlarım shows its icon with the
+   name as tooltip and for screen readers; below 1250 px Projeler moves to the footer and the account link to its icon.
+   Checked in all 8 languages from 920 to 2560 px. */
+@media(min-width:901px){
+  .site-header .main-nav>a[href="/blog"]{display:none!important}
+  .site-header .main-messages-link>span{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
+@media(min-width:901px) and (max-width:1250px){
+  .site-header .main-nav>a[href="/projeler"]{display:none!important}
+  .site-header .account-link>span{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
