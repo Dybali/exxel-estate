@@ -15,7 +15,7 @@ Sahibinin isteğiyle, Almanya'daki portallarda (ImmoScout24 "Käuferprovision") 
 - Form: `components/CommissionFields.tsx` (ilan verme ve düzenleme, `PresentationFields` içinde): "Belirtmek istemiyorum / Komisyonsuz / Alıcıdan (Kiracıdan) hizmet bedeli alınır" + oran/ay. Taslaklarda saklanır (`lib/listing-drafts.ts`).
 - Kayıt: `listings.presentation.commission` = `{type:"none"}` veya `{type:"share",value}`; migrasyon yok. Formsuz güncellemeler kayıtlı beyanı korur; ilan türü değişirse düşer.
 - İlan sayfası: fiyatın altında "Alıcı hizmet bedeli: %2 + KDV · ≈ ₺…" veya "Komisyonsuz" (`components/CommissionNote.tsx`).
-- Kart: "Komisyonsuz" rozeti (örnek ilanlarda gösterilmez).
+- Kart: "Komisyonsuz" rozeti. Beş örnek ilan (`lib/listings.ts`, "Örnek ilan" etiketli) özelliği gösterir: Kadıköy daire %2, Beşiktaş bina %1,5, Çankaya kiralık 0,5 ay; Urla kiralık villa ve Şişli ofis komisyonsuz.
 - Arama: `?commission=none`, filtrelerde "Hizmet bedeli (komisyon) › Yalnızca komisyonsuz ilanlar" (`lib/search-categories.ts`).
 
 Beyan ilan verene aittir; site doğrulamaz. Testler: `tests/listing-commission.test.mjs`, `tests/search-categories.test.mjs`.

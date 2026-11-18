@@ -62,21 +62,23 @@ export { CITIES } from "./turkey-locations";
 // Explicitly labelled sample stock requested for category exploration. No real seller.
 const SAMPLE_DESCRIPTION="Bu bir örnek ilandır; kategori ve arama özelliklerini denemek için hazırlanmıştır. Fotoğraflar temsilidir. Fiyat ve konum bilgileri gerçek bir satış veya kiralama teklifi değildir. Bu ilan üzerinden satıcıya mesaj veya randevu gönderilemez.";
 const sample=(id:string,title:string,propertyType:PropertyType,purpose:Purpose,price:number,city:string,district:string,area:number,photos:string[],rooms?:string):Listing=>({id:'sample-'+id,title,description:SAMPLE_DESCRIPTION,propertyType,purpose,price,currency:'TRY',city,district,latitude:city==='İstanbul'?41.0082:city==='İzmir'?38.4237:city==='Antalya'?36.8969:city==='Muğla'?37.2153:city==='Ankara'?39.9334:40.195,longitude:city==='İstanbul'?28.9784:city==='İzmir'?27.1428:city==='Antalya'?30.7133:city==='Muğla'?28.3636:city==='Ankara'?32.8597:29.06,locationPrecision:'province',grossArea:area,rooms,amenities:[],images:photos.map(id=>photo(id)),ownerName:'estatemarket24 · Örnek portföy',source:'demo',status:'published'});
+// Samples that show the agent fee statement (lib/listing-commission.ts): fee, commission-free, tenant share.
+const withCommission=(listing:Listing,commission:NonNullable<NonNullable<Listing['presentation']>['commission']>):Listing=>({...listing,presentation:{floorPlan:'',videoUrl:'',tourUrl:'',commission}});
 const house=['photo-1600607687939-ce8a6c25118c','photo-1600210492486-724fe5c67fb0'];
 const villa=['photo-1613490493576-7fde63acd811','photo-1600607687920-4e2a09cf159d'];
 const office=['photo-1497366754035-f200968a6e72','photo-1497366811353-6870744d04b2'];
 const land=['photo-1500382017468-9049fed747ef','photo-1470770841072-f978cf4d019e'];
 export const PUBLIC_DEMO_LISTINGS:Listing[]=[
- sample('konut-01','Örnek · Geniş balkonlu şehir dairesi','daire','satilik',5250000,'İstanbul','Kadıköy',125,house,'3+1'),
- sample('konut-02','Örnek · Bahçeli kiralık villa','villa','kiralik',65000,'İzmir','Urla',200,villa,'4+1'),
+ withCommission(sample('konut-01','Örnek · Geniş balkonlu şehir dairesi','daire','satilik',5250000,'İstanbul','Kadıköy',125,house,'3+1'),{type:'share',value:2}),
+ withCommission(sample('konut-02','Örnek · Bahçeli kiralık villa','villa','kiralik',65000,'İzmir','Urla',200,villa,'4+1'),{type:'none'}),
  sample('konut-03','Örnek · Günlük kiralık tatil evi','mustakil','gunluk',4500,'Antalya','Kaş',95,villa,'2+1'),
- sample('isyeri-01','Örnek · Merkezi konumda satılık ofis','ticari','satilik',8900000,'İstanbul','Şişli',160,office),
- sample('isyeri-02','Örnek · Aydınlık kiralık çalışma alanı','ticari','kiralik',42000,'Ankara','Çankaya',110,office),
+ withCommission(sample('isyeri-01','Örnek · Merkezi konumda satılık ofis','ticari','satilik',8900000,'İstanbul','Şişli',160,office),{type:'none'}),
+ withCommission(sample('isyeri-02','Örnek · Aydınlık kiralık çalışma alanı','ticari','kiralik',42000,'Ankara','Çankaya',110,office),{type:'share',value:0.5}),
  sample('isyeri-03','Örnek · Devren satılık iş yeri','ticari','devren',2750000,'İzmir','Konak',85,office),
  sample('arsa-01','Örnek · Doğa içinde geniş arsa','arsa','satilik',3800000,'Muğla','Bodrum',850,land),
  sample('arsa-02','Örnek · Yatırım için arazi seçeneği','arsa','satilik',2450000,'İzmir','Seferihisar',1200,land),
  sample('arsa-03','Örnek · Kiralık açık kullanım alanı','arsa','kiralik',25000,'Ankara','Gölbaşı',2400,land),
- sample('bina-01','Örnek · Satılık müstakil bina','bina','satilik',24500000,'İstanbul','Beşiktaş',680,house),
+ withCommission(sample('bina-01','Örnek · Satılık müstakil bina','bina','satilik',24500000,'İstanbul','Beşiktaş',680,house),{type:'share',value:1.5}),
  sample('bina-02','Örnek · Komple kiralık bina','bina','kiralik',180000,'Ankara','Çankaya',950,office),
  sample('bina-03','Örnek · Bahçeli küçük apartman','bina','satilik',16800000,'Bursa','Nilüfer',540,house),
  sample('devremulk-01','Örnek · Tatil bölgesinde devre mülk','devremulk','satilik',650000,'Antalya','Alanya',65,villa,'1+1'),
