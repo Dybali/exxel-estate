@@ -17,12 +17,19 @@ export async function refreshMarketStats(fetcher: typeof fetch = fetch, now = ne
   if (!key) return "skipped";
   const from = new Date(Date.UTC(now.getUTCFullYear() - YEARS_BACK, 0, 1));
   const values: Record<string, Point[]> = {};
-  for (const series of marketSeriesBatches()) {
-    const response = await fetcher(evdsUrl(series, from, now), { headers: { key, Accept: "application/json" }, redirect: "manual", signal: AbortSignal.timeout(30_000) }).catch(() => null);
-    if (!response?.ok) { console.error("market_stats_fetch_failed", response?.status ?? "network"); continue; }
-    Object.assign(values, parseEvds(await response.json().catch(() => null), series));
+  const notes: string[] = [];
+  for (const { series, frequency } of marketSeriesBatches()) {
+    const response = await fetcher(evdsUrl(series, from, now, frequency), { headers: { key, Accept: "application/json" }, redirect: "manual", signal: AbortSignal.timeout(30_000) }).catch(() => null);
+    if (!response?.ok) { notes.push(`${series[0]}: HTTP ${response?.status ?? "network"}`); console.error("market_stats_fetch_failed", response?.status ?? "network"); continue; }
+    const text = await response.text().catch(() => "");
+    let json: unknown = null;
+    try { json = JSON.parse(text); } catch { /* noted below */ }
+    const parsed = parseEvds(json, series);
+    // Keep the start of an answer that gave nothing, to see what TCMB sent (it never contains the key).
+    if (!Object.values(parsed).some((points) => points.length)) notes.push(`${series[0]}: ${text.slice(0, 240)}`);
+    Object.assign(values, parsed);
   }
-  const snapshot = buildSnapshot(values, now);
+  const snapshot = buildSnapshot(values, now, notes);
   if (!snapshotUsable(snapshot)) { console.error("market_stats_incomplete"); return "incomplete"; }
   await writeMarketSnapshot(marketDb(), snapshot);
   return "updated";
@@ -43,7 +50,8 @@ export async function marketStatsJob() {
 /** What the page shows; with a key but no snapshot yet (first day), one background fetch per hour. */
 export async function currentMarketView(): Promise<MarketView | null> {
   const stored = await readMarketSnapshot(marketDb()).catch(() => null);
-  if (!snapshotUsable(stored) && evdsKey() && Date.now() - lastAttempt > 3600_000) {
+  // No snapshot yet, or the monthly indices are missing: one background fetch per hour.
+  if ((!snapshotUsable(stored) || !stored.turkey.index.length) && evdsKey() && Date.now() - lastAttempt > 3600_000) {
     lastAttempt = Date.now();
     waitUntil(refreshMarketStats().catch((cause) => console.error("market_stats_failed", String(cause))));
   }

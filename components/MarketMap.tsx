@@ -22,7 +22,8 @@ const COLUMNS: { key: Metric; label: string }[] = [
   { key: "rent", label: "m² kira (aylık)" },
   { key: "grossYield", label: "Brüt kira getirisi" },
 ];
-const COLORS = ["#e8f1ec", "#c7e0d3", "#9fcab5", "#6fae93", "#3f8b70", "#1d5f4d"];
+// Light yellow-green to deep green (like the big portals' market maps), on a sea-blue background.
+const COLORS = ["#eef3d6", "#d3e7b0", "#a8d38f", "#72b673", "#3f925c", "#1c6b48"];
 const normalize = (value: string) => value.toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g, "i");
 
 function periodLabel(period: string | null, locale: string) {

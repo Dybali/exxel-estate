@@ -16,9 +16,12 @@ test('TCMB series codes (taken from the EVDS series lists)',()=>{
  assert.equal(m.priceSeries('Iğdır'),'TP.BIRIMFIYAT.IGDIR');assert.equal(m.priceSeries('Muğla'),'TP.BIRIMFIYAT.MUGLA');
  assert.equal(m.rentSeries('İstanbul'),'TP.BK.ISTANBUL');assert.equal(m.rentSeries('Afyonkarahisar'),'TP.BK.AFYONKARAHISAR');
  assert.equal(m.rentSeries('Kahramanmaraş'),'TP.BK.KAHRAMANMARAS');assert.equal(m.rentSeries('Şanlıurfa'),'TP.BK.SANLIURFA');
- const all=m.marketSeriesBatches().flat();
+ const all=m.marketSeriesBatches().flatMap(b=>b.series);
  assert.equal(all.length,4+81*2+19*2);assert.equal(new Set(all).size,all.length);
- assert.ok(m.marketSeriesBatches().every(b=>b.length<=20));
+ assert.ok(m.marketSeriesBatches().every(b=>b.series.length<=20));
+ // One frequency per request: quarterly unit prices and rents, monthly indices.
+ for(const b of m.marketSeriesBatches())assert.ok(b.series.every(s=>/^TP\.(BIRIMFIYAT|BK)\./.test(s)===(b.frequency===6)),b.series[0]);
+ assert.equal(m.evdsUrl(['TP.KFE.TR'],new Date('2021-01-05'),new Date('2026-11-18'),5).endsWith('&type=json&frequency=5'),true);
  assert.equal(m.evdsUrl(['TP.KFE.TR','TP.BK.TR'],new Date('2021-01-05'),new Date('2026-11-18')),'https://evds3.tcmb.gov.tr/igmevdsms-dis/series=TP.KFE.TR-TP.BK.TR&startDate=05-01-2021&endDate=18-11-2026&type=json');
 });
 

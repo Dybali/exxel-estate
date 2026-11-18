@@ -42,25 +42,28 @@ export type MarketSnapshot = {
   turkey: { price: Point[]; rent: Point[]; index: Point[]; rentIndex: Point[] };
   provinces: Record<string, { price: Point[]; rent: Point[] }>;
   regions: Record<string, { index: Point[]; rentIndex: Point[] }>;
+  /** Batches that came back empty or failed (status or the start of the answer), for /api/market. */
+  notes?: string[];
 };
 
-/** Every series the snapshot needs, in request batches (the EVDS URL takes a dash-separated list). */
-export function marketSeriesBatches(size = 20): string[][] {
-  const all = [
-    "TP.BIRIMFIYAT.TR", "TP.BK.TR", "TP.KFE.TR", "TP.YKKE.TR",
-    ...MARKET_PROVINCES.flatMap((province) => [priceSeries(province), rentSeries(province)]),
-    ...Object.keys(MARKET_REGIONS).flatMap((region) => [`TP.KFE.${region}`, `TP.YKKE.${region}`]),
-  ];
-  const batches: string[][] = [];
-  for (let index = 0; index < all.length; index += size) batches.push(all.slice(index, index + size));
+/** EVDS frequency codes: 5 monthly, 6 quarterly. A request must not mix them (the answer follows one frequency). */
+export const EVDS_MONTHLY = 5, EVDS_QUARTERLY = 6;
+export type SeriesBatch = { series: string[]; frequency: number };
+/** Every series the snapshot needs, in request batches of one frequency (the EVDS URL takes a dash-separated list). */
+export function marketSeriesBatches(size = 20): SeriesBatch[] {
+  const quarterly = ["TP.BIRIMFIYAT.TR", "TP.BK.TR", ...MARKET_PROVINCES.flatMap((province) => [priceSeries(province), rentSeries(province)])];
+  const monthly = ["TP.KFE.TR", "TP.YKKE.TR", ...Object.keys(MARKET_REGIONS).flatMap((region) => [`TP.KFE.${region}`, `TP.YKKE.${region}`])];
+  const batches: SeriesBatch[] = [];
+  for (const [all, frequency] of [[quarterly, EVDS_QUARTERLY], [monthly, EVDS_MONTHLY]] as const)
+    for (let index = 0; index < all.length; index += size) batches.push({ series: all.slice(index, index + size), frequency });
   return batches;
 }
 
 const two = (value: number) => String(value).padStart(2, "0");
 const evdsDate = (date: Date) => `${two(date.getUTCDate())}-${two(date.getUTCMonth() + 1)}-${date.getUTCFullYear()}`;
 /** EVDS3 request URL: parameters are part of the path (no "?"), the key goes in the "key" header. */
-export function evdsUrl(series: string[], from: Date, to: Date) {
-  return `${EVDS_BASE}series=${series.join("-")}&startDate=${evdsDate(from)}&endDate=${evdsDate(to)}&type=json`;
+export function evdsUrl(series: string[], from: Date, to: Date, frequency?: number) {
+  return `${EVDS_BASE}series=${series.join("-")}&startDate=${evdsDate(from)}&endDate=${evdsDate(to)}&type=json${frequency ? `&frequency=${frequency}` : ""}`;
 }
 
 /** "2026-10", "2026-Q3", "2026-3" (quarter), "01-10-2026" → "2026-10" for months, "2026-Q3" for quarters. */
@@ -95,10 +98,10 @@ export function parseEvds(json: unknown, series: string[]): Record<string, Point
   return out;
 }
 
-export function buildSnapshot(values: Record<string, Point[]>, now = new Date()): MarketSnapshot {
+export function buildSnapshot(values: Record<string, Point[]>, now = new Date(), notes: string[] = []): MarketSnapshot {
   const get = (code: string) => values[code] || [];
   return {
-    updatedAt: now.toISOString(),
+    updatedAt: now.toISOString(), notes,
     turkey: { price: get("TP.BIRIMFIYAT.TR"), rent: get("TP.BK.TR"), index: get("TP.KFE.TR"), rentIndex: get("TP.YKKE.TR") },
     provinces: Object.fromEntries(MARKET_PROVINCES.map((province) => [province, { price: get(priceSeries(province)), rent: get(rentSeries(province)) }])),
     regions: Object.fromEntries(Object.keys(MARKET_REGIONS).map((region) => [region, { index: get(`TP.KFE.${region}`), rentIndex: get(`TP.YKKE.${region}`) }])),

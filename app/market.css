@@ -11,13 +11,14 @@
 .market-metric-tabs button{border:1px solid #d6e1dc;background:#fff;color:#1f4245;border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:650;cursor:pointer}
 .market-metric-tabs button.active{background:#123f42;border-color:#123f42;color:#fff}
 .market-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px}
-.market-map-canvas{position:relative;background:#f3f7f5;display:grid;place-items:center;min-height:380px;padding-bottom:34px}
+.market-map-canvas{position:relative;background:linear-gradient(180deg,#d7eaf2,#e6f1f5);display:grid;place-items:center;min-height:380px;padding-bottom:34px}
 .market-map-canvas svg{width:100%;height:auto;padding:12px}
-.market-province{stroke:#fff;stroke-width:1;cursor:pointer;transition:opacity .15s}
-.market-province:hover,.market-province:focus-visible{opacity:.78;outline:none;stroke:#123f42;stroke-width:1.6}
+.market-province{stroke:#ffffff;stroke-width:1.1;stroke-linejoin:round;cursor:pointer;transition:filter .15s}
+.market-map-canvas svg>g:first-child{filter:drop-shadow(0 2px 3px #0b3d3f33)}
+.market-province:hover,.market-province:focus-visible{filter:brightness(.9);outline:none;stroke:#123f42;stroke-width:1.6}
 .market-province.selected{stroke:#123f42;stroke-width:2.4}
 .market-label{pointer-events:none}
-.market-label rect{fill:#fff;stroke:#c9d6d0;stroke-width:.8}
+.market-label rect{fill:#fff;stroke:#b9cdc4;stroke-width:.8;filter:drop-shadow(0 1px 1.5px #0b3d3f40)}
 .market-label text{font-size:9.5px;font-weight:700;fill:#173d38}
 .market-label.selected rect{fill:#123f42;stroke:#123f42}.market-label.selected text{fill:#fff}
 .market-legend{position:absolute;right:12px;bottom:10px;display:flex;align-items:center;gap:3px;font-size:11px;color:#5d716c;background:#ffffffe0;padding:4px 8px;border-radius:6px}
