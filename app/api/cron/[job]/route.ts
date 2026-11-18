@@ -27,9 +27,9 @@ async function run(request: Request, { params }: Context) {
     return reply({ job, ok, backup }, ok ? 200 : 500);
   }
   const jobs = dailyJobs(settings);
-  const [promotions, digest, videos, backup, translations, officeExpiry] = await Promise.all([jobs.promotions, jobs.digest, jobs.videos, jobs.backup, jobs.translations, jobs.officeExpiry]);
+  const [promotions, digest, videos, backup, translations, officeExpiry, marketStats] = await Promise.all([jobs.promotions, jobs.digest, jobs.videos, jobs.backup, jobs.translations, jobs.officeExpiry, jobs.marketStats]);
   const ok = promotions && digest && videos && backup.status !== "failed";
-  return reply({ job, ok, promotions, digest, videos, backup, translations, officeExpiry }, ok ? 200 : 500);
+  return reply({ job, ok, promotions, digest, videos, backup, translations, officeExpiry, marketStats }, ok ? 200 : 500);
 }
 
 type Context = { params: Promise<{ job: string }> };

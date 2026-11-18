@@ -28,7 +28,7 @@ export default {
     const jobs = dailyJobs(settings);
     ctx.waitUntil(jobs.promotions);
     ctx.waitUntil(jobs.digest);
-    ctx.waitUntil(jobs.translations);ctx.waitUntil(jobs.officeExpiry);
+    ctx.waitUntil(jobs.translations);ctx.waitUntil(jobs.officeExpiry);ctx.waitUntil(jobs.marketStats);
   },
   async fetch(incoming: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     const request=withRequestContext(incoming);

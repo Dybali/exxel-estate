@@ -34,6 +34,16 @@ export const seoCopy: Record<string, Copy> = {
     ru: ["Калькуляторы недвижимости: рост аренды, пошлина ТАПУ | estatemarket24", "Рассчитайте повышение аренды по индексу цен, пошлину за ТАПУ и расходы на покупку жилья в Турции."],
     nl: ["Vastgoedcalculators: huurverhoging, overdrachtskosten | estatemarket24", "Bereken de huurverhoging op basis van de inflatie, de aktekosten (tapu harcı) en de bijkomende kosten bij aankoop in Turkije."],
   },
+  "/emlak-piyasasi": {
+    tr: ["Türkiye Konut Piyasası: İl İl m² Fiyatları ve Kira Getirisi | estatemarket24", "81 ilde konut m² satış fiyatı, m² kira, brüt kira getirisi ve yıllık değişim haritası. Kaynak: TCMB."],
+    de: ["Immobilienmarkt Türkei: Quadratmeterpreise und Mietrendite nach Provinz | estatemarket24", "Karte der Wohnungspreise pro m², Mieten, Bruttomietrenditen und Jahresveränderung in 81 Provinzen. Quelle: Türkische Zentralbank."],
+    fr: ["Marché immobilier en Turquie : prix au m² et rendement locatif par province | estatemarket24", "Carte des prix au m², loyers, rendements locatifs bruts et variation annuelle dans 81 provinces. Source : Banque centrale de Turquie."],
+    en: ["Türkiye Housing Market: Price per m² and Rental Yield by Province | estatemarket24", "Map of home prices per m², rents, gross rental yields and yearly change in all 81 provinces. Source: Central Bank of Türkiye."],
+    ar: ["سوق العقارات في تركيا: سعر المتر المربع وعائد الإيجار حسب الولاية | estatemarket24", "خريطة أسعار المساكن للمتر المربع والإيجارات والعائد الإيجاري الإجمالي والتغير السنوي في 81 ولاية. المصدر: البنك المركزي التركي."],
+    fa: ["بازار مسکن ترکیه: قیمت هر متر مربع و بازده اجاره به تفکیک استان | estatemarket24", "نقشهٔ قیمت هر متر مربع مسکن، اجاره، بازده ناخالص اجاره و تغییر سالانه در ۸۱ استان. منبع: بانک مرکزی ترکیه."],
+    ru: ["Рынок жилья Турции: цена за м² и арендная доходность по провинциям | estatemarket24", "Карта цен на жильё за м², аренды, валовой арендной доходности и годового изменения в 81 провинции. Источник: Центральный банк Турции."],
+    nl: ["Woningmarkt Turkije: prijs per m² en huurrendement per provincie | estatemarket24", "Kaart van woningprijzen per m², huren, bruto huurrendement en jaarlijkse verandering in 81 provincies. Bron: Centrale Bank van Turkije."],
+  },
   "/konut-degerleme": {
     tr: ["Konut Değerleme: Evim Ne Eder? | estatemarket24", "Evinizin tahmini satış değerini ve kira getirisini bölgedeki yayındaki ilanlarla karşılaştırarak ücretsiz hesaplayın."],
     de: ["Immobilienbewertung: Was ist meine Wohnung wert? | estatemarket24", "Geschätzten Verkaufswert und Mietrendite Ihrer Immobilie in der Türkei kostenlos mit Angeboten in der Umgebung vergleichen."],

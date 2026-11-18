@@ -1,0 +1,56 @@
+/* /emlak-piyasasi (components/MarketMap.tsx): TCMB housing prices by province. */
+.market-body{display:grid;gap:22px;padding-top:24px}
+.market-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.market-cards article{background:#fff;border:1px solid #dfe7e3;border-radius:10px;padding:16px 16px 14px;display:grid;gap:4px;min-width:0}
+.market-cards span{color:#5d716c;font-size:13px;font-weight:650}
+.market-cards strong{font-size:clamp(20px,2.2vw,26px);color:#123f42;letter-spacing:-.4px;overflow-wrap:anywhere}
+.market-cards small{color:#7b8a86;font-size:12px}
+.market-page .up{color:#1d7a55}.market-page .down{color:#b4402f}
+.market-map-card,.market-table-card,.market-notes,.market-pending{background:#fff;border:1px solid #dfe7e3;border-radius:12px;overflow:hidden}
+.market-metric-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid #e6ece9}
+.market-metric-tabs button{border:1px solid #d6e1dc;background:#fff;color:#1f4245;border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:650;cursor:pointer}
+.market-metric-tabs button.active{background:#123f42;border-color:#123f42;color:#fff}
+.market-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px}
+.market-map-canvas{position:relative;background:#f3f7f5;display:grid;place-items:center;min-height:380px;padding-bottom:34px}
+.market-map-canvas svg{width:100%;height:auto;padding:12px}
+.market-province{stroke:#fff;stroke-width:1;cursor:pointer;transition:opacity .15s}
+.market-province:hover,.market-province:focus-visible{opacity:.78;outline:none;stroke:#123f42;stroke-width:1.6}
+.market-province.selected{stroke:#123f42;stroke-width:2.4}
+.market-label{pointer-events:none}
+.market-label rect{fill:#fff;stroke:#c9d6d0;stroke-width:.8}
+.market-label text{font-size:9.5px;font-weight:700;fill:#173d38}
+.market-label.selected rect{fill:#123f42;stroke:#123f42}.market-label.selected text{fill:#fff}
+.market-legend{position:absolute;right:12px;bottom:10px;display:flex;align-items:center;gap:3px;font-size:11px;color:#5d716c;background:#ffffffe0;padding:4px 8px;border-radius:6px}
+.market-legend i{width:18px;height:10px;border-radius:2px;display:block}
+.market-legend span{margin:0 4px}
+.market-detail{border-inline-start:1px solid #e6ece9;padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.market-detail h2{margin:0;font-size:24px;color:#123f42}
+.market-detail dl{margin:0;display:grid;gap:0}
+.market-detail dl>div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #eef2f0;font-size:14px}
+.market-detail dt{color:#5d716c}.market-detail dd{margin:0;font-weight:700;color:#1f3b38;text-align:end}
+.market-example{font-size:13px;color:#5d716c;background:#f3f8f6;border-radius:8px;padding:9px 11px}.market-example strong{color:#123f42}
+.market-trend-box>span{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:650;color:#1f4245}
+.market-trend{width:100%;height:auto;margin-top:4px}
+.market-trend-area{fill:#1d5f4d1f}.market-trend-line{fill:none;stroke:#1d5f4d;stroke-width:2.2}
+.market-trend text{font-size:10px;fill:#7b8a86}
+.market-listings-link{margin-top:auto;display:flex;align-items:center;justify-content:space-between;background:#123f42;color:#fff;border-radius:8px;padding:12px 14px;font-weight:700;font-size:14px}
+.market-listings-link:hover{background:#0b5e5e;color:#fff}
+.market-table-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-bottom:1px solid #e6ece9;flex-wrap:wrap}
+.market-table-head h2{margin:0;font-size:19px;color:#123f42}
+.market-table-head .city-map-search{min-width:220px;border-radius:8px}
+.market-table-wrap{overflow-x:auto;max-height:560px;overflow-y:auto}
+.market-table{width:100%;border-collapse:collapse;font-size:14px}
+.market-table th{position:sticky;top:0;background:#f6f9f8;text-align:start;padding:10px 12px;color:#5d716c;font-size:12.5px;font-weight:700;white-space:nowrap;z-index:1}
+.market-table th button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0}
+.market-table td{padding:9px 12px;border-top:1px solid #eef2f0;white-space:nowrap}
+.market-table tbody tr{cursor:pointer}.market-table tbody tr:hover,.market-table tbody tr.selected{background:#f1f7f4}
+.market-row-name{border:0;background:none;padding:0;font:inherit;font-weight:700;color:#123f42;cursor:pointer}
+.market-notes{padding:18px 20px}.market-notes h2{display:flex;align-items:center;gap:8px;font-size:17px;margin:0 0 8px;color:#123f42}
+.market-notes ul{margin:0;padding-inline-start:20px;display:grid;gap:6px;color:#4d5f5b;font-size:13.5px;line-height:1.55}
+.market-notes a{text-decoration:underline}
+.market-updated{margin:10px 0 0;color:#7b8a86;font-size:12.5px}
+.market-pending{padding:28px;display:grid;gap:10px;justify-items:start}.market-pending h2{margin:0;color:#123f42}.market-pending p{margin:0;color:#4d5f5b;max-width:640px}
+@media(max-width:1100px){.market-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.market-map-layout{grid-template-columns:1fr}.market-detail{border-inline-start:0;border-top:1px solid #e6ece9}}
+@media(max-width:600px){.market-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.market-cards article:last-child{grid-column:1/-1}.market-map-canvas{min-height:220px;padding-bottom:40px}.market-table-head .city-map-search{min-width:0;width:100%}}
+.market-table th.active{color:#123f42;background:#e9f3ee}

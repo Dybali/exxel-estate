@@ -256,7 +256,7 @@ test('daily job: the backup is isolated, reported and alerts on failure; Cloudfl
   './health':{runHealthChecks:async()=>[],alertOnFailure:async(checks)=>{alerts.push(checks);return 'alerted';}},
   './external-r2':{externalR2Ready:()=>true,headExternalImage:async()=>null},
   './listing-video-server':{videoFeatureEnabled:()=>false,cleanupVideos:async()=>({}),videoStorageFromEnv:()=>null},
-  '@/lib/db-backup':{runDatabaseBackup:over},'./translation-runtime':{translationBatchJob:async()=>({poll:null,submit:null}),translationBatchPoll:async()=>null},'./ai-limits-server':{aiUsageJob:async()=>null},
+  '@/lib/db-backup':{runDatabaseBackup:over},'./translation-runtime':{translationBatchJob:async()=>({poll:null,submit:null}),translationBatchPoll:async()=>null},'./ai-limits-server':{aiUsageJob:async()=>null},'./market-stats-server':{marketStatsJob:async()=>true},
  });
  const error=console.error;console.error=()=>{};
  try{

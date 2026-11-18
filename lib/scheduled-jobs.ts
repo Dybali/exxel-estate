@@ -15,6 +15,7 @@ import { aiUsageJob } from "./ai-limits-server";
 import { emailLayout, emailReady, sendEmail } from "./email";
 import { officeExpiryJob } from "./office-check";
 import { revokeOffice } from "./office-decision";
+import { marketStatsJob } from "./market-stats-server";
 
 // The scheduled jobs, shared by the Cloudflare cron triggers (build/sites-worker.ts scheduled())
 // and the protected HTTP endpoint /api/cron/[job] that a Mittwald cronjob calls.
@@ -73,6 +74,8 @@ export function dailyJobs(settings: JobSettings) {
     // XML-imported listings into every language at the Gemini batch price (lib/translation-batch.ts).
     translations: translationBatchJob(),
     // Agent licences: reminder 30 days before expiry, approval withdrawn after it (lib/office-check.ts).
+    // TCMB housing prices and rents for /emlak-piyasasi (lib/market-stats-server.ts; needs EVDS_API_KEY).
+    marketStats: marketStatsJob(),
     officeExpiry: officeExpiryJob(db() as never, (to, subject, lines) => emailReady(withSiteUrl(settings)) ? sendEmail(withSiteUrl(settings), { to, subject, html: emailLayout({ title: "Yetki belgenizin süresi doluyor", titleEn: "Your licence is expiring", lines, action: { href: siteUrl() + "/hesabim?tab=firma", label: "Belgeyi yükle / Upload" } }), text: lines.join(" ") }) : Promise.resolve(), (userId, note) => revokeOffice(db() as never, userId, note, { id: "system", name: "Otomatik doğrulama" })).then((result) => { if (result.reminded || result.expired) console.info("office_expiry", JSON.stringify(result)); return true; }, (cause) => { console.error("office_expiry_failed", String(cause)); return false; }),
   };
 }
