@@ -3,7 +3,9 @@ import { body, currentUser, db, error, listingById, now, ok, parseListing, sameO
 
 export async function GET(request:Request) {
   const user=await currentUser(request);
-  if(!user) return error("Giriş gerekli.",401);
+  // Visitors who are not signed in simply have no favourites (every listing card asks, so a 401 here
+  // filled the browser console with errors on each page).
+  if(!user) return ok({ids:[],listings:[]},{headers:{"Cache-Control":"private, no-store"}});
   const rows=await db().prepare("SELECT listing_id FROM favorites WHERE user_id=? ORDER BY created_at DESC LIMIT 100").bind(user.id).all<{listing_id:string}>();
   const ids=(rows.results||[]).map((row)=>row.listing_id);
   const demo=new Map(PUBLIC_DEMO_LISTINGS.map((listing)=>[listing.id,listing]));

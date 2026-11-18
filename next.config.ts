@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
       "@/lib/photo-watermark": "./lib/photo-watermark-node.ts",
       // Small WebP copies of old listing photos made on first request (lib/image-resize.ts).
       "@/lib/image-resize": "./lib/image-resize-node.ts",
+      // Gzip for large route handler responses (lib/response-compression.ts).
+      "@/lib/response-compression": "./lib/response-compression-node.ts",
       // Browser bundle: one language at a time instead of the whole dictionary (lib/i18n-runtime.ts).
       "@/lib/i18n-dictionary": { browser: "./lib/i18n-runtime.ts" },
     } },

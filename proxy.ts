@@ -6,7 +6,17 @@ import { applySecurityHeaders, NOINDEX_HOST_TAG, temporaryHost } from "./lib/res
 // Request context for the standard Next.js server (Mittwald container): pass the language and the path
 // to server components, replacing any client-supplied values, and add the basic security
 // headers. On Cloudflare build/sites-worker.ts does the same, so running both is harmless.
+// Old addresses that moved for good: answer with a real 308 here instead of the page-level redirect,
+// which a streamed page can only send as a 200 with a meta refresh.
+const MOVED: Record<string, string> = { "/sezonluk-kiralik": "/ilanlar?purpose=gunluk", "/fiyati-dusen-ilanlar": "/ilanlar?priceDrop=1" };
+
 export function proxy(request: NextRequest) {
+  const moved = MOVED[request.nextUrl.pathname.replace(/\/+$/, "")];
+  if (moved) {
+    const target = new URL(moved, request.url);
+    request.nextUrl.searchParams.forEach((value, key) => { if (!target.searchParams.has(key)) target.searchParams.set(key, value); });
+    return NextResponse.redirect(target, 308);
+  }
   const lang = request.nextUrl.searchParams.get("lang");
   const headers = new Headers(request.headers);
   // ?lang, the saved choice, then the browser's languages (lib/locale-negotiation.ts).
