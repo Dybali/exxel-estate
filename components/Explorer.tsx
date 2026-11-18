@@ -19,6 +19,7 @@ import {SUBTYPES} from "@/lib/property-subtypes";
 import {detailsFor,FOREIGN_SALE} from "@/lib/listing-details";
 import {CurrencyNotice,CurrencySwitch,useDisplayCurrency} from "./DisplayCurrency";
 import {SEASON_DESTINATIONS,seasonHref} from "@/lib/seasonal-rentals";
+import {loadAccount} from "@/lib/account-client";
 import {FOREIGN_BUYER_PATH} from "@/lib/citizenship-guide";
 import {emptyFilters,explorerQuery,readFilters,type Filters} from "@/lib/explorer-query";
 import type {ListingSearchResult} from "@/lib/listing-search";
@@ -103,7 +104,8 @@ export function Explorer({ initial }: { initial?: ExplorerInitial }) {
     window.history.replaceState(window.history.state, "", `/ilanlar${next ? `?${next}` : ""}`);
   }, [query, map]);
   useEffect(() => {
-    const refresh=()=>fetch("/api/discovery",{cache:"no-store"}).then(r=>r.ok?apiJson<{searches?:SavedSearch[]}>(r):{searches:[]}).then(data=>setSaved(data.searches||[])).catch(()=>{});
+    // Saved searches belong to members; visitors who are not signed in are not asked (it only produced a 401).
+    const refresh=()=>loadAccount().then(account=>account.user?fetch("/api/discovery",{cache:"no-store"}).then(r=>r.ok?apiJson<{searches?:SavedSearch[]}>(r):{searches:[]}):{searches:[] as SavedSearch[]}).then(data=>setSaved(data.searches||[])).catch(()=>{});
     refresh();window.addEventListener("salesorrent:discovery-changed",refresh);return()=>window.removeEventListener("salesorrent:discovery-changed",refresh);
   }, []);
   useEffect(() => {
