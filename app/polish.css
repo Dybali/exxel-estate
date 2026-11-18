@@ -200,3 +200,14 @@ img[src*="/api/media/"]{-webkit-user-drag:none;-webkit-touch-callout:none;-webki
 .market-shortcuts,.market-home .market-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:1050px){.market-shortcuts,.market-home .market-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.market-shortcuts,.market-home .market-shortcuts{grid-template-columns:1fr}}
+
+/* Agent service fee (lib/listing-commission.ts): form block, line under the price, card badge. */
+.commission-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.commission-options .check-row{border:1px solid #d8e2df;border-radius:999px;padding:8px 14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:14px}
+.commission-options .check-row.active{border-color:#0b5e5e;background:#eef7f5;color:#0b4a4a;font-weight:650}
+.commission-value{display:grid;gap:6px;max-width:280px;margin-top:12px;font-weight:600}
+.commission-value small{color:#6a7b77;font-weight:500}
+.commission-note{display:flex;align-items:center;gap:7px;margin:8px 0 0;color:#3f5450;font-size:13.5px}
+.commission-note svg{flex:none;color:#0b5e5e}
+.commission-note.free{color:#1d7a55;font-weight:700}.commission-note.free svg{color:#1d7a55}
+.listing-photo-meta .listing-commission-free{background:#1d7a55;color:#fff}

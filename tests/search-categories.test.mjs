@@ -117,3 +117,20 @@ test('price drop filter: latest change down within 30 days, same currency and pu
  assert.equal(extraFilterMatches(new URLSearchParams('priceDrop=1'),{},now),false);
  sql.close();
 });
+
+test('commission=none finds sale and rent listings stated as commission-free (SQL and demo matcher)',()=>{
+ const db=new DatabaseSync(':memory:');
+ db.exec("CREATE TABLE listings(id TEXT,purpose TEXT,presentation TEXT)");
+ const add=db.prepare('INSERT INTO listings VALUES(?,?,?)');
+ add.run('free-sale','satilik',JSON.stringify({commission:{type:'none'}}));
+ add.run('fee-sale','satilik',JSON.stringify({commission:{type:'share',value:2}}));
+ add.run('free-rent','kiralik',JSON.stringify({commission:{type:'none'}}));
+ add.run('daily','gunluk',JSON.stringify({commission:{type:'none'}}));
+ add.run('unstated','satilik','{}');
+ const f=extraFilterSql(query({commission:'none'}));
+ assert.deepEqual(db.prepare(`SELECT id FROM listings l WHERE ${f.where.join(' AND ')} ORDER BY id`).all(...f.values).map(r=>r.id),['free-rent','free-sale']);
+ assert.equal(extraFilterSql(query({commission:'x'})).where.length,0);
+ assert.equal(extraFilterMatches(query({commission:'none'}),{purpose:'satilik',presentation:{commission:{type:'none'}}}),true);
+ assert.equal(extraFilterMatches(query({commission:'none'}),{purpose:'gunluk',presentation:{commission:{type:'none'}}}),false);
+ assert.equal(extraFilterMatches(query({commission:'none'}),{purpose:'satilik',presentation:{}}),false);
+});

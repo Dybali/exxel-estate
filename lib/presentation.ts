@@ -3,9 +3,12 @@ import {subtypeFrom} from './property-subtypes';
 import {detailsFrom,type ListingDetails} from './listing-details';
 import {validVideoId} from './listing-video';
 import {validatePanoramas,type PanoramaScene} from './panoramas';
+import {commissionFrom,type Commission} from './listing-commission';
 export type Presentation={floorPlan:string;videoUrl:string;tourUrl:string;
  /** Language of the title and description when it is not Turkish (lib/listing-language.ts). */
  language?:import('./listing-language').ListingLanguage;gardenArea?:number;plotArea?:number;panoramas?:PanoramaScene[];eidsNumber?:string;land?:LandDetails;businessType?:string;tourismType?:string;details?:ListingDetails;videoId?:string;
+ /** Agent service fee statement (lib/listing-commission.ts). */
+ commission?:Commission;
  /** Map pin precision (lib/listing-location.ts); `exact` (the private pin) never leaves the server. */
  location?:import('./listing-location').StoredLocation;
  /** Neighbourhood block (lib/neighborhood-info.ts), written by the server only. */
@@ -31,5 +34,6 @@ export function presentationFrom(data:Record<string,unknown>,ownerId:string):Pre
  const language=data.language==null||data.language===''?'tr':data.language;if(typeof language!=='string'||!/^(tr|de|fr|en|ar|fa|ru|nl)$/.test(language))throw Error('İlan dilini seçin.');
  // Uploaded video (listing_videos id, docs/listing-videos.md); ownership is checked by the listing routes.
  const videoId=data.videoId==null?'':String(data.videoId);if(videoId&&!validVideoId(videoId))throw Error('Video bulunamadı. Videoyu yeniden yükleyin.');
- return {floorPlan,videoUrl,tourUrl:tourUrl?tourLink(tourUrl)!:'',gardenArea,plotArea,panoramas:validatePanoramas(data.panoramas,ownerId),...(eids?{eidsNumber:eids}:{}),...(land?{land}:{}),...subtypeFrom(data),...(details?{details}:{}),...(videoId?{videoId}:{}),...(language!=='tr'?{language:language as Presentation['language']}:{})};
+ const commission=commissionFrom(data);
+ return {floorPlan,videoUrl,tourUrl:tourUrl?tourLink(tourUrl)!:'',gardenArea,plotArea,panoramas:validatePanoramas(data.panoramas,ownerId),...(eids?{eidsNumber:eids}:{}),...(land?{land}:{}),...subtypeFrom(data),...(details?{details}:{}),...(videoId?{videoId}:{}),...(commission?{commission}:{}),...(language!=='tr'?{language:language as Presentation['language']}:{})};
 }

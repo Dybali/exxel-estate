@@ -74,7 +74,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
   const amenities=Object.hasOwn(data,"amenities")?Array.isArray(data.amenities)?data.amenities.filter((item):item is string=>typeof item==="string"&&AMENITIES.includes(item)).slice(0,20):null:JSON.parse(String(row.amenities||"[]")) as string[];
   if(!amenities)return error("Özellikleri kontrol edin.");
   if(!validRooms(data.rooms))return error("Oda sayısını 3+1 biçiminde yazın.");
-  let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
+  let presentation;try{presentation=presentationFrom({...JSON.parse(String(row.presentation||'{}')),purpose:row.purpose,...data},String(row.owner_id));}catch(e){return error((e as Error).message);}
   const previousVideo=String(JSON.parse(String(row.presentation||'{}')).videoId||'');
   if(presentation.videoId&&presentation.videoId!==previousVideo){if(!videoFeatureEnabled())return error("Video yükleme şu anda kullanılamıyor.",503);try{const problem=await videoAttachProblem(db() as unknown as VideoDatabase,presentation.videoId,String(row.owner_id),id);if(problem)return error(problem);}catch{return error("Video şu anda doğrulanamadı. Tekrar deneyin.",503);}}
   // Map pin: a new one from the form, or the stored one (cleared when the province changed under it).
