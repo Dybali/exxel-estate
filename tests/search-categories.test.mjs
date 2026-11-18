@@ -134,3 +134,7 @@ test('commission=none finds sale and rent listings stated as commission-free (SQ
  assert.equal(extraFilterMatches(query({commission:'none'}),{purpose:'gunluk',presentation:{commission:{type:'none'}}}),false);
  assert.equal(extraFilterMatches(query({commission:'none'}),{purpose:'satilik',presentation:{}}),false);
 });
+
+test('commission filter runs on PostgreSQL too',()=>{
+ assert.equal(pgPresentationJson(extraFilterSql(query({commission:'none'})).where[0]),"(l.purpose IN (?,?) AND (l.presentation::jsonb->'commission'->>'type')=?)");
+});
