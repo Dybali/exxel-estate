@@ -27,16 +27,21 @@ hepsiemlak.com incelemesinden sonra sahibinin isteğiyle eklendi. Ana sayfada "A
 
 Ayrıntılar `home_request_details` tablosunda JSON (ilk kullanımda oluşur; eski taleplerin satırı yoktur). Eski `district` ve `rooms` sütunları ilk ilçe ve virgüllü oda listesiyle dolmaya devam eder.
 
-### Eşleşme ve sonrası
+### Talep akışı: serbest piyasa (2026-11-19, sahibinin kararı)
 
-- Danışmanlar: yayında o tür (seçilen tipler, yoksa kategori) ilanı olan onaylı emlakçılar; önce seçilen ilçeler, sonra il; ilan sayısına göre en fazla 8. Kimse yoksa talep kaydedilmez.
-- Gönderince: "Şu an uyan ilanlar" (aramanın ifade edebildiği kadarıyla: tek ilçe/tip/oda seçildiyse o, bütçe ve m²; `homeRequestSearch`) ve "haber ver" açıksa aynı arama **kayıtlı arama** olur (e-posta özeti ve Bildirimler; hesap başına 10 sınırı geçerli).
-- Danışmanlar e-posta alır ve **Hesabım › CRM** sekmesinde talebi ayrıntı etiketleriyle (zamanlama, ödeme, yabancı alıcı, olmazsa olmazlar, iletişim tercihi) görür.
-- Üye **Hesabım › Aramalarım** sekmesinde: iletildi → gördü → size döndü sayıları, dönen danışmanlar (profil bağlantısıyla), "Uyan ilanları gör", **kapatma nedeni** (bu siteden buldum, başka yerden buldum, erteledim, diğer), **30 gün uzat / yeniden aç** (şimdiden en fazla 90 gün).
-- Talep 30 gün sonra kapanır; kapalı/süresi dolmuş talepte iletişim bilgisi danışmana gösterilmez.
-- Sınırlar: üye başına günde 3 talep; 15 dakikada 20 istek.
+`lib/lead-board.ts`, `app/api/lead-board`, `components/LeadBoard.tsx` (Hesabım › CRM › "Talep akışı").
 
-Tablolar ilk kullanımda: `home_requests`, `home_request_agents`, `home_request_details`. Gizlilik politikasında "Benim için bul talepleri" maddesi (2026-11-19 güncel).
+- **Eşleştirme yok.** Talep, iletişim bilgisi ve not olmadan, bütün onaylı emlakçıların gördüğü açık panoya düşer. Bölge veya portföy kısıtı yoktur; danışman istediği talebi seçer.
+- Pano: en yeni üstte, sayfa başına 30. Filtreler il, satılık/kiralık, kategori, **Sıcak** (hemen alacak/taşınacak, nakit veya kredi onaylı), **Yabancı alıcı** (dil adıyla), **Ulaştıklarım**. Üstte açık talep sayısı, bu ay ulaşılan, ortalama (medyan) dönüş süresi ve paket.
+- **Ulaşma:** "Teklif gönder" (en az 20 karakter mesaj ve isteğe bağlı en fazla 3 kendi yayındaki ilanı) danışmana adı ve notu açar. "Telefonu aç" e-posta ve telefonu açar; alıcı kimin açtığını görür. İkisi de danışmanı talebin listesine yazar (`home_request_agents`, state `contacted`). **Bir talebe en fazla 4 danışman**; dolunca "Dolu". Kapalı/süresi dolmuş talebe ulaşılamaz.
+- Alıcı teklifleri **Hesabım › Aramalarım**'da görür: danışman (profil bağlantısı, ofis, "Hızlı yanıt" rozeti), mesaj, önerilen ilanlar; numarasını açanlar ayrıca yazar. Teklif gelince alıcıya e-posta (mesaj tercihine uyar).
+- **Hızlı yanıt:** son 90 günde en az 3 talebe ulaşmış ve medyan dönüşü 2 saat veya altı.
+- **Kapatma:** neden (bu siteden buldum, başka yerden buldum, erteledim, diğer); "bu siteden buldum"da talebe ulaşmış danışmanlardan hangisiyle bulduğu seçilebilir (`foundWith`, istatistik için).
+- **İl takibi:** danışman en fazla 10 il seçer; yeni talep o ildeyse e-posta gelir. Seçim yoksa yayındaki ilanlarının bulunduğu iller kullanılır. Panonun okunmamış sayısı `GET /api/lead-board?count=1`.
+- **Paketler, `LEAD_PLANS=1` (varsayılan kapalı):** kapalıyken bütün onaylı emlakçılar serbestçe ulaşır. Açıkken paketsiz danışman panoyu görür ama ulaşamaz (kilitli kart, "Paketleri gör"); **Profesyonel ayda 20**, **Prestij ayda 60** talebe ulaşır (takvim ayı, talep başına bir kez sayılır); yeni talepler ilk **24 saat yalnızca Prestij**'e açıktır. Paket bilgisi `agent_plan_grants` tablosundan.
+- Sınırlar: üye başına günde 3 talep; talep 30 gün açık, uzatmayla en fazla 90 gün; danışman başına 15 dakikada 40 işlem.
+
+Tablolar ilk kullanımda: `home_requests`, `home_request_agents`, `home_request_details`, `home_request_offers`, `home_request_reveals`, `agent_lead_follows`. Gizlilik politikasında "Benim için bul talepleri" maddesi açık panoya göre güncel (2026-11-19). Testler: `tests/lead-board.test.mjs`.
 
 ## Konut değerleme: `/konut-degerleme`
 

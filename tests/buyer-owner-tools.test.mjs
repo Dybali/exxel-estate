@@ -42,27 +42,6 @@ function fixture(){
 const buyer='55555555-5555-4555-8555-555555555555';
 const request=(extra={})=>({intent:'buy',city:'İzmir',district:'Karşıyaka',category:'konut',rooms:'3+1',budgetMin:'3.000.000',budgetMax:'6000000',note:'Okula yakın',name:'Alıcı Kişi',email:'Alici@Example.com',phone:'+90 555 111 2233',consent:true,...extra});
 
-test('Benim için bul: approved agents with matching listings, district first; limits; contact only while open',async()=>{const f=fixture();try{
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request({consent:false})),/onaylayın/);
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request({budgetMin:'9000000'})),/büyük olamaz/);
- const at=new Date('2026-11-17T10:00:00Z'),created=await home.createHomeRequest(f.db,buyer,request(),at);
- // Ayşe has sales in Karşıyaka; Burak only in Bornova (province fallback); Cem is pending, Deniz is not an agent.
- assert.deepEqual(created.agents.map(a=>a.name),['Ayşe','Burak']);
- assert.equal(created.request.email,'alici@example.com');assert.equal(created.request.budgetMin,3000000);
- const inbox=await home.agentHomeRequests(f.db,'11111111-1111-4111-8111-111111111111',at);
- assert.equal(inbox.length,1);assert.equal(inbox[0].phone,'+90 555 111 2233');assert.equal(inbox[0].state,'new');
- assert.equal(await home.newHomeRequestCount(f.db,'11111111-1111-4111-8111-111111111111',at),0);
- await home.setHomeRequestState(f.db,'11111111-1111-4111-8111-111111111111',created.id,'contacted',at);
- await assert.rejects(()=>home.setHomeRequestState(f.db,'33333333-3333-4333-8333-333333333333',created.id,'contacted',at),e=>e.status===404);
- const mine=await home.myHomeRequests(f.db,buyer,at);assert.equal(mine[0].agents,2);assert.equal(mine[0].status,'open');
- await home.closeHomeRequest(f.db,buyer,created.id);
- assert.equal((await home.agentHomeRequests(f.db,'11111111-1111-4111-8111-111111111111',at))[0].email,'');
- // Rent in Ankara: nobody matches; three requests a day at most.
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request({intent:'rent',city:'Ankara',district:''}),at),e=>e.status===404);
- await home.createHomeRequest(f.db,buyer,request(),at);await home.createHomeRequest(f.db,buyer,request(),at);
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request(),at),e=>e.status===429);
-}finally{f.sql.close()}});
-
 test('agent directory: listed approved agents, place and language filters, phone only for listed agents',async()=>{const f=fixture();try{
  const all=await agents.listAgents(f.db,{});assert.equal(all.total,2);assert.deepEqual(all.agents.map(a=>[a.name,a.listings,a.city,a.district]),[['Ayşe',3,'İzmir','Karşıyaka'],['Burak',1,'İzmir','Bornova']]);
  assert.deepEqual((await agents.listAgents(f.db,{city:'İzmir',district:'Karşıyaka'})).agents.map(a=>a.name),['Ayşe']);
@@ -90,38 +69,3 @@ test('agent directory lists office consultants under the office name',async()=>{
  assert.equal((await agents.listAgents(f.db,{})).total,2);
 }finally{f.sql.close()}});
 
-test('Benim için bul in detail: districts, types, timing; progress, who answered, close reason, extend, search link',async()=>{const f=fixture();try{
- const at=new Date('2026-11-19T09:00:00Z');
- // More than three districts, a missing phone for a phone call and an impossible size are refused.
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request({districts:['Karşıyaka','Bornova','Konak','Buca']}),at),/3 ilçe/);
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request({phone:'',contact:'whatsapp'}),at),/telefon/i);
- await assert.rejects(()=>home.createHomeRequest(f.db,buyer,request({minArea:'999999'}),at),/metrekare/);
- const created=await home.createHomeRequest(f.db,buyer,request({district:'',districts:['Karşıyaka','Bornova'],types:['daire','yalı'],roomsList:['3+1','4+1'],minArea:'120',features:['Asansör','Uçan halı'],timeline:'soon',payment:'approved',foreign:true,citizenship:true,contact:'whatsapp',contactTime:'evening',language:'de'}),at);
- const d=created.request.details;
- assert.deepEqual(d.districts,['Karşıyaka','Bornova']);assert.deepEqual(d.types,['daire']);assert.deepEqual(d.rooms,['3+1','4+1']);assert.deepEqual(d.features,['Asansör']);
- assert.equal(d.minArea,120);assert.equal(d.timeline,'soon');assert.equal(d.payment,'approved');assert.equal(d.citizenship,true);assert.equal(d.contact,'whatsapp');assert.equal(d.language,'de');assert.equal(d.alert,true);
- // Both districts count: the Bornova agent is found alongside the Karşıyaka one.
- assert.deepEqual(created.agents.map(a=>a.name).sort(),['Ayşe','Burak']);
- assert.equal(home.homeRequestSummary(created.request),'Satılık · Karşıyaka, Bornova, İzmir · Daire · 3+1, 4+1');
- // Rent requests carry no payment or citizenship.
- assert.equal(home.validateHomeRequest(request({intent:'rent',payment:'cash',foreign:true,citizenship:true})).details.payment,'');
- let mine=(await home.myHomeRequests(f.db,buyer,at))[0];
- assert.equal(mine.agents,2);assert.equal(mine.seen,0);assert.equal(mine.contacted,0);assert.equal(mine.details.districts.length,2);
- assert.equal(mine.search,'purpose=satilik&city=%C4%B0zmir&type=daire&minPrice=3000000&maxPrice=6000000&minArea=120');
- // The agent opens the inbox (seen) and gets in touch: the member sees who.
- const inbox=await home.agentHomeRequests(f.db,'11111111-1111-4111-8111-111111111111',at);assert.equal(inbox[0].details.contact,'whatsapp');
- await home.setHomeRequestState(f.db,'11111111-1111-4111-8111-111111111111',created.id,'contacted',at);
- mine=(await home.myHomeRequests(f.db,buyer,at))[0];
- assert.equal(mine.seen,1);assert.equal(mine.contacted,1);assert.deepEqual(mine.contactedAgents.map(a=>[a.name,a.company]),[['Ayşe','Ege Emlak']]);
- // Close with a reason, then reopen: 30 more days, never beyond 90 days from now.
- await home.closeHomeRequest(f.db,buyer,created.id,'found_here',at);
- mine=(await home.myHomeRequests(f.db,buyer,at))[0];assert.equal(mine.status,'closed');assert.equal(mine.closeReason,'found_here');
- const until=await home.extendHomeRequest(f.db,buyer,created.id,at);
- mine=(await home.myHomeRequests(f.db,buyer,at))[0];assert.equal(mine.status,'open');assert.equal(mine.closeReason,'');assert.equal(until,'2027-01-18T09:00:00.000Z');
- await home.extendHomeRequest(f.db,buyer,created.id,at);const last=await home.extendHomeRequest(f.db,buyer,created.id,at);
- assert.equal(last,'2027-02-17T09:00:00.000Z');
- await assert.rejects(()=>home.extendHomeRequest(f.db,'11111111-1111-4111-8111-111111111111',created.id,at),e=>e.status===404);
- // Requests from before the detailed form still read.
- f.sql.exec("DELETE FROM home_request_details");
- assert.equal((await home.myHomeRequests(f.db,buyer,at))[0].details,null);
-}finally{f.sql.close();}});

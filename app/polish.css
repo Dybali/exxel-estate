@@ -271,3 +271,48 @@ img[src*="/api/media/"]{-webkit-user-drag:none;-webkit-touch-callout:none;-webki
   .request-intent{grid-template-columns:1fr}.request-summary>div{grid-template-columns:1fr;gap:2px}
   .request-match-grid{grid-template-columns:1fr}.request-how li{flex:1 1 100%}
 }
+
+/* Talep akışı (components/LeadBoard.tsx) and offers on the member's request (HomeRequestsPanels.tsx). */
+.lead-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 14px}
+.lead-stats>div{background:#f4f8f6;border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.lead-stats span{font-size:12.5px;color:#5d716c}.lead-stats strong{font-size:20px;color:#123f42}
+.lead-fast{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:#1d6b4c;background:#e4f4ec;border-radius:999px;padding:2px 8px;width:max-content}
+.lead-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.lead-filters select{min-height:38px;border:1px solid #d6e1dc;border-radius:8px;padding:0 10px;background:#fff;font-size:13.5px}
+.lead-filters button{border:1px solid #d6e1dc;background:#fff;color:#1f4245;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.lead-filters button.active{background:#123f42;border-color:#123f42;color:#fff}
+.lead-filters .lead-follow-toggle{margin-inline-start:auto}
+.lead-follow{border:1px solid #e1e9e6;border-radius:10px;padding:12px;margin-bottom:12px;background:#fbfdfc}
+.lead-follow p{margin:0 0 8px;font-size:13px;color:#4d5f5b}
+.lead-follow .request-chips{max-height:180px;overflow:auto}
+.lead-card{border:1px solid #e1e9e6;border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff;display:grid;gap:6px}
+.lead-card.hot{border-color:#f0c9bd;box-shadow:inset 3px 0 0 #d9572f}
+.lead-card.locked{background:#fafbfb}
+.lead-card>header{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.lead-card>header strong{display:inline-flex;align-items:center;gap:6px;font-size:15px;color:#1f3b38}
+.lead-card>header strong svg{color:#d9572f}
+.lead-card>header span{font-size:12px;color:#7b8a86;white-space:nowrap}
+.lead-meta{margin:0;font-size:13.5px;color:#4d5f5b}
+.lead-tags{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.lead-tags li{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:650;background:#eef3f1;color:#3f5450}
+.lead-tags li.hot{background:#fbe6df;color:#a8381a}.lead-tags li.good{background:#e4f4ec;color:#1d6b4c}.lead-tags li.info{background:#e6f0fa;color:#1d4f7a}
+.lead-slots{margin:0;font-size:12.5px;color:#7b8a86}
+.lead-contact{border-top:1px solid #edf2f0;padding-top:8px;display:grid;gap:4px;font-size:13.5px}
+.lead-locked{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:#5d716c;background:#f4f6f5;border-radius:8px;padding:8px 10px}
+.lead-offer{border-top:1px solid #edf2f0;padding-top:10px;display:grid;gap:10px}
+.lead-offer textarea{min-height:90px}
+.lead-listings{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px;max-height:200px;overflow:auto}
+.lead-listings label{display:flex;align-items:center;gap:8px;border:1px solid #e1e9e6;border-radius:8px;padding:7px 10px;font-size:13px;cursor:pointer}
+.lead-listings label.active{border-color:#0b5e5e;background:#eef7f5}
+.lead-pages{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:10px}
+.request-offers{display:grid;gap:8px;margin:8px 0}.request-offers>span{font-size:13px;font-weight:700;color:#3f5450}
+.request-offer{border:1px solid #e1e9e6;border-radius:10px;padding:10px 12px;background:#fbfdfc}
+.request-offer header{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.request-offer header a{display:inline-flex;align-items:center;gap:6px}.request-offer header small{color:#7b8a86}
+.request-offer time{margin-inline-start:auto;font-size:12px;color:#7b8a86}
+.request-offer p{margin:6px 0;font-size:14px;white-space:pre-line}
+.request-offer ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.request-offer ul a{display:inline-flex;align-items:center;gap:4px;border:1px solid #d6e1dc;border-radius:8px;padding:5px 9px;font-size:13px}
+.request-found-with{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.request-found-with select{min-height:34px;border:1px solid #d6e1dc;border-radius:8px;padding:0 8px}
+@media(max-width:700px){.lead-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lead-filters .lead-follow-toggle{margin-inline-start:0}}

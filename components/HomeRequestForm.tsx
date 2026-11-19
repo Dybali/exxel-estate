@@ -10,8 +10,9 @@ import { ListingCard } from "@/components/ListingCard";
 import type { Listing } from "@/lib/listings";
 import { HOME_CONTACT, HOME_CONTACT_TIMES, HOME_FEATURES, HOME_PAYMENTS, HOME_REQUEST_LIMITS, HOME_ROOMS, HOME_TIMELINES, HOME_TYPES } from "@/lib/home-requests";
 
-// /benim-icin-bul: the member describes the home in four steps; matching estate agents get the request and the
-// member sees listings that already match (lib/home-requests.ts, docs/buyer-tools.md).
+// /benim-icin-bul: the member describes the home in four steps; the request goes to the open board of approved
+// estate agents (lib/lead-board.ts), at most 4 of them can reach the member, and the member sees listings that
+// already match (lib/home-requests.ts, docs/buyer-tools.md).
 const CATEGORY_LABELS = { konut: "Konut", arsa: "Arsa", isyeri: "İş yeri" } as const;
 const STEPS = [
   { title: "Ne arıyorsunuz?", icon: Home },
@@ -41,7 +42,7 @@ export function HomeRequestForm() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Form>({ intent: "buy", category: "konut", types: [], roomsList: [], minArea: "", city: "", districts: [], features: [], budgetMin: "", budgetMax: "", timeline: "", payment: "", foreign: false, citizenship: false, note: "", name: "", email: "", phone: "", contact: "phone", contactTime: "any", alert: true, consent: false });
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
-  const [done, setDone] = useState<{ agents: number; search: string; alert: boolean } | null>(null);
+  const [done, setDone] = useState<{ search: string; alert: boolean } | null>(null);
   const [matches, setMatches] = useState<{ listings: Listing[]; total: number } | null>(null);
   useEffect(() => {
     loadAccount().then((data) => {
@@ -73,9 +74,9 @@ export function HomeRequestForm() {
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/home-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, budgetMin: digits(form.budgetMin), budgetMax: digits(form.budgetMax), minArea: digits(form.minArea), language: locale }) });
-      const data = await apiJson<{ agents?: number; search?: string; alert?: boolean; error?: string }>(response);
+      const data = await apiJson<{ search?: string; alert?: boolean; error?: string }>(response);
       if (!response.ok) throw new Error(data.error || "Talep gönderilemedi.");
-      setDone({ agents: data.agents || 0, search: data.search || "", alert: Boolean(data.alert) }); window.scrollTo({ top: 0, behavior: "smooth" });
+      setDone({ search: data.search || "", alert: Boolean(data.alert) }); window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
   }
 
@@ -94,17 +95,17 @@ export function HomeRequestForm() {
     <section className="tools-hero"><div className="container">
       <span className="market-overline"><Search size={15} aria-hidden="true"/> {t("BENİM İÇİN BUL")}</span>
       <h1>{t("Aradığınız evi anlatın, danışmanlar size ulaşsın")}</h1>
-      <p>{t("Kriterlerinizi bir kez yazın; bölgenizde bu tür ilanları olan onaylı emlak danışmanları size uygun seçeneklerle dönsün.")}</p>
+      <p>{t("Kriterlerinizi bir kez yazın; onaylı emlak danışmanları talebinizi görsün ve size tekliflerle dönsün. Size en fazla 4 danışman ulaşır.")}</p>
       <ol className="request-how">
         <li><ClipboardList size={18} aria-hidden="true"/><span><strong>{t("4 kısa adım")}</strong><small>{t("Ne, nerede, bütçe ve iletişim")}</small></span></li>
-        <li><Users size={18} aria-hidden="true"/><span><strong>{t("Bölgenin danışmanları")}</strong><small>{t("Onaylı ve o bölgede ilanı olanlar")}</small></span></li>
+        <li><Users size={18} aria-hidden="true"/><span><strong>{t("Danışmanlar teklif verir")}</strong><small>{t("En fazla 4 onaylı danışman ulaşır")}</small></span></li>
         <li><Bell size={18} aria-hidden="true"/><span><strong>{t("Yeni ilan haberi")}</strong><small>{t("Uyan ilanlar e-postanıza gelir")}</small></span></li>
       </ol>
     </div></section>
     <div className="container request-shell">
       {done ? <section className="request-done" role="status">
         <div className="tool-success"><CheckCircle2 size={34} aria-hidden="true"/><h2>{t("Talebiniz iletildi")}</h2>
-          <p>{t("{n} danışman talebinizi aldı. Size telefon, WhatsApp veya e-posta ile ulaşacaklar.").replace("{n}", String(done.agents))}</p>
+          <p>{t("Talebiniz danışmanların talep akışında yayında. Bir danışman teklif gönderdiğinde size e-posta ile haber vereceğiz; teklifleri Taleplerim bölümünde görürsünüz.")}</p>
           {done.alert && <p className="request-alert-note"><Bell size={15} aria-hidden="true"/>{t("Bu kriterlere uyan yeni ilanlar için size haber vereceğiz.")}</p>}
           <p><Link className="primary-button" href="/hesabim?tab=aramalar#benim-icin-bul">{t("Taleplerim")}</Link></p></div>
         <div className="request-matches">
@@ -160,7 +161,7 @@ export function HomeRequestForm() {
           <div className="tool-field"><span>{t("Size nasıl ulaşılsın?")}</span><Chips label={t("Size nasıl ulaşılsın?")} options={Object.entries(HOME_CONTACT).map(([value, label]) => ({ value, label }))} selected={[form.contact]} onToggle={(value) => update("contact", value as Form["contact"])}/></div>
           {form.contact !== "email" && <div className="tool-field"><span>{t("Uygun saat")}</span><Chips label={t("Uygun saat")} options={Object.entries(HOME_CONTACT_TIMES).map(([value, label]) => ({ value, label }))} selected={[form.contactTime]} onToggle={(value) => update("contactTime", value as Form["contactTime"])}/></div>}
           <label className="check-row request-check"><input type="checkbox" checked={form.alert} onChange={(event) => update("alert", event.target.checked)}/>{t("Bu kriterlere uyan yeni ilanlar için bana e-posta ile haber ver")}</label>
-          <label className="check-row request-check request-consent"><input type="checkbox" required checked={form.consent} onChange={(event) => update("consent", event.target.checked)}/>{t("Adımın, e-postamın ve telefonumun bu talep için seçilen en fazla 8 emlak danışmanıyla paylaşılmasını kabul ediyorum.")} <Link href="/gizlilik-politikasi">{t("Gizlilik politikası")}</Link></label>
+          <label className="check-row request-check request-consent"><input type="checkbox" required checked={form.consent} onChange={(event) => update("consent", event.target.checked)}/>{t("Talebimin onaylı emlak danışmanlarına açık talep akışında yayınlanmasını ve adımın, e-postamın ve telefonumun talebime ulaşan en fazla 4 danışmanla paylaşılmasını kabul ediyorum.")} <Link href="/gizlilik-politikasi">{t("Gizlilik politikası")}</Link></label>
         </div>}
 
         {error && <p className="form-error" role="alert">{t(error)}</p>}
