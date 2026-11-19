@@ -8,7 +8,7 @@ import {LegalClauses, LegalContactBox, LegalPage, LegalRights, LegalRomanList, P
 // docs/nl-search.md, docs/listing-videos.md, docs/services.md, docs/mittwald-migration.md. Formal numbered clauses
 // (1.1, 1.2…) in the order owners asked for (2026-11-09): introduction, data, use, sharing, transfers, cookies,
 // security, rights, questions. Update the date when the content changes.
-export const PRIVACY_UPDATED = '2026-11-17';
+export const PRIVACY_UPDATED = '2026-11-19';
 
 export function PrivacyPolicy(){
   const {t}=useLocale();
@@ -36,7 +36,7 @@ export function PrivacyPolicy(){
         <li><strong>{t('Hizmet firmaları')}:</strong> {t('firma adı, telefon ve WhatsApp numarası, e-posta, web sitesi, fotoğraflar, hizmet bölgeleri ve isteğe bağlı olarak yüklenen belgeler.')}</li>
         <li><strong>{t('Teklif talepleri')}:</strong> {t('hizmet kategorisi, işin yapılacağı il ve ilçe, iş tanımı, zamanlama, adınız, e-posta adresiniz ve isteğe bağlı telefon numaranız; firmaların gönderdiği teklifler.')}</li>
         <li><strong>{t('Müteahhit firmaları')}:</strong> {t('firma adı, telefon ve WhatsApp numarası, e-posta, web sitesi, kuruluş yılı, yetki belgesi numarası, çalışılan bölgeler, tamamlanan projeler ve fotoğrafları.')}</li>
-        <li><strong>{t('Benim için bul talepleri')}:</strong> {t('aradığınız evin il ve ilçesi, kategorisi, oda sayısı, bütçesi ve notunuz, adınız, e-posta adresiniz ve isteğe bağlı telefon numaranız. Açık onayınızla bu bilgiler, bölgede uygun ilanları olan en fazla 8 onaylı emlak danışmanına iletilir; talep 30 gün sonra veya siz kapattığınızda danışmanlara iletişim bilgileriniz gösterilmez.')}</li>
+        <li><strong>{t('Benim için bul talepleri')}:</strong> {t('aradığınız evin il ve ilçeleri, kategorisi ve tipi, oda sayısı, metrekaresi, olmazsa olmazları, bütçesi, zamanlaması ve ödeme şekli, yabancı alıcı ve vatandaşlık amacı bilgisi, iletişim tercihiniz ve notunuz, adınız, e-posta adresiniz ve telefon numaranız. Açık onayınızla bu bilgiler, bölgede uygun ilanları olan en fazla 8 onaylı emlak danışmanına iletilir; hangi danışmanların talebi gördüğünü ve size döndüğünü Hesabım bölümünde görürsünüz. Talep 30 gün sonra (uzatırsanız en fazla 90 gün) veya siz kapattığınızda danışmanlara iletişim bilgileriniz gösterilmez; kapatma nedeninizi istatistik için saklarız. “Yeni ilanlar için haber ver” seçeneği aynı kriterlerle kayıtlı bir arama oluşturur.')}</li>
         <li><strong>{t('Danışman dilleri')}:</strong> {t('emlak danışmanlarının profilinde gösterilmek üzere seçtikleri konuştukları diller.')}</li>
         <li><strong>{t('Kat karşılığı talepleri')}:</strong> {t('arsanın il ve ilçesi, alanı, imar durumu ve açıklaması, adınız, e-posta adresiniz ve isteğe bağlı telefon numaranız; müteahhitlerin gönderdiği teklifler. İletişim bilgileriniz yalnızca paylaşmayı seçtiğinizde veya bir teklifi kabul ettiğinizde ilgili müteahhide gösterilir.')}</li>
         <li><strong>{t('Geri bildirimler')}:</strong> {t('öneri metniniz, bulunduğunuz sayfa, dil, ekran ve tarayıcı türü ile isteğe bağlı olarak e-posta adresiniz; IP adresiniz bu kayıtta saklanmaz.')}</li>

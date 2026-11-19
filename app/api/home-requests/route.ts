@@ -5,10 +5,12 @@ import { siteUrl } from "@/lib/request-context";
 import type { EmailSettings } from "@/lib/email";
 import type { NotificationDatabase } from "@/lib/email-notifications";
 import { notifyHomeRequest } from "@/lib/home-request-emails";
-import { agentHomeRequests, closeHomeRequest, createHomeRequest, HomeRequestError, myHomeRequests, newHomeRequestCount, setHomeRequestState, type HomeRequestDatabase } from "@/lib/home-requests";
+import { mutateDiscovery, type DiscoveryDatabase } from "@/lib/discovery-service";
+import { agentHomeRequests, closeHomeRequest, createHomeRequest, extendHomeRequest, homeRequestSearch, homeRequestSummary, HomeRequestError, myHomeRequests, newHomeRequestCount, setHomeRequestState, type HomeRequestDatabase } from "@/lib/home-requests";
 
 // "Benim için bul" (lib/home-requests.ts). GET: the member's requests; ?agent=1: requests sent to an estate agent.
-// POST: new request | { action: "close", id } | (agent) { action: "state", id, state: "contacted" | "passed" }.
+// POST: new request | { action: "close", id, reason } | { action: "extend", id } |
+// (agent) { action: "state", id, state: "contacted" | "passed" }.
 let shared: HomeRequestDatabase | null = null;
 const database = () => shared ??= db() as unknown as HomeRequestDatabase;
 const failure = (cause: unknown) => { if (cause instanceof HomeRequestError) return error(cause.message, cause.status); throw cause; };
@@ -35,14 +37,18 @@ export async function POST(request: Request) {
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Talep bilgilerini kontrol edin."); }
   try {
-    if (data.action === "close") { await closeHomeRequest(database(), user.id, data.id); return ok({ closed: true }, privateHeaders); }
+    if (data.action === "close") { await closeHomeRequest(database(), user.id, data.id, data.reason); return ok({ closed: true }, privateHeaders); }
+    if (data.action === "extend") return ok({ expiresAt: await extendHomeRequest(database(), user.id, data.id) }, privateHeaders);
     if (data.action === "state") {
       if (!agentOf(user as never)) return error("Bu bölüm onaylı emlakçı hesapları içindir.", 403);
       await setHomeRequestState(database(), user.id, data.id, data.state); return ok({ saved: true }, privateHeaders);
     }
     const created = await createHomeRequest(database(), user.id, data);
-    const r = created.request, summary = `${r.intent === "buy" ? "Satılık" : "Kiralık"} · ${r.district ? `${r.district}, ` : ""}${r.city}${r.rooms ? ` · ${r.rooms}` : ""}`;
+    const r = created.request, summary = homeRequestSummary(r), search = homeRequestSearch({ ...r, details: r.details });
     waitUntil(notifyHomeRequest(db() as unknown as NotificationDatabase, { ...(env as unknown as EmailSettings), SITE_URL: siteUrl() }, created.agents, summary).catch(() => {}));
-    return ok({ id: created.id, agents: created.agents.length }, { status: 201, ...privateHeaders });
+    // "Yeni ilanlar için haber ver": the same search as a saved search (e-mail digest and Bildirimler).
+    let alert = false;
+    if (r.details.alert) alert = await mutateDiscovery(db() as unknown as DiscoveryDatabase, user.id, { action: "save", name: `Benim için bul: ${summary}`.slice(0, 70), query: search }).then(() => true, () => false);
+    return ok({ id: created.id, agents: created.agents.length, search, alert }, { status: 201, ...privateHeaders });
   } catch (cause) { return failure(cause); }
 }

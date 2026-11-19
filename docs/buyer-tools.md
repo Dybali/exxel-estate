@@ -16,15 +16,27 @@ hepsiemlak.com incelemesinden sonra sahibinin isteğiyle eklendi. Ana sayfada "A
 
 ## Benim için bul: `/benim-icin-bul`
 
-`lib/home-requests.ts`, `lib/home-request-emails.ts`, `app/api/home-requests`, `components/HomeRequestForm.tsx`, `components/HomeRequestsPanels.tsx`.
+`lib/home-requests.ts`, `lib/home-request-emails.ts`, `app/api/home-requests`, `components/HomeRequestForm.tsx`, `components/HomeRequestsPanels.tsx`. 2026-11-19: kullanıcı tarafı yenilendi (danışman tarafı ayrıca ele alınacak).
 
-1. Giriş yapmış, e-postası doğrulanmış üye: satın alma/kiralama, il, ilçe, kategori, oda, bütçe, not, ad, e-posta, telefon ve **açık paylaşım onayı** (zorunlu).
-2. Eşleşme: yayında o tür (satılık/kiralık, kategori) ilanı olan onaylı emlakçılar; önce ilçe, sonra il; ilan sayısına göre en fazla 8 danışman. Kimse yoksa talep kaydedilmez.
-3. Danışmanlar e-posta alır (mesaj e-postası tercihine uyar) ve **Hesabım › CRM** sekmesinin başında "Müşteri talepleri"ni görür: telefon, WhatsApp, e-posta; "İletişime geçtim" / "Geç".
-4. Üye talebini **Hesabım › Aramalarım**'da görür ve kapatabilir. Talep 30 gün sonra kapanır; kapalı/süresi dolmuş talepte iletişim bilgisi danışmana gösterilmez.
-5. Sınırlar: üye başına günde 3 talep; 15 dakikada 20 istek.
+### Form (4 adım, giriş yapmış ve e-postası doğrulanmış üye)
 
-Tablolar ilk kullanımda: `home_requests`, `home_request_agents`. Gizlilik politikasında "Benim için bul talepleri" maddesi var.
+1. **Ne arıyorsunuz?** Satın alma/kiralama, kategori (konut, arsa, iş yeri), gayrimenkul tipleri (çoklu; boşsa hepsi), oda sayısı (en fazla 3), en az brüt m².
+2. **Nerede?** İl ve en fazla 3 ilçe (boşsa ilin tamamı); olmazsa olmazlar (`HOME_FEATURES`, en fazla 10; "Krediye uygun" yalnızca satın almada, "Evcil hayvan kabul" yalnızca kiralamada).
+3. **Bütçe ve zamanlama:** bütçe veya aylık kira aralığı, zamanlama (hemen, 1–3 ay, 3–6 ay, sadece bakıyorum), satın almada ödeme şekli (nakit, kredi onaylı, kredi kullanacak, takas), yabancı alıcı ve satın almada yatırımla vatandaşlık amacı.
+4. **İletişim:** özet, not, ad, e-posta, telefon; iletişim tercihi (telefon, WhatsApp, e-posta; ilk ikisi telefon ister) ve uygun saat; "yeni ilanlar için haber ver" (varsayılan açık) ve **açık paylaşım onayı** (zorunlu).
+
+Ayrıntılar `home_request_details` tablosunda JSON (ilk kullanımda oluşur; eski taleplerin satırı yoktur). Eski `district` ve `rooms` sütunları ilk ilçe ve virgüllü oda listesiyle dolmaya devam eder.
+
+### Eşleşme ve sonrası
+
+- Danışmanlar: yayında o tür (seçilen tipler, yoksa kategori) ilanı olan onaylı emlakçılar; önce seçilen ilçeler, sonra il; ilan sayısına göre en fazla 8. Kimse yoksa talep kaydedilmez.
+- Gönderince: "Şu an uyan ilanlar" (aramanın ifade edebildiği kadarıyla: tek ilçe/tip/oda seçildiyse o, bütçe ve m²; `homeRequestSearch`) ve "haber ver" açıksa aynı arama **kayıtlı arama** olur (e-posta özeti ve Bildirimler; hesap başına 10 sınırı geçerli).
+- Danışmanlar e-posta alır ve **Hesabım › CRM** sekmesinde talebi ayrıntı etiketleriyle (zamanlama, ödeme, yabancı alıcı, olmazsa olmazlar, iletişim tercihi) görür.
+- Üye **Hesabım › Aramalarım** sekmesinde: iletildi → gördü → size döndü sayıları, dönen danışmanlar (profil bağlantısıyla), "Uyan ilanları gör", **kapatma nedeni** (bu siteden buldum, başka yerden buldum, erteledim, diğer), **30 gün uzat / yeniden aç** (şimdiden en fazla 90 gün).
+- Talep 30 gün sonra kapanır; kapalı/süresi dolmuş talepte iletişim bilgisi danışmana gösterilmez.
+- Sınırlar: üye başına günde 3 talep; 15 dakikada 20 istek.
+
+Tablolar ilk kullanımda: `home_requests`, `home_request_agents`, `home_request_details`. Gizlilik politikasında "Benim için bul talepleri" maddesi (2026-11-19 güncel).
 
 ## Konut değerleme: `/konut-degerleme`
 
