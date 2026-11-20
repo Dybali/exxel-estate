@@ -44,3 +44,8 @@ test('CSV opens in Excel and cannot run formulas',()=>{
   const csv=P.preRegistrationsCsv([{id:'1',role:'agent',city:'adana',name:'=HYPERLINK("x")',company:'A;B',phone:'+905321234567',email:'a@b.com',district:null,portfolio:null,foreignSales:null,package:null,propertyType:null,propertyCount:null,purpose:null,timeline:null,marketing:true,gift:false,source:null,utmSource:null,utmMedium:null,utmCampaign:null,host:null,createdAt:'2026-11-20',contactedAt:null}]);
   assert.ok(csv.startsWith('﻿Tarih;Tür;'));assert.match(csv,/"'=HYPERLINK\(""x""\)"/);assert.match(csv,/"A;B"/);assert.match(csv,/'\+905321234567/);assert.match(csv,/Emlakçı/);assert.match(csv,/;Evet;Hayır;/);
 });
+test('public counts per city contain only totals',async()=>{
+  const d=db();await P.savePreRegistration(d,agent(),SLUGS,null);await P.savePreRegistration(d,owner(),SLUGS,null);
+  assert.deepEqual(await P.preRegistrationCounts(d),{agents:1,owners:1});
+  assert.deepEqual(await P.preRegistrationCounts(d,'adana'),{agents:1,owners:0});
+});

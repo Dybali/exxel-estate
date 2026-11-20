@@ -4,7 +4,7 @@ import { env, waitUntil } from "@/lib/runtime";
 import { siteUrl } from "@/lib/request-context";
 import { sendEmail, type EmailSettings } from "@/lib/email";
 import { LANDING_CITIES } from "@/lib/landing-cities";
-import { PreRegistrationError, savePreRegistration } from "@/lib/pre-registrations";
+import { preRegistrationCounts, PreRegistrationError, savePreRegistration } from "@/lib/pre-registrations";
 import { preRegistrationsDB } from "@/lib/pre-registrations-server";
 
 const CITIES = LANDING_CITIES.map((city) => city.slug);
@@ -17,8 +17,16 @@ function allowedOrigin(origin: string | null) {
   return ALLOWED.some((pattern) => pattern.test(origin)) || extra.includes(origin) ? origin : null;
 }
 const corsHeaders = (origin: string | null): Record<string, string> => origin
-  ? { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400", Vary: "Origin" }
+  ? { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400", Vary: "Origin" }
   : {};
+
+// Public counts for the landing pages (?sehir=<slug>): only totals, no personal data; cached for 5 minutes.
+export async function GET(request: Request) {
+  const origin = allowedOrigin(request.headers.get("origin"));
+  const city = new URL(request.url).searchParams.get("sehir") || "";
+  const counts = await preRegistrationCounts(preRegistrationsDB(), CITIES.includes(city) ? city : undefined).catch(() => ({ agents: 0, owners: 0 }));
+  return ok(counts, { headers: { "Cache-Control": "public, max-age=300", ...corsHeaders(origin) } });
+}
 
 export function OPTIONS(request: Request) {
   const origin = allowedOrigin(request.headers.get("origin"));

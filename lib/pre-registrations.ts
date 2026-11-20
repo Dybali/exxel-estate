@@ -149,3 +149,11 @@ export function preRegistrationsCsv(entries: PreRegistration[]) {
   return "﻿" + [CSV_COLUMNS.map(([, label]) => label).join(";"),
     ...entries.map((entry) => CSV_COLUMNS.map(([key]) => cell(key === "role" ? role(entry[key]) : entry[key])).join(";"))].join("\r\n");
 }
+
+/** Real counts for the landing page's "N emlakçı yerini ayırttı" line (whole site or one city). */
+export async function preRegistrationCounts(db: PreRegistrationDatabase, city?: string) {
+  await ensure(db);
+  const rows = await db.prepare(`SELECT role,count(*) AS n FROM pre_registrations${city ? " WHERE city=?" : ""} GROUP BY role`).bind(...(city ? [city.slice(0, 40)] : [])).all<{ role: string; n: number }>();
+  const counts = Object.fromEntries(rows.results.map((row) => [row.role, Number(row.n)]));
+  return { agents: counts.agent || 0, owners: counts.owner || 0 };
+}
