@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   let bytes: Uint8Array, ext: string;
   try { bytes = await readOfficeFile(request); ext = officeFileType(bytes, type); } catch (cause) { return error((cause as Error).message); }
   const id = crypto.randomUUID(), key = `private/service-documents/${found.firm.id}/${id}.${ext}`;
-  await storage.put(key, bytes, { httpMetadata: { contentType: type } });
+  try { await storage.put(key, bytes, { httpMetadata: { contentType: type } }); } catch (cause) { console.error("service_document_storage_failed", String(cause).slice(0, 300)); return error("Belge deposuna yüklenemedi. Birkaç dakika sonra tekrar deneyin.", 503); }
   try { return ok({ document: await addDocument(servicesDB(), found.firm.id, { id, kind, objectKey: key, contentType: type, size: bytes.length }) }, { status: 201, ...privateHeaders }); }
   catch (cause) { await storage.delete(key).catch(() => {}); return serviceFailure(cause); }
 }

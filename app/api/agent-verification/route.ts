@@ -5,7 +5,7 @@ import {officeFileType,readOfficeFile,OFFICE_PUBLIC_FIELDS,type OfficeVerificati
 import {checkOffice} from '@/lib/office-check';
 import {decideOffice} from '@/lib/office-decision';
 import {queueListingTranslation} from '@/lib/translation-runtime';
-import {env} from '@/lib/runtime';
+import {env,waitUntil} from '@/lib/runtime';
 export async function GET(request:Request){
  const user=await currentUser(request);if(!user)return error('Belge başvurusu için hesabınızla giriş yapın.',401);
  const database=await officeDB(),id=new URL(request.url).searchParams.get('userId')||user.id;
@@ -23,6 +23,10 @@ export async function GET(request:Request){
  return ok({application,verification:record,companyCategory:company?.category||'agency'},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
+ try{return await upload(request);}
+ catch(cause){console.error('office_upload_failed',String(cause).slice(0,300));return error('Belge şu anda kaydedilemedi. Birkaç dakika sonra tekrar deneyin; sorun sürerse bize yazın.',500);}
+}
+async function upload(request:Request){
  if(!sameOrigin(request))return error('Geçersiz kaynak.',403);
  const user=await currentUser(request);if(!user)return error('Giriş yapın.',401);
  if(user.role!=='agent')return error('Emlakçı veya şirket hesabı gerekli.',403);
@@ -38,7 +42,7 @@ export async function POST(request:Request){
  let bytes:Uint8Array,ext:string;const type=request.headers.get('Content-Type')||'';
  try{bytes=await readOfficeFile(request);ext=officeFileType(bytes,type);}catch(e){return error((e as Error).message);}
  const documentId=crypto.randomUUID(),key=`private/office-verifications/${user.id}/${documentId}.${ext}`,stamp=now();
- await storage.put(key,bytes,{httpMetadata:{contentType:type}});
+ try{await storage.put(key,bytes,{httpMetadata:{contentType:type}});}catch(cause){console.error('office_upload_storage_failed',String(cause).slice(0,300));return error('Belge deposuna yüklenemedi. Birkaç dakika sonra tekrar deneyin.',503);}
  try{
   await database.batch([database.prepare(`INSERT INTO office_verifications(user_id,document_id,document_number,company_snapshot,object_key,content_type,byte_size,state,note,version,created_at,updated_at)
    VALUES(?,?,?,?,?,?,?,'pending','',1,?,?) ON CONFLICT(user_id) DO UPDATE SET document_id=excluded.document_id,document_number=excluded.document_number,company_snapshot=excluded.company_snapshot,object_key=excluded.object_key,content_type=excluded.content_type,byte_size=excluded.byte_size,state='pending',note='',version=office_verifications.version+1,updated_at=excluded.updated_at,reviewer_id=NULL,reviewed_at=NULL WHERE office_verifications.state='rejected' AND office_verifications.version=?`)
@@ -47,16 +51,19 @@ export async function POST(request:Request){
   const saved=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS} FROM office_verifications WHERE user_id=?`).bind(user.id).first<OfficeVerification>();
   if(saved?.document_id!==documentId){await storage.delete(key);return error('Belge başka bir oturumda değişti. Sayfayı yenileyin.',409);}
   if(previous)await storage.delete(previous.object_key).catch(()=>{});
-  // Automatic check (lib/office-check.ts): every check passing approves now; the admin confirms in TTBS later.
-  let verification:OfficeVerification|null=saved,automatic=false;
-  try{
-   const result=await checkOffice(database as never,{userId:String(user.id),documentId,company:String(user.company),documentNumber:number,taxNumber,bytes,contentType:type},env as {OPENAI_API_KEY?:string;OFFICE_CHECK_MODEL?:string});
-   if(result.decision==='auto_approved'&&saved){
-    const {published}=await decideOffice(database as never,{userId:String(user.id),state:'approved',note:'',version:saved.version,actor:{id:'system',name:'Otomatik doğrulama'},summary:'approved (automatic, score '+result.score+') · '+number});
-    for(const listing of published)await queueListingTranslation(listing);
-    automatic=true;verification=await database.prepare(`SELECT ${OFFICE_PUBLIC_FIELDS} FROM office_verifications WHERE user_id=?`).bind(user.id).first<OfficeVerification>();
-   }
-  }catch(cause){console.warn('office_check_failed',String(cause).slice(0,200));}
-  return ok({verification,automatic},{status:201,headers:{'Cache-Control':'private, no-store'}});
+  // Automatic check (lib/office-check.ts): every check passing approves; the admin confirms in TTBS later. It reads
+  // the document with OpenAI (up to a minute), so it runs after the answer: waiting for it made Mittwald's proxy cut
+  // the connection. The form refreshes the state until the result is there (components/OfficeVerification.tsx).
+  const verification=saved,automatic=false,checking=true;
+  waitUntil((async()=>{
+   try{
+    const result=await checkOffice(database as never,{userId:String(user.id),documentId,company:String(user.company),documentNumber:number,taxNumber,bytes,contentType:type},env as {OPENAI_API_KEY?:string;OFFICE_CHECK_MODEL?:string});
+    if(result.decision==='auto_approved'&&saved){
+     const {published}=await decideOffice(database as never,{userId:String(user.id),state:'approved',note:'',version:saved.version,actor:{id:'system',name:'Otomatik doğrulama'},summary:'approved (automatic, score '+result.score+') · '+number});
+     for(const listing of published)await queueListingTranslation(listing);
+    }
+   }catch(cause){console.warn('office_check_failed',String(cause).slice(0,200));}
+  })());
+  return ok({verification,automatic,checking},{status:201,headers:{'Cache-Control':'private, no-store'}});
  }catch(e){await storage.delete(key).catch(()=>{});throw e;}
 }

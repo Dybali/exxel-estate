@@ -16,7 +16,8 @@ export async function serviceLimited(purpose: string, userId: string, max = 30) 
   try { await consumeRecoveryLimit(db(), await sha256(`${purpose}:${userId}`), max); return null; }
   catch (cause) { if (cause instanceof RecoveryError) return error(cause.message, cause.status); throw cause; }
 }
-export const serviceFailure = (cause: unknown) => { if (cause instanceof ServiceError) return error(cause.message, cause.status); throw cause; };
+// Unexpected failures answer as JSON too (an HTML error page made the forms say "Sunucudan yanıt alınamadı").
+export const serviceFailure = (cause: unknown) => { if (cause instanceof ServiceError) return error(cause.message, cause.status); console.error("service_failed", String(cause).slice(0, 300)); return error("İşlem şu anda tamamlanamadı. Birkaç dakika sonra tekrar deneyin.", 500); };
 /** The member's firm, or an error response. */
 export async function memberFirm(request: Request) {
   const user = await serviceMember(request);

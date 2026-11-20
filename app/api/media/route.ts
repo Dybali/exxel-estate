@@ -64,7 +64,7 @@ export async function POST(request:Request) {
     if(!validPhotoVariant(raw,part.type,width)) return error("Fotoğraf biçimi doğrulanamadı.");
     variants.push({key:target,bytes:stripImageMetadata(raw,"image/webp")});
   }
-  await putExternalImage(key,bytes,file.type,digest,purpose?null:hash);
+  try{await putExternalImage(key,bytes,file.type,digest,purpose?null:hash);}catch(cause){console.error("media_upload_storage_failed",String(cause).slice(0,300));return error("Fotoğraf depoya yüklenemedi. Birkaç dakika sonra tekrar deneyin.",503);}
   // Best effort: without a copy the media route serves the main photo instead.
   await Promise.allSettled(variants.map(async(variant)=>putExternalImage(variant.key,variant.bytes,"image/webp",await sha256Hex(variant.bytes))));
   return ok({url:`/api/media/${key}`},{status:201});
