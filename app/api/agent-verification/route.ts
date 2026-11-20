@@ -54,8 +54,10 @@ async function upload(request:Request){
   // Automatic check (lib/office-check.ts): every check passing approves; the admin confirms in TTBS later. It reads
   // the document with OpenAI (up to a minute), so it runs after the answer: waiting for it made Mittwald's proxy cut
   // the connection. The form refreshes the state until the result is there (components/OfficeVerification.tsx).
-  const verification=saved,automatic=false,checking=true;
-  waitUntil((async()=>{
+  // Off unless OFFICE_AUTO_CHECK=1 (owner's decision 2026-11-20: only the licence is required, an admin approves it).
+  const checking=String((env as Record<string,unknown>).OFFICE_AUTO_CHECK??"")==="1";
+  const verification=saved,automatic=false;
+  if(checking)waitUntil((async()=>{
    try{
     const result=await checkOffice(database as never,{userId:String(user.id),documentId,company:String(user.company),documentNumber:number,taxNumber,bytes,contentType:type},env as {OPENAI_API_KEY?:string;OFFICE_CHECK_MODEL?:string});
     if(result.decision==='auto_approved'&&saved){

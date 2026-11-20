@@ -33,6 +33,8 @@ The local preview has no external listing-photo storage credentials. Full creati
 
 ## Otomatik kontrol (2026-11-13)
 
+**2026-11-20: kapalı (sahibinin kararı).** Yalnızca yetki belgesi istenir; belge yüklenince başvuru "İncelemede" olur ve yönetici Yönetim › Emlakçı başvuruları ekranından onaylar. Otomatik kontrol `OFFICE_AUTO_CHECK=1` ayarıyla yeniden açılır; açıkken de yüklemenin yanıtını beklemez, arka planda çalışır (OpenAI okuması bir dakika sürebildiği için Mittwald ağ geçidi bağlantıyı kesiyordu).
+
 Sahibinin kararı: tüm kontrolleri geçen başvuru otomatik onaylanır, yönetici sonra TTBS'den teyit eder; mevcut onaylı ofislere dokunulmaz. Hiçbir başvuru otomatik reddedilmez.
 
 - `lib/office-check.ts`: yüklenen belge OpenAI GPT-6 Luna ile okunur (PDF dosya olarak, resim image_url olarak; strict JSON, düşünme kapalı; `OFFICE_CHECK_MODEL` ile değiştirilebilir, `OPENAI_API_KEY` yoksa okunmaz ve yönetici karar verir). Belge başına ≈ 0,0001 $.
