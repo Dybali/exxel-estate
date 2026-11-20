@@ -28,7 +28,10 @@ test('panel: each type has its own short menu; old links still land on the right
  const ids=(kind,options)=>P.panelTabs(kind,options).map(tab=>tab.id);
  assert.deepEqual(ids('individual'),['genel','favoriler','aramalar','ilanlarim','mesajlar','randevular','teklifler','ekip','profil']);
  assert.ok(ids('individual',{hasListings:true}).includes('crm'),'an individual seller sees listing statistics and leads');
- assert.deepEqual(ids('agent'),['genel','ilanlarim','projelerim','mesajlar','crm','firma','ekip','siparisler','profil']);
+ assert.deepEqual(ids('agent'),['genel','talep-akisi','ilanlarim','projelerim','mesajlar','crm','firma','ekip','siparisler','profil']);
+ // Admins see the request board whatever their account type; agents have it once.
+ assert.deepEqual(ids('individual',{admin:true}).slice(0,2),['genel','talep-akisi']);
+ assert.equal(ids('agent',{admin:true}).filter(id=>id==='talep-akisi').length,1);
  assert.equal(P.panelTab('talepler',P.panelTabs('agent')),'crm');assert.equal(P.panelTab('randevular',P.panelTabs('agent')),'crm','appointments live inside CRM for agents');
  assert.deepEqual(ids('contractor'),['genel','muteahhit','mesajlar','profil']);
  assert.deepEqual(ids('service'),['genel','hizmet','mesajlar','profil']);

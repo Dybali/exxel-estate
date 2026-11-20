@@ -3,15 +3,22 @@
 // requests, documents…). Pure: components/Dashboard.tsx renders the tabs.
 import type { AccountKind } from "./account-kind";
 
-export type PanelTabId = "genel" | "favoriler" | "aramalar" | "ilanlarim" | "projelerim" | "mesajlar" | "randevular" | "crm" | "talepler" | "siparisler" | "teklifler" | "firma" | "ekip" | "muteahhit" | "hizmet" | "profil";
+export type PanelTabId = "genel" | "favoriler" | "aramalar" | "ilanlarim" | "projelerim" | "mesajlar" | "randevular" | "crm" | "talep-akisi" | "talepler" | "siparisler" | "teklifler" | "firma" | "ekip" | "muteahhit" | "hizmet" | "profil";
 export type PanelTab = { id: PanelTabId; label: string };
 
 /** Tabs of each account type, in menu order. `hasListings`: an individual who posts listings also gets leads and orders. */
-export function panelTabs(kind: AccountKind, options: { hasListings?: boolean; developer?: boolean } = {}): PanelTab[] {
+// "Talep akışı" (components/LeadBoard.tsx): the open board of Benim için bul requests, its own tab right after the
+// overview for agents; admins see it too (read-only) whatever their account type.
+export function panelTabs(kind: AccountKind, options: { hasListings?: boolean; developer?: boolean; admin?: boolean } = {}): PanelTab[] {
+  const tabs = tabsOf(kind, options);
+  if (options.admin && !tabs.some((item) => item.id === "talep-akisi")) tabs.splice(1, 0, { id: "talep-akisi", label: "Talep akışı" });
+  return tabs;
+}
+function tabsOf(kind: AccountKind, options: { hasListings?: boolean; developer?: boolean }): PanelTab[] {
   const tab = (id: PanelTabId, label: string) => ({ id, label });
   switch (kind) {
     case "agent": return [
-      tab("genel", "Genel Bakış"), tab("ilanlarim", "İlanlarım"), tab("projelerim", "Projelerim"), tab("mesajlar", "Mesajlar"),
+      tab("genel", "Genel Bakış"), tab("talep-akisi", "Talep akışı"), tab("ilanlarim", "İlanlarım"), tab("projelerim", "Projelerim"), tab("mesajlar", "Mesajlar"),
       tab("crm", "CRM"), tab("firma", options.developer ? "Firma bilgilerim" : "Ofis bilgilerim"),
       tab("ekip", "Ekibim"), tab("siparisler", "Paketler ve siparişler"), tab("profil", "Profilim"),
     ];
@@ -32,7 +39,7 @@ export function panelTabs(kind: AccountKind, options: { hasListings?: boolean; d
 }
 
 // Old links (e-mails, other pages) still land on the right place.
-const ALIASES: Record<string, PanelTabId> = { bildirimler: "aramalar", bildirimlerim: "aramalar", "kat-karsiligi": "teklifler", favorites: "favoriler", talepler: "crm", istatistik: "crm" };
+const ALIASES: Record<string, PanelTabId> = { bildirimler: "aramalar", bildirimlerim: "aramalar", "kat-karsiligi": "teklifler", favorites: "favoriler", talepler: "crm", istatistik: "crm", "musteri-talepleri": "talep-akisi", "talep-akisi": "talep-akisi" };
 /** The tab to show for a `?tab=` value: aliases resolved, unknown or foreign tabs fall back to the overview. */
 export function panelTab(requested: string | null, tabs: PanelTab[]): PanelTabId {
   // No tab or "baslangic" (sign-up, e-mail verification): firm accounts start on their firm panel.

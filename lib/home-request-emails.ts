@@ -3,7 +3,7 @@
 import { emailLayout, emailReady, escapeHtml, sendEmail } from "./email";
 import { emailPreferences, unsubscribeUrl, type NotificationDatabase, type Settings } from "./email-notifications";
 
-export const HOME_REQUEST_PANEL = "/hesabim?tab=crm#talep-akisi";
+export const HOME_REQUEST_PANEL = "/hesabim?tab=talep-akisi";
 export const MEMBER_REQUEST_PANEL = "/hesabim?tab=aramalar#benim-icin-bul";
 
 async function sendTo(db: NotificationDatabase, settings: Settings, userId: string, message: (link: string, unsubscribe: string) => { subject: string; title: string; titleEn: string; lines: string[]; label: string; text: string }, path: string) {

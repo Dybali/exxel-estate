@@ -1,4 +1,4 @@
-import { body, db, error, ok, sameOrigin } from "@/lib/server";
+import { body, db, error, isAdmin, ok, sameOrigin } from "@/lib/server";
 import { privateHeaders, serviceLimited, serviceMember } from "@/lib/service-api";
 import { env, waitUntil } from "@/lib/runtime";
 import { siteUrl } from "@/lib/request-context";
@@ -18,15 +18,17 @@ const database = () => shared ??= db() as unknown as LeadDatabase;
 const failure = (cause: unknown) => { if (cause instanceof LeadError) return error(cause.message, cause.status); throw cause; };
 const plansOn = () => leadPlansEnabled(env as Record<string, unknown>);
 
-async function agent(request: Request) {
+// Admins may look at the board (read-only); only approved agents act on it.
+async function agent(request: Request, read = false) {
   const user = await serviceMember(request);
   if (!user) return { failed: error("Giriş ve e-posta doğrulaması gerekli.", 401) };
+  if (read && isAdmin(user)) return { user };
   if (user.role !== "agent" || user.agent_status !== "approved") return { failed: error("Talep akışı onaylı emlakçı hesapları içindir.", 403) };
   return { user };
 }
 
 export async function GET(request: Request) {
-  const { user, failed } = await agent(request);
+  const { user, failed } = await agent(request, true);
   if (!user) return failed;
   const params = new URL(request.url).searchParams;
   if (params.get("count") === "1") return ok({ unseen: await boardUnseen(database(), user.id) }, privateHeaders);

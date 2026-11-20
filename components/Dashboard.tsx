@@ -19,7 +19,7 @@ import {LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
 import {CrmPanel} from "./CrmPanel";
-import {BarChart3} from "lucide-react";
+import {BarChart3,Inbox} from "lucide-react";
 import {ACCOUNT_KIND_LABELS,accountTypeLabel,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
 import type {AccountKind} from "@/lib/account-kind";
 
@@ -40,7 +40,7 @@ import { MessagesInbox, type Conversation } from "@/components/MessagesInbox";
 import {photoVariantUrl} from "@/lib/listing-media";
 
 type User = { id: string; name: string; email: string; email_verified: number; role: string; agent_status: string; phone?: string | null; whatsapp_enabled?: number; company?: string | null; avatar_url?: string | null; bio?:string; companyCategory?:string|null; isAdmin?: boolean; accountKind?: AccountKind };
-const ICONS:Record<PanelTabId,typeof Heart>={genel:LayoutDashboard,favoriler:Heart,aramalar:Search,ilanlarim:Bookmark,projelerim:Building2,mesajlar:Mail,randevular:CalendarDays,crm:BarChart3,talepler:Users,siparisler:ShoppingBag,teklifler:ClipboardList,firma:Store,ekip:Users,muteahhit:HardHat,hizmet:Wrench,profil:UserRound};
+const ICONS:Record<PanelTabId,typeof Heart>={genel:LayoutDashboard,favoriler:Heart,aramalar:Search,ilanlarim:Bookmark,projelerim:Building2,mesajlar:Mail,randevular:CalendarDays,crm:BarChart3,"talep-akisi":Inbox,talepler:Users,siparisler:ShoppingBag,teklifler:ClipboardList,firma:Store,ekip:Users,muteahhit:HardHat,hizmet:Wrench,profil:UserRound};
 
 export function Dashboard() {
   const { t, locale } = useLocale();
@@ -99,7 +99,7 @@ export function Dashboard() {
   // One panel per account type (lib/account-panel.ts): individuals, agents, contractors and service firms.
   const kind:AccountKind=user.accountKind||(user.role==="agent"?"agent":"individual");
   const typeLabel=accountTypeLabel({kind,role:user.role,companyCategory:user.companyCategory,isAdmin:user.isAdmin,office});
-  const items=panelTabs(kind,{hasListings:mine.length>0,developer:user.companyCategory==="developer"}).map(item=>({...item,icon:ICONS[item.id]}));
+  const items=panelTabs(kind,{hasListings:mine.length>0,developer:user.companyCategory==="developer",admin:Boolean(user.isAdmin)}).map(item=>({...item,icon:ICONS[item.id]}));
   const active=panelTab(tab,items);
   // Firm panels live in their own sub-site (/hizmetler/panel, /muteahhitler/panel); Hesabım keeps messages and settings.
   const firmPanel=active==="hizmet"?"/hizmetler/panel":active==="muteahhit"?"/muteahhitler/panel":null;
@@ -137,7 +137,7 @@ export function Dashboard() {
 
         </>}
         {active === "mesajlar" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("İLETİŞİM")}</span><h2>{t("Mesajlarım")}</h2></div></div><MessagesInbox userId={user.id} initialConversations={conversations}/></>}
-        {active === "aramalar" && <><MyHomeRequests/><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="crm"&&kind==="agent"&&user.agent_status==="approved"&&<AgentHomeRequests/>}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}
+        {active === "aramalar" && <><MyHomeRequests/><EmailPreferences/><DiscoveryPanel/><MyReports/></>}{active==="randevular"&&<AppointmentsPanel userId={user.id}/>}{active==="talep-akisi"&&(user.isAdmin||kind==="agent"&&user.agent_status==="approved"?<AgentHomeRequests/>:<div className="panel-empty"><Inbox size={26}/><p>{t("Talep akışı, belgesi onaylanan emlakçılara açılır. Onay için Ofis bilgilerim bölümünden yetki belgenizi yükleyin.")}</p></div>)}{active==="crm"&&<CrmPanel userId={user.id} title={kind==="agent"?"Müşteri ve ilan takibi":"İlan istatistikleri"} appointments={kind==="agent"}/>}{active==="siparisler"&&<MyOrders/>}{active==="projelerim"&&(user.role==="agent"||user.isAdmin)&&<ProjectsPanel/>}{active==="teklifler"&&<><ServiceQuotesPanel/><LandRequestsPanel/></>}
         {active === "ekip" && <CompanyTeam/>}
         {active === "firma" && user.role==='agent' && <><CompanyAccount/><OfficeVerification/></>}
         {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}
