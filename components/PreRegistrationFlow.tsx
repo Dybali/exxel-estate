@@ -70,6 +70,7 @@ export function PreRegistrationFlow({ city, siteHref }: { city: LandingCity; sit
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [gift, setGift] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const tracking = useRef<Record<string, string>>({});
   const input = useRef<HTMLInputElement>(null);
   const role = String(values.role || "");
@@ -119,18 +120,22 @@ export function PreRegistrationFlow({ city, siteHref }: { city: LandingCity; sit
   }
 
   if (screen === -1) return <main className="lp lp-welcome">
-    <div className="lp-hero-photo" style={{ backgroundImage: `url("${city.image}")` }} role="img" aria-label={`${city.name}`}/>
-    <div className="lp-hero-shade"/>
-    <div className="lp-hero">
-      <img className="lp-logo" src="/brand/logo-horizontal-negativ.svg" alt="EstateMarket24" width={190} height={37}/>
-      <p className="lp-eyebrow">{label}</p>
-      <h1>{COPY.title}</h1>
-      <p className="lp-sub">{`${city.locative} mülklerinizi 8 dilde yayınlayın, yabancı alıcılarla canlı çeviriyle anında mesajlaşın.`}</p>
-      <div className="lp-highlights">{HIGHLIGHTS.map(([big, small]) => <div key={small}><strong>{big}</strong><span>{small}</span></div>)}</div>
-      <ul className="lp-features">{FEATURES.map((item) => <li key={item}><Check size={18} aria-hidden="true"/>{item}</li>)}</ul>
-      <p className="lp-urgency">{urgency}</p>
-      <button type="button" className="lp-cta" onClick={next}>{COPY.cta}<ArrowRight size={20}/></button>
-    </div>
+    <header className="lp-top"><img className="lp-logo-dark" src="/brand/logo-horizontal.svg" alt="EstateMarket24" width={190} height={37}/></header>
+    <section className="lp-grid">
+      <figure className="lp-photo">
+        {!photoFailed && <img src={city.image} alt={city.imageShowsLandmark ? `${city.name} · ${city.landmark}` : city.name} onError={() => setPhotoFailed(true)} loading="eager" fetchPriority="high"/>}
+        <figcaption><strong>{city.name}</strong>{city.imageShowsLandmark ? <span>{city.landmark}</span> : null}</figcaption>
+      </figure>
+      <div className="lp-copy">
+        <p className="lp-eyebrow">{label}</p>
+        <h1>{COPY.title}</h1>
+        <p className="lp-sub">{`${city.locative} mülklerinizi 8 dilde yayınlayın, yabancı alıcılarla canlı çeviriyle anında mesajlaşın.`}</p>
+        <div className="lp-highlights">{HIGHLIGHTS.map(([big, small]) => <div key={small}><strong>{big}</strong><span>{small}</span></div>)}</div>
+        <ul className="lp-features">{FEATURES.map((item) => <li key={item}><Check size={16} aria-hidden="true"/>{item}</li>)}</ul>
+        <p className="lp-urgency">{urgency}</p>
+        <button type="button" className="lp-cta" onClick={next}>{COPY.cta}<ArrowRight size={20}/></button>
+      </div>
+    </section>
     <p className="lp-credit">{`${COPY.photo}: ${city.credit.author} · `}<a href={city.credit.source} target="_blank" rel="noopener noreferrer">{city.credit.license}</a></p>
   </main>;
 
