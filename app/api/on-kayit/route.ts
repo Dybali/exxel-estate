@@ -7,18 +7,35 @@ import { LANDING_CITIES } from "@/lib/landing-cities";
 import { PreRegistrationError, savePreRegistration } from "@/lib/pre-registrations";
 import { preRegistrationsDB } from "@/lib/pre-registrations-server";
 
-const headers = { "Cache-Control": "private, no-store" };
 const CITIES = LANDING_CITIES.map((city) => city.slug);
+// The landing pages are a separate static site (GitHub Pages now, <city>.estatemarket24.com later) that posts
+// here across origins. Only these origins are allowed (plus LANDING_ORIGINS, comma separated, for tests).
+const ALLOWED = [/^https:\/\/dybali\.github\.io$/, /^https:\/\/([a-z0-9-]+\.)?estatemarket24\.com$/];
+function allowedOrigin(origin: string | null) {
+  if (!origin) return null;
+  const extra = String((env as unknown as { LANDING_ORIGINS?: string }).LANDING_ORIGINS || "").split(",").map((item) => item.trim()).filter(Boolean);
+  return ALLOWED.some((pattern) => pattern.test(origin)) || extra.includes(origin) ? origin : null;
+}
+const corsHeaders = (origin: string | null): Record<string, string> => origin
+  ? { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400", Vary: "Origin" }
+  : {};
+
+export function OPTIONS(request: Request) {
+  const origin = allowedOrigin(request.headers.get("origin"));
+  return new Response(null, { status: origin ? 204 : 403, headers: corsHeaders(origin) });
+}
 
 // Pre-registration from a city landing page (app/on-kayit/[sehir]). No account; 10 per address per 15 minutes;
 // the hidden "website" field catches bots (same answer, nothing stored). The team gets a short notice e-mail.
 export async function POST(request: Request) {
-  if (!sameOrigin(request)) return error("Geçersiz kaynak.", 403);
+  const origin = allowedOrigin(request.headers.get("origin"));
+  if (!origin && !sameOrigin(request)) return error("Geçersiz kaynak.", 403);
+  const headers = { "Cache-Control": "private, no-store", ...corsHeaders(origin) };
   let data: Record<string, unknown>;
-  try { data = await body(request); } catch { return error("Geçersiz istek."); }
+  try { data = await body(request); } catch { return Response.json({ error: "Geçersiz istek." }, { status: 400, headers }); }
   if (typeof data.website === "string" && data.website.trim()) return ok({ ok: true, gift: false }, { status: 201, headers });
   try { await consumeRateLimit(preRegistrationsDB() as never, await sha256(`pre-registration:${clientIp(request)}`), 10, 15 * 60_000); }
-  catch (cause) { if (cause instanceof RecoveryError) return error(cause.message, cause.status); throw cause; }
+  catch (cause) { if (cause instanceof RecoveryError) return Response.json({ error: cause.message }, { status: cause.status, headers }); throw cause; }
   try {
     const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").split(",")[0].trim() || null;
     const saved = await savePreRegistration(preRegistrationsDB(), data, CITIES, host);
@@ -34,7 +51,7 @@ export async function POST(request: Request) {
     }
     return ok({ ok: true, gift: saved.gift }, { status: 201, headers });
   } catch (cause) {
-    if (cause instanceof PreRegistrationError) return error(cause.message, cause.status);
+    if (cause instanceof PreRegistrationError) return Response.json({ error: cause.message }, { status: cause.status, headers });
     throw cause;
   }
 }

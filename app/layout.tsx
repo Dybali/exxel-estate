@@ -109,15 +109,13 @@ export default async function RootLayout({
 }>) {
   // Display currency of listing prices: the visitor's explicit choice (cookie) and one TCMB snapshot per request.
   const [locale, rates, requestHeaders] = await Promise.all([requestLocale(), requestRates(), headers()]);
-  // City campaign subdomains render app/on-kayit at their root; the browser path stays "/", so the frame is decided here.
-  const landingPage = (await requestPath()).startsWith("/on-kayit");
   const currency = currencyFromCookies(requestHeaders.get("cookie"));
   const gaId = gaMeasurementId();
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
       {/* The browser needs this language's messages before hydrating (lib/i18n-runtime.ts): fetch them early. */}
       {locale !== "tr" && <head><link rel="preload" href={messagesUrl(locale, messagesVersion())} as="fetch" crossOrigin="anonymous"/></head>}
-      <body><PhotoGuard/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale} messagesVersion={messagesVersion()}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame bare={landingPage}>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
+      <body><PhotoGuard/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteStructuredData(siteUrl())) }}/><LocaleProvider initialLocale={locale} messagesVersion={messagesVersion()}><CurrencyProvider initialRates={rates} initialCurrency={currency}><CookieConsentProvider googleAnalytics={Boolean(gaId)}><SiteFrame>{children}</SiteFrame>{gaId&&<GoogleAnalytics id={gaId}/>}</CookieConsentProvider></CurrencyProvider></LocaleProvider><ServiceWorker/></body>
     </html>
   );
 }

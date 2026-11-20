@@ -5,4 +5,4 @@ import {WhatsAppPrompt} from './WhatsAppPrompt';import {CompareTray} from './Com
 import {BackButton} from './BackButton';
 import {siteChrome} from '@/lib/site-chrome';
 // Admin and service pages render their own frame from their layout (lib/site-chrome.ts).
-export function SiteFrame({children,bare=false}:{children:React.ReactNode;bare?:boolean}){const path=usePathname();if(bare||siteChrome(path)!=='main')return <>{children}</>;return <><Header/><BackButton/><WhatsAppPrompt/>{children}<CompareTray/><AssistantLauncher/><FeedbackWidget/><Footer/></>;}
+export function SiteFrame({children}:{children:React.ReactNode}){const path=usePathname();if(siteChrome(path)!=='main')return <>{children}</>;return <><Header/><BackButton/><WhatsAppPrompt/>{children}<CompareTray/><AssistantLauncher/><FeedbackWidget/><Footer/></>;}

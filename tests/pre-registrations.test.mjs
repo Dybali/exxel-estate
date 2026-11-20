@@ -6,7 +6,6 @@ import ts from 'typescript';
 const mod=(file,replace=s=>s)=>import('data:text/javascript;base64,'+Buffer.from(ts.transpile(replace(readFileSync(new URL('../lib/'+file+'.ts',import.meta.url),'utf8')),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022})).toString('base64'));
 const P=await mod('pre-registrations');
 const cities=await mod('landing-cities');
-const hosts=await mod('landing-hosts',s=>s.replace('from "./landing-cities"',`from "data:text/javascript;base64,${Buffer.from(ts.transpile(readFileSync(new URL('../lib/landing-cities.ts',import.meta.url),'utf8'),{module:ts.ModuleKind.ES2022})).toString('base64')}"`));
 const db=()=>{const sql=new DatabaseSync(':memory:');return {sql,prepare(q){let v=[];return {bind(...a){v=a;return this},async first(){return sql.prepare(q).get(...v)||null},async all(){return {results:sql.prepare(q).all(...v)}},async run(){return sql.prepare(q).run(...v)}}}};};
 const agent=(extra={})=>({role:'agent',city:'adana',name:'Ayşe Yılmaz',company:'Yılmaz Emlak',phone:'0532 123 45 67',email:'Ayse@Example.com',district:'Seyhan',portfolio:'11–50',foreignSales:'Evet',package:'Premium',notice:true,marketing:true,utm_source:'google',utm_campaign:'adana-emlakci',...extra});
 const owner=(extra={})=>({role:'owner',city:'izmir',name:'Can Demir',phone:'+49 151 2345 6789',email:'can@example.com',propertyType:'Villa',propertyCount:'1',purpose:'Satılık',timeline:'Hemen',notice:true,...extra});
@@ -15,16 +14,6 @@ test('30 landing cities with images, credits and Turkish forms',()=>{
   assert.equal(cities.LANDING_CITIES.length,30);
   for(const c of cities.LANDING_CITIES){assert.match(c.image,/^https:\/\//);assert.ok(c.credit.license&&c.credit.source.startsWith('https://commons.wikimedia.org/'),c.slug);assert.ok(c.locative.includes('’')&&c.genitive.includes('’'),c.slug);}
   assert.equal(cities.landingCity('istanbul').genitive,'İstanbul’un');
-});
-test('subdomains map to their city, nothing else does',()=>{
-  assert.equal(hosts.landingSlugForHost('adana.estatemarket24.com'),'adana');
-  assert.equal(hosts.landingSlugForHost('Izmir.EstateMarket24.com:443'),'izmir');
-  assert.equal(hosts.landingSlugForHost('estatemarket24.com'),null);
-  assert.equal(hosts.landingSlugForHost('www.estatemarket24.com'),null);
-  assert.equal(hosts.landingSlugForHost('paris.estatemarket24.com'),null);
-  assert.equal(hosts.landingSlugForHost('adana.evil.example'),null);
-  assert.equal(hosts.landingSlugForHost('a.b.adana.estatemarket24.com'),null);
-  assert.equal(hosts.landingSlugForHost('van.test.example','test.example'),'van');
 });
 test('agents and owners are stored with only their own answers; consent and UTM are kept',async()=>{
   const d=db();
