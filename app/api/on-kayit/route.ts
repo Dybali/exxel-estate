@@ -37,7 +37,8 @@ export async function POST(request: Request) {
   try { await consumeRateLimit(preRegistrationsDB() as never, await sha256(`pre-registration:${clientIp(request)}`), 10, 15 * 60_000); }
   catch (cause) { if (cause instanceof RecoveryError) return Response.json({ error: cause.message }, { status: cause.status, headers }); throw cause; }
   try {
-    const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").split(",")[0].trim() || null;
+    // Where the form was filled in: the landing site's origin for cross-origin posts, else this host.
+    const host = origin ? origin.replace(/^https?:\/\//, "") : (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").split(",")[0].trim() || null;
     const saved = await savePreRegistration(preRegistrationsDB(), data, CITIES, host);
     const settings = env as unknown as EmailSettings & { EXXEL_ADMIN_EMAIL?: string; CONTACT_EMAIL?: string };
     const recipient = settings.CONTACT_EMAIL?.trim() || settings.EXXEL_ADMIN_EMAIL?.trim();
