@@ -5,6 +5,8 @@ import { ArrowRight, ChartLine, Info, MapPinned, Search } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { DisplayMoney } from "@/components/DisplayCurrency";
 import { EVDS_SOURCE_URL, type MarketView, type ProvinceFigures } from "@/lib/market-stats";
+import { FeatureTip } from "@/components/FeatureTip";
+import { InfoTip } from "@/components/InfoTip";
 
 // /emlak-piyasasi: TCMB housing prices and rents by province on the Türkiye map (lib/market-stats.ts).
 type Shape = { name: string; path: string; cx: number; cy: number };
@@ -87,12 +89,13 @@ export function MarketMap({ view }: { view: MarketView }) {
   const metricLabel = METRICS.find((item) => item.key === metric)!.label;
 
   return <>
+    <FeatureTip id="emlak-piyasasi" title="Haritayı nasıl kullanırım?" text="Üstteki düğmelerle haritada m² fiyatını, kirayı, getiriyi veya yıllık değişimi gösterin. Bir ile dokunun; o ilin rakamları ve fiyat grafiği yanda açılır."/>
     <section className="market-cards" aria-label={t("Türkiye geneli")}>
       <article><span>{t("m² satış fiyatı")}</span><strong>{view.turkey.price != null ? <DisplayMoney value={view.turkey.price} currency="TRY"/> : "—"}</strong><small>{t("Türkiye")} · {periodLabel(view.turkey.period, locale)}</small></article>
       <article><span>{t("Yıllık değişim")}</span><strong className={view.turkey.priceChange != null && view.turkey.priceChange < 0 ? "down" : "up"}>{percent(view.turkey.priceChange)}</strong><small>{t("m² fiyatı, son 4 çeyrek")}</small></article>
       <article><span>{t("m² kira (aylık)")}</span><strong>{view.turkey.rent != null ? <DisplayMoney value={view.turkey.rent} currency="TRY"/> : "—"}</strong><small>{t("Yıllık değişim")}: {percent(view.turkey.rentChange)}</small></article>
-      <article><span>{t("Brüt kira getirisi")}</span><strong>{view.turkey.grossYield != null ? `${number(view.turkey.grossYield, 1)} %` : "—"}</strong><small>{view.turkey.paybackYears != null ? t("Amortisman: {n} yıl").replace("{n}", number(view.turkey.paybackYears, 1)) : ""}</small></article>
-      <article><span>{t("Konut fiyat endeksi")}</span><strong className={view.turkey.indexChange != null && view.turkey.indexChange < 0 ? "down" : "up"}>{percent(view.turkey.indexChange)}</strong><small>{t("Yıllık")} · {periodLabel(view.indexPeriod, locale)}</small></article>
+      <article><span>{t("Brüt kira getirisi")}<InfoTip label="Brüt kira getirisi" text="Bir yıllık kiranın satış fiyatına oranı. Örneğin %6 getiri, evin kendini kirayla yaklaşık 16–17 yılda ödemesi demektir; vergi ve aidat düşülmemiştir."/></span><strong>{view.turkey.grossYield != null ? `${number(view.turkey.grossYield, 1)} %` : "—"}</strong><small>{view.turkey.paybackYears != null ? t("Amortisman: {n} yıl").replace("{n}", number(view.turkey.paybackYears, 1)) : ""}</small></article>
+      <article><span>{t("Konut fiyat endeksi")}<InfoTip label="Konut fiyat endeksi" text="Merkez Bankasının, aynı nitelikteki konutların fiyat değişimini ölçtüğü aylık endeks. Buradaki oran bir yıl öncesine göre değişimdir."/></span><strong className={view.turkey.indexChange != null && view.turkey.indexChange < 0 ? "down" : "up"}>{percent(view.turkey.indexChange)}</strong><small>{t("Yıllık")} · {periodLabel(view.indexPeriod, locale)}</small></article>
     </section>
 
     <section className="market-map-card">

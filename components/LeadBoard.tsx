@@ -9,6 +9,8 @@ import { CITIES } from "@/lib/turkey-locations";
 import { HOME_CONTACT, HOME_CONTACT_TIMES, HOME_PAYMENTS, HOME_TIMELINES, HOME_TYPES } from "@/lib/home-requests";
 import type { BoardItem, LeadAccess } from "@/lib/lead-board";
 import type { Listing } from "@/lib/listings";
+import { FeatureTip } from "@/components/FeatureTip";
+import { InfoTip } from "@/components/InfoTip";
 
 // Hesabım › CRM › "Talep akışı" (lib/lead-board.ts): every open "Benim için bul" request as a feed. The agent
 // filters, picks and reaches the member with an offer or by opening the phone number; at most 4 agents per request.
@@ -57,7 +59,7 @@ function Card({ item, listings, plans, onDone }: { item: BoardItem; listings: Li
       {d?.features.length ? <> · {d.features.map((feature) => t(feature)).join(", ")}</> : null}
     </p>
     {tags.length > 0 && <ul className="lead-tags">{tags.map(({ key, label, icon: Icon, tone }) => <li key={key} className={tone}>{Icon && <Icon size={13} aria-hidden="true"/>}{label}</li>)}</ul>}
-    <p className="lead-slots">{t("{n}/{max} danışman ulaştı").replace("{n}", String(item.reached)).replace("{max}", String(PER_REQUEST))}{item.full && !reached ? ` · ${t("Dolu")}` : ""}</p>
+    <p className="lead-slots"><InfoTip label="Danışman sınırı" text="Alıcı onlarca arama almasın diye bir talebe en fazla 4 danışman ulaşabilir. Teklif göndermek veya telefonu açmak bir yer kullanır."/>{t("{n}/{max} danışman ulaştı").replace("{n}", String(item.reached)).replace("{max}", String(PER_REQUEST))}{item.full && !reached ? ` · ${t("Dolu")}` : ""}</p>
 
     {reached && item.contact && <div className="lead-contact">
       <strong>{item.contact.name}</strong>
@@ -114,6 +116,7 @@ export function LeadBoard() {
   const access = board?.access;
   return <section id="talep-akisi" className="svc-tool-card lead-board">
     <div className="svc-tool-head"><Inbox size={20} aria-hidden="true"/><div><h3>{t("Talep akışı")}</h3><p>{t("\"Benim için bul\" ile ev arayan üyeler. Herkese açık bir pano: istediğiniz talebi seçin, teklif gönderin veya telefonu açın. Bir talebe en fazla 4 danışman ulaşabilir.")}</p></div></div>
+    <FeatureTip id="talep-akisi" title="Talep akışı nasıl çalışır?" text="Ev arayan üyelerin talepleri burada en yenisi üstte görünür. Beğendiğiniz talebe teklif gönderin veya telefonu açın; bir talebe en fazla 4 danışman ulaşabilir, hızlı olan kazanır."/>
     {board && <div className="lead-stats">
       <div><span>{t("Açık talep")}</span><strong>{board.total}</strong></div>
       <div><span>{t("Bu ay ulaştığınız")}</span><strong>{access?.limit != null ? `${access.used} / ${access.limit}` : access?.used}</strong></div>
@@ -126,6 +129,7 @@ export function LeadBoard() {
       <select aria-label={t("Kategori")} value={filters.category} onChange={(event) => set("category", event.target.value)}><option value="">{t("Tüm kategoriler")}</option>{Object.entries(CATEGORY).map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</select>
       {([["hot", "Sıcak"], ["foreign", "Yabancı alıcı"], ["mine", "Ulaştıklarım"]] as const).map(([key, label]) => <button key={key} type="button" className={filters[key] ? "active" : ""} aria-pressed={filters[key]} onClick={() => set(key, !filters[key])}>{t(label)}</button>)}
       <button type="button" className="lead-follow-toggle" onClick={() => setFollowOpen((value) => !value)}><Bell size={15} aria-hidden="true"/>{t("Takip ettiğim iller")}{follow?.length ? ` (${follow.length})` : ""}</button>
+      <InfoTip label="Sıcak talep" text="Hemen almak veya taşınmak isteyen, ya da nakit veya onaylı krediyle ödeyecek alıcıların talepleri. Kartta alev simgesiyle işaretlenir."/>
     </div>
     {followOpen && <div className="lead-follow">
       <p>{t("Seçtiğiniz illerde yeni talep gelince e-posta alırsınız. Boş bırakırsanız ilanlarınızın bulunduğu iller kullanılır. En fazla 10 il.")}</p>

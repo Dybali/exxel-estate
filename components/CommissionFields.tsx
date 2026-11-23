@@ -1,5 +1,6 @@
 "use client";
 import { useLocale } from "@/lib/i18n";
+import { InfoTip } from "@/components/InfoTip";
 import { COMMISSION_DEFAULT, COMMISSION_MAX, commissionPurpose } from "@/lib/listing-commission";
 
 // "Hizmet bedeli (komisyon)" in the listing forms (lib/listing-commission.ts): not stated, commission-free, or
@@ -13,7 +14,7 @@ export function CommissionFields({ purpose, type, value, onChange }: { purpose: 
     if (next === "share" && !value) onChange("commissionValue", String(COMMISSION_DEFAULT[kind]));
   };
   return <section className="presentation-fields commission-fields">
-    <h2>{t("Hizmet bedeli (komisyon)")}</h2>
+    <h2>{t("Hizmet bedeli (komisyon)")}<InfoTip label="Hizmet bedeli" text="Emlakçının alıcıdan veya kiracıdan alacağı ücret. Yasal üst sınır satışta toplam %4 + KDV, kiralamada bir aylık kira + KDV; komisyonsuz ilanlar aramada ayrıca filtrelenebilir."/></h2>
     <p>{t(kind === "sale"
       ? "İsteğe bağlı. Yasal üst sınır satış bedelinin %4'ü + KDV'dir; aksi kararlaştırılmadıkça alıcı ve satıcı yarı yarıya öder (genelde her biri %2 + KDV)."
       : "İsteğe bağlı. Yasal üst sınır bir aylık kira + KDV'dir; aksi kararlaştırılmadıkça kiracı ve ev sahibi yarı yarıya öder.")}</p>

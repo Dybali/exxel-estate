@@ -316,3 +316,34 @@ img[src*="/api/media/"]{-webkit-user-drag:none;-webkit-touch-callout:none;-webki
 .request-found-with{display:inline-flex;align-items:center;gap:6px;font-size:13px}
 .request-found-with select{min-height:34px;border:1px solid #d6e1dc;border-radius:8px;padding:0 8px}
 @media(max-width:700px){.lead-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lead-filters .lead-follow-toggle{margin-inline-start:0}}
+
+/* Help in the page (2026-11-23): start checklist (components/StartChecklist.tsx), one-time feature tips
+   (FeatureTip.tsx), "?" explanations (InfoTip.tsx) and the "Yeni" badge in the Hesabım menu. */
+.start-checklist{border:1px solid #cfe3dc;border-radius:14px;background:linear-gradient(180deg,#f3faf7,#fff);padding:16px 18px;margin-bottom:18px}
+.start-checklist>header{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.start-checklist>header>div{display:flex;gap:10px;align-items:center}
+.start-checklist h2{margin:0;font-size:18px;color:#123f42}.start-checklist header p{margin:2px 0 0;font-size:13px;color:#5d716c}
+.start-checklist-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#123f42;color:#fff;flex:none}
+.start-checklist-close{border:0;background:none;color:#7b8a86;cursor:pointer;padding:4px;border-radius:6px}.start-checklist-close:hover{background:#eef3f1}
+.start-checklist-bar{height:6px;border-radius:999px;background:#e3ece8;margin:12px 0 10px;overflow:hidden}.start-checklist-bar span{display:block;height:100%;background:#1d7a55;border-radius:999px;transition:width .3s}
+.start-checklist ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.start-checklist li a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:#1f3b38;text-decoration:none;border:1px solid transparent}
+.start-checklist li a:hover{background:#eef6f3}
+.start-checklist li a>svg:first-child{flex:none;color:#9fb3ad}.start-checklist li a>svg:last-child{margin-inline-start:auto;color:#7b8a86;flex:none}
+.start-checklist li span{display:grid;gap:1px}.start-checklist li strong{font-size:14px}.start-checklist li small{font-size:12.5px;color:#5d716c}
+.start-checklist li.done a>svg:first-child{color:#1d7a55}.start-checklist li.done strong{text-decoration:line-through;color:#7b8a86;font-weight:600}
+.start-checklist li.next a{background:#fff;border-color:#cfe3dc}
+[dir=rtl] .start-checklist li a>svg:last-child{transform:scaleX(-1)}
+.feature-tip{position:relative;display:flex;align-items:flex-start;gap:10px;border:1px solid #f0dca4;background:#fffaf0;border-radius:12px;padding:12px 40px 12px 12px;margin:0 0 14px;font-size:14px;color:#4a3c14}
+.feature-tip-icon{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#f6c343;color:#4a3c14}
+.feature-tip strong{display:block;margin-bottom:2px;color:#3b2f0b}.feature-tip p{margin:0;line-height:1.5}.feature-tip a{text-decoration:underline}
+.feature-tip-ok{margin-inline-start:auto;align-self:center;border:1px solid #e3c264;background:#fff;border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:#4a3c14;cursor:pointer;white-space:nowrap}
+.feature-tip-close{position:absolute;top:8px;inset-inline-end:8px;border:0;background:none;color:#8a7434;cursor:pointer;padding:2px}
+@media(max-width:600px){.feature-tip{flex-wrap:wrap}.feature-tip-ok{margin-inline-start:40px}}
+.info-tip{position:relative;display:inline-flex;vertical-align:middle;margin-inline-start:4px}
+.info-tip-button{border:0;background:none;padding:2px;color:#5d7f78;cursor:pointer;display:inline-grid;place-items:center;border-radius:50%}
+.info-tip-button:hover,.info-tip-button[aria-expanded=true]{color:#0b5e5e;background:#e6f2ee}
+.info-tip-panel{position:absolute;z-index:60;top:calc(100% + 6px);inset-inline-start:-8px;width:min(280px,80vw);background:#123f42;color:#fff;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:500;line-height:1.5;box-shadow:0 10px 28px #0b3d3f40;text-align:start;white-space:normal;text-transform:none;letter-spacing:normal}
+.info-tip-panel strong{display:block;margin-bottom:3px;font-size:13.5px;color:#fff}
+@media(max-width:600px){.info-tip-panel{position:fixed;inset-inline:12px;bottom:12px;top:auto;width:auto;font-size:14px;padding:14px 16px;border-radius:14px}}
+.tab-new-badge{margin-inline-start:6px;background:#f6c343;color:#4a3c14;border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase}

@@ -7,6 +7,7 @@ import { Money, useLocale } from "@/lib/i18n";
 import { HOME_CLOSE_REASONS, HOME_CONTACT, HOME_CONTACT_TIMES, HOME_PAYMENTS, HOME_TIMELINES, HOME_TYPES, type HomeRequest, type MyHomeRequest } from "@/lib/home-requests";
 import type { MemberOffer } from "@/lib/lead-board";
 export { LeadBoard as AgentHomeRequests } from "./LeadBoard";
+import { FeatureTip } from "./FeatureTip";
 
 // "Benim için bul" in Hesabım (lib/home-requests.ts): the member's own requests (Aramalarım tab) with the offers
 // and phone reveals of the agents who reached them on the open board (components/LeadBoard.tsx, CRM tab).
@@ -73,6 +74,7 @@ export function MyHomeRequests() {
   if (!requests) return null;
   return <section id="benim-icin-bul" className="svc-tool-card">
     <div className="svc-tool-head"><Search size={20} aria-hidden="true"/><div><h3>{t("Benim için bul taleplerim")}</h3><p>{t("Talepleriniz danışmanların gördüğü talep akışında yayınlanır; size en fazla 4 danışman ulaşabilir.")} <Link href="/benim-icin-bul">{t("Yeni talep")}</Link></p></div></div>
+    {requests.length > 0 && <FeatureTip id="benim-icin-bul-takip" title="Teklifler buraya gelir" text="Danışmanlar talebinize teklif gönderdiğinde burada mesajlarını ve önerdikleri ilanları görürsünüz; size e-posta da gelir. Evi bulunca talebi kapatın, bulamazsanız 30 gün uzatın."/>}
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {!requests.length ? <div className="panel-empty"><Search size={26}/><p>{t("Aradığınız evi anlatın; bölgenin onaylı danışmanları size uygun seçeneklerle dönsün.")}</p><Link className="primary-button" href="/benim-icin-bul">{t("Benim için bul")}</Link></div>
     : requests.map((request) => {

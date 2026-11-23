@@ -10,6 +10,7 @@ import {AppointmentsPanel} from "./Appointments";
 import {EmailPreferences} from "./EmailPreferences";
 import {MyOrders} from "./Orders";
 import {AgentHomeRequests,MyHomeRequests} from "./HomeRequestsPanels";
+import {StartChecklist} from "./StartChecklist";
 import {AgentLanguagesSetting} from "./AgentLanguagesSetting";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
@@ -111,14 +112,14 @@ export function Dashboard() {
       <aside className="account-sidebar">
         <div className="account-user">{user.avatar_url ? <img src={user.avatar_url} alt="" width={42} height={42} className="account-avatar-img"/> : <div>{user.name.charAt(0).toUpperCase()}</div>}<span><strong>{user.name}</strong><small>{user.email}</small><em className="account-type-badge">{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</em></span></div>
         <div className="account-nav">
-          {items.map((item) => <button key={item.id} className={active === item.id ? "active" : ""} onClick={() => { setTab(item.id); history.replaceState(null, "", `/hesabim?tab=${item.id}`); }}><item.icon size={17}/>{t(item.label)}</button>)}
+          {items.map((item) => <button key={item.id} className={active === item.id ? "active" : ""} onClick={() => { setTab(item.id); history.replaceState(null, "", `/hesabim?tab=${item.id}`); }}><item.icon size={17}/>{t(item.label)}{item.id === "talep-akisi" && Date.now() < Date.parse("2027-02-01") && <span className="tab-new-badge">{t("Yeni")}</span>}</button>)}
           {user.isAdmin && <Link href="/yonetim"><LayoutDashboard size={17}/>{t("Yönetim Paneli")}</Link>}
           <button className="account-logout" onClick={logout}><LogOut size={17}/>{t("Çıkış Yap")}</button>
         </div>
       </aside>
       <section className={`account-content ${active === "mesajlar" ? "account-content-inbox" : ""}`}>
         {draft&&draftHasContent(draft.payload)&&(active==="genel"||active==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")}<ForwardArrow/></Link></div>}
-        {active === "genel" && <>
+        {active === "genel" && <><StartChecklist userId={user.id}/>
           <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div>{(kind==="individual"||kind==="agent")&&<Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link>}</div>
           {(kind==="contractor"||kind==="service")?<div className="panel-note"><h3>{t(kind==="contractor"?"Müteahhit firmanız":"Hizmet firmanız")}</h3><p>{t(kind==="contractor"?"Firma profilinizi, tamamlanan projelerinizi ve gelen kat karşılığı taleplerini Firma panelim bölümünden yönetin.":"Firma profilinizi, çalışma bilgilerinizi, belgelerinizi ve gelen teklif taleplerini Firma panelim bölümünden yönetin.")}</p><button type="button" className="text-link" onClick={()=>window.location.assign(kind==="contractor"?"/muteahhitler/panel":"/hizmetler/panel")}>{t("Firma panelime git")}<ArrowUpRight size={16}/></button></div>:<>
           <div className="summary-cards"><div><Heart size={22}/><strong>{favorites.length}</strong><span>{t("Favori ilan")}</span></div><div><Bookmark size={22}/><strong>{mine.length}</strong><span>{t("İlanım")}</span></div><div><Mail size={22}/><strong>{conversations.length}</strong><span>{t("Görüşme")}</span></div></div>
