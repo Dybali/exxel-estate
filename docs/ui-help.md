@@ -32,3 +32,7 @@ Yeni ipucu eklerken sayfa başına en fazla bir tane koyun. Hesabım menüsünde
 - Emlak piyasasında brüt kira getirisi ve konut fiyat endeksi.
 
 Metinler `lib/privacy-clause-translations.ts` içinde, 10 dil.
+
+## Yardım merkezi: `/yardim`
+
+`components/HelpCenter.tsx`: ev arayanlar, ev sahipleri, emlakçılar, hizmet firmaları ve müteahhitler için sekmeli adım adım rehber; her adımın düğmesi işin yapıldığı sayfaya gider (`#alici`, `#ev-sahibi`, `#emlakci`, `#firma` ile doğrudan açılır). Ayrıntılı sorular `/sss`. Girişler: her sayfanın üst çubuğunda "Yardım", Hesabım menüsünün altında ve alt bilgide "Yardım merkezi".
