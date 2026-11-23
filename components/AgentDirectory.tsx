@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "@/components/SafeLink";
-import { BadgeCheck, Building2, ChevronRight, Languages, MapPin, Phone, Search, SlidersHorizontal, Users } from "lucide-react";
+import { BadgeCheck, Building2, ChevronDown, ChevronRight, Languages, MapPin, Phone, Search, SlidersHorizontal, Users } from "lucide-react";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
 import { DisplayMoney } from "@/components/DisplayCurrency";
 import { CITIES, DISTRICTS } from "@/lib/turkey-locations";
-import { AGENT_LANGUAGES, AGENTS_PER_PAGE, type AgentCard, type AgentLanguage, type AgentQuery, type OfficeCard } from "@/lib/agent-directory";
+import { AGENT_LANGUAGE_FLAGS, AGENT_LANGUAGES, AGENTS_PER_PAGE, type AgentCard, type AgentLanguage, type AgentQuery, type OfficeCard } from "@/lib/agent-directory";
 
 // /danismanlar (redesigned 2026-11-23, like the big portals): consultants or offices as rows with the facts that
 // matter (office, area, languages, active listings, average sale price, listings in the last three months) and a
@@ -26,12 +26,31 @@ export function PhoneButton({ id, primary = false }: { id: string; primary?: boo
     <Phone size={15} aria-hidden="true"/>{t(error ? "Telefon numarası yok" : primary ? "Hemen ara" : "Telefonu göster")}</button>;
 }
 
-const FLAG: Partial<Record<AgentLanguage, string>> = { tr: "tr", en: "gb", de: "de", ru: "ru", ar: "sa", fa: "ir", fr: "fr", nl: "nl", es: "es", it: "it" };
+const FLAG = AGENT_LANGUAGE_FLAGS;
+export function LanguageFlag({ code }: { code: AgentLanguage }) { return <img className="lang-flag" src={`/flags/${FLAG[code]}.svg`} alt="" width={20} height={15} aria-hidden="true"/>; }
+// The spoken-language filter: a dropdown with each language's flag (a plain select cannot show pictures). It fills a
+// hidden "dil" field, so the GET form works as before.
+function LanguagePicker({ value }: { value: string }) {
+  const { t } = useLocale(), language = useLanguageName();
+  const [open, setOpen] = useState(false), [chosen, setChosen] = useState(value), box = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (!open) return; const away = (event: MouseEvent) => { if (!box.current?.contains(event.target as Node)) setOpen(false); }; const key = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); }; document.addEventListener("mousedown", away); document.addEventListener("keydown", key); return () => { document.removeEventListener("mousedown", away); document.removeEventListener("keydown", key); }; }, [open]);
+  const current = (AGENT_LANGUAGES as readonly string[]).includes(chosen) ? chosen as AgentLanguage : null;
+  const pick = (code: string) => { setChosen(code); setOpen(false); };
+  return <div className="adir-lang-picker" ref={box}>
+    <input type="hidden" name="dil" value={chosen}/>
+    <button type="button" aria-haspopup="listbox" aria-expanded={open} aria-label={`${t("Konuştuğu dil")}: ${current ? language(current) : t("Tümü")}`} onClick={() => setOpen(!open)}>
+      {current && <LanguageFlag code={current}/>}<span>{current ? language(current) : t("Tümü")}</span><ChevronDown size={16} aria-hidden="true"/></button>
+    {open && <ul role="listbox" aria-label={t("Konuştuğu dil")}>
+      <li role="option" aria-selected={!current}><button type="button" onClick={() => pick("")}><span className="lang-flag-empty"/>{t("Tümü")}</button></li>
+      {AGENT_LANGUAGES.map((code) => <li key={code} role="option" aria-selected={current === code}><button type="button" onClick={() => pick(code)}><LanguageFlag code={code}/>{language(code)}</button></li>)}
+    </ul>}
+  </div>;
+}
 function LanguageList({ languages }: { languages: AgentLanguage[] }) {
   const { t } = useLocale(), language = useLanguageName();
   if (!languages.length) return null;
   return <span className="adir-langs" title={languages.map(language).join(", ")}><Languages size={13} aria-hidden="true"/>
-    {languages.slice(0, 4).map((code) => FLAG[code] ? <img key={code} src={`/flags/${FLAG[code]}.svg`} alt={language(code)} width={18} height={13}/> : <span key={code} className="adir-lang-code">{code.toUpperCase()}</span>)}
+    {languages.slice(0, 4).map((code) => FLAG[code] ? <img key={code} src={`/flags/${FLAG[code]}.svg`} alt={language(code)} title={language(code)} width={18} height={13}/> : <span key={code} className="adir-lang-code">{code.toUpperCase()}</span>)}
     <span>{t("{n} dil").replace("{n}", String(languages.length))}</span></span>;
 }
 
@@ -109,7 +128,7 @@ export function AgentDirectory({ view, query, total, agents, offices }: { view: 
           {view === "offices" && <input type="hidden" name="gorunum" value="ofisler"/>}
           <label><span>{t("İl")}</span><select name="il" value={city} onChange={(event) => setCity(event.target.value)}><option value="">{t("Tümü")}</option>{CITIES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
           <label><span>{t("İlçe")}</span><select name="ilce" defaultValue={query.district || ""} disabled={!city} key={city}><option value="">{t("Tümü")}</option>{(DISTRICTS[city] || []).map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><span>{t("Konuştuğu dil")}</span><select name="dil" defaultValue={query.language || ""}><option value="">{t("Tümü")}</option>{AGENT_LANGUAGES.map((code: AgentLanguage) => <option key={code} value={code}>{language(code)}</option>)}</select></label>
+          <div className="adir-field"><span>{t("Konuştuğu dil")}</span><LanguagePicker value={query.language || ""}/></div>
           <label><span>{t("İlan türü")}</span><select name="tur" defaultValue={query.purpose || ""}><option value="">{t("Tümü")}</option><option value="satilik">{t("Satılık")}</option><option value="kiralik">{t("Kiralık")}</option></select></label>
           <label><span>{t("Uzmanlık")}</span><select name="uzmanlik" defaultValue={query.specialty || ""}><option value="">{t("Tümü")}</option><option value="konut">{t("Konut")}</option><option value="isyeri">{t("İş yeri")}</option><option value="arsa">{t("Arsa")}</option><option value="turistik">{t("Turistik tesis")}</option></select></label>
           {view === "agents" && <label><span>{t("Sıralama")}</span><select name="sira" defaultValue={query.sort || "onerilen"}><option value="onerilen">{t("Önerilen")}</option><option value="ilan">{t("En çok ilan")}</option><option value="yeni">{t("Son 3 ayda en aktif")}</option><option value="fiyat">{t("Ortalama fiyat (yüksek)")}</option></select></label>}

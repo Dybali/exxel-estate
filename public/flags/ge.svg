@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-ge" viewBox="0 0 640 480"><path fill="#fff" d="M0 0h640v480H0z"/><path fill="red" d="M272 0h96v480h-96z"/><path fill="red" d="M0 192h640v96H0z"/><g fill="red"><path id="c" d="M146 76h20v30h30v20h-30v30h-20v-30h-30v-20h30z"/><use href="#c" x="328"/><use href="#c" y="248"/><use href="#c" x="328" y="248"/></g></svg>

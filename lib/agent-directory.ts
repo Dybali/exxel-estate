@@ -8,6 +8,8 @@ export type AgentDirectoryDatabase = { prepare(sql: string): Statement };
 /** Languages an agent can choose; names are shown with Intl.DisplayNames in the visitor's language. */
 export const AGENT_LANGUAGES = ["tr", "en", "de", "ru", "ar", "fa", "fr", "nl", "uk", "es", "it", "az", "ka", "zh"] as const;
 export type AgentLanguage = typeof AGENT_LANGUAGES[number];
+// Flag shown next to each language (public/flags): English with the British flag, Arabic with Saudi Arabia, Persian with Iran.
+export const AGENT_LANGUAGE_FLAGS: Record<AgentLanguage, string> = { tr: "tr", en: "gb", de: "de", ru: "ru", ar: "sa", fa: "ir", fr: "fr", nl: "nl", uk: "ua", es: "es", it: "it", az: "az", ka: "ge", zh: "cn" };
 export const AGENTS_PER_PAGE = 24;
 export const AGENT_LANGUAGE_SCHEMA = "CREATE TABLE IF NOT EXISTS agent_languages(user_id TEXT PRIMARY KEY,languages TEXT NOT NULL DEFAULT '[]',updated_at TEXT NOT NULL)";
 const ready = new WeakMap<object, Promise<unknown>>();

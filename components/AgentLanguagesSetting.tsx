@@ -4,7 +4,7 @@ import { Languages } from "lucide-react";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
 import { AGENT_LANGUAGES, type AgentLanguage } from "@/lib/agent-directory";
-import { useLanguageName } from "@/components/AgentDirectory";
+import { LanguageFlag, useLanguageName } from "@/components/AgentDirectory";
 
 // Hesabım › Profilim (estate agents and office consultants): languages shown on /danismanlar and used by its language filter.
 export function AgentLanguagesSetting() {
@@ -20,7 +20,7 @@ export function AgentLanguagesSetting() {
   return <section className="svc-tool-card">
     <div className="svc-tool-head"><Languages size={20} aria-hidden="true"/><div><h3>{t("Konuştuğum diller")}</h3><p>{t("Danışmanlar sayfasında profilinizde görünür; yabancı alıcılar dile göre danışman arayabilir.")}</p></div></div>
     <div className="service-category-picker" style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>{AGENT_LANGUAGES.map((code) => <label key={code} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-      <input type="checkbox" checked={chosen.includes(code)} onChange={(event) => void save(event.target.checked ? [...chosen, code] : chosen.filter((item) => item !== code))}/>{language(code)}</label>)}</div>
+      <input type="checkbox" checked={chosen.includes(code)} onChange={(event) => void save(event.target.checked ? [...chosen, code] : chosen.filter((item) => item !== code))}/><LanguageFlag code={code}/>{language(code)}</label>)}</div>
     {saved && <p className="profile-save-success" role="status">{t(saved)}</p>}
     {error && <p className="form-error" role="alert">{t(error)}</p>}
   </section>;
