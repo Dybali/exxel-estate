@@ -21,7 +21,8 @@ import {LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
 import {CrmPanel} from "./CrmPanel";
-import {BarChart3,Bell,CircleHelp,Inbox} from "lucide-react";
+import {BarChart3,CircleHelp,Inbox} from "lucide-react";
+import {NotificationBell} from "./NotificationBell";
 import {ACCOUNT_KIND_LABELS,accountTypeLabel,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
 import type {AccountKind} from "@/lib/account-kind";
 
@@ -119,7 +120,8 @@ export function Dashboard() {
   const topbar=proOverview&&<header className="pro-topbar">
     <div className="pro-topbar-title"><span>{new Date().toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long"})}</span><h1>{t(activeLabel)}</h1>{active==="genel"&&<p>{t("Hoş geldiniz,")} {user.name.split(" ")[0]}</p>}</div>
     <div className="pro-topbar-actions">
-      {items.some(i=>i.id==="mesajlar")&&<button type="button" className="pro-round" onClick={()=>goTab("mesajlar")} aria-label={`${t("Mesajlar")}${unreadTotal?` (${unreadTotal})`:""}`} title={t("Mesajlar")}><Bell size={18}/>{unreadTotal>0&&<b>{unreadTotal>99?"99+":unreadTotal}</b>}</button>}
+      {items.some(i=>i.id==="mesajlar")&&<button type="button" className="pro-round" onClick={()=>goTab("mesajlar")} aria-label={`${t("Mesajlar")}${unreadTotal?` (${unreadTotal})`:""}`} title={t("Mesajlar")}><Mail size={18}/>{unreadTotal>0&&<b>{unreadTotal>99?"99+":unreadTotal}</b>}</button>}
+      <NotificationBell unreadMessages={unreadTotal} open={openOverview}/>
       <Link href="/yardim" className="pro-round" aria-label={t("Yardım merkezi")} title={t("Yardım merkezi")}><CircleHelp size={18}/></Link>
       {kind==="agent"&&<Link href="/ilan-ver" className="pro-new"><Plus size={17}/>{t("Yeni ilan ver")}</Link>}
       <button type="button" className="pro-me" onClick={()=>goTab("profil")} aria-label={t("Profilim")}>{user.avatar_url?<img src={user.avatar_url} alt="" width={38} height={38}/>:<span>{user.name.charAt(0).toUpperCase()}</span>}<span className="pro-me-text"><strong>{user.name}</strong><small>{t(typeLabel)}</small></span></button>
