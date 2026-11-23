@@ -1,7 +1,7 @@
 import { env } from "@/lib/runtime";
 import { body, clientIp, createSession, db, error, now, ok, passwordHash, sameOrigin, sessionCookie, sha256, str } from "@/lib/server";
 
-type SetupEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; EXXEL_ADMIN_SETUP_CODE?: string };
+type SetupEnv = { EXXEL_ADMIN_EMAIL?: string; EXXEL_ADMIN_SETUP_CODE?: string };
 
 function equalsSecret(received: string, expected: string) {
   const a = new TextEncoder().encode(received);

@@ -25,12 +25,14 @@ export function pgQuery(source: string) {
       /ON CONFLICT/i.test(whole) || !/INSERT\s+OR\s+IGNORE/i.test(source) ? whole : `${whole} ON CONFLICT DO NOTHING`);
 }
 
+// The database object the site works with (db(), serviceDB()).
+export type SiteDatabase = ReturnType<typeof pgD1>;
 export function pgD1(client: PgClient) {
   function prepare(source: string) {
     const values: BoundValue[] = [];
     const query = pgQuery(source);
     const statement = {
-      bind(...args: BoundValue[]) { values.push(...args); return statement; },
+      bind(...args: unknown[]) { values.push(...(args as BoundValue[])); return statement; },
       async all<T = PgRow>() {
         const rows = await client.query(query, values);
         return { results: rows as T[] };

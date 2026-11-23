@@ -1,7 +1,7 @@
 import { env } from "./runtime";
 import { AwsClient } from "aws4fetch";
 
-type R2Settings = Cloudflare.Env & {
+type R2Settings = {
   R2_ENDPOINT?: string;
   R2_BUCKET_NAME?: string;
   R2_ACCESS_KEY_ID?: string;

@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {"incremental": false},
-  "exclude": ["node_modules", "examples", "apps", "vendor", "dist", ".next", ".vinext"]
+  "exclude": ["node_modules", "examples", "apps", "vendor", "dist", ".next"]
 }

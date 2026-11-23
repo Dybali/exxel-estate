@@ -117,10 +117,13 @@ export function s3PrivateBucket(settings: PrivateBucketSettings) {
     return { objects, truncated, ...(truncated ? { cursor: next! } : {}), delimitedPrefixes: [] as string[] };
   }
 
-  return { head, get, put, delete: remove, list };
+  // Like R2: without a condition the object has a body; with onlyIf it may come back as metadata only.
+  type WithBody = ObjectInfo & { body: ReadableStream<Uint8Array>; arrayBuffer(): Promise<ArrayBuffer>; text(): Promise<string> };
+  const typedGet = get as { (key: string): Promise<WithBody | null>; (key: string, options?: { onlyIf?: { etagMatches?: string } }): Promise<WithBody | ObjectInfo | null> };
+  return { head, get: typedGet, put, delete: remove, list };
 }
 
-// R2Bucket-compatible view for lib/server.ts bucket(); null when the S3 settings are missing.
+// The private bucket for lib/server.ts bucket(); null when the S3 settings are missing.
 export function privateBucket() {
-  return s3PrivateBucket(env as unknown as PrivateBucketSettings) as unknown as R2Bucket | null;
+  return s3PrivateBucket(env as unknown as PrivateBucketSettings) as ReturnType<typeof s3PrivateBucket>;
 }

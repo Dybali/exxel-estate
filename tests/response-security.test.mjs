@@ -28,8 +28,7 @@ test('temporary hosts (Worker, Sites, Mittwald project domain, test.*) are kept 
  const tagged=withResponseSecurity(new Response('<html></html>',{status:404,headers:{'Content-Type':'text/html'}}),{noindex:true});
  assert.equal(tagged.headers.get('X-Robots-Tag'),'noindex, nofollow');assert.equal(tagged.status,404);assert.equal(tagged.headers.get('X-Frame-Options'),'SAMEORIGIN');
  assert.equal(withResponseSecurity(new Response('ok')).headers.get('X-Robots-Tag'),null);
- // Both entry points use the same check: the Cloudflare Worker and the Next.js proxy (Mittwald).
+ // The Next.js proxy (Mittwald) applies the check.
  const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
- assert.match(read('build/sites-worker.ts'),/temporaryHost\(new URL\(incoming\.url\)\.hostname\)/);assert.match(read('build/sites-worker.ts'),/\{noindex\}\)/);
  assert.match(read('proxy.ts'),/temporaryHost\(request\.headers\.get\("x-forwarded-host"\)/);
 });

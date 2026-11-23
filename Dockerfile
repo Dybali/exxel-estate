@@ -1,18 +1,17 @@
 # syntax=docker/dockerfile:1
 # Site image for the Mittwald container (docs/mittwald-migration.md). Standard Next.js build
-# (EXXEL_NODE_BUILD=1, output: "standalone"); the Cloudflare/vinext build is not involved.
+# (output: "standalone"); the only build of the site since 2026-11-23.
 # Secrets are never baked in: every setting comes from container environment variables at runtime.
 
 FROM node:22.23.5-alpine3.23 AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 SHARP_IGNORE_GLOBAL_LIBVIPS=1
 COPY package.json package-lock.json ./
-# Same flags as scripts/install-ci.mjs (npm ci from the lockfile, dev + optional dependencies).
-# --ignore-scripts: the only install scripts belong to the Cloudflare toolchain (workerd/wrangler,
-# glibc binaries that fail on Alpine) and esbuild's optional binary check; the Node build needs none.
+# npm ci from the lockfile, dev + optional dependencies. --ignore-scripts: the Node build needs no
+# install scripts (sharp ships prebuilt binaries).
 RUN npm ci --workspaces=false --include=dev --include=optional --ignore-scripts --no-audit --no-fund
 COPY . .
-RUN EXXEL_NODE_BUILD=1 npx next build
+RUN npx next build
 
 FROM node:22.23.5-alpine3.23 AS runtime
 WORKDIR /app

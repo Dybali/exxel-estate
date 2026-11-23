@@ -109,7 +109,7 @@ test('input accepts all six UI languages and rejects forged history, unbounded I
 test('currency clarification requires a monetary budget and remains a successful conversational turn',async()=>{
  const {assistantCopy}=load('lib/assistant-copy.ts');let searches=0;
  const route=load('app/api/assistant/route.ts',{
-  'cloudflare:workers':{env:{GEMINI_API_KEY:'fixture-only'}},
+  './runtime-node':{env:{GEMINI_API_KEY:'fixture-only'}},
   '@/lib/server':{serviceDB:()=>({}),currentUser:async()=>({id:'member-id'}),sameOrigin:()=>true,body:r=>r.json(),db:()=>({}),sha256:async()=> 'hashed-member'},
   '@/lib/assistant-provider':{planSearch:async(settings,input)=>({intent:input.message==='no-budget'?'clarify':'search',language:'tr',reply:assistantCopy.tr.currency,filters:{...core.emptyFilters(),city:'İzmir',purpose:input.message==='no-budget'?null:'satilik',maxPrice:input.message==='no-budget'?null:2000000,currency:input.message==='explicit'?'TRY':null},unverified:[]})},
   '@/lib/assistant-server':{reserveAssistantUsage:async()=>async()=>{},findAssistantListings:async()=>{searches++;return {total:0,listings:[]};}},
@@ -126,7 +126,7 @@ test('currency clarification requires a monetary budget and remains a successful
 test('second and third German messages survive rich UI history without loosening API validation',async()=>{
  const turns=[],id=crypto.randomUUID();let calls=0;
  const route=load('app/api/assistant/route.ts',{
-  'cloudflare:workers':{env:{GEMINI_API_KEY:'fixture-only'}},
+  './runtime-node':{env:{GEMINI_API_KEY:'fixture-only'}},
   '@/lib/server':{serviceDB:()=>({}),currentUser:async()=>({id:'member-id'}),sameOrigin:()=>true,body:r=>r.json(),db:()=>({}),sha256:async()=> 'hashed-member'},
   '@/lib/assistant-provider':{planSearch:async(settings,input)=>{calls++;assert.deepEqual(input.history,turns.slice(-8).map(({role,text})=>({role,text})));return {intent:calls===1?'clarify':'search',language:'de',reply:'Möchten Sie eine Immobilie kaufen oder mieten?',filters:{...core.emptyFilters(),purpose:calls===1?null:'satilik',city:calls===3?'Antalya':null},unverified:[]};}},
   '@/lib/assistant-server':{reserveAssistantUsage:async()=>async()=>{},findAssistantListings:async()=>({total:1,listings:[{id,title:'Published fixture'}]})},
@@ -146,7 +146,7 @@ test('second and third German messages survive rich UI history without loosening
 test('membership is enforced server-side before provider, quota or listing access',async()=>{
  let calls=0;
  const route=load('app/api/assistant/route.ts',{
-  'cloudflare:workers':{env:{GEMINI_API_KEY:'fixture-only'}},
+  './runtime-node':{env:{GEMINI_API_KEY:'fixture-only'}},
   '@/lib/server':{currentUser:async()=>null,sameOrigin:()=>true,body:async()=>{calls++;throw Error('must not read');},db:()=>{calls++;throw Error('must not access');}},
   '@/lib/assistant-provider':{planSearch:async()=>{calls++;throw Error('must not call model');}},
  });
@@ -157,7 +157,7 @@ test('membership is enforced server-side before provider, quota or listing acces
 test('signed-in member receives verified search data; cross-site requests cannot spend quota',async()=>{
  let calls=0;
  const route=load('app/api/assistant/route.ts',{
-  'cloudflare:workers':{env:{GEMINI_API_KEY:'fixture-only'}},
+  './runtime-node':{env:{GEMINI_API_KEY:'fixture-only'}},
   '@/lib/server':{serviceDB:()=>({}),currentUser:async()=>({id:'member-id'}),sameOrigin:r=>r.headers.get('origin')==='https://site.test',body:r=>r.json(),db:()=>({}),sha256:async()=> 'hashed-member'},
   '@/lib/assistant-provider':{planSearch:async()=>{calls++;return {intent:'search',language:'de',reply:'',filters:{...core.emptyFilters(),purpose:'satilik'},unverified:[]};}},
   '@/lib/assistant-server':{reserveAssistantUsage:async()=>async()=>{},findAssistantListings:async()=>({total:1,listings:[{id:crypto.randomUUID(),title:'Published fixture'}]})},

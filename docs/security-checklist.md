@@ -1,36 +1,35 @@
 # Güvenlik kontrol listesi (sahibi için)
 
-Bu liste elle yapılacak işleri sırayla anlatır. Gizli değerler hiçbir zaman sohbete, repoya veya dosyaya yazılmaz; yalnızca ilgili panelde üretilir ve `npx wrangler secret put AD` ile Worker'a girilir (değer terminalde sorulur). Windows'ta `npx.cmd` kullanılabilir.
+Bu liste elle yapılacak işleri sırayla anlatır. Gizli değerler hiçbir zaman sohbete, repoya veya dosyaya yazılmaz; yalnızca ilgili panelde üretilir ve **mStudio → proje → Containers → `site` → Environment** bölümüne ortam değişkeni olarak girilir. Değişiklikten sonra konteyner yeniden başlatılır (mStudio'da **Recreate**, ya da bir sonraki `main` yayını). GitHub Actions yalnızca `MITTWALD_API_TOKEN` kullanır; uygulamanın gizli değerleri GitHub'a girilmez.
 
-Bir Worker gizli değeri girildiğinde Cloudflare yeni bir sürüm başlatır; ayrıca yayın gerekmez. GitHub Actions yalnızca `CLOUDFLARE_API_TOKEN` ve `CLOUDFLARE_ACCOUNT_ID` kullanır; uygulamanın gizli değerleri (Neon, Gemini, DeepL…) GitHub'a girilmez.
+Site yalnızca Mittwald'da çalışır (2026-11-23): veritabanı Mittwald'daki `postgres` konteyneri, Neon ve Cloudflare Worker kullanılmaz.
 
 ## 1. Geçişte sohbete yapıştırılan gizli değerleri yenileyin
 
-Eski ChatGPT Sites yayını aynı Neon veritabanını kullandığı için önce **2. adımı** (Sites'ı kapatmak) yapın ya da Sites'ta da yeni değeri girin; aksi halde eski site bağlantıyı kaybeder. Her değeri yeniledikten sonra siteyi kontrol edin (ana sayfa, giriş, ilan detayı, yönetim → Sistem durumu).
+Her değeri yeniledikten sonra siteyi kontrol edin (ana sayfa, giriş, ilan detayı, yönetim → Sistem durumu).
 
-| Değer | Nerede yenilenir | Worker'a giriş |
+| Değer | Nerede yenilenir | Nereye girilir |
 | --- | --- | --- |
-| Neon veritabanı şifresi (`DATABASE_URL`) | Neon → proje → **Roles** → `neondb_owner` → **Reset password**. Ardından **Connect** → *pooled* bağlantı adresini kopyalayın. | `npx wrangler secret put DATABASE_URL` |
-| `GEMINI_API_KEY` | Google AI Studio → **API keys** → yeni anahtar oluştur, eskisini **Delete**. | `npx wrangler secret put GEMINI_API_KEY` |
-| `OPENAI_API_KEY` | platform.openai.com → **API keys** → yeni Restricted anahtar (Chat completions, Files, Batch), eskisini **Revoke**. | Mittwald ortam değişkeni |
-| `DEEPL_API_KEY` | DeepL hesabı → **API Keys** → yeni anahtar, eskisini devre dışı bırakın. | `npx wrangler secret put DEEPL_API_KEY` |
-| `BACKUP_READ_TOKEN` | Kendiniz üretin: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` | `npx wrangler secret put BACKUP_READ_TOKEN` |
+| Mittwald PostgreSQL şifresi (`DATABASE_URL` içindeki) | mStudio → `postgres` konteyneri → ortam değişkeni `POSTGRES_PASSWORD` ile birlikte veritabanında `ALTER USER … PASSWORD …` | `site` konteynerinde `DATABASE_URL` |
+| `GEMINI_API_KEY` | Google AI Studio → **API keys** → yeni anahtar oluştur, eskisini **Delete**. | `site` ortam değişkeni |
+| `OPENAI_API_KEY` | platform.openai.com → **API keys** → yeni Restricted anahtar (Chat completions, Files, Batch), eskisini **Revoke**. | `site` ortam değişkeni |
+| `DEEPL_API_KEY` | DeepL hesabı → **API Keys** → yeni anahtar, eskisini devre dışı bırakın. | `site` ortam değişkeni |
+| `BACKUP_READ_TOKEN` | Artık gerekmez: `site` ortam değişkenlerinde varsa silin. | — |
 
 Notlar:
 
-- Neon şifresi değişince eski şifreyle açık bağlantılar kapanır; yeni `DATABASE_URL` girilene kadar site birkaç dakika veritabanına ulaşamayabilir. Bu yüzden şifreyi yenilediğiniz anda değeri hemen girin.
-- `BACKUP_READ_TOKEN` yalnızca `scripts/migrate-private-media.mjs` ve yedek okuyucu için gerekir. Özel dosya taşıması bittiyse yeni değeri girmek yerine `npx wrangler secret delete BACKUP_READ_TOKEN` ile tamamen kaldırabilirsiniz.
-- Girilen değerleri kontrol: `npx wrangler secret list` (yalnızca adları gösterir).
+- Veritabanı şifresi değişince `DATABASE_URL` hemen güncellenmezse site birkaç dakika veritabanına ulaşamaz; ikisini art arda yapın.
 - Bir değer yanlışlıkla GitHub'a veya bir dosyaya yazıldıysa o değer de aynı şekilde yenilenir; yalnızca dosyadan silmek yetmez.
 
-## 2. Eski ChatGPT Sites yayınlarını kapatın
+## 2. Eski yayınları ve Neon'u kapatın (2026-11-23)
 
-Alan adı yeni Worker'a bağlanıp her şey denendikten sonra (bkz. `docs/cloudflare-deploy.md` bölüm 6):
+Eski ChatGPT Sites yayını zaten kapalı (404). Kalanlar:
 
-1. Özel dosya betiğini son kez çalıştırın: `node scripts/migrate-private-media.mjs`.
-2. ChatGPT Sites panelinde `estatemarket24-showcase.tastymole36.chatgpt.site` ve eski `exxel-estate.blue-grape-8839.chatgpt.site` yayınlarını yayından kaldırın / silin.
-3. Sites panelindeki gizli değerleri (Neon, Gemini, DeepL, Google OAuth…) silin.
-4. Ardından 1. adımdaki yenilemeleri yapın; böylece eski yayının bildiği değerlerin hiçbiri artık çalışmaz.
+1. **Cloudflare Worker'ı silin:** dash.cloudflare.com → **Workers & Pages** → `exxel-estate` → **Settings** → en altta **Delete**. Bu, `exxel-estate.estatemarket24.workers.dev` adresini kapatır ve Neon'a yazan son yeri ortadan kaldırır. Worker'ın gizli değerleri onunla birlikte silinir. **R2 kovalarına dokunmayın** (`exxel-estate-images`, `exxel-estate-private`, `estatemarket24-backups`): fotoğraflar ve belgeler hâlâ orada.
+2. **Neon'dan son yedek:** console.neon.tech → proje → **Backup & Restore** (veya bilgisayarınızda `pg_dump` ile tam döküm). Dosyayı güvenli bir yerde saklayın; 3 Kasım'dan sonra yalnızca Neon'a yazılmış birkaç kayıt (1 ilan, olası üyelik/mesaj) yalnızca bu yedekte kalır.
+3. **Neon projesini silin:** Neon → proje → **Settings** → **Delete project**. Ardından Neon hesabını kapatabilirsiniz.
+4. Eski Sites panelinde gizli değer kaldıysa (Neon, Gemini, DeepL, Google OAuth…) silin.
+5. GitHub → repo → **Settings → Secrets and variables → Actions**: `CLOUDFLARE_API_TOKEN` ve `CLOUDFLARE_ACCOUNT_ID` varsa silin; Cloudflare'de bu token'ı **My Profile → API Tokens** altından da iptal edin. (R2 için kullanılan `mittwald-site` R2 token'ı kalır.)
 
 ## 3. Yönetici iki adımlı doğrulamasını (2FA) açın
 
@@ -49,7 +48,7 @@ Alan adı yeni Worker'a bağlanıp her şey denendikten sonra (bkz. `docs/cloudf
 
 Nasıl çalışır: 2FA'yı açmış bir yönetici, oturumu kodu onaylayana kadar sitede normal üye gibi görünür (`isAdmin` yanlış döner); bu yüzden tüm `/api/admin/*` uçları, `/yonetim` sayfaları ve yöneticiye özel yetkiler (ilan düzenleme, medya, dışa aktarma vb.) kod girilene kadar kapalıdır. 5 hatalı denemede 15 dakika kilit vardır; aynı kod ikinci kez kullanılamaz.
 
-Kilitlenme (telefon ve kurtarma kodları kayıp): Neon SQL Editor'da `DELETE FROM admin_totp WHERE user_id='<yönetici kullanıcı id>';` çalıştırın; 2FA kapanır, sonra yeniden kurun.
+Kilitlenme (telefon ve kurtarma kodları kayıp): mStudio'da `postgres` konteynerinin terminalinde `psql` ile `DELETE FROM admin_totp WHERE user_id='<yönetici kullanıcı id>';` çalıştırın; 2FA kapanır, sonra yeniden kurun.
 
 ## 4. SMS ile telefon doğrulaması (isteğe bağlı)
 
@@ -96,6 +95,6 @@ Search Console:
 2. Etiketteki `content="…"` değerini girin: `npx wrangler secret put GOOGLE_SITE_VERIFICATION`. Site, kök sayfada `<meta name="google-site-verification">` etiketini üretir.
 3. Search Console'da **Doğrula**'ya basın, ardından **Site haritaları** bölümüne `sitemap.xml` ekleyin.
 
-Alan adı mülkü (DNS TXT kaydı) kullanılırsa `GOOGLE_SITE_VERIFICATION` gerekmez; TXT kaydı Cloudflare DNS'e eklenir.
+Alan adı mülkü (DNS TXT kaydı) kullanılırsa `GOOGLE_SITE_VERIFICATION` gerekmez; TXT kaydı alan adının DNS'ine eklenir.
 
 Bu iki değer gizli değildir; yine de `wrangler.jsonc` içindeki `vars` yerine `wrangler secret put` ile girilmesi önerilir: `vars` her yayında dosyadaki değerle değiştirilir ve boş bırakılan değerler panelde girilenleri siler.

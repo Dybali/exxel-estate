@@ -73,9 +73,9 @@ test('Cloudflare bundle never sees postgres.js: only the Node-aliased module imp
  assert.match(read('next.config.ts'),/"@\/lib\/postgres-driver":\s*"\.\/lib\/postgres-driver-node\.ts"/);
  assert.match(read('lib/server.ts'),/from "@\/lib\/postgres-driver"/);
  const files=dir=>(nativeRequire('node:fs').readdirSync(path.join(root,dir),{withFileTypes:true})).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):/\.(ts|tsx)$/.test(e.name)?[path.join(dir,e.name).replaceAll('\\','/')]:[]);
- const importers=['app','lib','components','build'].flatMap(files).filter(f=>/from\s+["']postgres["']|require\(["']postgres["']\)/.test(read(f)));
+ const importers=['app','lib','components'].flatMap(files).filter(f=>/from\s+["']postgres["']|require\(["']postgres["']\)/.test(read(f)));
  assert.deepEqual(importers,['lib/postgres-driver-node.ts']);
- assert.deepEqual(['app','lib','components','build'].flatMap(files).filter(f=>/(import|from)[^;\n]*postgres-driver-node/.test(read(f))),[]);
+ assert.deepEqual(['app','lib','components'].flatMap(files).filter(f=>/(import|from)[^;\n]*postgres-driver-node/.test(read(f))),[]);
 });
 
 function sqlite(){const sql=new DatabaseSync(':memory:');return {sql,prepare(query){return {values:[],bind(...values){this.values=values;return this;},async first(){return sql.prepare(query).get(...this.values)||null;},async all(){return {results:sql.prepare(query).all(...this.values)};},async run(){return sql.prepare(query).run(...this.values);}};},async batch(statements){sql.exec('BEGIN');try{const r=[];for(const s of statements)r.push(await s.run());sql.exec('COMMIT');return r;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
@@ -97,7 +97,7 @@ test('former D1 tables are created on first use in the main database (no D1 migr
  // PostgreSQL cannot type a bare parameter in a SELECT list.
  assert.match(read('lib/operations.ts'),/SELECT CAST\(\? AS TEXT\),COALESCE/);
  assert.match(read('lib/operations.ts'),/lease_until BIGINT/);assert.match(read('lib/translation-service.ts'),/blocked_until BIGINT/);
- for(const file of ['app/api/translations/route.ts','app/api/admin/translations/route.ts','app/api/assistant/route.ts','app/api/messages/route.ts','lib/translation-runtime.ts','lib/operations-runtime.ts','build/sites-worker.ts'])assert.doesNotMatch(read(file),/\.DB\b/,file);
+ for(const file of ['app/api/translations/route.ts','app/api/admin/translations/route.ts','app/api/assistant/route.ts','app/api/messages/route.ts','lib/translation-runtime.ts','lib/operations-runtime.ts'])assert.doesNotMatch(read(file),/\.DB\b/,file);
 });
 
 function storage(responses){const calls=[];const original=globalThis.fetch;globalThis.fetch=async(request)=>{const r=request instanceof Request?request:new Request(request);calls.push({method:r.method,url:r.url,headers:Object.fromEntries(r.headers),body:r.method==='PUT'?new Uint8Array(await r.arrayBuffer()):null});const next=responses.shift();return typeof next==='function'?next(r):next;};return {calls,restore:()=>{globalThis.fetch=original;}};}
@@ -124,8 +124,8 @@ test('private bucket over the S3 API: configuration, get/head/put/delete/list',a
   await assert.rejects(()=>bucket.get('../secret'),/Invalid object key/);
  }finally{s.restore();}
 });
-test('private bucket: binding first, S3 adapter only without it',()=>{
- assert.match(read('lib/server.ts'),/export const bucket = \(\) => \(env as SiteEnv\)\.BUCKET \?\? privateBucket\(\);/);
+test('private bucket: always the S3 adapter',()=>{
+ assert.match(read('lib/server.ts'),/export const bucket = \(\) => privateBucket\(\);/);
  const {privateBucket}=load('lib/private-bucket.ts',{'./runtime':{env:{...settings,R2_PRIVATE_BUCKET_NAME:'other-bucket'}}});assert.equal(typeof privateBucket().get,'function');
  assert.equal(load('lib/private-bucket.ts',{'./runtime':{env:{}}}).privateBucket(),null);
 });
@@ -149,10 +149,12 @@ test('cron endpoint: disabled without a long CRON_SECRET, 401 on wrong token, ru
  const manual=await cron(backupFailure.route,'backup','Bearer '+secret,'POST');assert.equal(manual.status,500);assert.deepEqual(await manual.json(),{job:'backup',ok:false,backup:{status:'failed',error:'x',ms:1}});assert.equal(backupFailure.calls.filter(c=>c[0]==='backup').length,1);
  const manualOk=cronRoute({CRON_SECRET:secret});assert.equal((await cron(manualOk.route,'backup','Bearer '+secret)).status,200);assert.equal((await cron(manualOk.route,'backup','Bearer wrong')).status,401);
 });
-test('Cloudflare cron and the endpoint share one implementation',()=>{
- const worker=read('build/sites-worker.ts');assert.match(worker,/healthJob\(settings\)/);assert.match(worker,/dailyJobs\(settings\)/);assert.doesNotMatch(worker,/runHealthChecks|sendDailyDigests|expirePromotions/);
- // Schedules run only on Mittwald since 2026-11-23 (two schedulers would send every digest twice).
- assert.match(read('wrangler.jsonc'),/"crons": \[\]/);
+test('the Cloudflare build is gone: no Worker, wrangler or vinext; Node is the only runtime',()=>{
+ const fs=nativeRequire('node:fs');
+ for(const file of ['wrangler.jsonc','vite.config.ts','build/sites-worker.ts','cloudflare-env.d.ts','scripts/run-framework.mjs','db/index.ts'])assert.equal(fs.existsSync(path.join(root,file)),false,file);
+ const pkg=JSON.parse(read('package.json'));for(const name of ['wrangler','vinext','vite','@cloudflare/workers-types','@cloudflare/vite-plugin'])assert.equal(pkg.devDependencies[name]??pkg.dependencies[name],undefined,name);
+ assert.doesNotMatch(JSON.stringify(pkg.scripts),/wrangler|vinext|deploy/);
+ assert.doesNotMatch(read('lib/runtime.ts'),/cloudflare:workers/);assert.doesNotMatch(read('next.config.ts'),/EXXEL_NODE_BUILD|cloudflare:workers/);
 });
 test('liveness endpoint answers without touching database or storage',async()=>{
  const live=load('app/api/health/live/route.ts');assert.doesNotMatch(read('app/api/health/live/route.ts'),/import/);

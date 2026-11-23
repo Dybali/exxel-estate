@@ -58,3 +58,6 @@ apps/web/.next/
 /work/
 __pycache__/
 *.pyc
+
+# local development database (npm run dev without DATABASE_URL)
+/.data/

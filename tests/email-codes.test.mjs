@@ -225,6 +225,6 @@ test('Neon Auth is gone from the code, the dependencies and the configuration',(
  for(const file of ['lib/neon-mail-auth.ts','lib/neon-identities.ts'])assert.equal(existsSync(path.join(root,file)),false,file);
  const pkg=JSON.parse(read('package.json'));assert.equal(pkg.dependencies['@neondatabase/auth'],undefined);
  const walk=dir=>readdirSync(path.join(root,dir),{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):[path.join(dir,e.name)]);
- for(const file of [...walk('app'),...walk('components'),...walk('lib'),...walk('build'),'wrangler.jsonc','.env.example','proxy.ts','next.config.ts'].filter(f=>/\.(tsx?|jsonc|example)$/.test(f)))
+ for(const file of [...walk('app'),...walk('components'),...walk('lib'),'.env.example','proxy.ts','next.config.ts'].filter(f=>/\.(tsx?|jsonc|example)$/.test(f)))
   assert.doesNotMatch(read(file),/neon-mail-auth|neon-identities|@neondatabase\/auth|NEON_AUTH_|neonMailAuth|linkNeonAccount/,file);
 });

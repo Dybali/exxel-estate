@@ -2,7 +2,7 @@ import { env } from "./runtime";
 import { safeNextPath } from "./safe-next";
 export { safeNextPath };
 
-type GoogleEnv = Cloudflare.Env & {
+type GoogleEnv = {
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GOOGLE_REDIRECT_URI?: string;

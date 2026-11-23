@@ -1,4 +1,3 @@
-// The only module that knows the hosting runtime. Today the site runs on Cloudflare Workers;
-// when it moves to Mittwald (Node.js), env becomes process.env and waitUntil a detached
-// promise here, and the rest of the code stays as it is. See docs/mittwald-migration.md.
-export { env, waitUntil } from "cloudflare:workers";
+// The only module that knows the hosting runtime: the Mittwald container (Node.js). Settings come from
+// environment variables. The Cloudflare Workers build was removed on 2026-11-23 (owner's decision).
+export { env, waitUntil } from "./runtime-node";

@@ -387,14 +387,13 @@ test('Cloudflare build: Stream is gone, the worker slot is null and Node-only vi
  assert.match(read('instrumentation.ts'),/await import\("@\/lib\/video-worker"\)/);
  for(const file of ['lib/stream-server.ts','lib/stream-video.ts','tests/stream-video.test.mjs'])assert.equal(existsSync(path.join(root,file)),false,file);
  const files=dir=>readdirSync(path.join(root,dir),{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):/\.(ts|tsx)$/.test(e.name)?[path.join(dir,e.name).replaceAll('\\','/')]:[]);
- const sources=['app','lib','components','build'].flatMap(files).concat(['instrumentation.ts','proxy.ts']);
+ const sources=['app','lib','components'].flatMap(files).concat(['instrumentation.ts','proxy.ts']);
  const importing=pattern=>sources.filter(f=>pattern.test(read(f))).sort();
  // lib/db-backup-node.ts (pg_dump) is likewise reachable only through its "@/lib/db-backup" alias (tests/db-backup.test.mjs).
  assert.deepEqual(importing(/from\s+["']node:child_process["']/),['lib/db-backup-node.ts','lib/video-transcode.ts']);
  assert.deepEqual(importing(/from\s+["'][^"']*video-transcode["']/),['lib/video-worker-node.ts']);
  assert.deepEqual(importing(/(import|from)[^;\n]*video-worker-node/),[]);
  assert.deepEqual(importing(/Cloudflare Stream|videodelivery\.net|STREAM_API_TOKEN|streamVideo/),[]);
- assert.doesNotMatch(read('wrangler.jsonc'),/CLOUDFLARE_ACCOUNT_ID|STREAM_API_TOKEN/);
  // Request bodies of the upload must not pass through the proxy (Next.js would buffer them and cut at 10 MB).
  assert.match(read('proxy.ts'),/manifest\.webmanifest\|api\/video-upload\)/);
  assert.match(read('Dockerfile'),/apk add --no-cache ffmpeg/);

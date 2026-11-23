@@ -141,7 +141,7 @@ test('Cloudflare stand-in: no SMTP slot, nodemailer only behind the Node alias',
  assert.match(read('lib/email.ts'),/from "@\/lib\/email-smtp"/);
  const files=dir=>readdirSync(path.join(root,dir),{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):[path.join(dir,e.name)]).filter(f=>/\.(ts|tsx)$/.test(f));
  const code=f=>read(f).replace(/\/\/.*$/gm,'');
- assert.deepEqual(['app','lib','components','build'].flatMap(files).filter(f=>/email-smtp-node|from "nodemailer"/.test(code(f))&&!f.endsWith('email-smtp-node.ts')),[]);
+ assert.deepEqual(['app','lib','components'].flatMap(files).filter(f=>/email-smtp-node|from "nodemailer"/.test(code(f))&&!f.endsWith('email-smtp-node.ts')),[]);
  // Client components import lib/contact.ts; it must not reach the transports.
  assert.doesNotMatch(read('lib/contact.ts'),/from "\.\/email"/);
 });

@@ -6,32 +6,34 @@ import { env } from "./runtime";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
 import { databaseDriver } from "./pg-d1";
 import { postgresDriver } from "@/lib/postgres-driver";
+import { devDatabase } from "@/lib/dev-database";
+import type { SiteDatabase } from "./pg-d1";
 import { privateBucket } from "./private-bucket";
 
 import { admin2faPending } from "./admin-totp";
 
-type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string; ADMIN_TOTP_KEY?: string };
-// Main database: the Mittwald container's PostgreSQL over TCP (Node build). Without DATABASE_URL the
-// local D1 binding (development only). Neon is no longer used (owner's decision 2026-11-23).
+type SiteEnv = { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string; ADMIN_TOTP_KEY?: string };
+// Main database: the Mittwald container's PostgreSQL over TCP. Without DATABASE_URL (local development
+// only) a SQLite file (lib/dev-database-node.ts). Neon is no longer used (owner's decision 2026-11-23).
 export const db = () => {
   const settings = env as SiteEnv;
   if (settings.DATABASE_URL) {
-    if (postgresDriver && databaseDriver(settings.DATABASE_URL, true) === "postgres") return postgresDriver(settings.DATABASE_URL) as unknown as D1Database;
+    if (postgresDriver && databaseDriver(settings.DATABASE_URL, true) === "postgres") return postgresDriver(settings.DATABASE_URL) as unknown as SiteDatabase;
     throw new Error("No PostgreSQL driver in this build");
   }
-  const database = settings.DB;
-  if (!database) throw new Error("Database binding unavailable");
-  return publicationD1(database);
+  const local = devDatabase?.();
+  if (!local) throw new Error("DATABASE_URL is not set");
+  return local;
 };
 // One shared main-database object for modules that remember their CREATE TABLE IF NOT EXISTS check
 // per object (translation cache, usage counters, monitoring); db() returns a new object per call.
 // null when no database is configured, so callers degrade as they did when D1 was missing.
-let serviceDatabase: D1Database | null = null;
+let serviceDatabase: SiteDatabase | null = null;
 export function serviceDB() {
   try { return serviceDatabase ??= db(); } catch { return null; }
 }
-// Private documents bucket (exxel-estate-private): the R2 binding on Cloudflare, the S3 API elsewhere.
-export const bucket = () => (env as SiteEnv).BUCKET ?? privateBucket();
+// Private documents bucket (exxel-estate-private) over the S3 API (lib/private-bucket.ts).
+export const bucket = () => privateBucket();
 export async function publishedListingEntries(){const rows=await db().prepare("SELECT id,updated_at FROM listings WHERE status='published' ORDER BY updated_at DESC,id DESC LIMIT 10000").all<{id:string;updated_at:string}>();return rows.results.map(row=>({id:String(row.id),updatedAt:String(row.updated_at)}));}
 // 1 when the owner is an approved agent whose Taşınmaz Ticareti Yetki Belgesi was approved by an admin.
 export const OWNER_VERIFIED_SQL = "(CASE WHEN u.role='agent' AND u.agent_status='approved' AND EXISTS(SELECT 1 FROM office_verifications ov WHERE ov.user_id=CAST(u.id AS TEXT) AND ov.state='approved') THEN 1 ELSE 0 END) AS owner_verified,u.role AS owner_role";

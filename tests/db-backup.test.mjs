@@ -279,7 +279,7 @@ test('Cloudflare bundle never sees the backup: null slot, Node alias, cron scrip
  assert.match(read('next.config.ts'),/"@\/lib\/db-backup":\s*"\.\/lib\/db-backup-node\.ts"/);
  assert.match(read('lib/scheduled-jobs.ts'),/from "@\/lib\/db-backup"/);
  const files=dir=>readdirSync(path.join(root,dir),{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(dir,e.name)):/\.(ts|tsx)$/.test(e.name)?[path.join(dir,e.name).replaceAll('\\','/')]:[]);
- assert.deepEqual(['app','lib','components','build'].flatMap(files).filter(f=>/db-backup-node/.test(read(f).replace(/\/\/.*$/gm,''))),[]);
+ assert.deepEqual(['app','lib','components'].flatMap(files).filter(f=>/db-backup-node/.test(read(f).replace(/\/\/.*$/gm,''))),[]);
  assert.match(read('scripts/cron-call.mjs'),/\["health", "daily", "backup"\]/);
  assert.match(read('Dockerfile'),/apk add --no-cache ffmpeg postgresql18-client/);
  assert.match(read('app/api/cron/[job]/route.ts'),/job === "backup"/);
