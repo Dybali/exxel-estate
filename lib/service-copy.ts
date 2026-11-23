@@ -15,10 +15,13 @@ const PLACE: Record<Locale, (service: string, place: string) => string> = {
   fa: (service, place) => `${service} در ${place}`,
   ru: (service, place) => `${service}: ${place}`,
   nl: (service, place) => `${service} in ${place}`,
+  es: (service, place) => `${service} en ${place}`,
+  it: (service, place) => `${service} a ${place}`,
 };
 const COUNTRY: Record<Locale, (service: string) => string> = {
   tr: (service) => `${service} firmaları`, de: (service) => `${service} in der Türkei`, fr: (service) => `${service} en Turquie`, en: (service) => `${service} in Türkiye`,
   ar: (service) => `${service} في تركيا`, fa: (service) => `${service} در ترکیه`, ru: (service) => `${service} в Турции`, nl: (service) => `${service} in Turkije`,
+  es: (service) => `${service} en Turquía`, it: (service) => `${service} in Turchia`,
 };
 
 export const serviceName = (slug: string, locale: Locale) => translate(serviceCategory(slug)?.name || slug, locale);
@@ -37,6 +40,8 @@ const DESCRIPTION: Record<Locale, [firms: string, empty: string]> = {
   fa: ["{count} شرکت تأییدشده در estatemarket24. مناطق خدمت، عکس کارها و اطلاعات تماس را ببینید.", "هنوز شرکت تأییدشده‌ای در اینجا نیست. این خدمت را ارائه می‌دهید؟ شرکت خود را رایگان ثبت کنید."],
   ru: ["Проверенных компаний на estatemarket24: {count}. Районы работы, фото работ и контакты.", "Здесь пока нет проверенных компаний. Оказываете эту услугу? Добавьте компанию бесплатно."],
   nl: ["{count} goedgekeurde bedrijven op estatemarket24. Bekijk werkgebieden, foto’s van projecten en contactgegevens.", "Hier is nog geen goedgekeurd bedrijf. Biedt u deze dienst aan? Voeg uw bedrijf gratis toe."],
+  es: ["{count} empresas aprobadas en estatemarket24. Consulta las zonas de servicio, las fotos de trabajos y los datos de contacto.","Todavía no hay empresas aprobadas en esta zona. ¿Ofreces este servicio? Añade tu empresa gratis."],
+  it: ["{count} aziende approvate su estatemarket24. Scopri le aree servite, le foto dei lavori e i recapiti.","Non ci sono ancora aziende approvate in questa zona. Offri questo servizio? Aggiungi gratuitamente la tua azienda."],
 };
 
 /** Meta description: the heading, then the real firm count (or an invitation to firms). */

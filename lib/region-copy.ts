@@ -7,18 +7,18 @@ import type { RegionPurpose, RegionType } from "./region-pages";
 type Words = Record<Locale, string>;
 
 const NOUNS: Record<RegionType | "all", Words> = {
-  all: { tr: "Emlak İlanları", de: "Immobilien", fr: "Biens immobiliers", en: "Property", ar: "عقارات", fa: "املاک", ru: "Недвижимость", nl: "Vastgoed" },
-  daire: { tr: "Daireler", de: "Wohnungen", fr: "Appartements", en: "Apartments", ar: "شقق", fa: "آپارتمان", ru: "Квартиры", nl: "Appartementen" },
-  villa: { tr: "Villalar", de: "Villen", fr: "Villas", en: "Villas", ar: "فلل", fa: "ویلا", ru: "Виллы", nl: "Villa’s" },
-  mustakil: { tr: "Müstakil Evler", de: "Einfamilienhäuser", fr: "Maisons individuelles", en: "Detached Houses", ar: "منازل مستقلة", fa: "خانهٔ مستقل", ru: "Частные дома", nl: "Vrijstaande huizen" },
-  rezidans: { tr: "Rezidanslar", de: "Residenzwohnungen", fr: "Résidences", en: "Residences", ar: "شقق ريزيدنس", fa: "رزیدنس", ru: "Апартаменты в резиденциях", nl: "Residenties" },
-  yazlik: { tr: "Yazlıklar", de: "Ferienhäuser", fr: "Maisons de vacances", en: "Holiday Homes", ar: "منازل صيفية", fa: "خانهٔ تابستانی", ru: "Летние дома", nl: "Vakantiehuizen" },
-  arsa: { tr: "Arsalar", de: "Grundstücke", fr: "Terrains", en: "Land", ar: "أراضٍ", fa: "زمین", ru: "Земельные участки", nl: "Bouwgrond" },
-  ticari: { tr: "İş Yerleri", de: "Gewerbeimmobilien", fr: "Locaux commerciaux", en: "Commercial Property", ar: "عقارات تجارية", fa: "ملک تجاری", ru: "Коммерческая недвижимость", nl: "Bedrijfspanden" },
+  all: { tr: "Emlak İlanları", de: "Immobilien", fr: "Biens immobiliers", en: "Property", ar: "عقارات", fa: "املاک", ru: "Недвижимость", nl: "Vastgoed", es: "Propiedades", it: "Immobili" },
+  daire: { tr: "Daireler", de: "Wohnungen", fr: "Appartements", en: "Apartments", ar: "شقق", fa: "آپارتمان", ru: "Квартиры", nl: "Appartementen", es: "Apartamentos", it: "Appartamenti" },
+  villa: { tr: "Villalar", de: "Villen", fr: "Villas", en: "Villas", ar: "فلل", fa: "ویلا", ru: "Виллы", nl: "Villa’s", es: "Villas", it: "Ville" },
+  mustakil: { tr: "Müstakil Evler", de: "Einfamilienhäuser", fr: "Maisons individuelles", en: "Detached Houses", ar: "منازل مستقلة", fa: "خانهٔ مستقل", ru: "Частные дома", nl: "Vrijstaande huizen", es: "Casas independientes", it: "Case indipendenti" },
+  rezidans: { tr: "Rezidanslar", de: "Residenzwohnungen", fr: "Résidences", en: "Residences", ar: "شقق ريزيدنس", fa: "رزیدنس", ru: "Апартаменты в резиденциях", nl: "Residenties", es: "Residencias", it: "Residenze" },
+  yazlik: { tr: "Yazlıklar", de: "Ferienhäuser", fr: "Maisons de vacances", en: "Holiday Homes", ar: "منازل صيفية", fa: "خانهٔ تابستانی", ru: "Летние дома", nl: "Vakantiehuizen", es: "Casas vacacionales", it: "Case vacanza" },
+  arsa: { tr: "Arsalar", de: "Grundstücke", fr: "Terrains", en: "Land", ar: "أراضٍ", fa: "زمین", ru: "Земельные участки", nl: "Bouwgrond", es: "Terrenos", it: "Terreni" },
+  ticari: { tr: "İş Yerleri", de: "Gewerbeimmobilien", fr: "Locaux commerciaux", en: "Commercial Property", ar: "عقارات تجارية", fa: "ملک تجاری", ru: "Коммерческая недвижимость", nl: "Bedrijfspanden", es: "Locales comerciales", it: "Immobili commerciali" },
 };
 const PURPOSE: Record<RegionPurpose, Words> = {
-  satilik: { tr: "Satılık", de: "zum Kauf", fr: "à vendre", en: "for Sale", ar: "للبيع", fa: "فروشی", ru: "на продажу", nl: "te koop" },
-  kiralik: { tr: "Kiralık", de: "zur Miete", fr: "à louer", en: "for Rent", ar: "للإيجار", fa: "اجاره‌ای", ru: "в аренду", nl: "te huur" },
+  satilik: { tr: "Satılık", de: "zum Kauf", fr: "à vendre", en: "for Sale", ar: "للبيع", fa: "فروشی", ru: "на продажу", nl: "te koop", es: "en venta", it: "in vendita" },
+  kiralik: { tr: "Kiralık", de: "zur Miete", fr: "à louer", en: "for Rent", ar: "للإيجار", fa: "اجاره‌ای", ru: "в аренду", nl: "te huur", es: "en alquiler", it: "in affitto" },
 };
 const PLACE: Record<Locale, (phrase: string, place: string) => string> = {
   tr: (phrase, place) => `${place} ${phrase}`,
@@ -29,8 +29,10 @@ const PLACE: Record<Locale, (phrase: string, place: string) => string> = {
   fa: (phrase, place) => `${phrase} در ${place}`,
   ru: (phrase, place) => `${phrase}: ${place}`,
   nl: (phrase, place) => `${phrase} in ${place}`,
+  es: (phrase, place) => `${phrase} en ${place}`,
+  it: (phrase, place) => `${phrase} a ${place}`,
 };
-const ALL_PROPERTY: Words = { tr: "Emlak İlanları", de: "Immobilien", fr: "Immobilier", en: "Real Estate", ar: "عقارات", fa: "املاک", ru: "Недвижимость", nl: "Vastgoed" };
+const ALL_PROPERTY: Words = { tr: "Emlak İlanları", de: "Immobilien", fr: "Immobilier", en: "Real Estate", ar: "عقارات", fa: "املاک", ru: "Недвижимость", nl: "Vastgoed", es: "Inmuebles", it: "Immobili" };
 
 /** "Satılık Villalar" / "Villas for Sale"; without a purpose the general "Emlak İlanları". */
 export function regionPhrase(locale: Locale, purpose?: RegionPurpose, type?: RegionType) {
@@ -51,6 +53,8 @@ const DESCRIPTION: Record<Locale, [listings: string, empty: string]> = {
   fa: ["آگهی‌های فعال: {count}. قیمت‌ها، عکس‌ها و جزئیات را در estatemarket24 مقایسه کنید.", "آگهی‌های جدید پس از انتشار در اینجا نمایش داده می‌شوند. همهٔ املاک ترکیه را در estatemarket24 ببینید."],
   ru: ["Активные объявления: {count}. Сравните цены, фото и детали на estatemarket24.", "Новые объявления появятся здесь сразу после публикации. Вся недвижимость Турции — на estatemarket24."],
   nl: ["Actieve advertenties: {count}. Vergelijk prijzen, foto’s en details op estatemarket24.", "Nieuwe advertenties verschijnen hier zodra ze zijn gepubliceerd. Bekijk al het vastgoed in Turkije op estatemarket24."],
+  es: ["Anuncios activos: {count}. Compara precios, fotos y detalles en estatemarket24.","Los nuevos anuncios aparecerán aquí en cuanto se publiquen. Explora todos los inmuebles de Türkiye en estatemarket24."],
+  it: ["Annunci attivi: {count}. Confronta prezzi, foto e dettagli su estatemarket24.","I nuovi annunci vengono pubblicati qui appena disponibili. Sfoglia tutti gli immobili in Türkiye su estatemarket24."],
 };
 
 /** Meta description: the heading, then the real listing count (or a note that there is none yet). */

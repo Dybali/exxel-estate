@@ -12,7 +12,7 @@ export type Listing = {
   floor?: number; totalFloors?: number; heating?: string; furnished?: boolean;
   amenities: string[]; images: string[]; featured?: boolean; status?: string; expiresAt?: string;
   reviewNote?: string; reviewedAt?: string;
-  translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl", { title: string; description: string }>>;
+  translations?: Partial<Record<"de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl" | "es" | "it", { title: string; description: string }>>;
   /** Consultant who published the listing; set on office pages (app/api/companies/[id]). */
   agent?: { id: string; name: string; avatarUrl: string | null; title: string };
   ownerName?: string; ownerVerified?: boolean; ownerRole?: string; ownerId?: string; createdAt?: string; publishedAt?: string; updatedAt?: string; source?: "demo" | "user";

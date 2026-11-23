@@ -21,7 +21,7 @@ const CONTACT_SUBJECTS_EN: Record<ContactSubject, string> = {
   technical: "Technical problem", privacy: "Personal data (KVKK)", other: "Other",
 };
 export const CONTACT_LIMITS = { nameMax: 100, emailMax: 200, messageMin: 10, messageMax: 2000, perEmailPerDay: 5, perHour: 30, replyMin: 2, replyMax: 5000, repliesPerAdminPerHour: 30 } as const;
-const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl"];
+const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl", "es", "it"];
 
 export const CONTACT_SCHEMA = [
   "CREATE TABLE IF NOT EXISTS contact_messages(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT NOT NULL,subject TEXT NOT NULL,message TEXT NOT NULL,user_id TEXT,locale TEXT NOT NULL DEFAULT 'tr',status TEXT NOT NULL DEFAULT 'new',created_at TEXT NOT NULL,handled_at TEXT,handled_by TEXT)",

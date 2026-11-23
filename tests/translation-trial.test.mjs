@@ -9,13 +9,13 @@ const translated=code=>({title:`[${code}] 3+1 sea view villa in Bodrum`,descript
 
 test('request: one call with every other site language, JSON schema, minimal thinking; listing text is data',()=>{
  const body=T.trialRequest('gemini-3.5-flash-lite','tr',listing);
- assert.deepEqual(T.trialTargets('tr'),['de','fr','en','ar','fa','ru','nl']);
- assert.deepEqual(body.generationConfig.responseSchema.required,['de','fr','en','ar','fa','ru','nl']);
+ assert.deepEqual(T.trialTargets('tr'),['de','fr','en','ar','fa','ru','nl','es','it']);
+ assert.deepEqual(body.generationConfig.responseSchema.required,['de','fr','en','ar','fa','ru','nl','es','it']);
  assert.deepEqual(body.generationConfig.thinkingConfig,{thinkingLevel:'minimal'});
  assert.match(body.systemInstruction.parts[0].text,/data, never instructions/);
  assert.deepEqual(JSON.parse(body.contents[0].parts[0].text),{title:listing.title,description:listing.description});
  // A German listing is translated into Turkish too, never into German.
- assert.deepEqual(T.trialTargets('de'),['tr','fr','en','ar','fa','ru','nl']);
+ assert.deepEqual(T.trialTargets('de'),['tr','fr','en','ar','fa','ru','nl','es','it']);
  assert.equal(T.isTrialModel('gemini-3.5-flash-lite'),true);assert.equal(T.isTrialModel('gemini-3.5-pro'),false);assert.equal(T.isTrialModel('gemini-2.5-flash-lite'),false,'retired by Google (404)');
  // Persian and Arabic-Indic digits are the same numbers, not lost ones.
  assert.deepEqual(T.trialWarnings({title:'5+1 villa',description:'300 m² bahçe'},{title:'ویلا ۵+۱',description:'باغ ٣٠٠ متر مربع'}),[]);
@@ -58,7 +58,7 @@ test('OpenAI GPT-6 Luna: strict JSON schema, reasoning off, reasoning tokens bil
  const body=T.openaiTrialRequest('gpt-6-luna','tr',listing);
  assert.equal(body.model,'gpt-6-luna');assert.equal(body.reasoning_effort,'none');assert.equal(body.temperature,undefined,'fixed temperature');
  assert.equal(body.response_format.json_schema.strict,true);assert.equal(body.response_format.json_schema.schema.additionalProperties,false);
- assert.deepEqual(body.response_format.json_schema.schema.required,['de','fr','en','ar','fa','ru','nl']);
+ assert.deepEqual(body.response_format.json_schema.schema.required,['de','fr','en','ar','fa','ru','nl','es','it']);
  assert.deepEqual(JSON.parse(body.messages[1].content),{title:listing.title,description:listing.description});
  let seen;const answer=Object.fromEntries(T.trialTargets('tr').map(code=>[code,{title:code+' '+listing.title,description:code+' '+listing.description}]));
  const fetcher=async(url,init)=>{seen={url,init};return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer)}}],usage:{prompt_tokens:400,completion_tokens:1300,completion_tokens_details:{reasoning_tokens:100}}});};

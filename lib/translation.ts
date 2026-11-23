@@ -1,4 +1,4 @@
-export const translationLocales=['de','fr','en','ar','fa','ru','nl'] as const;
+export const translationLocales=['de','fr','en','ar','fa','ru','nl','es','it'] as const;
 export type TranslationLocale=typeof translationLocales[number];
 // Listings may be written in another language (lib/listing-language.ts), so Turkish can be a target too.
 export const contentLocales=['tr',...translationLocales] as const;
@@ -22,7 +22,7 @@ export const translationProvider=(settings:TranslationSettings):TranslationProvi
 export const translationConfigured=(settings:TranslationSettings)=>translationProvider(settings)!==null;
 export class TranslationError extends Error{constructor(public code:string,public status=503){super(code);}}
 // Native names too: GPT-6 Luna sometimes took German for Dutch and returned it unchanged (2026-11-13).
-const LANGUAGE_NAMES:Record<ContentLocale,string>={tr:'Turkish (Türkçe)',de:'German (Deutsch)',fr:'French (Français)',en:'English (British spelling)',ar:'Arabic (العربية)',fa:'Persian (فارسی)',ru:'Russian (Русский)',nl:'Dutch (Nederlands)'};
+const LANGUAGE_NAMES:Record<ContentLocale,string>={tr:'Turkish (Türkçe)',de:'German (Deutsch)',fr:'French (Français)',en:'English (British spelling)',ar:'Arabic (العربية)',fa:'Persian (فارسی)',ru:'Russian (Русский)',nl:'Dutch (Nederlands)',es:'Spanish (Español)',it:'Italian (Italiano)'};
 export async function translationHash(text:string){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function translationSegments(doc:TranslationDocument,locale:ContentLocale){
  const entries=Object.entries(doc.fields).filter(([,value])=>value.trim());

@@ -31,7 +31,7 @@ export function presentationFrom(data:Record<string,unknown>,ownerId:string):Pre
  const eids=data.eidsNumber==null?'':String(data.eidsNumber).trim();if(eids&&!/^[A-Za-z0-9-]{4,40}$/.test(eids))throw Error('EİDS numarası yalnızca harf, rakam ve tire içerebilir (4–40 karakter).');
  const land=data.propertyType==='arsa'?landFrom(data):undefined,details=detailsFrom(data);
  // The site languages (lib/listing-language.ts LISTING_LANGUAGES; kept in step by tests/listing-language.test.mjs).
- const language=data.language==null||data.language===''?'tr':data.language;if(typeof language!=='string'||!/^(tr|de|fr|en|ar|fa|ru|nl)$/.test(language))throw Error('İlan dilini seçin.');
+ const language=data.language==null||data.language===''?'tr':data.language;if(typeof language!=='string'||!/^(tr|de|fr|en|ar|fa|ru|nl|es|it)$/.test(language))throw Error('İlan dilini seçin.');
  // Uploaded video (listing_videos id, docs/listing-videos.md); ownership is checked by the listing routes.
  const videoId=data.videoId==null?'':String(data.videoId);if(videoId&&!validVideoId(videoId))throw Error('Video bulunamadı. Videoyu yeniden yükleyin.');
  const commission=commissionFrom(data);

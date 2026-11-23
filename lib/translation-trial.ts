@@ -19,7 +19,7 @@ export const BATCH_FACTOR = 0.5;
 export const TRIAL_VOLUME = 2_100_000_000;
 export const TRIAL_MAX_LISTINGS = 10;
 
-const NAMES: Record<ListingLanguage, string> = { tr: "Turkish", de: "German", fr: "French", en: "English", ar: "Arabic", fa: "Persian (Farsi)", ru: "Russian", nl: "Dutch" };
+const NAMES: Record<ListingLanguage, string> = { tr: "Turkish", de: "German", fr: "French", en: "English", ar: "Arabic", fa: "Persian (Farsi)", ru: "Russian", nl: "Dutch", es: "Spanish", it: "Italian" };
 export const trialTargets = (source: ListingLanguage) => LISTING_LANGUAGES.filter((code) => code !== source);
 
 const INSTRUCTION = (source: ListingLanguage, targets: ListingLanguage[]) => `You translate real-estate listings for estatemarket24, a property portal for Türkiye.

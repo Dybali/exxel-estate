@@ -5,7 +5,7 @@ const L=load('lib/listing-language.ts');
 const owner='11111111-1111-4111-8111-111111111111';
 test('a listing is Turkish unless it says otherwise; targets are every other site language',()=>{
  assert.equal(L.listingLanguage({}),'tr');assert.equal(L.listingLanguage({presentation:{language:'de'}}),'de');assert.equal(L.listingLanguage({presentation:{language:'xx'}}),'tr');assert.equal(L.listingLanguage(null),'tr');
- assert.deepEqual(L.listingTranslationTargets('de'),['tr','fr','en','ar','fa','ru','nl']);assert.equal(L.listingTranslationTargets('tr').includes('tr'),false);
+ assert.deepEqual(L.listingTranslationTargets('de'),['tr','fr','en','ar','fa','ru','nl','es','it']);assert.equal(L.listingTranslationTargets('tr').includes('tr'),false);
 });
 test('the listing form stores a non-Turkish language in the presentation and rejects unknown ones',()=>{
  const {presentationFrom}=load('lib/presentation.ts');

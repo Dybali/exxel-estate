@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { AMENITIES, PROPERTY_TYPES } from './listings';
 import { CITIES, DISTRICTS } from './turkey-locations';
 
-export const assistantLanguages=['tr','en','de','ar','fa','fr','ru','nl'] as const;
+export const assistantLanguages=['tr','en','de','ar','fa','fr','ru','nl','es','it'] as const;
 export type AssistantLanguage=typeof assistantLanguages[number];
 export const filterSchema=z.object({
   purpose:z.enum(['satilik','kiralik','gunluk','devren']).nullable().default(null),

@@ -10,7 +10,7 @@ export type CrmDatabase = { prepare(sql: string): Statement };
 export const EVENT_KINDS = ["phone", "whatsapp", "view"] as const;
 export type EventKind = typeof EVENT_KINDS[number];
 export const CRM_PERIODS = [7, 30, 90] as const;
-const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl"];
+const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl", "es", "it"];
 const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS listing_event_daily(listing_id TEXT NOT NULL,day TEXT NOT NULL,kind TEXT NOT NULL,actor_hash TEXT NOT NULL,locale TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,PRIMARY KEY(listing_id,day,kind,actor_hash))",
   "CREATE INDEX IF NOT EXISTS listing_event_daily_day_idx ON listing_event_daily(day)",

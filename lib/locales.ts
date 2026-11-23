@@ -1,10 +1,11 @@
 // The site's languages, without any translations: safe to import anywhere, including the browser bundle.
-export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl";
+export type Locale = "tr" | "de" | "fr" | "en" | "ar" | "fa" | "ru" | "nl" | "es" | "it";
 export const locales: { code: Locale; label: string; flag: string }[] = [
   { code: "tr", label: "Türkçe", flag: "tr" }, { code: "de", label: "Deutsch", flag: "de" },
   { code: "fr", label: "Français", flag: "fr" }, { code: "en", label: "English", flag: "gb" },
   { code: "ar", label: "العربية", flag: "sa" }, { code: "fa", label: "فارسی", flag: "ir" },
   { code: "ru", label: "Русский", flag: "ru" }, { code: "nl", label: "Nederlands", flag: "nl" },
+  { code: "es", label: "Español", flag: "es" }, { code: "it", label: "Italiano", flag: "it" },
 ];
 export const isRtl = (locale: string) => locale === "ar" || locale === "fa";
 export const isLocale = (value: unknown): value is Locale => locales.some((item) => item.code === value);

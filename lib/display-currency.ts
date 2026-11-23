@@ -13,7 +13,7 @@ export type SelectableCurrency = typeof DISPLAY_CURRENCIES[number];
 export type DisplayCurrency = SelectableCurrency | "IRR";
 
 /** Default when the visitor has not chosen a currency. */
-export const LOCALE_CURRENCY: Record<string, DisplayCurrency> = { tr: "TRY", de: "EUR", fr: "EUR", nl: "EUR", en: "GBP", ru: "RUB", fa: "IRR", ar: "SAR" };
+export const LOCALE_CURRENCY: Record<string, DisplayCurrency> = { tr: "TRY", de: "EUR", fr: "EUR", nl: "EUR", es: "EUR", it: "EUR", en: "GBP", ru: "RUB", fa: "IRR", ar: "SAR" };
 export const defaultDisplayCurrency = (locale: string): DisplayCurrency => LOCALE_CURRENCY[locale] || "TRY";
 
 /** Country shortcuts of the selector (names come from Intl.DisplayNames in the visitor's language). */

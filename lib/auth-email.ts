@@ -7,7 +7,7 @@ import type { EmailCodePurpose } from "./email-codes";
 
 const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl"] as const;
 export type AuthEmailLocale = typeof LOCALES[number];
-export const authEmailLocale = (value: unknown): AuthEmailLocale => LOCALES.includes(value as AuthEmailLocale) ? value as AuthEmailLocale : "tr";
+export const authEmailLocale = (value: unknown): AuthEmailLocale => value === "es" || value === "it" ? "en" : LOCALES.includes(value as AuthEmailLocale) ? value as AuthEmailLocale : "tr";
 
 export function authCodeEmail(purpose: EmailCodePurpose, code: string, localeInput: unknown) {
   if (!/^\d{6}$/.test(code)) throw new Error("Invalid code");

@@ -26,7 +26,7 @@ export const HOME_PAYMENTS = { cash: "Nakit", approved: "Kredi onaylı", mortgag
 export const HOME_CONTACT = { phone: "Telefon", whatsapp: "WhatsApp", email: "E-posta" } as const;
 export const HOME_CONTACT_TIMES = { any: "Fark etmez", morning: "Sabah (09–12)", afternoon: "Öğleden sonra (12–18)", evening: "Akşam (18–21)" } as const;
 export const HOME_CLOSE_REASONS = { found_here: "Buldum, bu site üzerinden", found_elsewhere: "Buldum, başka bir yerden", paused: "Aramayı erteledim", other: "Diğer" } as const;
-const LANGS = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl"] as const;
+const LANGS = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl", "es", "it"] as const;
 
 export const HOME_REQUEST_SCHEMA = [
   "CREATE TABLE IF NOT EXISTS home_requests(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,intent TEXT NOT NULL,city TEXT NOT NULL,district TEXT NOT NULL DEFAULT '',category TEXT NOT NULL,rooms TEXT NOT NULL DEFAULT '',budget_min INTEGER,budget_max INTEGER,note TEXT NOT NULL DEFAULT '',name TEXT NOT NULL,email TEXT NOT NULL,phone TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'open',created_at TEXT NOT NULL,expires_at TEXT NOT NULL)",

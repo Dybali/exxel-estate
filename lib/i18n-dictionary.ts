@@ -8,6 +8,8 @@ import discoveryTranslations from "@/data/discovery-translations.json";
 import editorialUITranslations from "@/data/editorial-ui-translations.json";
 import persianTranslations from "@/data/fa-translations.json";
 import dutchTranslations from "@/data/nl-translations.json";
+import spanishTranslations from "@/data/es-translations.json";
+import italianTranslations from "@/data/it-translations.json";
 import {portalWords} from "./portal-translations";
 import {pagesWords} from "./pages-translations";
 import {mapWords} from "./map-translations";
@@ -705,8 +707,13 @@ Object.assign(words,authEmailWords);
 Object.assign(words,legalWords);
 Object.assign(words,serviceQuoteWords);
 Object.assign(words,privacyClauseWords);
+// Spanish and Italian (2026-11-23): overlays keyed by the Turkish source text, machine-translated from English
+// with the site's translation model; a key without an entry falls back to English.
+for(const [key,es] of Object.entries(spanishTranslations as Record<string,string>))if(words[key])words[key]={...words[key],es};
+for(const [key,it] of Object.entries(italianTranslations as Record<string,string>))if(words[key])words[key]={...words[key],it};
 
-const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (locale === "fa" || locale === "nl" ? words[key]?.en : undefined);
+const ENGLISH_FALLBACK = new Set<Locale>(["fa", "nl", "es", "it"]);
+const lookup = (key: string, locale: Locale) => words[key]?.[locale] || (ENGLISH_FALLBACK.has(locale) ? words[key]?.en : undefined);
 export function translate(key: string, locale: Locale) {
   return translateWith((item) => lookup(item, locale), key);
 }

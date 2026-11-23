@@ -30,7 +30,7 @@ export const FEEDBACK_LIMITS = {
   minFillMs: 2500,
   perHour: 5, perDay: 20, repliesPerAdminPerHour: 30, pageSize: 20,
 } as const;
-const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl"];
+const LOCALES = ["tr", "de", "fr", "en", "ar", "fa", "ru", "nl", "es", "it"];
 const HOUR = 3600000, DAY = 24 * HOUR;
 
 export const FEEDBACK_SCHEMA = [
