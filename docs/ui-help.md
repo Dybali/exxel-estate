@@ -36,3 +36,7 @@ Metinler `lib/privacy-clause-translations.ts` içinde, 10 dil.
 ## Yardım merkezi: `/yardim`
 
 `components/HelpCenter.tsx`: ev arayanlar, ev sahipleri, emlakçılar, hizmet firmaları ve müteahhitler için sekmeli adım adım rehber; her adımın düğmesi işin yapıldığı sayfaya gider (`#alici`, `#ev-sahibi`, `#emlakci`, `#firma` ile doğrudan açılır). Ayrıntılı sorular `/sss`. Girişler: her sayfanın üst çubuğunda "Yardım", Hesabım menüsünün altında ve alt bilgide "Yardım merkezi".
+
+## Ana sayfa turu
+
+`components/GuidedTour.tsx` (yalnızca ana sayfada, `components/SiteFrame.tsx`): ilk ziyarette, çerez seçiminden 2,5 saniye sonra sol altta "Siteyi tanıyalım mı?" kartı; "Turu başlat" ile 10 adımlık tur (arama, hızlı geçişler, araçlar, harita, favoriler, ilan ver, dil ve para birimi, estateAI, Yardım). Her adım ilgili bölümü aydınlatıp yanında açıklama gösterir; İleri/Geri, ok tuşları, Escape. Ekranda olmayan bölümün adımı atlanır (telefon). Bir kez kapatılınca kendiliğinden çıkmaz (`em24_home_tour`); ana sayfadaki üst çubuk "Yardım" bağlantısı, `/?tur=1` ve yardım merkezindeki "Ana sayfa turunu başlat" yeniden başlatır.

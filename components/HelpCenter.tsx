@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "@/components/SafeLink";
-import { ArrowRight, Building2, CircleHelp, Hammer, Home, KeyRound, LifeBuoy, Mail, Search } from "lucide-react";
+import { ArrowRight, Building2, CircleHelp, Compass, Hammer, Home, KeyRound, LifeBuoy, Mail, Search } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 
 // /yardim: step-by-step guides per kind of visitor (owner's request 2026-11-23: the site should explain itself).
@@ -47,6 +47,7 @@ export function HelpCenter() {
       <span className="market-overline"><LifeBuoy size={15} aria-hidden="true"/> {t("YARDIM MERKEZİ")}</span>
       <h1>{t("Siteyi nasıl kullanırım?")}</h1>
       <p>{t("Size uyan rehberi seçin; her adımın yanındaki düğme sizi o işin yapıldığı sayfaya götürür.")}</p>
+      <Link className="help-tour-link" href="/?tur=1"><Compass size={17} aria-hidden="true"/>{t("Ana sayfa turunu başlat")}</Link>
     </div></section>
     <div className="container help-body">
       <div className="help-tabs" role="tablist" aria-label={t("Rehberler")}>{HELP_GUIDES.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" role="tab" aria-selected={item.id === active} className={item.id === active ? "active" : ""} onClick={() => choose(item.id)}><Icon size={18} aria-hidden="true"/>{t(item.label)}</button>; })}</div>
