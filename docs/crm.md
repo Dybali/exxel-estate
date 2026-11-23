@@ -41,4 +41,6 @@ Bölümler, hepsi gerçek veriden (tahmini veya uydurma sayı yok; site satış/
 - **Son müşteriler:** ilanlar için yazan son kişiler, "Yanıt bekliyor" işareti ve mesaja geçiş.
 - **Ziyaretçi dilleri:** bayraklarla yüzdeler.
 
+Hesabım'ın tamamı da aynı tarzda (sahibinin isteği, 2026-11-23): emlakçı ve yönetici hesabında üstteki karşılama bandı yerine üst çubuk (sayfa başlığı, tarih, okunmamış mesaj zili, yardım, Yeni ilan ver, profil), yapışkan ikonlu menü (koyu yeşil seçili sekme), açık yeşil zemin ve her sekme beyaz yuvarlak kart içinde; sekmelerin kendi başlığı üst çubukta tekrarlanmaz. `components/Dashboard.tsx` (`account-pro`), stiller `app/account-pro.css`. Telefonda menü yatay kaydırmalı şerittir. Bireysel ve firma hesapları eski görünümde kalır.
+
 Testler: `tests/agent-overview.test.mjs`.

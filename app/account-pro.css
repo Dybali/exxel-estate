@@ -1,0 +1,70 @@
+/* Hesabım as an app-style panel for estate agents and the admin account (components/Dashboard.tsx, `account-pro`,
+   owner's request 2026-11-23): tinted background, a sticky icon menu, a top bar with title, notifications and profile,
+   and every tab on rounded white cards. Same palette as the Genel Bakış dashboard (app/overview.css). */
+.account-pro{--pro-green:#1d7a5c;--pro-deep:#0f4f43;--pro-mint:#e7f3ee;--pro-ink:#16302c;--pro-muted:#6b7d78;--pro-line:#e3ebe8;
+  background:#eef3f1;padding-bottom:48px;color:var(--pro-ink)}
+.account-pro .container.account-layout{max-width:1520px;grid-template-columns:248px minmax(0,1fr);gap:20px;padding-top:20px;align-items:start}
+/* menu */
+.account-pro .account-sidebar{position:sticky;top:88px;background:#fff;border:1px solid var(--pro-line);border-radius:24px;padding:10px;max-height:calc(100vh - 108px);overflow-y:auto;scrollbar-width:thin}
+.account-pro .account-user{background:linear-gradient(135deg,var(--pro-deep),var(--pro-green));color:#fff;border:0;border-radius:18px;padding:16px;margin-bottom:8px}
+.account-pro .account-user>div,.account-pro .account-user .account-avatar-img{width:42px;height:42px;border-radius:14px;background:#ffffff26;color:#fff;font-family:inherit;font-weight:800;object-fit:cover}
+.account-pro .account-user strong{font-size:14px;color:#fff}.account-pro .account-user small{color:#d3ebe1;font-size:11.5px}
+.account-pro .account-type-badge{background:#ffffff26!important;color:#fff!important;border-radius:999px}
+.account-pro .account-nav{padding:2px;display:grid;gap:2px}
+.account-pro .account-nav button,.account-pro .account-nav a{border-radius:14px;padding:11px 12px;font-size:13.5px;font-weight:600;color:#4d5f5a;gap:11px;transition:background .15s,color .15s}
+.account-pro .account-nav button:hover,.account-pro .account-nav a:hover{background:var(--pro-mint);color:var(--pro-deep);font-weight:600}
+.account-pro .account-nav button.active{background:var(--pro-deep);color:#fff;font-weight:700;box-shadow:0 6px 16px #0f4f4333}
+.account-pro .account-nav button.active svg{color:#fff}
+.account-pro .account-nav .account-logout{margin-top:8px;border-top:0;background:#fdf0ef;color:#b3261e}
+.account-pro .account-nav .account-logout:hover{background:#fbe2df;color:#8f1d17}
+.account-pro .tab-new-badge{margin-inline-start:auto}
+/* top bar */
+.account-main{min-width:0;display:grid;gap:16px;align-content:start}
+.pro-topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--pro-line);border-radius:24px;padding:14px 18px}
+.pro-topbar-title span{display:block;font-size:12.5px;color:var(--pro-muted);text-transform:capitalize}
+.pro-topbar-title h1{margin:2px 0 0;font-size:28px;line-height:1.15;letter-spacing:-.6px;color:var(--pro-ink)}
+.pro-topbar-title p{margin:2px 0 0;font-size:13.5px;color:var(--pro-muted)}
+.pro-topbar-actions{display:flex;align-items:center;gap:8px}
+.pro-round{position:relative;width:42px;height:42px;border-radius:50%;border:1px solid var(--pro-line);background:#fff;display:inline-grid;place-items:center;color:var(--pro-ink);cursor:pointer;flex:none}
+.pro-round:hover{background:var(--pro-mint)}
+.pro-round b{position:absolute;top:-3px;inset-inline-end:-3px;min-width:19px;height:19px;border-radius:999px;background:#e5484d;color:#fff;font-size:10.5px;display:grid;place-items:center;padding:0 5px;border:2px solid #fff}
+.pro-new{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 18px;border-radius:999px;background:var(--pro-green);color:#fff;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap}
+.pro-new:hover{background:var(--pro-deep);color:#fff}
+.pro-me{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--pro-line);background:#fff;border-radius:999px;padding:3px 14px 3px 3px;cursor:pointer;font:inherit;color:inherit;max-width:240px}
+.pro-me img,.pro-me>span:first-child{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--pro-mint);color:var(--pro-deep);display:grid;place-items:center;font-weight:800;flex:none}
+.pro-me-text{display:grid;text-align:start;min-width:0}.pro-me-text strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pro-me-text small{font-size:11.5px;color:var(--pro-muted)}
+/* content cards */
+.account-pro .account-content{background:#fff;border:1px solid var(--pro-line);border-radius:24px;padding:26px;min-height:0;box-shadow:none}
+.account-pro .account-content-overview{background:transparent;border:0;padding:0;display:grid;gap:16px}
+.account-pro .account-content-overview .ov{background:transparent;border:0;padding:0;margin:0}
+.account-pro .account-content-overview .ov-toolbar .small-primary{display:none}
+.account-pro .account-content-inbox{padding:14px}
+.account-pro .panel-heading{margin-bottom:18px}
+.account-pro .panel-heading h2{font-size:24px;letter-spacing:-.4px;color:var(--pro-ink)}
+.account-pro .eyebrow.dark-eyebrow{color:var(--pro-green)}
+.account-pro .small-primary{border-radius:999px;background:var(--pro-green);padding-inline:18px}
+.account-pro .small-primary:hover{background:var(--pro-deep)}
+.account-pro .outline-button{border-radius:999px}
+.account-pro .draft-dashboard-card,.account-pro .start-checklist{border-radius:22px;border-color:var(--pro-line);background:#fff}
+.account-pro .summary-cards>div,.account-pro .panel-note,.account-pro .svc-tool-card,.account-pro .profile-editor,.account-pro .profile-facts{border-radius:18px}
+.account-pro .panel-note{background:#f5faf7;border-color:var(--pro-line)}
+.account-pro .svc-tool-card{border-color:var(--pro-line)}
+/* phone and tablet */
+@media(max-width:1100px){.account-pro .container.account-layout{grid-template-columns:220px minmax(0,1fr)}.pro-me-text{display:none}.pro-me{padding:3px}}
+@media(max-width:900px){
+  .account-pro .container.account-layout{grid-template-columns:1fr;padding-top:12px;gap:12px}
+  .account-pro .account-sidebar{position:static;max-height:none;padding:8px;border-radius:20px}
+  .account-pro .account-user{display:none}
+  .account-pro .account-nav{display:flex;gap:4px;overflow-x:auto}
+  .account-pro .account-nav button,.account-pro .account-nav a{white-space:nowrap;width:auto;padding:9px 12px}
+  .account-pro .account-nav .account-logout{margin-top:0}
+  .pro-topbar{padding:12px 14px;border-radius:20px}.pro-topbar-title h1{font-size:22px}
+  .account-pro .account-content{padding:16px;border-radius:20px}
+}
+@media(max-width:520px){.pro-new{width:42px;padding:0;justify-content:center;font-size:0;gap:0}.pro-topbar-actions{gap:6px}.pro-topbar-title span{display:none}}
+/* The top bar carries the page title: a tab's own top heading would repeat it, so only its buttons stay. */
+.account-pro .account-content>.panel-heading>div:first-child{display:none}
+.account-pro .account-content>.panel-heading{justify-content:flex-end}
+.account-pro .account-content>.panel-heading:not(:has(>:nth-child(2))){display:none}
+.account-pro .account-content-inbox .inbox{min-height:min(720px,calc(100vh - 230px))}
+.account-pro .account-content :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){border-radius:12px}

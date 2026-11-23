@@ -1,3 +1,4 @@
+import "../account-pro.css";
 import "../overview.css";
 import { Dashboard } from "@/components/Dashboard";
 import { PageSkeleton } from "@/components/PageSkeleton";

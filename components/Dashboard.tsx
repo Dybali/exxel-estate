@@ -21,7 +21,7 @@ import {LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
 import {CrmPanel} from "./CrmPanel";
-import {BarChart3,CircleHelp,Inbox} from "lucide-react";
+import {BarChart3,Bell,CircleHelp,Inbox} from "lucide-react";
 import {ACCOUNT_KIND_LABELS,accountTypeLabel,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
 import type {AccountKind} from "@/lib/account-kind";
 
@@ -111,8 +111,22 @@ export function Dashboard() {
   const firmPanel=active==="hizmet"?"/hizmetler/panel":active==="muteahhit"?"/muteahhitler/panel":null;
   if(firmPanel&&typeof window!=="undefined"){const bolum=new URLSearchParams(window.location.search).get("bolum");window.location.replace(firmPanel+(bolum?"?bolum="+encodeURIComponent(bolum):""));return <main className="account-page"><div className="container section">{t("Firma panelinize yönlendiriliyorsunuz...")}</div></main>;}
 
-  return <main className="account-page">
-    <div className="account-head"><div className="container"><span className="eyebrow dark-eyebrow">{t("ESTATEMARKET24 HESABIM")}</span><h1>{t("Hoş geldiniz,")} <em>{user.name.split(" ")[0]}.</em></h1><p>{t("Yaşam alanlarınızı ve görüşmelerinizi buradan yönetin.")}</p></div></div>
+  // Estate agents and the admin account: the whole Hesabım is an app-style panel (app/account-pro.css): no welcome band,
+  // a top bar with the page title, notifications and profile, the menu as an icon list and every tab on cards.
+  const unreadTotal=conversations.reduce((sum,c)=>sum+Number(c.unread_count||0),0);
+  const activeLabel=items.find(i=>i.id===active)?.label||"Genel Bakış";
+  const goTab=(id:string)=>{setTab(id);history.replaceState(null,"",`/hesabim?tab=${id}`);window.scrollTo({top:0,behavior:"smooth"});};
+  const topbar=proOverview&&<header className="pro-topbar">
+    <div className="pro-topbar-title"><span>{new Date().toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long"})}</span><h1>{t(activeLabel)}</h1>{active==="genel"&&<p>{t("Hoş geldiniz,")} {user.name.split(" ")[0]}</p>}</div>
+    <div className="pro-topbar-actions">
+      {items.some(i=>i.id==="mesajlar")&&<button type="button" className="pro-round" onClick={()=>goTab("mesajlar")} aria-label={`${t("Mesajlar")}${unreadTotal?` (${unreadTotal})`:""}`} title={t("Mesajlar")}><Bell size={18}/>{unreadTotal>0&&<b>{unreadTotal>99?"99+":unreadTotal}</b>}</button>}
+      <Link href="/yardim" className="pro-round" aria-label={t("Yardım merkezi")} title={t("Yardım merkezi")}><CircleHelp size={18}/></Link>
+      {kind==="agent"&&<Link href="/ilan-ver" className="pro-new"><Plus size={17}/>{t("Yeni ilan ver")}</Link>}
+      <button type="button" className="pro-me" onClick={()=>goTab("profil")} aria-label={t("Profilim")}>{user.avatar_url?<img src={user.avatar_url} alt="" width={38} height={38}/>:<span>{user.name.charAt(0).toUpperCase()}</span>}<span className="pro-me-text"><strong>{user.name}</strong><small>{t(typeLabel)}</small></span></button>
+    </div>
+  </header>;
+  return <main className={`account-page ${proOverview?"account-pro":""}`}>
+    {!proOverview&&<div className="account-head"><div className="container"><span className="eyebrow dark-eyebrow">{t("ESTATEMARKET24 HESABIM")}</span><h1>{t("Hoş geldiniz,")} <em>{user.name.split(" ")[0]}.</em></h1><p>{t("Yaşam alanlarınızı ve görüşmelerinizi buradan yönetin.")}</p></div></div>}
     <div className="container account-layout">
       <aside className="account-sidebar">
         <div className="account-user">{user.avatar_url ? <img src={user.avatar_url} alt="" width={42} height={42} className="account-avatar-img"/> : <div>{user.name.charAt(0).toUpperCase()}</div>}<span><strong>{user.name}</strong><small>{user.email}</small><em className="account-type-badge">{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</em></span></div>
@@ -123,7 +137,8 @@ export function Dashboard() {
           <button className="account-logout" onClick={logout}><LogOut size={17}/>{t("Çıkış Yap")}</button>
         </div>
       </aside>
-      <section className={`account-content ${active === "mesajlar" ? "account-content-inbox" : ""}`}>
+      <div className="account-main">{topbar}
+      <section className={`account-content ${active === "mesajlar" ? "account-content-inbox" : ""} ${active === "genel" && proOverview ? "account-content-overview" : ""}`}>
         {draft&&draftHasContent(draft.payload)&&(active==="genel"||active==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")}<ForwardArrow/></Link></div>}
         {active === "genel" && proOverview && <><StartChecklist userId={user.id}/><AgentOverview name={user.name} open={openOverview}/>{user.role==="agent"&&<FeedbackCard/>}</>}
         {active === "genel" && !proOverview && <><StartChecklist userId={user.id}/>
@@ -150,6 +165,7 @@ export function Dashboard() {
         {active === "firma" && user.role==='agent' && <><CompanyAccount/><OfficeVerification/></>}
         {active === "profil" && <><div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("HESAP BİLGİLERİ")}</span><h2>{t("Profilim")}</h2></div></div><div className="profile-facts"><div><span>{t("Ad Soyad")}</span><strong>{user.name}</strong></div><div><span>{t("E-posta")}</span><strong>{user.email}</strong></div><div><span>{t("Hesap türü")}</span><strong>{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</strong></div>{user.role === "agent" && <div><span>{t("Onay durumu")}</span><strong>{t(user.agent_status === "approved" ? "Onaylandı" : "İnceleniyor")}</strong></div>}</div><ProfileEditor user={user} onSaved={saved=>setUser(old=>old?{...old,...saved}:old)}/>{/* Spoken languages for /danismanlar: estate agents and office consultants (the box hides itself for others). */}{(user.role==="agent"||user.role==="buyer")&&<div id="diller"><AgentLanguagesSetting/></div>}{kind!=="agent"&&!user.isAdmin&&<AccountKindSwitch kind={kind} onChanged={next=>{setUser(old=>old?{...old,accountKind:next}:old);setTab("genel");history.replaceState(null,"","/hesabim?tab=profil");}}/>}{kind==="individual"&&<SellerUpgrade user={user}/>}{kind==="individual"&&<CompanyTeam/>}{kind!=="individual"&&<EmailPreferences/>}<AccountSecurity isAdmin={Boolean(user.isAdmin)}/></>}
       </section>
+      </div>
     </div>
   </main>;
 }
