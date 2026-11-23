@@ -24,3 +24,21 @@ Ekran: önceki döneme göre değişim, günlük görüntülenme/iletişim grafi
 Sonraki adımlar (planlanan): Kişiler (müşteri kartları), Fırsatlar (satış hunisi panosu), Görevler, otomatik eşleştirme.
 
 Testler: `tests/crm-stats.test.mjs`.
+
+## Genel Bakış: emlakçı performans paneli (2026-11-23)
+
+Sahibinin isteğiyle (profesyonel emlak paneli örneği) emlakçı hesabının ve yönetici hesabının **Hesabım › Genel Bakış** sekmesi tek ekranlık bir performans paneli oldu. Bireysel, müteahhit ve hizmet firması hesaplarında eski sade özet kalır. Kod: `lib/agent-overview.ts`, `GET /api/crm/overview?days=7|30|90`, `components/AgentOverview.tsx`, stiller `app/overview.css` (panel genişliğine göre düzen, container query; telefonda tek sütun ve kart görünümlü tablo).
+
+Bölümler, hepsi gerçek veriden (tahmini veya uydurma sayı yok; site satış/komisyon kaydı tutmadığı için gelir, gider ve "kapanan iş" gösterilmez):
+
+- **Üst sayılar:** yayındaki ilan (incelemede / süresi dolan), görüntülenme ve iletişim (önceki döneme göre % değişim; telefon, WhatsApp, mesaj kırılımı), 24 saati geçen yanıt bekleyen müşteri.
+- **Görüntülenme ve iletişim grafiği:** günlük seri, üzerine gelince gün ayrıntısı.
+- **En çok ilgi gören ilan:** fotoğraf, fiyat (ziyaretçinin para birimiyle), görüntülenme/favori/iletişim, ilan sağlığı puanı ve ilk öneri (`crmStats` kuralları).
+- **Satış hunisi:** görüntülenme → favori → iletişim → randevu; halka, iletişime dönüşme oranını gösterir (%10 = tam halka).
+- **Bugün yapılacaklar:** yanıt bekleyen müşteriler, onay bekleyen randevular, Talep akışındaki yeni talepler (`boardUnseen`, okundu işaretlemez), 7 gün içinde süresi dolacak ilanlar, taslaklar. Her satır ilgili sekmeyi açar.
+- **Yaklaşan randevular:** önümüzdeki 7 günün şeridi ve 14 günlük liste (talep edilmiş veya onaylanmış).
+- **İlanlarım tablosu:** arama ve durum filtresi; fiyat, görüntülenme, iletişim, sağlık puanı, durum ve kalan gün.
+- **Son müşteriler:** ilanlar için yazan son kişiler, "Yanıt bekliyor" işareti ve mesaja geçiş.
+- **Ziyaretçi dilleri:** bayraklarla yüzdeler.
+
+Testler: `tests/agent-overview.test.mjs`.

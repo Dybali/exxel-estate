@@ -11,6 +11,7 @@ import {EmailPreferences} from "./EmailPreferences";
 import {MyOrders} from "./Orders";
 import {AgentHomeRequests,MyHomeRequests} from "./HomeRequestsPanels";
 import {StartChecklist} from "./StartChecklist";
+import {AgentOverview,type OverviewTarget} from "./AgentOverview";
 import {AgentLanguagesSetting} from "./AgentLanguagesSetting";
 import {MyReports} from './MyReports';
 import {AccountSecurity} from "./AccountSecurity";
@@ -101,6 +102,10 @@ export function Dashboard() {
   const kind:AccountKind=user.accountKind||(user.role==="agent"?"agent":"individual");
   const typeLabel=accountTypeLabel({kind,role:user.role,companyCategory:user.companyCategory,isAdmin:user.isAdmin,office});
   const items=panelTabs(kind,{hasListings:mine.length>0,developer:user.companyCategory==="developer",admin:Boolean(user.isAdmin)}).map(item=>({...item,icon:ICONS[item.id]}));
+  // Estate agents (and the admin account) get the performance dashboard on Genel Bakış (components/AgentOverview.tsx);
+  // its shortcuts open the matching tab of this account.
+  const proOverview=kind==="agent"||Boolean(user.isAdmin);
+  const openOverview=(target:OverviewTarget)=>{const wanted:Record<OverviewTarget,string[]>={messages:["mesajlar"],requests:["talep-akisi"],crm:["crm"],listings:["ilanlarim"],appointments:["randevular","crm"]};const id=wanted[target].find(w=>items.some(i=>i.id===w));if(!id)return;setTab(id);history.replaceState(null,"",`/hesabim?tab=${id}`);window.scrollTo({top:0,behavior:"smooth"});};
   const active=panelTab(tab,items);
   // Firm panels live in their own sub-site (/hizmetler/panel, /muteahhitler/panel); Hesabım keeps messages and settings.
   const firmPanel=active==="hizmet"?"/hizmetler/panel":active==="muteahhit"?"/muteahhitler/panel":null;
@@ -120,8 +125,9 @@ export function Dashboard() {
       </aside>
       <section className={`account-content ${active === "mesajlar" ? "account-content-inbox" : ""}`}>
         {draft&&draftHasContent(draft.payload)&&(active==="genel"||active==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")}<ForwardArrow/></Link></div>}
-        {active === "genel" && <><StartChecklist userId={user.id}/>
-          <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div>{(kind==="individual"||kind==="agent")&&<Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link>}</div>
+        {active === "genel" && proOverview && <><StartChecklist userId={user.id}/><AgentOverview name={user.name} open={openOverview}/>{user.role==="agent"&&<FeedbackCard/>}</>}
+        {active === "genel" && !proOverview && <><StartChecklist userId={user.id}/>
+          <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("GENEL BAKIŞ")}</span><h2>{t("Hesabınızın özeti")}</h2></div>{kind==="individual"&&<Link href="/ilan-ver" className="small-primary">{t("Yeni ilan ver")}<Plus size={17}/></Link>}</div>
           {(kind==="contractor"||kind==="service")?<div className="panel-note"><h3>{t(kind==="contractor"?"Müteahhit firmanız":"Hizmet firmanız")}</h3><p>{t(kind==="contractor"?"Firma profilinizi, tamamlanan projelerinizi ve gelen kat karşılığı taleplerini Firma panelim bölümünden yönetin.":"Firma profilinizi, çalışma bilgilerinizi, belgelerinizi ve gelen teklif taleplerini Firma panelim bölümünden yönetin.")}</p><button type="button" className="text-link" onClick={()=>window.location.assign(kind==="contractor"?"/muteahhitler/panel":"/hizmetler/panel")}>{t("Firma panelime git")}<ArrowUpRight size={16}/></button></div>:<>
           <div className="summary-cards"><div><Heart size={22}/><strong>{favorites.length}</strong><span>{t("Favori ilan")}</span></div><div><Bookmark size={22}/><strong>{mine.length}</strong><span>{t("İlanım")}</span></div><div><Mail size={22}/><strong>{conversations.length}</strong><span>{t("Görüşme")}</span></div></div>
           <div className="panel-note"><h3>{t("Yeni bir yaşam alanı keşfedin")}</h3><p>{t("Aradığınız özelliklere uygun ilanları gelişmiş filtrelerle bulun.")}</p><Link className="text-link" href="/ilanlar">{t("İlanları incele")}<ArrowUpRight size={16}/></Link></div></>}

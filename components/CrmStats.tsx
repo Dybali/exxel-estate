@@ -9,7 +9,7 @@ import type { CrmStats as Stats, Insight } from "@/lib/crm-stats";
 // CRM › İstatistikler (lib/crm-stats.ts): funnel, trend against the previous period, visitor languages and
 // advice per listing, weakest listings first.
 const LANGUAGE_NAMES: Record<string, string> = { tr: "Türkçe", de: "Almanca", fr: "Fransızca", en: "İngilizce", ar: "Arapça", fa: "Farsça", ru: "Rusça", nl: "Felemenkçe" };
-const ADVICE: Record<string, string> = {
+export const ADVICE: Record<string, string> = {
   not_published: "İlan yayında değil; istatistik toplanmıyor.",
   low_views: "Benzer ilanlar ortalama {n} kez görüntülendi. Kapak fotoğrafını ve başlığı güçlendirin.",
   views_no_contact: "{n} görüntülenme var ama kimse iletişime geçmedi. Fiyatı ve açıklamayı gözden geçirin.",
