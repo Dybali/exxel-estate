@@ -78,9 +78,13 @@ export function GuidedTour() {
       <div className="tour-actions"><button type="button" className="small-primary" onClick={start}>{t("Turu başlat")}</button><button type="button" className="outline-button" onClick={close}>{t("Şimdi değil")}</button></div></div>
     <button type="button" className="tour-close" onClick={close} aria-label={t("Kapat")}><X size={18}/></button>
   </div>;
-  const pad = 8, below = rect ? rect.bottom + 16 + 220 < window.innerHeight || rect.top < 240 : false;
+  // The card goes under the lit part, else above it; when neither fits (a tall section on a phone) it sits at the
+  // bottom of the screen over the section. It always stays fully on screen.
+  const pad = 8, cardHeight = card.current?.offsetHeight || 230, gap = 14, margin = 12, height = window.innerHeight;
+  const cardTop = !rect ? 0 : rect.bottom + gap + cardHeight <= height - margin ? rect.bottom + gap
+    : rect.top - gap - cardHeight >= margin ? rect.top - gap - cardHeight : height - cardHeight - margin;
   const position: React.CSSProperties = rect
-    ? { top: below ? Math.min(rect.bottom + 14, window.innerHeight - 40) : undefined, bottom: below ? undefined : Math.max(window.innerHeight - rect.top + 14, 12), left: Math.min(Math.max(rect.left + rect.width / 2 - 170, 12), window.innerWidth - 352) }
+    ? { top: Math.max(margin, Math.min(cardTop, height - cardHeight - margin)), left: Math.min(Math.max(rect.left + rect.width / 2 - 170, margin), window.innerWidth - Math.min(340, window.innerWidth - 24) - margin) }
     : { top: "50%", left: "50%", transform: "translate(-50%,-50%)" };
   return <div className="tour-layer">
     {rect ? <div className="tour-spotlight" style={{ top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }} aria-hidden="true"/> : <div className="tour-dim" onClick={close} aria-hidden="true"/>}
