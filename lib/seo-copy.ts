@@ -52,6 +52,18 @@ export const seoCopy: Record<string, Copy> = {
     es: ["Mercado inmobiliario residencial de Türkiye: precios por m² y rentabilidad del alquiler por provincia | estatemarket24","Mapa de precios de la vivienda por m², alquileres, rentabilidad bruta del alquiler y variación anual en las 81 provincias. Fuente: Banco Central de Türkiye."],
     it: ["Mercato immobiliare residenziale in Türkiye: prezzi al m² e rendimenti da locazione per provincia | estatemarket24","Mappa dei prezzi di vendita delle case al m², degli affitti, dei rendimenti lordi da locazione e delle variazioni annuali in tutte le 81 province. Fonte: Banca Centrale della Türkiye."],
   },
+  "/yardim": {
+    tr: ["Yardım Merkezi: Siteyi Nasıl Kullanırım? | estatemarket24","Ev arayanlar, ev sahipleri, emlakçılar ve firmalar için adım adım rehberler: ilan arama, ilan verme, Benim için bul, Talep akışı ve paketler."],
+    de: ["Hilfe-Center: So nutzen Sie die Website | estatemarket24","Schritt-für-Schritt-Anleitungen für Wohnungssuchende, Eigentümer, Makler und Unternehmen: Immobilien suchen und inserieren, „Finden Sie für mich“, Anfrage-Feed und Pakete."],
+    fr: ["Centre d’aide : comment utiliser le site ? | estatemarket24","Des guides pas à pas pour les personnes en recherche de logement, les propriétaires, les agents et les entreprises : rechercher et publier des annonces, « Trouver pour moi », flux des demandes et offres."],
+    en: ["Help Centre: How to Use the Site | estatemarket24","Step-by-step guides for home seekers, property owners, estate agents and businesses: searching and posting listings, “Find for Me”, the Request Feed and packages."],
+    ar: ["مركز المساعدة: كيف أستخدم الموقع؟ | estatemarket24","أدلة خطوة بخطوة للباحثين عن منزل وأصحاب العقارات والوكلاء والشركات: البحث عن الإعلانات ونشرها، و«ابحثوا لي»، وقائمة الطلبات والباقات."],
+    fa: ["مرکز راهنما: چطور از سایت استفاده کنم؟ | estatemarket24","راهنمای گام‌به‌گام برای جویندگان خانه، مالکان، مشاوران املاک و شرکت‌ها: جست‌وجو و ثبت آگهی، «برایم پیدا کن»، جریان درخواست‌ها و بسته‌ها."],
+    ru: ["Центр помощи: как пользоваться сайтом? | estatemarket24","Пошаговые руководства для покупателей и арендаторов, владельцев недвижимости, агентов и компаний: поиск и размещение объявлений, «Найдите для меня», лента заявок и пакеты."],
+    nl: ["Helpcentrum: Hoe gebruikt u de website? | estatemarket24","Stapsgewijze handleidingen voor woningzoekers, vastgoedeigenaren, makelaars en bedrijven: advertenties zoeken en plaatsen, ‘Zoek voor mij’, de aanvraagfeed en pakketten."],
+    es: ["Centro de ayuda: cómo utilizar el sitio | estatemarket24","Guías paso a paso para personas que buscan vivienda, propietarios, agentes y empresas: buscar y publicar anuncios, «Encuentre por mí», flujo de solicitudes y paquetes."],
+    it: ["Centro assistenza: come si usa il sito? | estatemarket24","Guide passo passo per chi cerca casa, proprietari, agenti e aziende: cercare e pubblicare annunci, «Trova per me», flusso delle richieste e pacchetti."],
+  },
   "/konut-degerleme": {
     tr: ["Konut Değerleme: Evim Ne Eder? | estatemarket24", "Evinizin tahmini satış değerini ve kira getirisini bölgedeki yayındaki ilanlarla karşılaştırarak ücretsiz hesaplayın."],
     de: ["Immobilienbewertung: Was ist meine Wohnung wert? | estatemarket24", "Geschätzten Verkaufswert und Mietrendite Ihrer Immobilie in der Türkei kostenlos mit Angeboten in der Umgebung vergleichen."],

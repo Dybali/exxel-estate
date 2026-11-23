@@ -347,3 +347,24 @@ img[src*="/api/media/"]{-webkit-user-drag:none;-webkit-touch-callout:none;-webki
 .info-tip-panel strong{display:block;margin-bottom:3px;font-size:13.5px;color:#fff}
 @media(max-width:600px){.info-tip-panel{position:fixed;inset-inline:12px;bottom:12px;top:auto;width:auto;font-size:14px;padding:14px 16px;border-radius:14px}}
 .tab-new-badge{margin-inline-start:6px;background:#f6c343;color:#4a3c14;border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
+
+/* Help center /yardim (components/HelpCenter.tsx) and its entry points in the header, footer and Hesabım. */
+.top-help-link{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:inherit;text-decoration:none;margin-inline-end:10px}
+.top-help-link:hover{text-decoration:underline}
+.dashboard-help-link{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border-top:1px solid #e6ece9;color:#0b5e5e;font-weight:700;text-decoration:none}
+.help-body{display:grid;gap:20px;padding-top:24px;max-width:960px}
+.help-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.help-tabs button{display:inline-flex;align-items:center;gap:8px;border:1px solid #d6e1dc;background:#fff;color:#1f4245;border-radius:999px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer}
+.help-tabs button.active{background:#123f42;border-color:#123f42;color:#fff}
+.help-guide{background:#fff;border:1px solid #dfe7e3;border-radius:14px;padding:18px 20px}
+.help-intro{margin:0 0 12px;color:#4d5f5b;font-size:15px}
+.help-steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.help-steps li{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border:1px solid #e6ece9;border-radius:12px;padding:14px}
+.help-step-no{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e6f2ee;color:#123f42;font-weight:800}
+.help-steps h2{margin:0 0 3px;font-size:16px;color:#123f42}.help-steps p{margin:0;font-size:14px;color:#4d5f5b;line-height:1.55}
+.help-steps .outline-button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.help-more{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.help-more a{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dfe7e3;border-radius:12px;padding:14px 16px;color:#1f3b38;text-decoration:none}
+.help-more a:hover{border-color:#0b5e5e}.help-more span{display:grid;gap:2px}.help-more small{color:#5d716c}.help-more a>svg:last-child{margin-inline-start:auto}
+[dir=rtl] .help-steps .outline-button svg,[dir=rtl] .help-more a>svg:last-child{transform:scaleX(-1)}
+@media(max-width:700px){.help-steps li{grid-template-columns:auto 1fr}.help-steps .outline-button{grid-column:1/-1;justify-content:center}.help-more{grid-template-columns:1fr}}

@@ -20,7 +20,7 @@ import {LandRequestsPanel} from "./ContractorPanel";
 import {FeedbackCard} from "./FeedbackWidget";
 import {AccountKindSwitch} from "./AccountKindSwitch";
 import {CrmPanel} from "./CrmPanel";
-import {BarChart3,Inbox} from "lucide-react";
+import {BarChart3,CircleHelp,Inbox} from "lucide-react";
 import {ACCOUNT_KIND_LABELS,accountTypeLabel,panelTab,panelTabs,type PanelTabId} from "@/lib/account-panel";
 import type {AccountKind} from "@/lib/account-kind";
 
@@ -113,6 +113,7 @@ export function Dashboard() {
         <div className="account-user">{user.avatar_url ? <img src={user.avatar_url} alt="" width={42} height={42} className="account-avatar-img"/> : <div>{user.name.charAt(0).toUpperCase()}</div>}<span><strong>{user.name}</strong><small>{user.email}</small><em className="account-type-badge">{t(typeLabel)}{office&&kind==="individual"?` · ${office}`:""}</em></span></div>
         <div className="account-nav">
           {items.map((item) => <button key={item.id} className={active === item.id ? "active" : ""} onClick={() => { setTab(item.id); history.replaceState(null, "", `/hesabim?tab=${item.id}`); }}><item.icon size={17}/>{t(item.label)}{item.id === "talep-akisi" && Date.now() < Date.parse("2027-02-01") && <span className="tab-new-badge">{t("Yeni")}</span>}</button>)}
+          <Link href="/yardim" className="dashboard-help-link"><CircleHelp size={17}/>{t("Yardım merkezi")}</Link>
           {user.isAdmin && <Link href="/yonetim"><LayoutDashboard size={17}/>{t("Yönetim Paneli")}</Link>}
           <button className="account-logout" onClick={logout}><LogOut size={17}/>{t("Çıkış Yap")}</button>
         </div>
