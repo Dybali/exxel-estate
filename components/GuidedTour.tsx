@@ -36,14 +36,20 @@ export function GuidedTour() {
   const remember = (value: string) => { try { localStorage.setItem(STORE, value); } catch { /* not remembered */ } };
   const start = useCallback(() => { steps.current = HOME_TOUR.filter((step) => !step.target || visible(step.target)); setIndex(0); setMode("tour"); }, []);
   // Offer once, a moment after the cookie choice, unless the link asks for it (?tur=1).
+  // Each runs once per page view (the consent value is a new object on every render, which restarted the tour).
+  const hasConsent = Boolean(consent);
   useEffect(() => {
-    if (new URLSearchParams(location.search).get("tur") === "1") { const timer = setTimeout(start, 600); return () => clearTimeout(timer); }
-    if (!consent) return;
+    if (new URLSearchParams(location.search).get("tur") !== "1") return;
+    const timer = setTimeout(start, 600);
+    return () => clearTimeout(timer);
+  }, [start]);
+  useEffect(() => {
+    if (!hasConsent || new URLSearchParams(location.search).get("tur") === "1") return;
     let seen = false; try { seen = Boolean(localStorage.getItem(STORE)); } catch { seen = true; }
     if (seen) return;
-    const timer = setTimeout(() => setMode("welcome"), 2500);
+    const timer = setTimeout(() => setMode((current) => current === "off" ? "welcome" : current), 2500);
     return () => clearTimeout(timer);
-  }, [consent, start]);
+  }, [hasConsent]);
   useEffect(() => { const open = () => start(); window.addEventListener(START_TOUR_EVENT, open); return () => window.removeEventListener(START_TOUR_EVENT, open); }, [start]);
   const step = steps.current[index];
   const close = useCallback(() => { setMode("off"); setRect(null); remember("done"); }, []);
