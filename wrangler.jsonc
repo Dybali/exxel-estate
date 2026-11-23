@@ -11,8 +11,9 @@
   "workers_dev": true,
   "preview_urls": false,
   // Public base URL for canonical links, hreflang and the sitemap.
-  // 06:00 UTC (09:00 in Türkiye): promotion expiry and digest emails. Minute 7 hourly: health check.
-  "triggers": { "crons": ["0 6 * * *", "7 * * * *"] },
+  // No schedules on Cloudflare since 2026-11-23: the live site is the Mittwald container, whose cronjobs call
+  // /api/cron/health and /api/cron/daily (docs/mittwald-migration.md). Two schedulers would send digests twice.
+  "triggers": { "crons": [] },
   "vars": { "SITE_URL": "https://exxel-estate.estatemarket24.workers.dev", "CONTACT_EMAIL": "info@estatemarket24.com", "EMAIL_FROM": "EstateMarket24 <onboarding@resend.dev>" },
   // No longer used by the live site: counters, translation cache and assistant quotas moved to the
   // main database (DATABASE_URL). Kept only as the local-development fallback when DATABASE_URL is

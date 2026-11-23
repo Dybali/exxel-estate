@@ -154,7 +154,8 @@ test('cron endpoint: disabled without a long CRON_SECRET, 401 on wrong token, ru
 });
 test('Cloudflare cron and the endpoint share one implementation',()=>{
  const worker=read('build/sites-worker.ts');assert.match(worker,/healthJob\(settings\)/);assert.match(worker,/dailyJobs\(settings\)/);assert.doesNotMatch(worker,/runHealthChecks|sendDailyDigests|expirePromotions/);
- assert.match(read('wrangler.jsonc'),/"7 \* \* \* \*"/);
+ // Schedules run only on Mittwald since 2026-11-23 (two schedulers would send every digest twice).
+ assert.match(read('wrangler.jsonc'),/"crons": \[\]/);
 });
 test('liveness endpoint answers without touching database or storage',async()=>{
  const live=load('app/api/health/live/route.ts');assert.doesNotMatch(read('app/api/health/live/route.ts'),/import/);
