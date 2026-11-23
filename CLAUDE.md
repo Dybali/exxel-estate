@@ -32,17 +32,17 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Geliştirme sunucusu: `npm run dev` (port 5173)
 - Tam doğrulama: `npm run verify`: testler (`tests/*.test.mjs`, `node --test`), `tsc -p tsconfig.site.json`, production build. Değişiklikten sonra mutlaka çalıştır.
 - Sadece testler: `npm test`
-- Yayın: `main`'e push yeterli (bkz. Çalışma düzeni). `npm run deploy` yalnızca acil durumda ve sahibinin açık isteğiyle. D1 migrasyonları: `npm run db:migrate:remote`
+- Yayın: `main`'e push yeterli; yalnızca Mittwald'a gider (bkz. Çalışma düzeni). `npm run deploy` (Cloudflare) artık kullanılmaz.
 - Windows'ta yeniden build almadan önce açık Worker süreçlerini durdur (`dist/` kilitlenebilir).
 
 ## Çalışma düzeni (birden fazla cihaz)
 
 Sahibi aynı repoda iş bilgisayarından, ev bilgisayarından ve telefondan (Claude Code bulut oturumu) çalışır. Karışıklık olmaması için:
 
-- **Tek yayın yolu GitHub Actions'tır.** `main`'e push edilince `verify-site.yml` önce `npm run verify`, başarılıysa `npm run deploy` çalıştırır (`CLOUDFLARE_API_TOKEN` ve `CLOUDFLARE_ACCOUNT_ID` repo secret'ları gerekir). Yerelden `npm run deploy` / `wrangler deploy` yapılmaz: yerel kopya eskiyse daha yeni bir yayını geri alır.
+- **Tek yayın yolu GitHub Actions'tır ve yalnızca Mittwald'a yayınlar** (sahibinin kararı, 2026-11-23). `main`'e push edilince `mittwald.yml` testleri çalıştırır, Docker imajını kurar ve Mittwald konteynerini (`https://p-r9al26.project.space`) yeni imajla yeniden oluşturur; `verify-site.yml` yalnızca `npm run verify` yapar. Cloudflare Worker artık güncellenmez ve zamanlanmış işi yoktur; zamanlanmış işler Mittwald cronjob'larıyla çalışır. `npm run deploy` / `wrangler deploy` kullanılmaz.
 - **İşe başlamadan önce `git pull origin main`.** Push'tan önce de tekrar çek; reddedilen push'ta `git pull --rebase` (veya merge) yapılır, asla force-push yapılmaz.
 - Değişiklikler küçük, kendi içinde tamam commit'ler halinde ve iş bitince hemen push'lanır; yarım iş bir cihazda push'lanmadan bırakılmaz.
-- Yayından sonra GitHub Actions sonucu kontrol edilir; kırmızıysa düzeltilir. Geri alma: hatalı commit `git revert` ile geri alınıp push'lanır (gerekirse sahibi `npx wrangler rollback` yapar).
+- Yayından sonra GitHub Actions sonucu kontrol edilir; kırmızıysa düzeltilir. Geri alma: hatalı commit `git revert` ile geri alınıp push'lanır.
 - Veritabanını değiştiren işler (migrasyon, toplu güncelleme, silme) önce sahibine sorulur.
 
 ## Kurallar
