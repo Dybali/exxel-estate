@@ -18,7 +18,7 @@ export function onboardingSteps(kind: AccountKind, facts: OnboardingFacts, seen:
       step("photo", "Profil fotoğrafı ekleyin", "Fotoğraflı danışmanlara alıcılar daha çok güvenir.", "/hesabim?tab=profil", facts.avatar),
       step("licence", "Yetki belgenizi yükleyin", "Onaylı emlakçı rozeti ve Talep akışı belge onayıyla açılır.", "/hesabim?tab=firma", facts.officeDocument),
       step("listing", "İlk ilanınızı verin", "İlanınız 10 dile çevrilir ve yurt dışındaki alıcılara da ulaşır.", "/ilan-ver", facts.listings > 0),
-      step("languages", "Konuştuğunuz dilleri seçin", "Danışmanlar sayfasında dil filtresinde görünürsünüz.", "/hesabim?tab=profil", facts.languages),
+      step("languages", "Konuştuğunuz dilleri seçin", "Danışmanlar sayfasında dil filtresinde görünürsünüz.", "/hesabim?tab=profil#diller", facts.languages),
       step("board", "Talep akışına göz atın", "Ev arayan alıcıların talepleri burada; beğendiğinize teklif gönderin.", "/hesabim?tab=talep-akisi", Boolean(seen.leadBoard)),
     ];
     case "service": return [
