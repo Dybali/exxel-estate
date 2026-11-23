@@ -59,6 +59,11 @@ Var olan "Turistik günlük kiralık" (`purpose = gunluk`) ilan türü için tan
 
 `lib/agent-directory.ts`, `app/api/agents`, `components/AgentDirectory.tsx`, `components/AgentLanguagesSetting.tsx`. En az bir yayındaki ilanı olan onaylı emlakçılar, ilan sayısına göre. Filtreler: il, ilçe (ilan konumuna göre), konuştuğu dil, ad/ofis (GET formu, her filtrenin kendi adresi var, sunucuda çizilir). Kart: fotoğraf, ad, ofis, en çok ilanının olduğu il/ilçe, ilan sayısı, diller, belge doğrulama rozeti, "Telefonu göster" (`GET /api/agents?phone=`), profil bağlantısı. Emlakçı dillerini **Hesabım › Profilim › Konuştuğum diller**'den seçer (`agent_languages`, ilk kullanımda oluşur; dil adları ziyaretçinin dilinde `Intl.DisplayNames` ile).
 
+2026-11-23 yenilemesi (Emlakjet/Hepsiemlak/Properstar örneğiyle, sahibinin isteği): satır düzeni ve **Danışmanlar / Ofisler** geçişi (`?gorunum=ofisler`, `listOffices`).
+- Danışman satırı: fotoğraf + bağlı ofisin logosu, ad, bağlı olduğu ofis (ekip üyeliği, yoksa sahibi olduğu onaylı ofis; ofis profiline bağlantı, yoksa "Bağımsız danışman"), bölge, konuştuğu diller (bayraklarla), danışmanın kendi tanıtım yazısından ilk satırlar (**Hesabım › Profilim › Hakkımda**, `seller_profiles.bio`, `shortAbout` ile 220 karakter), istatistikler (aktif ilan, ortalama TL satış fiyatı, son 3 ayda eklenen ilan), "Hemen ara" ve "Profil ve ilanlar", Prestij/Profesyonel paketinde şerit (`agent_plan_grants`).
+- Ofis satırı: logo, ofis adı, bölge, danışman sayısı (sahip + ekip), ilan sayısı, son 3 ay, ekibin dilleri.
+- Filtreler: il, ilçe, dil, ilan türü (`tur`: satılık/kiralık), uzmanlık (`uzmanlik`: konut, iş yeri, arsa, turistik), sıralama (`sira`: önerilen = belgeli önce, en çok ilan, son 3 ayda en aktif, ortalama fiyat), ad veya ofis.
+
 ## Testler
 
 `tests/buyer-owner-tools.test.mjs` (hesaplamalar, değerleme, Benim için bul, danışman dizini, sezonluk), `tests/search-categories.test.mjs` (fiyatı düşen filtresi).
