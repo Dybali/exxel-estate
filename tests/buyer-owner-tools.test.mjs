@@ -78,7 +78,14 @@ test('agent directory lists office consultants under the office name',async()=>{
  assert.deepEqual(offices.offices.map(o=>[o.name,o.consultants,o.listings]),[['Ege Emlak Ofisi',2,4]]);
  assert.equal((await agents.listOffices(f.db,{q:'ege'})).total,1);assert.equal((await agents.listOffices(f.db,{city:'Ankara'})).total,0);
  assert.equal(await agents.agentPhone(f.db,'44444444-4444-4444-8444-444444444444'),null);
+ // Profile page: the team consultant has a public profile, both see the office, and its listings are everyone's.
+ const profiles=await load('seller-profiles'),deniz='44444444-4444-4444-8444-444444444444',ayse='11111111-1111-4111-8111-111111111111';
+ assert.equal(await profiles.publicProfileExists(f.db,deniz),true);
+ assert.deepEqual(await profiles.profileOffice(f.db,deniz),{id:'ag1',name:'Ege Emlak Ofisi',ownerId:ayse,logo:null});
+ assert.equal((await profiles.profileOffice(f.db,ayse))?.id,'ag1');assert.equal(await profiles.profileOffice(f.db,'22222222-2222-4222-8222-222222222222'),null);
+ assert.deepEqual(f.sql.prepare(`SELECT l.id FROM listings l WHERE ${profiles.OFFICE_LISTINGS_SQL} AND l.status='published' ORDER BY l.id`).all(ayse,'ag1').map(r=>r.id),['a1','a2','a3','d1']);
  f.sql.exec("UPDATE company_team_memberships SET ended_at='2026-11-17'");
+ assert.equal(await profiles.publicProfileExists(f.db,deniz),false);assert.equal(await profiles.profileOffice(f.db,deniz),null);
  assert.equal((await agents.listAgents(f.db,{})).total,2);
 }finally{f.sql.close()}});
 

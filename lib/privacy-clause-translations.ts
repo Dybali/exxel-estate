@@ -800,6 +800,8 @@ export const privacyClauseWords: Record<string,{de:string;fr:string;en:string;ar
  "Ofis adı":{de:"Büroname",fr:"Nom du bureau",en:"Office name",ar:"اسم المكتب",fa:"نام دفتر",ru:"Название офиса",nl:"Kantoornaam",es:"Nombre de la oficina",it:"Nome dell'ufficio"},
 // Consultants and offices directory (2026-11-23), ten languages.
  "{n} ofis bulundu":{de:"{n} Büros gefunden",fr:"{n} bureaux trouvés",en:"{n} offices found",ar:"تم العثور على {n} مكتب",fa:"{n} دفتر پیدا شد",ru:"Найдено офисов: {n}",nl:"{n} kantoren gevonden",es:"{n} oficinas encontradas",it:"{n} uffici trovati"},
+// Consultant profile tabs (2026-11-23), ten languages.
+ "Ofisin tüm ilanları":{de:"Alle Anzeigen des Büros",fr:"Toutes les annonces de l’agence",en:"All listings from the office",ar:"جميع إعلانات المكتب",fa:"همه آگهی‌های دفتر",ru:"Все объявления офиса",nl:"Alle advertenties van het kantoor",es:"Todos los anuncios de la oficina",it:"Tutti gli annunci dell’ufficio"},
  "GEMINI_API_KEY ayarlı değil.":{de:"GEMINI_API_KEY ist nicht gesetzt.",fr:"GEMINI_API_KEY n’est pas configuré.",en:"GEMINI_API_KEY is not set.",ar:"لم يتم ضبط GEMINI_API_KEY.",fa:"GEMINI_API_KEY تنظیم نشده است.",ru:"GEMINI_API_KEY не задан.",nl:"GEMINI_API_KEY is niet ingesteld."},
  "Model":{de:"Modell",fr:"Modèle",en:"Model",ar:"النموذج",fa:"مدل",ru:"Модель",nl:"Model"},
  "İlan sayısı":{de:"Anzahl Inserate",fr:"Nombre d’annonces",en:"Number of listings",ar:"عدد الإعلانات",fa:"تعداد آگهی",ru:"Количество объявлений",nl:"Aantal advertenties"},
