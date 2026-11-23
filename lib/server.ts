@@ -4,22 +4,20 @@ import {recentPriceDrop} from './price-history';
 import {publicPrecision,publicPresentation} from './listing-location';
 import { env } from "./runtime";
 import { PUBLIC_DEMO_LISTINGS, type Listing } from "./listings";
-import { neonD1 } from "./neon-d1";
 import { databaseDriver } from "./pg-d1";
 import { postgresDriver } from "@/lib/postgres-driver";
 import { privateBucket } from "./private-bucket";
 
 import { admin2faPending } from "./admin-totp";
 
-type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string; DATABASE_DRIVER?: string; ADMIN_TOTP_KEY?: string };
-// Main database: Neon over HTTP (Cloudflare, and Node with a Neon URL), or standard PostgreSQL over
-// TCP in the Node build for the Mittwald container (lib/pg-d1.ts decides). Without DATABASE_URL the
-// local D1 binding (development only).
+type SiteEnv = Cloudflare.Env & { EXXEL_ADMIN_EMAIL?: string; DATABASE_URL?: string; ADMIN_TOTP_KEY?: string };
+// Main database: the Mittwald container's PostgreSQL over TCP (Node build). Without DATABASE_URL the
+// local D1 binding (development only). Neon is no longer used (owner's decision 2026-11-23).
 export const db = () => {
   const settings = env as SiteEnv;
   if (settings.DATABASE_URL) {
-    if (postgresDriver && databaseDriver(settings.DATABASE_URL, settings.DATABASE_DRIVER, true) === "postgres") return postgresDriver(settings.DATABASE_URL) as unknown as D1Database;
-    return neonD1(settings.DATABASE_URL) as unknown as D1Database;
+    if (postgresDriver && databaseDriver(settings.DATABASE_URL, true) === "postgres") return postgresDriver(settings.DATABASE_URL) as unknown as D1Database;
+    throw new Error("No PostgreSQL driver in this build");
   }
   const database = settings.DB;
   if (!database) throw new Error("Database binding unavailable");

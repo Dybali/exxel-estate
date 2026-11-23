@@ -7,15 +7,15 @@ Türkiye'deki satılık ve kiralık gayrimenkuller için çok dilli (TR, DE, FR,
 - Proje ChatGPT Sites üzerinde geliştirildi; commit mesajları otomatik ("Update Site source").
 - Geliştirme `main` üzerinden yapılır. Eski Sites geçmişleri `archive/main-before-cloudflare` ve `archive/sites-2026-10-28` branch'lerinde saklıdır; bunlara commit atılmaz.
 - Barındırma: sahibinin Cloudflare hesabında Worker `exxel-estate` (`wrangler.jsonc`, adımlar [docs/cloudflare-deploy.md](docs/cloudflare-deploy.md)), şimdilik `https://exxel-estate.estatemarket24.workers.dev`. Sites'a özel kod kaldırıldı. Güncel Sites yayını (`estatemarket24-showcase.tastymole36.chatgpt.site`) alan adı geçişine kadar açık; iki yayın aynı Neon veritabanını kullanır.
-- Yayın canlı veriyi kullanır: site gerçek kullanıcılara açıktır ve eski Sites yayınıyla aynı Neon veritabanını paylaşır.
+- **Neon kullanılmıyor** (sahibinin kararı, 2026-11-23): asıl veritabanı Mittwald'daki `postgres` konteyneri (PostgreSQL 18). Neon'un son hâli yalnızca yedek olarak saklanır; koda Neon sürücüsü, paketi veya betiği geri eklenmez. Yayın canlı veriyi kullanır: site gerçek kullanıcılara açıktır.
 - **Son barındırma Mittwald olacak** (sahibinin kesin kararı, 2026-10-30): geliştirme bitince site alan adıyla Mittwald dedicated server'a taşınır, plan [docs/mittwald-migration.md](docs/mittwald-migration.md). Bu yüzden `cloudflare:workers` yalnızca `lib/runtime.ts` içinde import edilir; yeni özellikler Cloudflare'e özel servislere (D1, R2 binding, KV, Queues, Stream vb.) bağlanmaz, veri Neon'a ve S3 uyumlu depoya gider.
 - `apps/web` (Vercel) + `apps/api` (NestJS/Render) eski, yarım kalmış bir geçiş planıdır; kullanılmıyor.
 
 ## Yapı
 
 - Kök uygulama: Next.js 16 / React 19, Cloudflare Workers üzerinde `vinext` ile derlenir. Sayfalar `app/`, API'ler `app/api/`, bileşenler `components/`, iş mantığı `lib/`.
-- Veri: Neon PostgreSQL (asıl depo), Cloudflare R2 (fotoğraflar). `lib/neon-d1.ts` eski D1 arayüzünü Neon'a bağlar.
-- Migrasyonlar iki yerde tutulur ve senkron kalmalı: `postgres/migrations/` (Neon) ve `drizzle/` (D1/SQLite). `.sql` dosyaları LF satır sonu ister (`.gitattributes`).
+- Veri: Mittwald PostgreSQL (asıl depo, `lib/postgres-driver-node.ts` TCP sürücüsü, `lib/pg-d1.ts` eski D1 arayüzünü PostgreSQL'e uyarlar), Cloudflare R2 (fotoğraflar, belgeler, yedekler; S3 API ile, şimdilik).
+- Migrasyonlar iki yerde tutulur ve senkron kalmalı: `postgres/migrations/` (PostgreSQL, sunucu açılışında uygulanır) ve `drizzle/` (D1/SQLite). `.sql` dosyaları LF satır sonu ister (`.gitattributes`).
 - Çeviri sözlüğü `lib/i18n-dictionary.ts` (sunucu ve tarayıcı ortak; `lib/i18n.tsx` sadece React tarafı). Eski metinler `lib/*-translations.ts` ve `data/*.json`, Farsça `data/fa-translations.json`, Hollandaca `data/nl-translations.json`, İspanyolca `data/es-translations.json`, İtalyanca `data/it-translations.json` (hepsi eksik anahtarda İngilizceye düşer; es/it 2026-11-23 sitenin çeviri modeliyle İngilizceden üretildi, testi `tests/spanish-italian.test.mjs`); **yeni metinler `lib/portal-translations.ts`** içine 6 dilin hepsiyle eklenir. `tests/localization.test.mjs` eksikleri yakalar. İlan metni sitenin herhangi bir dilinde yazılabilir (`presentation.language`, `lib/listing-language.ts`); diğer dillere, Türkçe dahil, OpenAI GPT-6 Luna ile (anahtar yoksa Gemini) bir kez çevrilir: yayınlanan/düzenlenen ilan o gece toplu modda bütün dillere, ondan önce açılan dil istenince (`docs/translations.md`). Arapça ve Farsça sağdan sola (`isRtl`).
 - Dil: sayfa dili sunucuda seçilir (`lib/locale-negotiation.ts`, `proxy.ts` ve `build/sites-worker.ts` → `lib/request-context.ts`): önce `?lang=xx`, sonra ziyaretçinin kayıtlı seçimi (`em24_locale` çerezi), sonra tarayıcı dili, yoksa Türkçe; tarayıcı (`lib/i18n.tsx`) sunucunun seçtiği dili korur, yalnızca `?lang` veya kayıtlı seçim değiştirir (sayfa açıldıktan sonra dil değişmez). sayfa başlıkları `lib/seo-copy.ts`, kanonik/hreflang kök layout'ta. Adresler `SITE_URL` (wrangler vars) ile üretilir.
 - Stil: sayfa stilleri `app/*.css` içinde katmanlıdır; diğer dosyaların üstüne gelen ince ayarlar (mobil üst bölüm, ilan sayfası galerisi ve sabit iletişim çubuğu, en küçük yazı boyutları) en son yüklenen `app/polish.css` içindedir.
@@ -47,6 +47,6 @@ Sahibi aynı repoda iş bilgisayarından, ev bilgisayarından ve telefondan (Cla
 
 ## Kurallar
 
-- Gizli değerler (Neon, Mittwald PostgreSQL, R2, SMTP, Google OAuth, Gemini, OpenAI, DeepL, TCMB EVDS, EMAIL_CODE_SECRET) asla repoya, istemci koduna veya `hosting.json`'a yazılmaz. Repo private kalmalı.
+- Gizli değerler (Mittwald PostgreSQL, R2, SMTP, Google OAuth, Gemini, OpenAI, DeepL, TCMB EVDS, EMAIL_CODE_SECRET) asla repoya, istemci koduna veya `hosting.json`'a yazılmaz. Repo private kalmalı.
 - Yerel HTTP testleri production verisine dokunmaz; bkz. [docs/release-verification.md](docs/release-verification.md).
 - Örnek/demo ilan ve şirketler (`source: "demo"`, `sample: true`) arayüzde her zaman açıkça etiketlenir; gerçek sayımlara dahil edilmez.

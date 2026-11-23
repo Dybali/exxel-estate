@@ -14,7 +14,7 @@
 - `main`'e her push `mittwald.yml` ile imajı GHCR'ye (herkese açık paket) gönderir ve `site` konteynerini günceller (`MITTWALD_API_TOKEN` secret'ı, `MITTWALD_PROJECT_ID`/`MITTWALD_SERVICE_ID`/`MITTWALD_TEST_URL` değişkenleri).
 - R2: `mittwald-site` token'ı (üç kovaya okuma/yazma).
 - Giriş tamamen kendi sistemimizde (2026-11-09, sahibinin onayı): şifreler zaten yerel `users.password_hash`'teydi; e-posta doğrulama ve şifre sıfırlama kodları artık Neon Auth yerine kendi tablomuz `email_codes` ve SMTP ile gider. Ayrıntı ve Google girişi kurulumu: [auth.md](auth.md).
-- Cloudflare yayını ve eski Sites hâlâ Neon'a yazar; kapatılmaları ve son veri kopyası sıradaki iştir.
+- **Neon'dan çıkıldı (2026-11-23, sahibinin kararı):** Mittwald veritabanı esastır; 3 Kasım'dan sonra yalnızca eski Cloudflare adresinden Neon'a yazılan kayıtlar (1 ilan ve olası üyelikler/mesajlar) aktarılmadı. Neon sürücüsü (`lib/neon-d1.ts`), `@neondatabase/serverless` paketi, `scripts/neon-*.mjs` ve `DATABASE_DRIVER` ayarı kaldırıldı. Eski Sites yayını kapalı (404). Sahibinin yapacakları: Cloudflare Worker'ı silmek, Neon'dan son bir yedek alıp projeyi silmek ([security-checklist.md](security-checklist.md)).
 
 Aşamalar: 1) kodun Node/Docker'da da çalışması (Cloudflare yayını bozulmadan), 2) sahibinin mStudio kurulumu (PostgreSQL, uygulama konteyneri, test alt alan adı, API anahtarı), 3) GitHub Actions ile Mittwald test yayını + Neon verisinin kopyası, 4) e-posta (SMTP, yapıldı) ve Neon Auth'tan çıkış (yapıldı, [auth.md](auth.md)), 5) test ortamında uçtan uca deneme, 6) canlıya geçiş, anahtarların yenilenmesi, eski adreslerin kapatılması.
 
@@ -65,7 +65,7 @@ Veritabanı da Mittwald'a alınacak. mStudio'da proje içinde **PostgreSQL konte
 Cloudflare yayını aynen çalışmaya devam eder (`npm run verify`); aynı kod `EXXEL_NODE_BUILD=1 npx next build` ile Node'da da derlenir.
 
 - **Node derlemesi:** `next.config.ts` yalnızca `EXXEL_NODE_BUILD=1` iken `output: "standalone"` ve iki takma ad ekler: `cloudflare:workers` → `lib/runtime-node.ts`, `@/lib/postgres-driver` → `lib/postgres-driver-node.ts`. Cloudflare (vinext) derlemesi `lib/postgres-driver.ts`'i görür; bu boş bir yuvadır, postgres.js Workers paketine hiç girmez (`tests/mittwald-runtime.test.mjs` denetler).
-- **Veritabanı sürücüsü:** `lib/server.ts` `db()`: `DATABASE_URL` bir Neon adresiyse Neon HTTP sürücüsü (bugünkü gibi); Node derlemesinde başka bir sunucuysa (veya `DATABASE_DRIVER=postgres`) standart TCP sürücüsü. SQL dönüştürme (`?` → `$n`, `INSERT OR IGNORE`, `json_each`, sunum JSON'u, yayın süresi filtresi) ve toplu işlemlerin tek transaction olması iki sürücüde ortaktır (`lib/pg-d1.ts`).
+- **Veritabanı sürücüsü:** `lib/server.ts` `db()`: `DATABASE_URL` ile standart TCP PostgreSQL (`lib/postgres-driver-node.ts`, postgres.js). Neon HTTP sürücüsü 2026-11-23'te kaldırıldı.
 - **D1 artık kullanılmıyor:** İşlem sayaçları, DeepL çeviri önbelleği ve kilitleri, çeviri kullanım sayaçları, asistan kotaları ana veritabanında (`serviceDB()` in `lib/server.ts`). İlk kullanımda oluşan tablolar (sahibinin onayıyla): `content_translations`, `translation_leases`, `translation_usage`, `translation_service_state`, `ai_usage_limits` (+ `ai_usage_expiry_idx` dizini), `ai_monthly_usage`, `operations_events`. Milisaniye zaman damgası sütunları PostgreSQL'de `BIGINT`. **Eski D1 verisi aktarılmadı:** çeviriler ilk istekte yeniden hazırlanır, sayaçlar sıfırdan başlar. D1 bağlaması `wrangler.jsonc`'ta yalnızca `DATABASE_URL` olmayan yerel geliştirme için kalır; `drizzle/` dosyalarına dokunulmadı, geçmiştir.
 - **Özel kova:** `bucket()` Cloudflare'de R2 bağlamasını, başka yerde `lib/private-bucket.ts`'i (aynı `exxel-estate-private` kovası, S3 API, `aws4fetch`) kullanır. Kullanılan kısım: `get` (`onlyIf.etagMatches`), `head`, `put` (`httpMetadata.contentType`, `customMetadata`), `delete` (tek anahtar veya liste), `list` (`limit`, `cursor`, `prefix`). Kimlik bilgileri fotoğraflarla aynı `R2_*` ayarları; **R2 API token'ı `exxel-estate-private` kovasına da yetkilendirilmeli** (Cloudflare panosu → R2 → API token'ları → mevcut token'ı düzenle → kovalara `exxel-estate-private` ekle, izin "Object Read & Write"; menü adları Cloudflare arayüzüne göre küçük farklılık gösterebilir).
 - **Zamanlanmış işler:** `lib/scheduled-jobs.ts` hem Cloudflare `scheduled()` hem `GET/POST /api/cron/health|daily` tarafından kullanılır. Uç nokta `Authorization: Bearer <CRON_SECRET>` ister; `CRON_SECRET` yoksa veya 32 karakterden kısaysa 404, yanlış anahtarda 401. Sağlık kontrolü başarısızsa 503, günlük işlerden biri başarısızsa 500 döner. Konteyner içinden çağırmak için `node scripts/cron-call.mjs health|daily`.
@@ -84,7 +84,7 @@ Hepsi mStudio'da konteynerin ortam değişkenleri olarak girilir; imaja ve repoy
 | Değişken | Zorunlu | Açıklama |
 |---|---|---|
 | `DATABASE_URL` | Evet | Test: `postgres://KULLANICI:ŞİFRE@<postgres-konteyner-adı>:5432/VERİTABANI` (aynı projenin iç ağı). Aşama 3'e kadar Neon adresi de olabilir. |
-| `DATABASE_DRIVER` | Hayır | `postgres` (TCP) veya `neon` (HTTP). Boşsa: Neon adresi → `neon`, diğerleri → `postgres`. |
+
 | `DATABASE_POOL_MAX` | Hayır | TCP bağlantı havuzu, varsayılan 10 (1–50). |
 | `R2_ENDPOINT` | Evet | `https://<hesap>.eu.r2.cloudflarestorage.com` |
 | `R2_BUCKET_NAME` | Evet | `exxel-estate-images` (ilan fotoğrafları) |

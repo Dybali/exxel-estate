@@ -12,7 +12,7 @@ import { videoWorkerState } from "./video-worker-state";
 type Settings = VideoStorageSettings & { DATABASE_URL?: string; DATABASE_DRIVER?: string };
 
 export function videoFeatureEnabled(settings: Settings = env as Settings) {
-  return Boolean(postgresDriver && settings.DATABASE_URL && databaseDriver(settings.DATABASE_URL, settings.DATABASE_DRIVER, true) === "postgres");
+  return Boolean(postgresDriver && settings.DATABASE_URL && databaseDriver(settings.DATABASE_URL, true) === "postgres");
 }
 export function videoStorageFromEnv(settings: Settings = env as Settings): VideoStorage | null {
   try { return videoStorage(settings); } catch { return null; }

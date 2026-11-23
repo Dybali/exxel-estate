@@ -41,7 +41,7 @@ const PG_BIN_DIR = "/usr/libexec/postgresql18";
 const BACKUP_NAME = /^mittwald-db\/db-(\d{4}-\d\d-\d\dT\d{6}Z)\.(dump\.enc|json)$/;
 
 export type BackupSettings = {
-  DATABASE_URL?: string; DATABASE_DRIVER?: string;
+  DATABASE_URL?: string;
   BACKUP_ENCRYPTION_KEY?: string; BACKUP_MIN_TABLES?: string; PG_BIN_DIR?: string;
   R2_ENDPOINT?: string; R2_ACCESS_KEY_ID?: string; R2_SECRET_ACCESS_KEY?: string;
   R2_BACKUP_BUCKET?: string; R2_PRIVATE_BUCKET_NAME?: string; APP_COMMIT?: string; PATH?: string;
@@ -349,7 +349,7 @@ export async function runDatabaseBackup(settings: BackupSettings = process.env a
   const done = (report: Omit<BackupReport, "ms">): BackupReport => ({ ...report, ms: Date.now() - started });
   const url = settings.DATABASE_URL;
   if (!url) return done({ status: "skipped", reason: "no database configured (DATABASE_URL is empty)" });
-  if (databaseDriver(url, settings.DATABASE_DRIVER, true) !== "postgres") return done({ status: "skipped", reason: "the database is not the container's TCP PostgreSQL (e.g. Neon); this backup covers the Mittwald database only" });
+  if (databaseDriver(url, true) !== "postgres") return done({ status: "skipped", reason: "no TCP PostgreSQL driver in this build" });
   if (running) return done({ status: "skipped", reason: "another backup is already running in this container" });
   running = true;
   let stage = "configuration", tempDir = "";

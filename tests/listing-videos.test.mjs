@@ -336,7 +336,7 @@ test('worker start: skipped without TCP database, storage, ffmpeg or with VIDEO_
   const worker=load('lib/video-worker-node.ts',{'@/lib/postgres-driver':fakeDriver,'./video-worker-state':state});
   const tools=fakeSpawn(()=>({code:0}));
   const pg={DATABASE_URL:'postgres://u:p@postgres:5432/app',...r2};
-  for(const [settings,reason] of [[{...pg,VIDEO_WORKER:'0'},'VIDEO_WORKER=0'],[{...r2},'no TCP PostgreSQL'],[{...r2,DATABASE_URL:'postgres://u:p@ep-x.eu-central-1.aws.neon.tech/db'},'no TCP PostgreSQL'],[{DATABASE_URL:pg.DATABASE_URL},'R2 storage']]){
+  for(const [settings,reason] of [[{...pg,VIDEO_WORKER:'0'},'VIDEO_WORKER=0'],[{...r2},'no TCP PostgreSQL'],[{DATABASE_URL:pg.DATABASE_URL},'R2 storage']]){
    await worker.startVideoWorker(settings,{spawn:tools.spawn,tmpRoot:tmp});assert.equal(state.videoWorkerState().running,false);assert.match(logs.at(-1),new RegExp('worker skipped: .*'+reason.replace(/[=]/g,'.')));
   }
   await worker.startVideoWorker(pg,{spawn:fakeSpawn(()=>({error:Error('ENOENT')})).spawn,tmpRoot:tmp});assert.match(logs.at(-1),/skipped: ffmpeg\/ffprobe not found/);
@@ -376,7 +376,7 @@ test('daily cleanup: unattached uploads and failed jobs older than 2 days go, wi
  assert.equal(await server.removeVideoById(db,kept,storage),true);assert.equal(await store.videoById(db,kept),null);
  assert.equal(server.videoFeatureEnabled({DATABASE_URL:'postgres://u:p@postgres/app'}),false,'Cloudflare build: no TCP driver, no videos');
  const node=load('lib/listing-video-server.ts',{'@/lib/postgres-driver':{postgresDriver:()=>null},'./runtime':{env:{}}});
- assert.equal(node.videoFeatureEnabled({DATABASE_URL:'postgres://u:p@postgres/app'}),true);assert.equal(node.videoFeatureEnabled({DATABASE_URL:'postgres://u:p@ep-x.aws.neon.tech/db'}),false);assert.equal(node.videoFeatureEnabled({}),false);
+ assert.equal(node.videoFeatureEnabled({DATABASE_URL:'postgres://u:p@postgres/app'}),true);assert.equal(node.videoFeatureEnabled({}),false);
  assert.equal(node.videoUploadsReady({DATABASE_URL:'postgres://u:p@postgres/app',...r2}),false,'worker not running');
  db.sql.close();
 });

@@ -11,7 +11,7 @@ import { setVideoWorkerState, videoWorkerState } from "./video-worker-state";
 // One job at a time in this process; jobs are claimed with a single UPDATE (lib/listing-video-store.ts)
 // so a restart or a second container never processes the same video twice. Never throws.
 export const VIDEO_POLL_MS = 15_000;
-type Settings = VideoStorageSettings & { DATABASE_URL?: string; DATABASE_DRIVER?: string; VIDEO_WORKER?: string };
+type Settings = VideoStorageSettings & { DATABASE_URL?: string; VIDEO_WORKER?: string };
 type Options = { spawn?: SpawnLike; database?: VideoDatabase; storage?: VideoStorage; pollMs?: number; tmpRoot?: string };
 
 function skip(reason: string) {
@@ -23,7 +23,7 @@ export async function startVideoWorker(settings: Settings = process.env as Setti
   try {
     if (videoWorkerState().running) return;
     if (settings.VIDEO_WORKER === "0") return skip("disabled (VIDEO_WORKER=0)");
-    if (!postgresDriver || !settings.DATABASE_URL || databaseDriver(settings.DATABASE_URL, settings.DATABASE_DRIVER, true) !== "postgres") return skip("no TCP PostgreSQL database configured");
+    if (!postgresDriver || !settings.DATABASE_URL || databaseDriver(settings.DATABASE_URL, true) !== "postgres") return skip("no TCP PostgreSQL database configured");
     let storage: VideoStorage | null | undefined = options.storage;
     try { storage ??= videoStorage(settings); } catch { storage = null; }
     if (!storage) return skip("R2 storage is not configured");

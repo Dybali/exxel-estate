@@ -179,7 +179,7 @@ function googleFixture(){
  sql.exec(`CREATE TABLE users(id TEXT PRIMARY KEY,email TEXT UNIQUE,password_hash TEXT,email_verified INTEGER,name TEXT,role TEXT,agent_status TEXT,company TEXT,avatar_url TEXT,created_at TEXT);CREATE TABLE oauth_accounts(provider TEXT,provider_user_id TEXT,user_id TEXT,created_at TEXT,PRIMARY KEY(provider,provider_user_id),UNIQUE(user_id,provider));CREATE TABLE oauth_flows(state_hash TEXT PRIMARY KEY,code_verifier TEXT,role TEXT,next_path TEXT,link_user_id TEXT,expires_at TEXT);CREATE TABLE sessions(token_hash TEXT PRIMARY KEY,user_id TEXT,expires_at TEXT);
   INSERT INTO users VALUES('u-verified','ayse@example.com','pbkdf2$100000$keep$hash',1,'Ayşe','agent','approved','Ofis',NULL,'2026-01-01');INSERT INTO users VALUES('u-unverified','new@example.com','pbkdf2$100000$x$y',0,'Yeni','buyer','none',NULL,NULL,'2026-01-01');`);
  const env={GOOGLE_CLIENT_ID:'client-id',GOOGLE_CLIENT_SECRET:'client-secret',GOOGLE_REDIRECT_URI:'https://p-r9al26.project.space/api/auth/callback/google'};
- const realServer=load('lib/server.ts',{'./runtime':{env},'./d1-publication':{},'./listing-policy':{},'./price-history':{},'./listing-location':{},'./listings':{PUBLIC_DEMO_LISTINGS:[]},'./neon-d1':{},'./pg-d1':{},'@/lib/postgres-driver':{},'./private-bucket':{},'./admin-totp':{}});
+ const realServer=load('lib/server.ts',{'./runtime':{env},'./d1-publication':{},'./listing-policy':{},'./price-history':{},'./listing-location':{},'./listings':{PUBLIC_DEMO_LISTINGS:[]},'./pg-d1':{},'@/lib/postgres-driver':{},'./private-bucket':{},'./admin-totp':{}});
  const server={...realServer,db:()=>db,currentUser:async()=>null,createSession:async userId=>{const token='tok-'+userId;sql.prepare('INSERT INTO sessions VALUES(?,?,?)').run(await sha(token),userId,'2099-01-01');return token;}};
  const auth=load('lib/google-auth.ts',{'./runtime':{env},'./safe-next':load('lib/safe-next.ts',{})});
  const start=load('app/api/auth/google/route.ts',{'@/lib/server':server,'@/lib/google-auth':auth});
@@ -223,7 +223,7 @@ test('Google links a verified local account with the same e-mail, never an unver
 
 test('Neon Auth is gone from the code, the dependencies and the configuration',()=>{
  for(const file of ['lib/neon-mail-auth.ts','lib/neon-identities.ts'])assert.equal(existsSync(path.join(root,file)),false,file);
- const pkg=JSON.parse(read('package.json'));assert.equal(pkg.dependencies['@neondatabase/auth'],undefined);assert.ok(pkg.dependencies['@neondatabase/serverless'],'the Neon driver stays');
+ const pkg=JSON.parse(read('package.json'));assert.equal(pkg.dependencies['@neondatabase/auth'],undefined);
  const walk=dir=>readdirSync(path.join(root,dir),{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):[path.join(dir,e.name)]);
  for(const file of [...walk('app'),...walk('components'),...walk('lib'),...walk('build'),'wrangler.jsonc','.env.example','proxy.ts','next.config.ts'].filter(f=>/\.(tsx?|jsonc|example)$/.test(f)))
   assert.doesNotMatch(read(file),/neon-mail-auth|neon-identities|@neondatabase\/auth|NEON_AUTH_|neonMailAuth|linkNeonAccount/,file);

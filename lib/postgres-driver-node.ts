@@ -52,7 +52,7 @@ export const postgresDriver = (url: string) => pgD1(postgresClient(pool(url)));
 // share one session. Never throws: a failure is logged and the server keeps serving.
 export async function runStartupMigrations(settings: Record<string, string | undefined> = process.env) {
   const url = settings.DATABASE_URL;
-  if (!url || databaseDriver(url, settings.DATABASE_DRIVER, true) !== "postgres") {
+  if (!url || databaseDriver(url, true) !== "postgres") {
     console.info("[migrations] skipped: no TCP PostgreSQL database configured");
     return;
   }

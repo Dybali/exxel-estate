@@ -1,10 +1,9 @@
 import {activePublicationQuery} from './listing-policy';
 import {pgPresentationJson} from './pg-json';
 
-// The D1-compatible surface shared by both PostgreSQL drivers: Neon's HTTP driver (lib/neon-d1.ts,
-// Cloudflare today) and the TCP driver for the Mittwald container (lib/postgres-d1-node.ts). Both
-// rewrite the SQLite-flavoured queries the same way and run batches in one transaction, so the
-// site behaves identically whichever driver is in use. Pure module: no driver imports here.
+// The D1-compatible surface of the PostgreSQL driver (TCP, lib/postgres-driver-node.ts, the Mittwald
+// container's own PostgreSQL): rewrites the SQLite-flavoured queries and runs batches in one
+// transaction. Pure module: no driver imports here. Neon is no longer used (owner's decision 2026-11-23).
 
 export type BoundValue = string | number | boolean | null;
 export type PgRow = Record<string, unknown>;
@@ -56,13 +55,8 @@ export function pgD1(client: PgClient) {
   };
 }
 
-// Which PostgreSQL driver to use. The TCP driver only exists in the Node build (Mittwald
-// container); Cloudflare always uses Neon's HTTP driver. DATABASE_DRIVER=postgres|neon forces a
-// choice; otherwise a Neon host keeps the HTTP driver and any other host uses TCP.
-export function databaseDriver(url: string, setting: string | undefined, tcpAvailable: boolean): "neon" | "postgres" {
-  if (!tcpAvailable || setting === "neon") return "neon";
-  if (setting === "postgres") return "postgres";
-  let host = "";
-  try { host = new URL(url).hostname.toLowerCase(); } catch { /* unparsable: let the driver report it */ }
-  return host.endsWith(".neon.tech") ? "neon" : "postgres";
+// Whether the main database can be reached: a DATABASE_URL and the TCP driver (it exists only in the
+// Node build for the Mittwald container).
+export function databaseDriver(url: string, tcpAvailable: boolean): "postgres" | "none" {
+  return url && tcpAvailable ? "postgres" : "none";
 }

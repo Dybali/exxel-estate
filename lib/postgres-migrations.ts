@@ -17,7 +17,7 @@ export type MigrationSql = {
 type Log = Pick<Console, "info" | "warn">;
 
 // Files still to apply, in order: valid names only, at or above the baseline, not yet recorded.
-// Versions are full file names ("018_x.sql"), as scripts/neon-migrate.mjs records them.
+// Versions are full file names ("018_x.sql"), as the first migration runner recorded them.
 export function pendingMigrations(files: string[], applied: Iterable<string>, baseline = MIGRATION_BASELINE) {
   const done = new Set(applied);
   return files.filter((file) => MIGRATION_FILE.test(file) && Number(file.slice(0, 3)) >= baseline && !done.has(file)).sort();

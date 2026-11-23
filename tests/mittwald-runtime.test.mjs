@@ -1,5 +1,5 @@
-// Node/Mittwald runtime pieces (docs/mittwald-migration.md): shared PostgreSQL rewriting and batch
-// semantics for both drivers, driver selection, the former D1 tables on the main database, the
+// Node/Mittwald runtime pieces (docs/mittwald-migration.md): PostgreSQL rewriting and batch
+// semantics, driver selection, the former D1 tables on the main database, the
 // S3-backed private bucket, the protected cron endpoint and the liveness endpoint.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -37,16 +37,13 @@ test('D1 surface: bind/first/all/run and batch as one transaction in order',asyn
  const empty=pg.pgD1({async query(){return [];},async transaction(){return [];}});assert.equal(await empty.prepare('SELECT 1').first(),null);
 });
 
-test('Neon HTTP adapter and TCP adapter share the same rewritten queries',async()=>{
- const neonCalls=[];const sql={query(q,v){neonCalls.push({q,v});return Promise.resolve([{ok:1}]);},transaction(items){return Promise.all(items);}};
- const {neonD1}=load('lib/neon-d1.ts',{'@neondatabase/serverless':{neon:()=>sql}});
+test('TCP adapter rewrites SQLite-style queries for PostgreSQL and enforces listing expiry',async()=>{
  const pgCalls=[];let began=0;const tx={unsafe:async(text,values)=>{pgCalls.push({text,values});return [{ok:1}];}};
  const fakePostgres=()=>({...tx,begin:async fn=>{began++;return fn(tx);}});
  const node=load('lib/postgres-driver-node.ts',{postgres:fakePostgres});
  const source="SELECT l.id FROM listings l WHERE l.status='published' AND l.id=?";
- await neonD1('postgres://neon').prepare(source).bind('a').all();
  await node.postgresDriver('postgres://db/test').prepare(source).bind('a').all();
- const norm=t=>t.replace(/'\d{4}-\d\d-\d\dT[^']+'/g,"'T'");assert.equal(norm(pgCalls[0].text),norm(neonCalls[0].q));assert.match(pgCalls[0].text,/l\.id=\$1$/);
+ const norm=t=>t.replace(/'\d{4}-\d\d-\d\dT[^']+'/g,"'T'");assert.match(norm(pgCalls[0].text),/expires_at/);assert.match(pgCalls[0].text,/l\.id=\$1$/);
  assert.deepEqual(pgCalls[0].values,['a']);
  const out=await node.postgresDriver('postgres://db/test').batch([node.postgresDriver('postgres://db/test').prepare('UPDATE t SET a=? WHERE b=?').bind(undefined,1)]);
  assert.equal(began,1);assert.deepEqual(pgCalls.at(-1),{text:'UPDATE t SET a=$1 WHERE b=$2',values:[null,1]});assert.deepEqual(out,[[{ok:1}]]);
@@ -60,13 +57,13 @@ test('TCP batch: a failing statement rejects the whole transaction',async()=>{
  assert.deepEqual(seen,['ok','fail','ROLLBACK']);
 });
 
-test('driver selection: TCP only in the Node build, Neon hosts keep HTTP unless forced',()=>{
- assert.equal(pg.databaseDriver('postgres://u:p@postgres:5432/app',undefined,false),'neon');
- assert.equal(pg.databaseDriver('postgres://u:p@postgres:5432/app','postgres',false),'neon');
- assert.equal(pg.databaseDriver('postgres://u:p@postgres:5432/app',undefined,true),'postgres');
- assert.equal(pg.databaseDriver('postgres://u:p@ep-x.eu-central-1.aws.neon.tech/db',undefined,true),'neon');
- assert.equal(pg.databaseDriver('postgres://u:p@ep-x.eu-central-1.aws.neon.tech/db','postgres',true),'postgres');
- assert.equal(pg.databaseDriver('postgres://u:p@postgres/app','neon',true),'neon');
+test('one database driver: TCP PostgreSQL in the Node build; Neon is gone from the code',()=>{
+ assert.equal(pg.databaseDriver('postgres://u:p@postgres:5432/app',true),'postgres');
+ assert.equal(pg.databaseDriver('postgres://u:p@postgres:5432/app',false),'none');
+ assert.equal(pg.databaseDriver('',true),'none');
+ assert.equal(nativeRequire('node:fs').existsSync(path.join(root,'lib/neon-d1.ts')),false);
+ assert.equal(JSON.parse(read('package.json')).dependencies['@neondatabase/serverless'],undefined);
+ assert.doesNotMatch(read('lib/server.ts'),/neonD1|neon-d1/);
 });
 
 test('Cloudflare bundle never sees postgres.js: only the Node-aliased module imports it',()=>{
@@ -194,9 +191,9 @@ test('startup migrations: runner only in the Node build, skipped without a TCP d
  let connected=0;const node=load('lib/postgres-driver-node.ts',{postgres:()=>{connected++;throw Error('ECONNREFUSED');}});
  const original={info:console.info,error:console.error};const lines=[];console.info=l=>lines.push(l);console.error=l=>lines.push(l);
  try{
-  await node.runStartupMigrations({});await node.runStartupMigrations({DATABASE_URL:'postgres://u:p@ep-x.eu-central-1.aws.neon.tech/db'});assert.equal(connected,0);
+  await node.runStartupMigrations({});assert.equal(connected,0);
   await node.runStartupMigrations({DATABASE_URL:'postgres://u:p@postgres:5432/app'});assert.equal(connected,1);
  }finally{console.info=original.info;console.error=original.error;}
- assert.match(lines[0],/skipped/);assert.match(lines[1],/skipped/);assert.match(lines[2],/failed.*ECONNREFUSED.*keeps running/);assert.ok(!lines.join('\n').includes('u:p@'));
+ assert.match(lines[0],/skipped/);assert.match(lines[1],/failed.*ECONNREFUSED.*keeps running/);assert.ok(!lines.join('\n').includes('u:p@'));
  for(const f of nativeRequire("node:fs").readdirSync(path.join(root,'postgres/migrations')))assert.match(f,/^\d{3}_[a-z0-9_]+\.sql$/,f);
 });
