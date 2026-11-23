@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
 import { CurrencySwitch } from "@/components/DisplayCurrency";
 import { useLocale } from "@/lib/i18n";
+import { useLiveEvents } from "@/lib/live-client";
 import { viewerActions, viewerOf } from "@/lib/account-actions";
 
 export function Header() {
@@ -33,6 +34,8 @@ export function Header() {
     refresh();window.addEventListener("salesorrent:profile-changed",refresh);
     return()=>window.removeEventListener("salesorrent:profile-changed",refresh);
   }, [path]);
+  // Live messaging (lib/live-client.ts): the unread badge updates as soon as a message arrives or is read.
+  const liveMessages = useLiveEvents(Boolean(user?.id), (event) => { if (event.type !== "typing") window.dispatchEvent(new Event("messages:changed")); });
   useEffect(() => {
     if (!user?.id) { setUnreadMessages(0); return; }
     const control = new AbortController();
@@ -40,10 +43,10 @@ export function Header() {
       if (document.hidden) return;
       try { const response = await fetch("/api/messages", { cache: "no-store", signal: control.signal }); if (response.ok) { const data = await response.json() as { unreadTotal?: number }; if (!control.signal.aborted) setUnreadMessages(Number(data.unreadTotal || 0)); } } catch {}
     };
-    refresh(); const timer = setInterval(refresh, 30000);
+    refresh(); const timer = setInterval(refresh, liveMessages ? 120000 : 30000);
     window.addEventListener("messages:changed", refresh);
     return () => { control.abort(); clearInterval(timer); window.removeEventListener("messages:changed", refresh); };
-  }, [user?.id]);
+  }, [user?.id, liveMessages]);
   useEffect(()=>{if(!user?.id){setDiscoveryUnread(0);return;}let active=true,sequence=0;
     const refresh=()=>{if(document.hidden)return;const ticket=++sequence;fetch('/api/discovery',{cache:'no-store'}).then(r=>r.ok?apiJson<{unread?:number}>(r):null).then(data=>{if(active&&ticket===sequence&&data)setDiscoveryUnread(data.unread||0);}).catch(()=>{});};
     const read=()=>{if(!active)return;setDiscoveryUnread(0);refresh();};refresh();const timer=setInterval(refresh,60000);window.addEventListener('salesorrent:discovery-changed',refresh);window.addEventListener('salesorrent:discovery-read',read);window.addEventListener('focus',refresh);return()=>{active=false;sequence++;clearInterval(timer);window.removeEventListener('salesorrent:discovery-changed',refresh);window.removeEventListener('salesorrent:discovery-read',read);window.removeEventListener('focus',refresh);};

@@ -8,6 +8,7 @@ import { MessageTranslationError, translateMessages } from "@/lib/message-transl
 import { translationSettings } from "@/lib/translation-runtime";
 import { aiSettings } from "@/lib/ai-limits-server";
 import { firmThreadInfo } from "@/lib/firm-plans-server";
+import { publish } from "@/lib/live-events";
 let database: ChatDatabase;
 const connection = () => { if (!database) { const raw = db(); database = { prepare: (source) => raw.prepare(source) as unknown as import("@/lib/messaging-service").ChatStatement }; } return database; };
 export async function GET(request: Request) {
@@ -42,6 +43,10 @@ export async function POST(request: Request) {
     const result = await chatPost(connection(), { id: user.id, admin: isAdmin(user) }, data);
     // Email the recipient in the background; failures never affect sending the message.
     if (data.action !== "read" && "peerId" in result && result.peerId) waitUntil(notifyNewMessage(db() as unknown as NotificationDatabase, { ...(env as unknown as EmailSettings), SITE_URL: siteUrl() }, { listingId: result.listingId, senderId: user.id, recipientId: result.peerId }).catch(() => {}));
+    // Live update (lib/live-events.ts): the recipient sees the message at once, the sender's other tabs too; a read
+    // receipt reaches the sender. Ids only, the pages fetch the messages themselves.
+    if (data.action === "read") { const peer = typeof data.peerId === "string" ? data.peerId.toLowerCase() : ""; if (typeof data.listingId === "string" && /^[0-9a-f-]{36}$/.test(peer)) publish([peer], { type: "read", listingId: data.listingId, peerId: String(user.id) }); }
+    else if ("peerId" in result && result.peerId && "listingId" in result && result.listingId) { publish([String(result.peerId)], { type: "message", listingId: String(result.listingId), peerId: String(user.id) }); publish([String(user.id)], { type: "message", listingId: String(result.listingId), peerId: String(result.peerId) }); }
     return ok(result, { status: data.action === "read" ? 200 : 201, headers: { "Cache-Control": "no-store" } });
   }
   catch (cause) { if (cause instanceof ChatError) return error(cause.message, cause.status); throw cause; }
