@@ -1,9 +1,9 @@
 name: Uptime check
-# Read-only checks of the public site every 3 hours. A failed run makes GitHub email the repository owner.
+# Read-only checks of the public site every 6 hours (was 3; each run counts as at least a minute). A failed run makes GitHub email the repository owner.
 # Default target: the Mittwald container (docs/mittwald-migration.md); override with the SITE_URL variable.
 on:
   schedule:
-    - cron: '23 */3 * * *'
+    - cron: '23 */6 * * *'
   workflow_dispatch:
 permissions:
   contents: read

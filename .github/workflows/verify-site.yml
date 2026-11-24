@@ -1,5 +1,7 @@
 name: Verify EstateMarket24 release
-on: [push, pull_request, workflow_dispatch]
+# Pull requests and manual runs only (2026-11-24, to save Actions minutes): every push to main is already
+# tested, type-checked and built by .github/workflows/mittwald.yml (test job and Docker image).
+on: [pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:

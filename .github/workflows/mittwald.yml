@@ -5,18 +5,21 @@ name: Mittwald test container
 on:
   push:
     branches: [main]
+    # Documentation-only pushes change nothing in the image (2026-11-24, to save Actions minutes).
+    paths-ignore: ["docs/**", "**/*.md", ".claude/**"]
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: mittwald-test
-  cancel-in-progress: false
 env:
   IMAGE: ghcr.io/dybali/exxel-estate
 jobs:
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # A newer push cancels the tests and image build of an older one still running; only the newest is deployed.
+    concurrency:
+      group: mittwald-build
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,6 +34,9 @@ jobs:
     needs: test
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    concurrency:
+      group: mittwald-image
+      cancel-in-progress: true
     permissions:
       contents: read
       packages: write
