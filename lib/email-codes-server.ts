@@ -20,7 +20,9 @@ export function authCodeSecret(settings: Record<string, string | undefined> = en
   const own = (settings.EMAIL_CODE_SECRET || "").trim();
   if (own.length >= 16) return own;
   const database = (settings.DATABASE_URL || "").trim();
-  return database.length >= 16 ? "derived-from-database-url:" + database : null;
+  if (database.length >= 16) return "derived-from-database-url:" + database;
+  // npm run dev on the local SQLite file: a fixed key that only works on this machine (codes go to .data/outbox).
+  return process.env.NODE_ENV === "development" ? "local-development-only-email-code-key" : null;
 }
 
 // Codes are offered when a transport (Resend or SMTP) and a secret exist.

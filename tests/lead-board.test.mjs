@@ -126,3 +126,15 @@ test('follows, unseen count, e-mail recipients and response time',async()=>{cons
  await board.revealContact(f.db,D,id,open,new Date('2026-11-19T10:30:00Z'));
  const stats=await board.responseStats(f.db,D,new Date('2026-11-19T12:00:00Z'));assert.equal(stats.answered,1);assert.equal(stats.medianHours,1.5);assert.equal(stats.fast,false);
 }finally{f.sql.close();}});
+
+test('a fresh database: an agent can open the board before any buyer request exists',async()=>{
+ const sql=new DatabaseSync(':memory:');
+ try{
+  sql.exec("CREATE TABLE users(id TEXT PRIMARY KEY,name TEXT,role TEXT,agent_status TEXT)");
+  const db=wrap(sql);
+  await board.ensureLeads(db);
+  const tables=sql.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(r=>r.name);
+  for(const name of ['home_requests','home_request_agents','home_request_offers','home_request_reveals'])assert.ok(tables.includes(name),name);
+  assert.equal(await board.leadsUsed(db,A),0);
+ }finally{sql.close();}
+});

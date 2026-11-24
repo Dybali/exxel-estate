@@ -1,5 +1,6 @@
 import { env } from "./runtime";
 import { AwsClient } from "aws4fetch";
+import { DEV_STORAGE_ORIGIN, devStorageEnabled, devStorageFetch } from "./dev-storage";
 
 type R2Settings = {
   R2_ENDPOINT?: string;
@@ -11,7 +12,11 @@ type R2Settings = {
 function config() {
   const settings = env as R2Settings;
   const { R2_ENDPOINT, R2_BUCKET_NAME, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY } = settings;
-  if (!R2_ENDPOINT || !R2_BUCKET_NAME || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) return null;
+  if (!R2_ENDPOINT || !R2_BUCKET_NAME || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+    // npm run dev without R2: photos are kept under .data/storage (lib/dev-storage.ts).
+    if (devStorageEnabled()) return { endpoint: `${DEV_STORAGE_ORIGIN}/exxel-estate-images`, bucket: "exxel-estate-images", client: { fetch: devStorageFetch } };
+    return null;
+  }
   if (!/^https:\/\/[a-f0-9]+\.eu\.r2\.cloudflarestorage\.com$/.test(R2_ENDPOINT) || !/^[a-z0-9-]+$/.test(R2_BUCKET_NAME)) throw new Error("R2 EU configuration is invalid");
   return { endpoint: `${R2_ENDPOINT}/${R2_BUCKET_NAME}`, bucket: R2_BUCKET_NAME,
     client: new AwsClient({ service: "s3", region: "auto", accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY }) };

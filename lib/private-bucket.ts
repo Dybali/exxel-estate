@@ -1,4 +1,5 @@
 import { AwsClient } from "aws4fetch";
+import { DEV_STORAGE_ORIGIN, devStorageEnabled, devStorageFetch } from "./dev-storage";
 import { env } from "./runtime";
 
 // The private R2 bucket (exxel-estate-private, EU) through R2's S3 API, for hosts without the
@@ -49,14 +50,18 @@ function info(key: string, headers: Headers): ObjectInfo {
   };
 }
 
-export function s3PrivateBucket(settings: PrivateBucketSettings) {
+export function s3PrivateBucket(settings: PrivateBucketSettings, localFetch?: Fetcher) {
   const { R2_ENDPOINT: endpoint, R2_ACCESS_KEY_ID: accessKeyId, R2_SECRET_ACCESS_KEY: secretAccessKey } = settings;
   const name = settings.R2_PRIVATE_BUCKET_NAME || DEFAULT_PRIVATE_BUCKET;
-  if (!endpoint || !accessKeyId || !secretAccessKey) return null;
-  if (!/^https:\/\/[a-f0-9]+\.eu\.r2\.cloudflarestorage\.com$/.test(endpoint) || !/^[a-z0-9-]+$/.test(name)) throw new Error("R2 EU configuration is invalid");
-  const client = new AwsClient({ service: "s3", region: "auto", accessKeyId, secretAccessKey });
-  const send: Fetcher = (input, init) => client.fetch(input, init);
-  const base = `${endpoint}/${name}`;
+  let send: Fetcher, base: string;
+  if (localFetch) { send = localFetch; base = `${DEV_STORAGE_ORIGIN}/${name}`; }
+  else {
+    if (!endpoint || !accessKeyId || !secretAccessKey) return null;
+    if (!/^https:\/\/[a-f0-9]+\.eu\.r2\.cloudflarestorage\.com$/.test(endpoint) || !/^[a-z0-9-]+$/.test(name)) throw new Error("R2 EU configuration is invalid");
+    const client = new AwsClient({ service: "s3", region: "auto", accessKeyId, secretAccessKey });
+    send = (input, init) => client.fetch(input, init);
+    base = `${endpoint}/${name}`;
+  }
   const url = (key: string) => {
     if (typeof key !== "string" || !key || key.length > 1024 || key.includes("\0") || key.split("/").some((part) => part === "." || part === "..")) throw new Error("Invalid object key");
     return `${base}/${key.split("/").map(encodeURIComponent).join("/")}`;
@@ -124,6 +129,7 @@ export function s3PrivateBucket(settings: PrivateBucketSettings) {
 }
 
 // The private bucket for lib/server.ts bucket(); null when the S3 settings are missing.
+// npm run dev without R2: documents are kept under .data/storage (lib/dev-storage.ts).
 export function privateBucket() {
-  return s3PrivateBucket(env as unknown as PrivateBucketSettings) as ReturnType<typeof s3PrivateBucket>;
+  return s3PrivateBucket(env as unknown as PrivateBucketSettings) ?? (devStorageEnabled() ? s3PrivateBucket({}, devStorageFetch) : null);
 }

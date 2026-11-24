@@ -10,7 +10,7 @@
 // LEAD_LIMITS.prestige and sees new requests LEAD_LIMITS.prestigeHeadStartHours earlier.
 // Agents follow provinces for e-mail alerts (default: the provinces of their published listings).
 // Tables are created on first use and work on PostgreSQL and SQLite (docs/buyer-tools.md).
-import { HOME_REQUEST_LIMITS, HOME_TYPES, type HomeRequest, type HomeRequestDetails } from "./home-requests";
+import { HOME_REQUEST_LIMITS, HOME_REQUEST_SCHEMA, HOME_TYPES, type HomeRequest, type HomeRequestDetails } from "./home-requests";
 
 interface Statement { bind(...values: (string | number | null)[]): Statement; first<T = Record<string, unknown>>(): Promise<T | null>; run(): Promise<unknown>; all<T = Record<string, unknown>>(): Promise<{ results: T[] }> }
 export type LeadDatabase = { prepare(sql: string): Statement };
@@ -28,7 +28,8 @@ export const LEAD_SCHEMA = [
 const ready = new WeakMap<object, Promise<unknown>>();
 export async function ensureLeads(db: LeadDatabase) {
   let promise = ready.get(db);
-  if (!promise) { promise = (async () => { for (const sql of LEAD_SCHEMA) await db.prepare(sql).run(); })(); ready.set(db, promise); promise.catch(() => ready.delete(db)); }
+  // The board reads the request tables too; on a fresh database an agent may open it before any request exists.
+  if (!promise) { promise = (async () => { for (const sql of [...HOME_REQUEST_SCHEMA, ...LEAD_SCHEMA]) await db.prepare(sql).run(); })(); ready.set(db, promise); promise.catch(() => ready.delete(db)); }
   await promise;
 }
 

@@ -21,11 +21,12 @@ export function emailProvider(settings: EmailSettings): EmailProvider | null {
   return null;
 }
 
-export const emailReady = (settings: EmailSettings) => emailProvider(settings) !== null;
+// npm run dev without a provider counts as ready: messages go to the local outbox (devOutbox below).
+export const emailReady = (settings: EmailSettings) => emailProvider(settings) !== null || process.env.NODE_ENV === "development";
 
 export async function sendEmail(settings: EmailSettings, message: EmailMessage): Promise<SendResult> {
   const provider = emailProvider(settings);
-  if (!provider) return { sent: false, reason: "not_configured" };
+  if (!provider) return process.env.NODE_ENV === "development" ? devOutbox(message) : { sent: false, reason: "not_configured" };
   if (!parseMailAddress(message.to)) return { sent: false, reason: "invalid_recipient" };
   const replyTo = replyToAddress(settings, message.replyTo);
   if (provider === "smtp") {
@@ -49,4 +50,20 @@ export async function sendEmail(settings: EmailSettings, message: EmailMessage):
   let data: { id?: unknown } | null = null;
   try { data = await response.json() as { id?: unknown }; } catch { /* the id is only logged */ }
   return { sent: true, provider: "resend", ...(typeof data?.id === "string" ? { messageId: data.id } : {}) };
+}
+
+// npm run dev without a mail provider: the message is written to .data/outbox/ (codes, notifications) so local
+// sign-up and verification flows can be completed; never in production or tests.
+function devOutbox(message: EmailMessage): SendResult {
+  const getBuiltin = (process as unknown as { getBuiltinModule: (id: string) => unknown }).getBuiltinModule;
+  const fs = getBuiltin("node:fs") as typeof import("node:fs"), path = getBuiltin("node:path") as typeof import("node:path");
+  const dir = path.join(process.cwd(), ".data", "outbox"), name = `${new Date().toISOString().replace(/[:.]/g, "-")}.txt`;
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, name), `To: ${message.to}
+Subject: ${message.subject}
+
+${message.text}
+`);
+  console.info(`[dev outbox] ${message.subject} -> .data/outbox/${name}`);
+  return { sent: true, provider: "smtp", messageId: "dev-outbox" };
 }
