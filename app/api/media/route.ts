@@ -36,8 +36,6 @@ export async function POST(request:Request) {
   const isJpeg=file.type==="image/jpeg" && signature[0]===255 && signature[1]===216 && signature[2]===255;
   const isWebp=file.type==="image/webp" && String.fromCharCode(...signature.slice(0,4))==="RIFF" && String.fromCharCode(...signature.slice(8,12))==="WEBP";
   if(!isPng && !isJpeg && !isWebp) return error("Fotoğraf biçimi doğrulanamadı.");
-  const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
-  const key=`listings/${user.id}/${crypto.randomUUID()}.${ext}`;
   const original=new Uint8Array(await file.arrayBuffer());
   if(purpose==='panorama'){try{if(file.type!=='image/jpeg')throw Error('360° fotoğraf JPG biçiminde olmalıdır.');panoramaDimensions(original);}catch(cause){return error((cause as Error).message);}}
   // GPS and other personal metadata never reach storage, even when the browser re-encode was skipped.
@@ -46,6 +44,10 @@ export async function POST(request:Request) {
   const marked=!purpose&&serverWatermark?await serverWatermark(bytes,file.type,PHOTO_VARIANT_WIDTHS).catch(()=>null):null;
   if(!purpose&&serverWatermark&&!marked)return error("Fotoğraf işlenemedi. Başka bir fotoğraf deneyin.");
   if(marked)bytes=marked.bytes;
+  // The stored format can differ from the upload: the server keeps PNG listing photos as JPEG (lib/photo-watermark-node.ts).
+  const storedType=marked?.type||file.type;
+  const ext=storedType==="image/png"?"png":storedType==="image/webp"?"webp":"jpg";
+  const key=`listings/${user.id}/${crypto.randomUUID()}.${ext}`;
   const digest=await sha256Hex(bytes);
   // Listing photos carry a dHash computed in the browser (Workers cannot decode WebP/JPEG; docs/listing-risk.md).
   // It is advisory only: a malformed value is dropped, never an error.
@@ -64,7 +66,7 @@ export async function POST(request:Request) {
     if(!validPhotoVariant(raw,part.type,width)) return error("Fotoğraf biçimi doğrulanamadı.");
     variants.push({key:target,bytes:stripImageMetadata(raw,"image/webp")});
   }
-  try{await putExternalImage(key,bytes,file.type,digest,purpose?null:hash);}catch(cause){console.error("media_upload_storage_failed",String(cause).slice(0,300));return error("Fotoğraf depoya yüklenemedi. Birkaç dakika sonra tekrar deneyin.",503);}
+  try{await putExternalImage(key,bytes,storedType,digest,purpose?null:hash);}catch(cause){console.error("media_upload_storage_failed",String(cause).slice(0,300));return error("Fotoğraf depoya yüklenemedi. Birkaç dakika sonra tekrar deneyin.",503);}
   // Best effort: without a copy the media route serves the main photo instead.
   await Promise.allSettled(variants.map(async(variant)=>putExternalImage(variant.key,variant.bytes,"image/webp",await sha256Hex(variant.bytes))));
   return ok({url:`/api/media/${key}`},{status:201});

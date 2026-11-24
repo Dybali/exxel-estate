@@ -19,8 +19,10 @@ export async function serverWatermark(bytes: Uint8Array, type: string, variantWi
   const edge = Math.max(width, height);
   const main = await marked(bytes, MAX_EDGE);
   // Same format as uploaded (EXIF is not kept: sharp drops metadata unless asked).
-  const out = type === "image/png" ? await main.png({ compressionLevel: 9 }).toBuffer() : type === "image/webp" ? await main.webp({ quality: 84 }).toBuffer() : await main.jpeg({ quality: 86, mozjpeg: true }).toBuffer();
+  // PNG listing photos are stored as JPEG: a lossless 2560px PNG photo was several MB (live-site sweep 2026-11-24).
+  const outType = type === "image/webp" ? "image/webp" : "image/jpeg";
+  const out = outType === "image/webp" ? await main.webp({ quality: 80 }).toBuffer() : await main.flatten({ background: "#ffffff" }).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
   const variants = [];
   for (const target of variantWidths) if (edge > target * 1.25) variants.push({ width: target, bytes: bytesOf(await (await marked(bytes, target)).webp({ quality: 82 }).toBuffer()) });
-  return { bytes: bytesOf(out), type, variants };
+  return { bytes: bytesOf(out), type: outType, variants };
 }

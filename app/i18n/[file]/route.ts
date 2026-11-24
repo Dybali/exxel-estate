@@ -8,7 +8,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
   const locale = file.replace(/\.json$/, "");
   if (!isLocale(locale) || !file.endsWith(".json")) return new Response("Not found", { status: 404 });
   const current = new URL(request.url).searchParams.get("v") === messagesVersion();
-  const { body, headers } = compressedBody(JSON.stringify(messagesFor(locale)), request);
+  // The current version is compressed once per server start (strongest Brotli) and kept in memory.
+  const { body, headers } = compressedBody(JSON.stringify(messagesFor(locale)), request, current ? `i18n:${locale}:${messagesVersion()}` : undefined);
   return new Response(body, {
     headers: {
       ...headers,

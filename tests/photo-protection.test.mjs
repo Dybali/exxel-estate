@@ -32,3 +32,14 @@ test('hotlinks from other sites are refused; own pages, previews and e-mails are
  assert.equal(hotlinked(req({})),false,'crawlers and link previews');
  assert.match(read('components/PhotoGuard.tsx'),/contextmenu/);
 });
+
+test('server photo pipeline: PNG listing photos are stored as JPEG, 2560 px at most, smaller copies made',async()=>{
+ const {createRequire}=await import('node:module');const req=createRequire(import.meta.url);const sharp=req('sharp');
+ const wm={exports:{}};new Function('require','module','exports',ts.transpileModule(read('lib/photo-watermark-node.ts'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText)(n=>n==='./photo-watermark-svg'?m.exports:req(n),wm,wm.exports);
+ const png=await sharp({create:{width:3200,height:2000,channels:3,background:{r:40,g:120,b:90}}}).png().toBuffer();
+ const out=await wm.exports.serverWatermark(new Uint8Array(png),'image/png',[640,1280]);
+ assert.equal(out.type,'image/jpeg');const meta=await sharp(Buffer.from(out.bytes)).metadata();
+ assert.equal(meta.format,'jpeg');assert.equal(Math.max(meta.width,meta.height),2560);assert.deepEqual(out.variants.map(v=>v.width),[640,1280]);
+ const route=read('app/api/media/route.ts');assert.match(route,/const storedType=marked\?\.type\|\|file\.type;/);assert.match(route,/putExternalImage\(key,bytes,storedType,/);
+ assert.match(read('components/ListingGallery.tsx'),/srcSet=\{photoVariantUrl\(gallery\[active\],1280\)===gallery\[active\]\?undefined:/,'the lightbox loads the 1280 copy on phones');
+});
