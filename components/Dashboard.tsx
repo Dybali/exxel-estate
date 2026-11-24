@@ -116,12 +116,14 @@ export function Dashboard() {
   // a top bar with the page title, notifications and profile, the menu as an icon list and every tab on cards.
   const unreadTotal=conversations.reduce((sum,c)=>sum+Number(c.unread_count||0),0);
   const activeLabel=items.find(i=>i.id===active)?.label||"Genel Bakış";
-  const goTab=(id:string)=>{setTab(id);history.replaceState(null,"",`/hesabim?tab=${id}`);window.scrollTo({top:0,behavior:"smooth"});};
+  // A tab this account does not have falls back to where the same thing lives for it (agents keep e-mail settings
+  // under Profilim and appointments under CRM). With a query on the open tab (a conversation), reload to select it.
+  const goTab=(id:string,query?:string)=>{const target=items.some(i=>i.id===id)?id:id==="aramalar"?"profil":id==="randevular"&&items.some(i=>i.id==="crm")?"crm":id;const url=`/hesabim?tab=${target}${query?`&${query}`:""}`;if(query&&target===active){window.location.assign(url);return;}history.replaceState(null,"",url);setTab(target);window.scrollTo({top:0,behavior:"smooth"});};
   const topbar=proOverview&&<header className="pro-topbar">
     <div className="pro-topbar-title"><span>{new Date().toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long"})}</span><h1>{t(activeLabel)}</h1>{active==="genel"&&<p>{t("Hoş geldiniz,")} {user.name.split(" ")[0]}</p>}</div>
     <div className="pro-topbar-actions">
       {items.some(i=>i.id==="mesajlar")&&<button type="button" className="pro-round" onClick={()=>goTab("mesajlar")} aria-label={`${t("Mesajlar")}${unreadTotal?` (${unreadTotal})`:""}`} title={t("Mesajlar")}><Mail size={18}/>{unreadTotal>0&&<b>{unreadTotal>99?"99+":unreadTotal}</b>}</button>}
-      <NotificationBell unreadMessages={unreadTotal} open={openOverview}/>
+      <NotificationBell userId={user.id} leads={(user.role==="agent"&&user.agent_status==="approved")||Boolean(user.isAdmin)} openTab={goTab}/>
       <Link href="/yardim" className="pro-round" aria-label={t("Yardım merkezi")} title={t("Yardım merkezi")}><CircleHelp size={18}/></Link>
       {kind==="agent"&&<Link href="/ilan-ver" className="pro-new"><Plus size={17}/>{t("Yeni ilan ver")}</Link>}
       <button type="button" className="pro-me" onClick={()=>goTab("profil")} aria-label={t("Profilim")}>{user.avatar_url?<img src={user.avatar_url} alt="" width={38} height={38}/>:<span>{user.name.charAt(0).toUpperCase()}</span>}<span className="pro-me-text"><strong>{user.name}</strong><small>{t(typeLabel)}</small></span></button>

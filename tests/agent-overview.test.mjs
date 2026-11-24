@@ -60,3 +60,13 @@ test('wiring: agents and the admin account get the dashboard; the route serves o
  // Nothing invented: no income, expenses or closed-deal figures.
  assert.doesNotMatch(read('components/AgentOverview.tsx'),/Gelir|Gider|income|expenses|Total Closed/);
 });
+
+test('bell: a notification list (each unread conversation, appointments, buyer requests, saved-search and price alerts) plus standing to-dos without a badge',()=>{
+ const bell=read('components/NotificationBell.tsx');
+ for(const source of ['/api/messages','/api/appointments','/api/lead-board?count=1','/api/discovery','/api/crm/overview'])assert.ok(bell.includes(source),source);
+ assert.match(bell,/role="dialog"/);assert.match(bell,/event\.key === "Escape"/);assert.match(bell,/useLiveEvents\(true/);
+ assert.match(bell,/searchParams\.get\("bildirim"\) !== "1"/,'the site header bell opens the list');
+ assert.match(bell,/const total = unreadMessages \+ data\.appointments\.length \+ data\.requests \+ data\.alerts\.length;/,'to-dos do not light the badge');
+ const dashboard=read('components/Dashboard.tsx');assert.match(dashboard,/<NotificationBell userId=\{user\.id\}/);
+ assert.match(dashboard,/id==="aramalar"\?"profil":id==="randevular"&&items\.some\(i=>i\.id==="crm"\)\?"crm"/);
+});
