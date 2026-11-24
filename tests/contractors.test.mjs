@@ -109,3 +109,31 @@ test('media of approved firms is public; samples are labelled, filtered and swit
  assert.equal(matchSampleContractors(CONTRACTOR_SAMPLE_FIRMS,{city:'İzmir'}).length,1);assert.equal(matchSampleContractors(CONTRACTOR_SAMPLE_FIRMS,{verified:true}).length,0);
  assert.equal(contractorSamplesEnabled(undefined),true);assert.equal(contractorSamplesEnabled('0'),false);
 });
+test('construction request ("Benim için müteahhit bul"): every firm in the area, matching specialty first, TL offers, cheapest first',async()=>{const {db}=fixture();
+ // A firm without land deals still gets construction requests; the villa builder comes first for a villa.
+ const general=await approved(db,other,{name:'Bornova Restorasyon',specialties:['restorasyon'],landDeals:false,projects:[]});
+ const villa=await approved(db,owner);
+ const build=(extra={})=>request({kind:'build',work:'ev',areaM2:'400',zoning:'',emsal:'9',expectedShare:'70',budgetMin:'3.000.000',budgetMax:'5000000',description:'Bornova’da 400 m² arsaya iki katlı 4+1 villa, anahtar teslim.',...extra});
+ await rejects(C.createLandRequest(db,land,build({work:'uzay'})),400,/işi seçin/);
+ await rejects(C.createLandRequest(db,land,build({budgetMin:'9000000'})),400,/Bütçe/);
+ await rejects(C.createLandRequest(db,land,build({areaM2:'5'})),400,/Alan/);
+ const created=await C.createLandRequest(db,land,build());assert.equal(created.kind,'build');assert.deepEqual(created.recipients.map(r=>r.id),[villa,general]);assert.match(created.summary,/villa/);
+ // A land deal still only reaches firms that accept them.
+ assert.deepEqual((await C.createLandRequest(db,land,request())).recipients.map(r=>r.id),[villa]);
+ const seen=(await C.contractorInbox(db,other)).requests[0];assert.equal(seen.kind,'build');assert.equal(seen.work,'ev');assert.equal(seen.budgetMin,3000000);assert.equal(seen.emsal,null);assert.equal(seen.expectedShare,null);assert.equal(seen.zoning,'bilinmiyor');
+ await rejects(C.sendLandOffer(db,other,created.id,{deliveryMonths:'12',message:'Fiyat yazmadan teklif.'}),400,/TL/);
+ await rejects(C.sendLandOffer(db,other,created.id,{priceMin:'5000000',priceMax:'4000000',deliveryMonths:'12',message:'Ters aralık denemesi.'}),400,/En yüksek/);
+ const high=await C.sendLandOffer(db,other,created.id,{priceMin:'5200000',deliveryMonths:'14',message:'Malzeme ve işçilik dahil.'});assert.equal(high.kind,'build');assert.equal(high.priceMin,5200000);
+ await C.sendLandOffer(db,owner,created.id,{priceMin:'4.400.000',priceMax:'4900000',deliveryMonths:'11',message:'Proje ve ruhsat dahil, anahtar teslim.'});
+ const mine=(await C.myLandRequests(db,land)).find(r=>r.id===created.id);assert.deepEqual(mine.offers.map(o=>o.priceMin),[4400000,5200000]);assert.equal(mine.offers[0].priceMax,4900000);
+ assert.equal((await C.contractorInbox(db,owner)).requests.find(r=>r.id===created.id).offer.priceMin,4400000);
+ const accepted=await C.acceptLandOffer(db,land,mine.offers[0].id);assert.equal(accepted.firmOwnerId,owner);
+});
+test('older databases get the construction columns added on first use',async()=>{const {db,sql}=fixture();
+ sql.exec("CREATE TABLE land_requests(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,name TEXT NOT NULL,email TEXT NOT NULL,phone TEXT,share_contact INTEGER NOT NULL DEFAULT 0,city TEXT NOT NULL,district TEXT NOT NULL DEFAULT '',area_m2 INTEGER NOT NULL,zoning TEXT NOT NULL,emsal TEXT,expected_share INTEGER,description TEXT NOT NULL,firm_id TEXT,status TEXT NOT NULL DEFAULT 'open',created_at TEXT NOT NULL,expires_at TEXT NOT NULL);CREATE TABLE land_offers(id TEXT PRIMARY KEY,request_id TEXT NOT NULL,firm_id TEXT NOT NULL,owner_share INTEGER NOT NULL,delivery_months INTEGER NOT NULL,message TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'sent',created_at TEXT NOT NULL)");
+ await C.ensureContractors(db);
+ const columns=t=>sql.prepare(`PRAGMA table_info(${t})`).all().map(c=>c.name);
+ for(const c of ['kind','work','budget_min','budget_max'])assert.ok(columns('land_requests').includes(c));
+ for(const c of ['price_min','price_max'])assert.ok(columns('land_offers').includes(c));
+ await approved(db);assert.equal((await C.createLandRequest(db,land,request())).kind,'land');
+});

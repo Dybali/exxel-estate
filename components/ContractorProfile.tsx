@@ -79,7 +79,8 @@ export function ContractorProfile({ firm, listings, messaging = false }: { firm:
           <p className="service-sample-contact"><FlaskConical size={16} aria-hidden="true"/>{t("Örnek firma — iletişim bilgisi yok")}</p>
           <button type="button" className="btn btn-primary btn-block" disabled aria-disabled="true"><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span></button>
         </> : <>
-          {live && firm.landDeals && <Link className="btn btn-accent btn-block" href={`${LAND_PATH}?firma=${firm.id}`}><Send size={17} aria-hidden="true"/>{t("Bu firmadan kat karşılığı teklif iste")}</Link>}
+          {live && <Link className="btn btn-accent btn-block" href={`${LAND_PATH}?tur=insaat&firma=${firm.id}`}><Send size={17} aria-hidden="true"/>{t("Bu firmadan inşaat teklifi iste")}</Link>}
+          {live && firm.landDeals && <Link className="btn btn-secondary btn-block" href={`${LAND_PATH}?firma=${firm.id}`}>{t("Bu firmadan kat karşılığı teklif iste")}</Link>}
           <a className="btn btn-primary btn-block" href={`tel:${firm.phone}`} onClick={() => track("phone")}><Phone size={17} aria-hidden="true"/><span>{t("Ara")}</span><bdi>{firm.phone}</bdi></a>
           {whatsapp && <a className="btn btn-block service-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp")}><MessageCircle size={17} aria-hidden="true"/>{t("WhatsApp’tan yaz")}</a>}
           {live && messaging && <FirmMessage kind="contractor" firmId={firm.id}/>}

@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   return ok({ ...await contractorInbox(contractorsDB(), user.id, new Date(), cutoff), delayHours: cutoff ? 24 : 0 }, privateHeaders);
 }
 
-// { action: "offer", requestId, ownerShare, deliveryMonths, message } | { action: "pass", requestId }
+// { action: "offer", requestId, ownerShare | priceMin + priceMax?, deliveryMonths, message } | { action: "pass", requestId }
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return error("Geçersiz kaynak.", 403);
   const user = await serviceMember(request);
@@ -29,12 +29,12 @@ export async function POST(request: Request) {
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Geçersiz istek."); }
   const cutoff = landCutoff((await firmPlanState(user.id, "contractor")).limits);
-  if (cutoff === null) return error("Kat karşılığı taleplerini görmek için Plus veya Pro paket gerekir.", 403);
+  if (cutoff === null) return error("Müşteri taleplerini görmek için Plus veya Pro paket gerekir.", 403);
   try {
     if (data.action === "pass") return ok(await passLandRequest(contractorsDB(), user.id, data.requestId, new Date(), cutoff), privateHeaders);
     if (data.action !== "offer") return error("Geçersiz işlem.");
     const offer = await sendLandOffer(contractorsDB(), user.id, data.requestId, data, new Date(), cutoff);
-    waitUntil(notifyLandOffer(contractorNotifyDB(), contractorEmailSettings(), { userId: offer.requestUserId, firmName: offer.firmName, ownerShare: offer.ownerShare, deliveryMonths: offer.deliveryMonths }).catch(() => {}));
+    waitUntil(notifyLandOffer(contractorNotifyDB(), contractorEmailSettings(), { userId: offer.requestUserId, firmName: offer.firmName, kind: offer.kind, ownerShare: offer.ownerShare, priceMin: offer.priceMin, priceMax: offer.priceMax, deliveryMonths: offer.deliveryMonths }).catch(() => {}));
     return ok({ id: offer.id }, { status: 201, ...privateHeaders });
   } catch (cause) { return failure(cause); }
 }

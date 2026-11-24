@@ -24,6 +24,17 @@ Tablolar ilk kullanımda `CREATE TABLE IF NOT EXISTS` ile oluşur (`CONTRACTOR_S
 
 estatemarket24 arsa sahibi ile müteahhit arasındaki sözleşmenin tarafı değildir; sayfalar noter onaylı sözleşme ve avukat önerir. Gizlilik politikasında "Müteahhit firmaları" ve "Kat karşılığı talepleri" veri kategorileri yer alır.
 
+## İnşaat ve tadilat talebi ("Benim için müteahhit bul", 2026-11-24)
+
+Aynı form (`/muteahhitler/kat-karsiligi`, `?tur=insaat` ile açılır) ikinci bir tür alır: üye arsasına ev/villa, apartman, kentsel dönüşüm, büyük tadilat/güçlendirme veya ticari bina yaptırmak ister ve müteahhitler **TL fiyat** verir. Formun üstünde iki seçenek vardır (inşaat / kat karşılığı); seçim adresteki `tur` değerini günceller.
+
+- Veri aynı tablolarda: `land_requests.kind` (`land` | `build`), `work` (`BUILD_WORKS`: ev, apartman, kentsel-donusum, tadilat, ticari), isteğe bağlı `budget_min`/`budget_max` (TL); `land_offers.price_min`/`price_max` (TL; inşaat tekliflerinde `owner_share` 0'dır). Sütunlar sahibinin onayıyla eklendi; eski veritabanlarına `ensureContractors` ilk kullanımda ekler (PostgreSQL `ADD COLUMN IF NOT EXISTS`, SQLite düz `ADD COLUMN`, var olan sütun yok sayılır). Eski talepler `land` sayılır.
+- Alan 20–1.000.000 m², imar durumu isteğe bağlı (boşsa "bilinmiyor"), emsal ve beklenen pay sorulmaz; bütçede en az ≤ en çok.
+- Eşleşme: kat karşılığı çalışıp çalışmadığına bakılmaz, bölgedeki tüm onaylı müteahhitler; öne çıkan önce, sonra işin türüne uyan uzmanlık (ör. villa için `villa`/`konut`), sonra doğrulanmış. En fazla 12; günlük 3 talep sınırı iki türde ortaktır.
+- Teklif: fiyat (TL, isteğe bağlı üst sınırla aralık), teslim süresi, açıklama. Üye teklifleri en düşük fiyattan başlayarak görür; kabul ve kapatma kat karşılığıyla aynıdır. E-postalar türe göre başlık ve fiyat satırı kullanır.
+- Panelde firmanın sekmesi "Müşteri talepleri", üyenin bölümü "Müteahhit taleplerim" adını aldı; kartlarda tür etiketi görünür. Profil sayfasında her yayındaki firma için "Bu firmadan inşaat teklifi iste", kat karşılığı çalışanlar için ayrıca kat karşılığı düğmesi vardır.
+- Testler: `tests/contractors.test.mjs` (inşaat talebi, eski veritabanına sütun ekleme).
+
 ## API
 
 | Yol | Ne yapar |

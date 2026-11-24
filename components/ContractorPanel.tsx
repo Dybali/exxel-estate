@@ -6,7 +6,7 @@ import Link from "@/components/SafeLink";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
 import { appendPhotoVariants, preparePhotoUpload } from "@/lib/photo-optimize";
-import { CONTRACTOR_BASE, CONTRACTOR_LIMITS, CONTRACTOR_SPECIALTIES, CONTRACTOR_STATUS_LABELS, contractorPath, LAND_PATH, zoningName, type ContractorArea, type ContractorFirm, type LandOffer, type LandRequest } from "@/lib/contractors";
+import { buildWorkName, CONTRACTOR_BASE, CONTRACTOR_LIMITS, CONTRACTOR_SPECIALTIES, CONTRACTOR_STATUS_LABELS, contractorPath, LAND_PATH, zoningName, type ContractorArea, type ContractorFirm, type LandOffer, type LandRequest } from "@/lib/contractors";
 import { areaDistricts as districtsFor } from "@/lib/service-locations";
 import { CountryCitySelect } from "@/components/CountryCitySelect";
 
@@ -146,12 +146,20 @@ function ContractorForm({ firm, onSaved, onCancel, projectLimit = 30, photoLimit
   </form>;
 }
 
-type InboxRequest = LandRequest & { state: string; offer: { ownerShare: number; deliveryMonths: number; message: string; state: string } | null };
+type InboxRequest = LandRequest & { state: string; offer: { ownerShare: number; priceMin: number | null; priceMax: number | null; deliveryMonths: number; message: string; state: string } | null };
 const placeLabel = (request: Pick<LandRequest, "city" | "district">) => request.district ? `${request.district}, ${request.city}` : request.city;
 
+/** TL amount or range ("3.000.000–3.500.000 TL"). */
+function useTl() {
+  const { locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value);
+  return (min: number | null, max: number | null) => min == null && max == null ? "" : `${min != null ? number(min) : ""}${max != null && max !== min ? `${min != null ? "–" : "≤ "}${number(max)}` : ""} TL`;
+}
+// kind "build" (paid construction): job type and budget; otherwise the plot facts of a land-for-flats request.
 function LandFacts({ request }: { request: LandRequest }) {
-  const { t, locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value);
-  return <p className="ctr-land-facts"><span>{number(request.areaM2)} m²</span><span>{t(zoningName(request.zoning))}</span>{request.emsal && <span>{t("Emsal")} {request.emsal}</span>}{request.expectedShare && <span>{t("Beklenen pay")} %{request.expectedShare}</span>}</p>;
+  const { t, locale } = useLocale(), number = (value: number) => new Intl.NumberFormat(locale).format(value), tl = useTl();
+  if (request.kind === "build") return <p className="ctr-land-facts"><span className="ctr-kind-tag">{t("İnşaat / tadilat")}</span>{request.work && <span>{t(buildWorkName(request.work))}</span>}<span>{number(request.areaM2)} m²</span>
+    {request.zoning !== "bilinmiyor" && <span>{t(zoningName(request.zoning))}</span>}{(request.budgetMin != null || request.budgetMax != null) && <span>{t("Bütçe")} {tl(request.budgetMin, request.budgetMax)}</span>}</p>;
+  return <p className="ctr-land-facts"><span className="ctr-kind-tag land">{t("Kat karşılığı")}</span><span>{number(request.areaM2)} m²</span><span>{t(zoningName(request.zoning))}</span>{request.emsal && <span>{t("Emsal")} {request.emsal}</span>}{request.expectedShare && <span>{t("Beklenen pay")} %{request.expectedShare}</span>}</p>;
 }
 const STATUS: Record<LandRequest["status"], string> = { open: "Açık", accepted: "Anlaşma sağlandı", closed: "Kapatıldı", expired: "Süresi doldu" };
 
@@ -161,7 +169,8 @@ function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () =
   const [requests, setRequests] = useState<InboxRequest[] | null>(null), [error, setError] = useState(""), [open, setOpen] = useState(""), [busy, setBusy] = useState(false);
   // Package (lib/firm-plans.ts): locked = no access, delayHours = requests appear a day later.
   const [access, setAccess] = useState<{ locked?: boolean; delayHours?: number }>({});
-  const [offer, setOffer] = useState({ ownerShare: "", deliveryMonths: "", message: "" });
+  const [offer, setOffer] = useState({ ownerShare: "", priceMin: "", priceMax: "", deliveryMonths: "", message: "" });
+  const tl = useTl();
   const load = useCallback(async () => {
     try {
       const response = await fetch("/api/contractors/mine/land", { cache: "no-store" }), data = await apiJson<{ error?: string; requests?: InboxRequest[]; locked?: boolean; delayHours?: number }>(response);
@@ -177,30 +186,33 @@ function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () =
       const response = await fetch("/api/contractors/mine/land", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, requestId, ...offer }) });
       const data = await apiJson<{ error?: string }>(response);
       if (!response.ok) throw new Error(data.error || "İşlem tamamlanamadı.");
-      setOpen(""); setOffer({ ownerShare: "", deliveryMonths: "", message: "" }); await load();
+      setOpen(""); setOffer({ ownerShare: "", priceMin: "", priceMax: "", deliveryMonths: "", message: "" }); await load();
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
   }
   if (requests === null) return error ? <p className="form-error" role="alert">{t(error)}</p> : <p>{t("Yükleniyor...")}</p>;
-  if (access.locked) return <div className="panel-empty"><Inbox size={26}/><p>{t("Kat karşılığı taleplerini görmek için Plus veya Pro paket gerekir.")}</p><Link className="small-primary" href="/muteahhitler/paketler">{t("Paketleri gör")}</Link></div>;
+  if (access.locked) return <div className="panel-empty"><Inbox size={26}/><p>{t("Müşteri taleplerini görmek için Plus veya Pro paket gerekir.")}</p><Link className="small-primary" href="/muteahhitler/paketler">{t("Paketleri gör")}</Link></div>;
   return <div className="svc-inbox">
     {!approved && <p className="project-editor-note">{t("Firmanız yayında olmadığı için yeni talep almıyorsunuz ve teklif veremezsiniz.")}</p>}
     {Boolean(access.delayHours) && <p className="project-editor-note">{t("Plus pakette yeni talepler 24 saat sonra görünür. Pro paket talepleri hemen gösterir.")} <Link href="/muteahhitler/paketler">{t("Paketleri gör")}</Link></p>}
     {error && <p className="form-error" role="alert">{t(error)}</p>}
-    {!requests.length && <div className="panel-empty"><Inbox size={26}/><p>{t("Henüz kat karşılığı talebi gelmedi. Talepler çalıştığınız bölgelerdeki arsalar için gönderilir.")}</p></div>}
+    {!requests.length && <div className="panel-empty"><Inbox size={26}/><p>{t("Henüz talep gelmedi. Çalıştığınız bölgelerdeki inşaat, tadilat ve kat karşılığı talepleri burada görünür.")}</p></div>}
     {requests.map((request) => <article key={request.id} className="svc-inbox-item">
       <header><strong>{placeLabel(request)}</strong><span className={`service-status status-${request.status === "open" ? "approved" : "pending"}`}>{t(STATUS[request.status])}</span></header>
       <LandFacts request={request}/>
       <p dir="auto">{request.description}</p>
       <p className="service-account-meta">{request.name} · {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(request.createdAt))}
         {request.email ? <> · <a href={`mailto:${request.email}`}>{request.email}</a>{request.phone && <> · <a href={`tel:${request.phone}`}><bdi>{request.phone}</bdi></a></>}</> : <> · {t("İletişim bilgileri teklifiniz kabul edilince görünür.")}</>}</p>
-      {request.offer ? <p className="ctr-offer-sent"><CheckCircle2 size={16} aria-hidden="true"/>{t("Teklifiniz: arsa sahibine %{p}, {m} ay teslim.").replace("{p}", String(request.offer.ownerShare)).replace("{m}", String(request.offer.deliveryMonths))} <strong>{t(request.offer.state === "accepted" ? "Kabul edildi" : request.offer.state === "declined" ? "Seçilmedi" : "Yanıt bekleniyor")}</strong></p>
+      {request.offer ? <p className="ctr-offer-sent"><CheckCircle2 size={16} aria-hidden="true"/>{request.kind === "build" ? t("Teklifiniz: {f}, {m} ay teslim.").replace("{f}", tl(request.offer.priceMin, request.offer.priceMax)).replace("{m}", String(request.offer.deliveryMonths)) : t("Teklifiniz: arsa sahibine %{p}, {m} ay teslim.").replace("{p}", String(request.offer.ownerShare)).replace("{m}", String(request.offer.deliveryMonths))} <strong>{t(request.offer.state === "accepted" ? "Kabul edildi" : request.offer.state === "declined" ? "Seçilmedi" : "Yanıt bekleniyor")}</strong></p>
         : request.state === "passed" ? <p className="service-account-meta">{t("Bu talebi geçtiniz.")}</p>
         : approved && request.status === "open" && (open === request.id ? <form className="ctr-offer-form" onSubmit={(event) => { event.preventDefault(); void act(request.id, "offer"); }}>
           <div className="project-editor-grid">
-            <label>{t("Arsa sahibine kalacak pay (%)")}<input required type="number" min={1} max={99} value={offer.ownerShare} onChange={(event) => setOffer((old) => ({ ...old, ownerShare: event.target.value }))}/></label>
+            {request.kind === "build" ? <>
+              <label>{t("Fiyat (TL)")}<input required type="number" inputMode="numeric" min={1} value={offer.priceMin} onChange={(event) => setOffer((old) => ({ ...old, priceMin: event.target.value }))}/></label>
+              <label>{t("En fazla (TL, aralık vermek isterseniz)")}<input type="number" inputMode="numeric" min={1} value={offer.priceMax} onChange={(event) => setOffer((old) => ({ ...old, priceMax: event.target.value }))}/></label>
+            </> : <label>{t("Arsa sahibine kalacak pay (%)")}<input required type="number" min={1} max={99} value={offer.ownerShare} onChange={(event) => setOffer((old) => ({ ...old, ownerShare: event.target.value }))}/></label>}
             <label>{t("Teslim süresi (ay)")}<input required type="number" min={1} max={120} value={offer.deliveryMonths} onChange={(event) => setOffer((old) => ({ ...old, deliveryMonths: event.target.value }))}/></label>
           </div>
-          <label>{t("Teklif açıklaması")}<textarea required rows={4} minLength={10} maxLength={2000} value={offer.message} onChange={(event) => setOffer((old) => ({ ...old, message: event.target.value }))} placeholder={t("Örn. kaç bağımsız bölüm planladığınız, kira yardımı, ruhsat ve teminat koşulları.")}/></label>
+          <label>{t("Teklif açıklaması")}<textarea required rows={4} minLength={10} maxLength={2000} value={offer.message} onChange={(event) => setOffer((old) => ({ ...old, message: event.target.value }))} placeholder={t(request.kind === "build" ? "Örn. fiyata neler dahil (malzeme, işçilik, ruhsat, proje), ödeme planı, garanti ve teminat." : "Örn. kaç bağımsız bölüm planladığınız, kira yardımı, ruhsat ve teminat koşulları.")}/></label>
           <div className="project-editor-actions"><button type="submit" className="small-primary" disabled={busy}>{t(busy ? "Gönderiliyor..." : "Teklifi gönder")}</button><button type="button" className="outline-button" onClick={() => setOpen("")}>{t("Vazgeç")}</button></div>
         </form> : <div className="project-editor-actions"><button type="button" className="small-primary" onClick={() => setOpen(request.id)}>{t("Teklif ver")}</button><button type="button" className="outline-button" disabled={busy} onClick={() => void act(request.id, "pass")}>{t("Geç")}</button></div>)}
     </article>)}
@@ -241,11 +253,11 @@ export function ContractorPanel() {
     {firm === undefined && !error && <p>{t("Yükleniyor...")}</p>}
     {editing && firm !== undefined && <ContractorForm firm={firm} projectLimit={plan?.limits.projects} photoLimit={plan?.limits.projectPhotos} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında yayınlanır."); void load(); }}/>}
     {!editing && firm === null && <div className="panel-empty service-account-intro"><HardHat size={28}/><h3>{t("Müteahhitseniz firmanızı ekleyin")}</h3>
-      <p>{t("Konut, villa, ticari veya kentsel dönüşüm projeleri yapan firmalar Müteahhitler bölümünde ücretsiz profil açabilir ve arsa sahiplerinden kat karşılığı talebi alabilir.")}</p>
+      <p>{t("Konut, villa, ticari veya kentsel dönüşüm projeleri yapan firmalar Müteahhitler bölümünde ücretsiz profil açabilir; inşaat, tadilat ve kat karşılığı talepleri alabilir.")}</p>
       <Link href={CONTRACTOR_BASE}>{t("Müteahhitler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
     {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>
       <button type="button" aria-pressed={section === "profil"} onClick={() => setSection("profil")}><HardHat size={16} aria-hidden="true"/>{t("Profil")}</button>
-      <button type="button" aria-pressed={section === "talepler"} onClick={() => setSection("talepler")}><Inbox size={16} aria-hidden="true"/>{t("Kat karşılığı talepleri")}{unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(unseen))}>{unseen}</b>}</button>
+      <button type="button" aria-pressed={section === "talepler"} onClick={() => setSection("talepler")}><Inbox size={16} aria-hidden="true"/>{t("Müşteri talepleri")}{unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(unseen))}>{unseen}</b>}</button>
       <button type="button" aria-pressed={section === "istatistik"} onClick={() => setSection("istatistik")}><BarChart3 size={16} aria-hidden="true"/>{t("İstatistikler")}</button>
     </nav>}
     {!editing && firm && section === "talepler" && <ContractorInbox approved={firm.status === "approved"} onSeen={seen}/>}
@@ -270,9 +282,9 @@ export function ContractorPanel() {
 
 type MyRequest = LandRequest & { recipients: number; offers: LandOffer[] };
 
-// Hesabım tab "Kat karşılığı taleplerim": the landowner's requests and offers, best share first.
+// Hesabım › Tekliflerim "Müteahhit taleplerim": the member's land and construction requests with their offers (best first).
 export function LandRequestsPanel() {
-  const { t, locale } = useLocale();
+  const { t, locale } = useLocale(), tl = useTl();
   const [requests, setRequests] = useState<MyRequest[] | null>(null), [error, setError] = useState(""), [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
     try {
@@ -292,25 +304,25 @@ export function LandRequestsPanel() {
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
   }
   return <section className="service-account">
-    <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("MÜTEAHHİTLER")}</span><h2>{t("Kat karşılığı taleplerim")}</h2></div>
-      <Link className="small-primary" href={LAND_PATH}>{t("Yeni talep")}<Plus size={17}/></Link></div>
+    <div className="panel-heading"><div><span className="eyebrow dark-eyebrow">{t("MÜTEAHHİTLER")}</span><h2>{t("Müteahhit taleplerim")}</h2></div>
+      <Link className="small-primary" href={`${LAND_PATH}?tur=insaat`}>{t("Yeni talep")}<Plus size={17}/></Link></div>
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {requests === null && !error && <p>{t("Yükleniyor...")}</p>}
-    {requests && !requests.length && <div className="panel-empty"><HardHat size={26}/><p>{t("Henüz kat karşılığı talebiniz yok. Arsanızı bir kez anlatın, bölgenizdeki müteahhitler teklif versin.")}</p></div>}
+    {requests && !requests.length && <div className="panel-empty"><HardHat size={26}/><p>{t("Henüz müteahhit talebiniz yok. Yaptırmak istediğiniz işi veya arsanızı bir kez anlatın, bölgenizdeki müteahhitler teklif versin.")}</p></div>}
     {requests?.map((request) => <article key={request.id} className="svc-inbox-item">
       <header><strong>{placeLabel(request)}</strong><span className={`service-status status-${request.status === "open" ? "approved" : "pending"}`}>{t(STATUS[request.status])}</span></header>
       <LandFacts request={request}/>
       <p className="service-account-meta">{new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(request.createdAt))} · {t("{n} müteahhide iletildi").replace("{n}", String(request.recipients))} · {t("{n} teklif").replace("{n}", String(request.offers.length))}</p>
       {request.offers.length > 0 ? <ul className="ctr-offers">{request.offers.map((offer) => <li key={offer.id} className={`ctr-offer state-${offer.state}`}>
         <div className="ctr-offer-head"><Link href={contractorPath(offer.firmId)} target="_blank" rel="noopener noreferrer"><strong>{offer.firmName}</strong></Link>{offer.firmVerified && <span className="service-verified">{t("Doğrulanmış müteahhit")}</span>}</div>
-        <p className="ctr-offer-terms"><span>{t("Size kalacak pay")}: <strong>%{offer.ownerShare}</strong></span><span>{t("Teslim süresi")}: <strong>{t("{n} ay").replace("{n}", String(offer.deliveryMonths))}</strong></span></p>
+        <p className="ctr-offer-terms">{request.kind === "build" ? <span>{t("Fiyat")}: <strong>{tl(offer.priceMin, offer.priceMax)}</strong></span> : <span>{t("Size kalacak pay")}: <strong>%{offer.ownerShare}</strong></span>}<span>{t("Teslim süresi")}: <strong>{t("{n} ay").replace("{n}", String(offer.deliveryMonths))}</strong></span></p>
         <p dir="auto">{offer.message}</p>
         {offer.state === "accepted" ? <p className="ctr-offer-sent"><CheckCircle2 size={16} aria-hidden="true"/>{t("Bu teklifi kabul ettiniz; iletişim bilgileriniz firmayla paylaşıldı.")}</p>
           : offer.state === "declined" ? <p className="service-account-meta">{t("Seçilmedi")}</p>
           : request.status === "open" && <button type="button" className="small-primary" disabled={busy} onClick={() => void act({ action: "accept", offerId: offer.id }, "Bu teklifi kabul etmek istiyor musunuz? Diğer teklifler reddedilir ve iletişim bilgileriniz bu firmayla paylaşılır.")}>{t("Teklifi kabul et")}</button>}
       </li>)}</ul> : request.status === "open" && <p className="project-editor-note">{t("Teklifler geldiğinde e-posta ile haber veririz.")}</p>}
       {request.status === "open" && <div className="project-editor-actions"><button type="button" className="outline-button" disabled={busy} onClick={() => void act({ action: "close", requestId: request.id }, "Talep kapatılsın mı? Kapatılan talebe yeni teklif gelmez.")}>{t("Talebi kapat")}</button></div>}
-      <p className="project-editor-note">{t("Anlaşmadan önce tapu, imar durumu ve yetki belgesini kontrol edin; sözleşmeyi noterde yapın.")}</p>
+      <p className="project-editor-note">{t(request.kind === "build" ? "Anlaşmadan önce yetki belgesini, tamamlanan projeleri ve fiyata nelerin dahil olduğunu kontrol edin; yazılı sözleşme yapın." : "Anlaşmadan önce tapu, imar durumu ve yetki belgesini kontrol edin; sözleşmeyi noterde yapın.")}</p>
     </article>)}
   </section>;
 }

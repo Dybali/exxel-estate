@@ -64,3 +64,13 @@
   .ctr-split{grid-template-columns:1fr}
   .ctr-project{grid-template-columns:1fr}
 }
+/* "Benim için müteahhit bul": paid construction or land-for-flats (components/LandRequestForm.tsx, 2026-11-24). */
+.ctr-kind{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:6px}
+.ctr-kind button{display:flex;gap:12px;align-items:flex-start;text-align:start;padding:14px 16px;border-radius:16px;border:1.5px solid #d6e3df;background:#fff;color:inherit;font:inherit;cursor:pointer}
+.ctr-kind button svg{flex:none;margin-top:2px;color:var(--svc-petrol,#0f4f43)}
+.ctr-kind button strong{display:block;font-size:15px}.ctr-kind button small{display:block;margin-top:3px;font-size:13px;color:#5d6f6a;line-height:1.45}
+.ctr-kind button.active{border-color:var(--svc-petrol,#0f4f43);background:var(--svc-tint,#e7f3ee);box-shadow:0 0 0 3px #0f4f4314}
+.ctr-kind button:focus-visible{outline:2px solid var(--svc-petrol,#0f4f43);outline-offset:2px}
+.ctr-land-facts .ctr-kind-tag{background:var(--svc-petrol,#0f4f43);color:#fff}
+.ctr-land-facts .ctr-kind-tag.land{background:#7a5a12;color:#fff}
+@media(max-width:640px){.ctr-kind{grid-template-columns:1fr}}

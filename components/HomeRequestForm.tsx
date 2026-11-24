@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "@/components/SafeLink";
+import { FindForMeSwitch } from "@/components/FindForMeSwitch";
 import { ArrowLeft, ArrowRight, Bell, CheckCircle2, ClipboardList, Home, MapPin, MessageCircle, Search, ShieldCheck, Users, Wallet } from "lucide-react";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
@@ -93,6 +94,7 @@ export function HomeRequestForm() {
 
   return <main className="tools-page">
     <section className="tools-hero"><div className="container">
+      <FindForMeSwitch active="ev"/>
       <span className="market-overline"><Search size={15} aria-hidden="true"/> {t("BENİM İÇİN BUL")}</span>
       <h1>{t("Aradığınız evi anlatın, danışmanlar size ulaşsın")}</h1>
       <p>{t("Kriterlerinizi bir kez yazın; onaylı emlak danışmanları talebinizi görsün ve size tekliflerle dönsün. Size en fazla 4 danışman ulaşır.")}</p>

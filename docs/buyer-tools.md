@@ -74,3 +74,29 @@ Var olan "Turistik günlük kiralık" (`purpose = gunluk`) ilan türü için tan
 Sahibinin isteğiyle Benim için bul premium hizmet olarak öne çıkarıldı:
 - **Ana sayfa:** hızlı bağlantıların hemen altında koyu yeşil premium bölüm (`components/HomeFindForMe.tsx`, `app/find-for-me.css`): üç adım, güven maddeleri (numara izin verilene kadar gizli, en fazla 4 danışman, ücretsiz), "Talebimi oluştur" ve emlakçılar için "Talep bültenine katılın" (`/paketler`). Sağdaki teklif görseli bir örnektir ve "Örnek görünüm" diye etiketlidir. Ana sayfa turunda ayrı bir adımı var.
 - **Talep akışı (bülten):** `components/LeadBoard.tsx`, `app/lead-board.css`. Üstte paket kutusu (Prestij/Profesyonel, bu ay kullanılan/sınır çubuğu, yükseltme), sayılar (açık talep, son 24 saatte yeni, sıcak, ortalama dönüş; `leadBoard` sonucundaki `summary`), filtre çubuğu (Tümü/Satılık/Kiralık, il, kategori, Sıcak, Yabancı alıcı, Ulaştıklarım, yenile), kartlarda Yeni/Sıcak rozetleri, bütçe, etiketler ve 4 danışman yeri göstergesi; yan sütunda takip edilen iller ve ipuçları. Hesabım içinde sekme panel zeminine oturur.
+
+## Benim için bul: ev, hizmet ve müteahhit (2026-11-24)
+
+Sahibinin isteğiyle Benim için bul üç hizmet oldu; üçü de mevcut talep akışlarını kullanır:
+
+| Sekme | Form | Kim teklif verir | Kod |
+| --- | --- | --- | --- |
+| Ev bul | `/benim-icin-bul` | en fazla 4 onaylı emlak danışmanı | `lib/home-requests.ts`, `lib/lead-board.ts` |
+| Hizmet bul | `/hizmetler/teklif-iste` | bölgedeki en fazla 12 onaylı hizmet firması, TL fiyat | `lib/services.ts` (`docs/services.md`) |
+| Müteahhit bul | `/muteahhitler/kat-karsiligi?tur=insaat` | bölgedeki en fazla 12 onaylı müteahhit, TL fiyat veya kat karşılığı pay | `lib/contractors.ts` (`docs/contractors.md`) |
+
+- Ana sayfa bölümü (`components/HomeFindForMe.tsx`) üç sekmelidir (klavyede sağ/sol ok); her sekmenin kendi adımları, güven maddeleri, düğmeleri ve "Örnek görünüm" etiketli örnek teklifleri vardır. Örnek firma adları ve fiyatlar gerçek değildir.
+- Üç formun üstünde aynı geçiş çubuğu vardır (`components/FindForMeSwitch.tsx`, `FIND_FOR_ME`); firmaya özel formlarda (`?firma=`) gösterilmez.
+
+## Benim için bul: ev, hizmet ve müteahhit (2026-11-24)
+
+Sahibinin isteğiyle Benim için bul üç hizmet oldu; üçü de mevcut talep akışlarını kullanır:
+
+| Sekme | Form | Kim teklif verir | Kod |
+| --- | --- | --- | --- |
+| Ev bul | `/benim-icin-bul` | en fazla 4 onaylı emlak danışmanı | `lib/home-requests.ts`, `lib/lead-board.ts` |
+| Hizmet bul | `/hizmetler/teklif-iste` | bölgedeki en fazla 12 onaylı hizmet firması, TL fiyat | `lib/services.ts` (`docs/services.md`) |
+| Müteahhit bul | `/muteahhitler/kat-karsiligi?tur=insaat` | bölgedeki en fazla 12 onaylı müteahhit, TL fiyat veya kat karşılığı pay | `lib/contractors.ts` (`docs/contractors.md`) |
+
+- Ana sayfa bölümü (`components/HomeFindForMe.tsx`) üç sekmelidir (klavyede sağ/sol ok); her sekmenin kendi adımları, güven maddeleri, düğmeleri ve "Örnek görünüm" etiketli örnek teklifleri vardır. Örnek firma adları ve fiyatlar gerçek değildir.
+- Üç formun üstünde aynı geçiş çubuğu vardır (`components/FindForMeSwitch.tsx`, `FIND_FOR_ME`); firmaya özel formlarda (`?firma=`) gösterilmez.

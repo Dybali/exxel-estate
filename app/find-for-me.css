@@ -31,3 +31,20 @@
 @media(max-width:980px){.ffm{grid-template-columns:1fr;padding:30px 26px;gap:26px}.ffm-visual{max-width:520px}}
 @media(max-width:560px){.ffm{border-radius:22px;padding:24px 18px;margin-top:24px}.ffm-request{margin-inline-end:0}.ffm-offer.one{margin-inline-start:14px}.ffm-offer.two{margin-inline-start:28px}.ffm-primary{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.ffm-primary{transition:none}}
+/* Three tabs: home, service, contractor (2026-11-24). */
+.ffm-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;padding:5px;border-radius:999px;background:#ffffff12;border:1px solid #ffffff22;width:max-content;max-width:100%}
+.ffm-tabs button{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:#d3eae0;font:inherit;font-size:14px;font-weight:800;padding:9px 16px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s}
+.ffm-tabs button:hover{color:#fff;background:#ffffff14}
+.ffm-tabs button[aria-selected="true"]{background:#d8ef7a;color:#0a3530}
+.ffm-tabs button:focus-visible{outline:2px solid #d8ef7a;outline-offset:2px}
+.ffm-visual{animation:ffm-in .25s ease-out}
+@keyframes ffm-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(max-width:560px){.ffm-tabs{width:100%;border-radius:18px}.ffm-tabs button{flex:1 1 0;justify-content:center;padding:9px 8px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.ffm-visual{animation:none}.ffm-tabs button{transition:none}}
+/* Switch at the top of the three request forms (components/FindForMeSwitch.tsx). */
+.ffm-switch{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 18px}
+.ffm-switch>span{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#5d7570;margin-inline-end:6px}
+.ffm-switch a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid #cfe0da;background:#fff;color:#0f4f43;font-size:14px;font-weight:700;text-decoration:none}
+.ffm-switch a:hover{border-color:#0f4f43}
+.ffm-switch a.active{background:#0f4f43;border-color:#0f4f43;color:#fff}
+.tools-hero .ffm-switch>span{color:inherit;opacity:.75}

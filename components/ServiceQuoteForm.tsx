@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, BadgeCheck, CheckCircle2, ChevronRight, ClipboardList, LogIn, Send, ShieldCheck, Timer } from "lucide-react";
 import Link from "@/components/SafeLink";
+import { FindForMeSwitch } from "@/components/FindForMeSwitch";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
 import { categoriesOf, SERVICE_GROUPS, serviceCategory } from "@/lib/service-categories";
@@ -50,6 +51,7 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
         {firm && <li><ChevronRight size={13} aria-hidden="true"/><Link href={firmPath(firm.id)}>{firm.name}</Link></li>}
         <li><ChevronRight size={13} aria-hidden="true"/><span aria-current="page">{t("Teklif iste")}</span></li>
       </ol></nav>
+      {!firm && <FindForMeSwitch active="hizmet"/>}
     </div>
     <div className="container svc-quote-layout">
       <section className="svc-quote-main">

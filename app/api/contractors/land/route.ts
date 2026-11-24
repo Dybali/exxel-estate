@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     waitUntil((async () => {
       const now: typeof created.recipients = [];
       for (const firm of created.recipients) if ((await firmPlanState(firm.ownerId, "contractor")).limits.land === "first") now.push(firm);
-      if (now.length) await notifyLandRequest(contractorNotifyDB(), contractorEmailSettings(), now, created.summary);
+      if (now.length) await notifyLandRequest(contractorNotifyDB(), contractorEmailSettings(), now, created.summary, created.kind);
     })().catch(() => {}));
     return ok({ id: created.id, recipients: created.recipients.length }, { status: 201, ...privateHeaders });
   } catch (cause) { return failure(cause); }

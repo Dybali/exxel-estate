@@ -44,26 +44,33 @@ export async function notifyContractorReview(db: NotificationDatabase, settings:
   return send(settings, owner.email, { ...copy, subject: review.firmName });
 }
 
-export async function notifyLandRequest(db: NotificationDatabase, settings: Settings, firms: { ownerId: string; name: string }[], summary: string) {
+const tl = (value: number) => new Intl.NumberFormat("tr-TR").format(value);
+// kind "build": paid construction or renovation (lib/contractors.ts BUILD_WORKS); otherwise land-for-flats.
+export async function notifyLandRequest(db: NotificationDatabase, settings: Settings, firms: { ownerId: string; name: string }[], summary: string, kind: "land" | "build" = "land") {
   if (!emailReady(settings)) return "not_configured";
   let sent = 0;
   for (const firm of firms) {
     const person = await messageRecipient(db, settings, firm.ownerId);
     if (!person) continue;
-    const status = await send(settings, person.email, { title: "Yeni kat karşılığı talebi", titleEn: "New land-for-flats request", subject: summary, unsubscribe: person.unsubscribe,
-      lines: [`<strong>${escapeHtml(firm.name)}</strong>`, escapeHtml(summary), "Arsa bilgilerini okuyup teklifinizi site üzerinden gönderin. / Read the plot details and send your offer on the site."],
+    const build = kind === "build";
+    const status = await send(settings, person.email, { title: build ? "Yeni inşaat teklif talebi" : "Yeni kat karşılığı talebi", titleEn: build ? "New construction request" : "New land-for-flats request", subject: summary, unsubscribe: person.unsubscribe,
+      lines: [`<strong>${escapeHtml(firm.name)}</strong>`, escapeHtml(summary), build ? "İşin ayrıntılarını okuyup fiyat teklifinizi site üzerinden gönderin. / Read the job details and send your price on the site." : "Arsa bilgilerini okuyup teklifinizi site üzerinden gönderin. / Read the plot details and send your offer on the site."],
       href: `${CONTRACTOR_PANEL}?bolum=talepler`, label: "Talebi aç / Open request" });
     if (status === "sent") sent++;
   }
   return `sent:${sent}`;
 }
 
-export async function notifyLandOffer(db: NotificationDatabase, settings: Settings, offer: { userId: string; firmName: string; ownerShare: number; deliveryMonths: number }) {
+export async function notifyLandOffer(db: NotificationDatabase, settings: Settings, offer: { userId: string; firmName: string; kind?: "land" | "build"; ownerShare: number; priceMin?: number | null; priceMax?: number | null; deliveryMonths: number }) {
   if (!emailReady(settings)) return "not_configured";
   const person = await messageRecipient(db, settings, offer.userId);
   if (!person) return "no_recipient";
-  return send(settings, person.email, { title: "Kat karşılığı talebinize teklif geldi", titleEn: "You received an offer for your land", subject: offer.firmName, unsubscribe: person.unsubscribe,
-    lines: [`<strong>${escapeHtml(offer.firmName)}</strong>: arsa sahibine %${offer.ownerShare} pay, ${offer.deliveryMonths} ay teslim süresi.`, `Landowner share ${offer.ownerShare}%, delivery in ${offer.deliveryMonths} months.`, "Teklifleri yan yana karşılaştırıp birini kabul edebilirsiniz. / Compare the offers and accept one."],
+  const price = offer.priceMin ? `${tl(offer.priceMin)}${offer.priceMax && offer.priceMax !== offer.priceMin ? `–${tl(offer.priceMax)}` : ""} TL` : "";
+  const terms = offer.kind === "build"
+    ? [`<strong>${escapeHtml(offer.firmName)}</strong>: ${price}, ${offer.deliveryMonths} ay teslim süresi.`, `Price ${price}, delivery in ${offer.deliveryMonths} months.`]
+    : [`<strong>${escapeHtml(offer.firmName)}</strong>: arsa sahibine %${offer.ownerShare} pay, ${offer.deliveryMonths} ay teslim süresi.`, `Landowner share ${offer.ownerShare}%, delivery in ${offer.deliveryMonths} months.`];
+  return send(settings, person.email, { title: offer.kind === "build" ? "İnşaat talebinize teklif geldi" : "Kat karşılığı talebinize teklif geldi", titleEn: offer.kind === "build" ? "You received a construction offer" : "You received an offer for your land", subject: offer.firmName, unsubscribe: person.unsubscribe,
+    lines: [...terms, "Teklifleri yan yana karşılaştırıp birini kabul edebilirsiniz. / Compare the offers and accept one."],
     href: LAND_PANEL, label: "Teklifleri gör / View offers" });
 }
 
@@ -71,7 +78,7 @@ export async function notifyLandAccepted(db: NotificationDatabase, settings: Set
   if (!emailReady(settings)) return "not_configured";
   const person = await messageRecipient(db, settings, accepted.firmOwnerId);
   if (!person) return "no_recipient";
-  return send(settings, person.email, { title: "Kat karşılığı teklifiniz kabul edildi", titleEn: "Your land-for-flats offer was accepted", subject: accepted.firmName, unsubscribe: person.unsubscribe,
-    lines: [`<strong>${escapeHtml(accepted.firmName)}</strong>`, "Arsa sahibinin iletişim bilgileri artık hesabınızda görünüyor. / The landowner's contact details are now shown in your account."],
+  return send(settings, person.email, { title: "Müteahhit teklifiniz kabul edildi", titleEn: "Your contractor offer was accepted", subject: accepted.firmName, unsubscribe: person.unsubscribe,
+    lines: [`<strong>${escapeHtml(accepted.firmName)}</strong>`, "Müşterinin iletişim bilgileri artık hesabınızda görünüyor. / The customer's contact details are now shown in your account."],
     href: `${CONTRACTOR_PANEL}?bolum=talepler`, label: "Talebi aç / Open request" });
 }

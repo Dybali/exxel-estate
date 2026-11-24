@@ -95,7 +95,8 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
             <label><input type="checkbox" name="kat" value="1" defaultChecked={filters.landDeals}/>{t("Kat karşılığı çalışanlar")}</label>
           </div>
         </form>
-        <p className="svc-hero-quote"><span>{t("Arsanız mı var?")}</span> <Link href={LAND_PATH} className="btn btn-accent btn-sm"><Send size={15} aria-hidden="true"/>{t("Kat karşılığı teklif al")}</Link></p>
+        <p className="svc-hero-quote"><span>{t("Ev, bina veya tadilat mı yaptıracaksınız?")}</span> <Link href={`${LAND_PATH}?tur=insaat`} className="btn btn-accent btn-sm"><Send size={15} aria-hidden="true"/>{t("İnşaat teklifi al")}</Link>
+          <span>{t("Arsanız mı var?")}</span> <Link href={LAND_PATH} className="btn btn-secondary btn-sm">{t("Kat karşılığı teklif al")}</Link></p>
       </div>
     </header>
 
