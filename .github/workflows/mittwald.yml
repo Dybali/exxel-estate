@@ -111,7 +111,12 @@ jobs:
             sleep 30
           done
           for attempt in 1 2 3; do
-            if timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
+            # Shorter outage (live-site sweep 2026-11-24: about 2 minutes of 502/503 per deploy): set the new image
+            # without recreating, then let mittwald pull it before the container is recreated (recreate --pull), so the
+            # download no longer happens while the site is down. True zero downtime needs a second container
+            # (blue/green, docs/mittwald-migration.md).
+            if timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --quiet \
+              && timeout 600 mw container recreate "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --pull --quiet; then exit 0; fi
             echo "::warning::mittwald container update failed (attempt $attempt of 3). API answers: account $(code users/self), project $(code "projects/$MITTWALD_PROJECT_ID"), containers $(code "projects/$MITTWALD_PROJECT_ID/services")."
             if [ "$attempt" -lt 3 ]; then sleep 60; fi
           done

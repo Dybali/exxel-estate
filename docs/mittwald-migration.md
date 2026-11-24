@@ -140,3 +140,9 @@ Menü adları mittwald geliştirici belgelerinden (developer.mittwald.de, 2026-1
 8. Sonraki push'ta iş akışı `mw container update <MITTWALD_SERVICE_ID> --project-id <MITTWALD_PROJECT_ID> --image ghcr.io/dybali/exxel-estate:<commit> --recreate --quiet` çalıştırır (`@mittwald/cli` 1.26.0).
 
 Aşama 3 (Neon verisinin test veritabanına kopyası) veritabanı işidir; her adım ayrıca sahibine sorulur.
+
+## Yayın sırasında kesinti (2026-11-24)
+
+Ölçüm: `mw container update --recreate` her yayında yaklaşık 2 dakika 502/503 veriyordu (konteyner durup yeni imaj inerken). Artık `mittwald.yml` önce yalnızca imajı değiştirir (`mw container update --image`, yeniden oluşturmadan), sonra `mw container recreate --pull` ile mittwald imajı indirip konteyneri yeniden oluşturur; böylece indirme süresi kesintiye eklenmez. Kalan kesinti, yeni konteynerin açılış süresidir.
+
+**Tam kesintisiz yayın (mavi/yeşil), sahibinin kurulumu gerekir:** mStudio'da ikinci bir konteyner (`site-green`, aynı imaj ve aynı ortam değişkenleri; gizli değerleri sahibi girer) ve iki konteyneri ayrı ayrı yoklamak için ikinci bir alt alan adı. İş akışı boştaki konteyneri günceller, `/api/health/live` yanıt verene kadar bekler, sonra alan adını `mw domain virtualhost update <VHOST-ID> --path-to-container /:<KONTEYNER-ID>:3000/tcp` ile ona çevirir (bu komut bütün yolları yeniden yazar). Bellekteki anlık mesaj bağlantıları geçişte kopar ve tarayıcı 5 saniyede yeniden bağlanır; zamanlanmış işler tek adrese gittiği için yalnızca etkin konteynerde çalışır. Kaynak: developer.mittwald.de CLI referansı (container, domain).
