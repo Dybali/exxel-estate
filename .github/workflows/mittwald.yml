@@ -110,6 +110,40 @@ jobs:
             fi
             sleep 30
           done
+          # Blue/green (owner's setup 2026-11-24): containers "site" ($MITTWALD_SERVICE_ID) and "site-green"
+          # ($GREEN_SERVICE); the public host points at one of them and the standby host at the other. The new
+          # image goes to the standby container; only when it answers with this commit on the standby host does the
+          # public host switch over, so visitors never meet a restarting container. If the setup cannot be read
+          # (missing container or host, CLI or API answer not as expected), the single-container deploy below runs.
+          GREEN_SERVICE=c-qu4u8m; PUBLIC_HOST=p-r9al26.project.space; STANDBY_HOST=yedek.p-r9al26.project.space
+          bluegreen() {
+            containers=$(mw container list --project-id "$MITTWALD_PROJECT_ID" --output json) || return 2
+            hosts=$(mw domain virtualhost list --project-id "$MITTWALD_PROJECT_ID" --output json) || return 2
+            uuid() { echo "$containers" | jq -r --arg s "$1" '[.[] | select([.. | strings] | index($s)) | .id][0] // empty'; }
+            vhost() { echo "$hosts" | jq -r --arg h "$1" '[.[] | select([.. | strings] | index($h)) | .id][0] // empty'; }
+            blue=$(uuid "$MITTWALD_SERVICE_ID"); green=$(uuid "$GREEN_SERVICE")
+            public=$(vhost "$PUBLIC_HOST"); standby=$(vhost "$STANDBY_HOST")
+            [ -n "$blue" ] && [ -n "$green" ] && [ -n "$public" ] && [ -n "$standby" ] || { echo "::notice::blue/green setup not found (containers $blue/$green, hosts $public/$standby)"; return 2; }
+            if echo "$hosts" | jq -e --arg id "$public" --arg c "$green" '.[] | select(.id == $id) | [.. | strings] | index($c)' > /dev/null; then active=$green; idle=$blue; idle_short=$MITTWALD_SERVICE_ID; else active=$blue; idle=$green; idle_short=$GREEN_SERVICE; fi
+            echo "Public host serves $active; deploying $GITHUB_SHA to $idle_short."
+            timeout 300 mw domain virtualhost update "$standby" --path-to-container "/:$idle:3000/tcp" --quiet || return 1
+            timeout 300 mw container update "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --quiet || return 1
+            timeout 600 mw container recreate "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --pull --quiet || return 1
+            timeout 300 mw container recreate "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --quiet || return 1
+            for i in $(seq 1 40); do
+              running=$(curl -fsS --max-time 10 -D - -o /dev/null "https://$STANDBY_HOST/api/health/live" 2>/dev/null | tr -d '\r' | awk -F': ' 'tolower($1)=="x-app-commit"{print $2}')
+              [ "$running" = "$GITHUB_SHA" ] && break
+              [ "$i" = 40 ] && { echo "::error::the standby container did not start $GITHUB_SHA (running: ${running:-unknown}); the public site was not switched."; return 1; }
+              sleep 10
+            done
+            timeout 300 mw domain virtualhost update "$public" --path-to-container "/:$idle:3000/tcp" --quiet || return 1
+            timeout 300 mw domain virtualhost update "$standby" --path-to-container "/:$active:3000/tcp" --quiet || true
+            echo "Public host now serves $GITHUB_SHA."
+            return 0
+          }
+          set +e; bluegreen; result=$?; set -e
+          [ "$result" = 0 ] && exit 0
+          [ "$result" = 1 ] && exit 1
           for attempt in 1 2 3; do
             # Shorter outage (live-site sweep 2026-11-24: about 2 minutes of 502/503 per deploy): set the new image
             # without recreating, pull it while the old container keeps serving (recreate --pull only pulls; it does
