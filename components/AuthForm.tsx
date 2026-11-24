@@ -10,7 +10,9 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 
 type Mode = "login" | "register";
-type Role = "buyer" | "individual" | "agent" | "developer" | "contractor" | "service";
+// "consultant": works in an estate office that invited them with a code; the account is an ordinary member account
+// (role buyer) that joins the office after e-mail verification (components/CompanyTeam.tsx), no licence document.
+type Role = "buyer" | "individual" | "agent" | "consultant" | "developer" | "contractor" | "service";
 
 const googleErrors: Record<string, string> = {
   unavailable: "Google ile giriş henüz yapılandırılmadı.",
@@ -63,6 +65,9 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(corporate || params.get("role") || params.get("mode") === "register" ? "register" : "login");
   const [role, setRole] = useState<Role>(corporate || params.get("role") === "developer" || params.get("companyCategory")==="developer" ? "developer" : params.get("role") === "agent" ? "agent" : params.get("role") === "contractor" || /[?&]tab=muteahhit\b|^\/muteahhitler\/panel/.test(params.get("next") || "") ? "contractor" : params.get("role") === "service" || /[?&]tab=hizmet\b|^\/hizmetler\/panel/.test(params.get("next") || "") ? "service" : "buyer");
+  // An invitation link (/giris?role=consultant&kod=CODE) opens sign-up with the code filled in.
+  const [inviteCode, setInviteCode] = useState(() => (params.get("kod") || "").toUpperCase().slice(0, 24));
+  useEffect(() => { if (params.get("role") === "consultant") setRole("consultant"); }, [params]);
   const [showPassword, setShowPassword] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,9 +82,10 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
 
   const next = params.get("next");
   const safeNext = safeNextPath(next || null);
-  const googleRole = mode === "register" ? role==="developer"?"agent":role : "buyer";
+  const googleRole = mode === "register" ? role==="developer"?"agent":role==="consultant"?"buyer":role : "buyer";
   const googleUrl = `/api/auth/google?role=${googleRole}&next=${encodeURIComponent(mode==="register"&&role==="developer"?"/hesabim?tab=profil&companyCategory=developer":mode==="register"&&role==="contractor"?"/muteahhitler/panel":mode==="register"&&role==="service"?"/hizmetler/panel":safeNext)}`;
   const showBuyerGoogle = mode === "login" || role === "buyer";
+  const consultant = role === "consultant";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,7 +99,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
       name: form.get("name"),
       company: form.get("company"),
       companyCategory: role==="developer"?"developer":"agency",
-      role:role==="developer"?"agent":role,
+      role:role==="developer"?"agent":consultant?"buyer":role,
     };
     try {
       const response = await fetch("/api/account", {
@@ -106,7 +112,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
         setError(data.error || "İşlem tamamlanamadı.");
         return;
       }
-      if(mode==='register' && role==='buyer') { const companyCode=String(form.get('companyCode')||'').trim(); if(companyCode) sessionStorage.setItem('company-invite-code',companyCode); else sessionStorage.removeItem('company-invite-code'); }
+      if(mode==='register' && (role==='buyer'||consultant)) { const companyCode=String(form.get('companyCode')||'').trim().toUpperCase(); if(companyCode) sessionStorage.setItem('company-invite-code',companyCode); else sessionStorage.removeItem('company-invite-code'); }
       if(data.user?.isAdmin&&data.user.email_verified){window.location.assign(safeNext.startsWith("/yonetim")?safeNext:"/yonetim");return;}
       if (!data.user?.email_verified) {
         const sent = await fetch('/api/account/recovery', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',purpose:'verify',locale})}).then(r=>r.ok).catch(()=>false);
@@ -176,11 +182,13 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
                   <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
                     <option value="buyer">{t("İlan arıyorum")}</option>
                     <option value="individual">{t("Bireysel ilan vereceğim")}</option>
-                    <option value="agent">{t("Emlakçıyım")}</option><option value="developer">{t("İnşaat firmasıyım (proje satışı)")}</option>
+                    <option value="agent">{t("Emlakçıyım (ofis sahibi)")}</option><option value="consultant">{t("Bir emlak ofisinde danışmanım")}</option><option value="developer">{t("İnşaat firmasıyım (proje satışı)")}</option>
                     <option value="contractor">{t("Müteahhidim (kat karşılığı)")}</option><option value="service">{t("Hizmet firmasıyım (tadilat, nakliye…)")}</option>
                   </select>
                 </label>
                 {role === "buyer" && <label>{t("Şirket davet kodu (isteğe bağlı)")}<input name="companyCode" maxLength={24} autoComplete="off" placeholder={t("Şirketinizin verdiği kod")}/><small>{t("E-postanızı doğruladıktan sonra şirket ekibine katılabilirsiniz.")}</small></label>}
+                {consultant && <><p className="corporate-hint">{t("Ofisinizin size verdiği davet kodunu yazın. E-postanızı doğrulayınca ofisinizin ekibine kendiliğinden katılırsınız; belge yüklemeniz gerekmez.")}</p><label>{t("Ofis davet kodu")}<input name="companyCode" required minLength={4} maxLength={24} autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} placeholder={t("Ofisinizin verdiği kod")}/><small>{t("Kodunuz yoksa ofis yöneticinizden isteyin: Hesabım › Ekibim › Davet kodu oluştur.")}</small></label></>}
+                {role === "agent" && <p className="corporate-hint">{t("Bir ofiste danışman olarak mı çalışıyorsunuz?")} <button type="button" className="text-link" onClick={() => setRole("consultant")}>{t("Bir emlak ofisinde danışmanım")}</button></p>}
                 {(role === "agent" || role === "developer") && (
                   <>
                     <p className="corporate-hint">{t(role==="developer"?"Firmanız adına kayıt olun. E-posta doğrulamasından sonra firma bilgilerinizi ve başvuru belgenizi tamamlayın.":"Emlak ofisiniz adına kayıt olun.")}</p>

@@ -40,3 +40,15 @@ test('missing pages answer 404: no page-wide Suspense boundary in the language p
  assert.match(i18n,/<LocaleContext\.Provider value=\{value\}><MessagesGate locale=\{locale\}>\{children\}<\/MessagesGate><\/LocaleContext\.Provider>/);
  assert.match(read('app/ilan/[id]/page.tsx'),/listing\.status!=='published'\)notFound\(\);/);
 });
+
+test('office consultants sign up with the office code and join the team after verification',()=>{
+ const auth=read('components/AuthForm.tsx');
+ assert.match(auth,/<option value="consultant">\{t\("Bir emlak ofisinde danışmanım"\)\}<\/option>/);
+ assert.match(auth,/role:role==="developer"\?"agent":consultant\?"buyer":role,/,'a consultant account is a member account, no licence');
+ assert.match(auth,/name="companyCode" required minLength=\{4\}/,'the office code is required for consultants');
+ assert.match(auth,/params\.get\("role"\) === "consultant"/);
+ const team=read('components/CompanyTeam.tsx');
+ assert.match(team,/\/giris\?role=consultant&kod=/,'invitation links open sign-up with the code');
+ assert.match(team,/if\(autoJoined\.current\|\|!data\|\|!code\|\|data\.membership\|\|data\.company\)return;autoJoined\.current=true;void action\(\{action:'redeem_code',code\}\);/);
+ assert.match(read('components/Dashboard.tsx'),/sessionStorage\.getItem\("company-invite-code"\)\)return "ekip";/);
+});

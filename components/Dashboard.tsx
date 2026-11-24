@@ -52,7 +52,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   // No tab: each account type opens on its own start page (lib/account-panel.ts panelTab). A member who signed up
   // with a company invite code lands on Profilim, where the code is accepted.
-  const [tab, setTab] = useState<string|null>(()=>{const requested=params.get("tab");try{if(requested==="baslangic"&&typeof window!=="undefined"&&sessionStorage.getItem("company-invite-code"))return "profil";}catch{}return requested;});
+  const [tab, setTab] = useState<string|null>(()=>{const requested=params.get("tab");try{if(requested==="baslangic"&&typeof window!=="undefined"&&sessionStorage.getItem("company-invite-code"))return "ekip";}catch{}return requested;});
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [draft,setDraft]=useState<{payload:{fields:Record<string,string>};updatedAt:string}|null>(null);
   const [mine, setMine] = useState<Listing[]>([]);
