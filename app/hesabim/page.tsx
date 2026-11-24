@@ -1,3 +1,4 @@
+import "../lead-board.css";
 import "../account-pro.css";
 import "../overview.css";
 import { Dashboard } from "@/components/Dashboard";

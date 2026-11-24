@@ -142,7 +142,7 @@ export function Dashboard() {
         </div>
       </aside>
       <div className="account-main">{topbar}
-      <section className={`account-content ${active === "mesajlar" ? "account-content-inbox" : ""} ${active === "genel" && proOverview ? "account-content-overview" : ""}`}>
+      <section className={`account-content ${active === "mesajlar" ? "account-content-inbox" : ""} ${(active === "genel" || active === "talep-akisi") && proOverview ? "account-content-overview" : ""}`}>
         {draft&&draftHasContent(draft.payload)&&(active==="genel"||active==="ilanlarim")&&<div className="draft-dashboard-card"><div><strong>{draft.payload.fields.title||t("Tamamlanmamış ilanınız var")}</strong><p>{t("Taslak")} · {new Date(draft.updatedAt).toLocaleString(locale)}</p></div><Link href="/ilan-ver">{t("Taslağa devam et")}<ForwardArrow/></Link></div>}
         {active === "genel" && proOverview && <><StartChecklist userId={user.id}/><AgentOverview name={user.name} open={openOverview}/>{user.role==="agent"&&<FeedbackCard/>}</>}
         {active === "genel" && !proOverview && <><StartChecklist userId={user.id}/>

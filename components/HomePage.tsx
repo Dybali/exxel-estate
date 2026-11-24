@@ -8,6 +8,7 @@ import Link from "@/components/SafeLink";
 import { ArrowRight } from "lucide-react";
 import { HomeSearch } from "@/components/HomeSearch";
 import { HomeTools } from "@/components/HomeTools";
+import { HomeFindForMe } from "@/components/HomeFindForMe";
 import { HeroSlides } from "@/components/HeroSlides";
 import { NaturalSearch } from "@/components/NaturalSearch";
 import {HomeEditorial} from '@/components/Editorial';
@@ -72,6 +73,7 @@ export function HomePage({ featured }: { featured?: Promise<Listing[] | null> })
       <Link href="/sirketler"><span className="shortcut-icon"><img src="/shortcuts/companies.webp" width={72} height={72} alt="" decoding="async"/></span><span><strong>{t("Şirketler")}</strong><small>{t("Ofis ve firmaların ilanlarını inceleyin")}</small></span><ArrowRight size={18}/></Link>
       <Link href="/emlak-piyasasi"><span className="shortcut-icon"><img src="/shortcuts/market.webp" width={72} height={72} alt="" decoding="async"/></span><span><strong>{t("Emlak piyasası")}</strong><small>{t("İl il m² fiyatları ve kira getirisi")}</small></span><ArrowRight size={18}/></Link>
     </section>
+    <HomeFindForMe/>
     <HomeTools/>
     <section className="market-section container"><div className="market-section-head"><div><span className="market-overline">ESTATEMARKET24</span><h2>{t("Öne çıkan ilanlar")}</h2><p>{t("Satılık ve kiralık seçenekleri karşılaştırın.")}</p></div><Link href="/ilanlar" className="market-more">{t("Tüm ilanlar")}<ArrowRight size={18}/></Link></div>{featured ? <Suspense fallback={<div className="market-feature-grid"/>}><ServerFeatured featured={featured}/></Suspense> : <FeaturedListings initial={null}/>}</section>
     <ForeignBuyerGuide/>

@@ -68,3 +68,9 @@ Var olan "Turistik günlük kiralık" (`purpose = gunluk`) ilan türü için tan
 ## Testler
 
 `tests/buyer-owner-tools.test.mjs` (hesaplamalar, değerleme, Benim için bul, danışman dizini, sezonluk), `tests/search-categories.test.mjs` (fiyatı düşen filtresi).
+
+## Benim için bul: premium sunum ve talep bülteni (2026-11-24)
+
+Sahibinin isteğiyle Benim için bul premium hizmet olarak öne çıkarıldı:
+- **Ana sayfa:** hızlı bağlantıların hemen altında koyu yeşil premium bölüm (`components/HomeFindForMe.tsx`, `app/find-for-me.css`): üç adım, güven maddeleri (numara izin verilene kadar gizli, en fazla 4 danışman, ücretsiz), "Talebimi oluştur" ve emlakçılar için "Talep bültenine katılın" (`/paketler`). Sağdaki teklif görseli bir örnektir ve "Örnek görünüm" diye etiketlidir. Ana sayfa turunda ayrı bir adımı var.
+- **Talep akışı (bülten):** `components/LeadBoard.tsx`, `app/lead-board.css`. Üstte paket kutusu (Prestij/Profesyonel, bu ay kullanılan/sınır çubuğu, yükseltme), sayılar (açık talep, son 24 saatte yeni, sıcak, ortalama dönüş; `leadBoard` sonucundaki `summary`), filtre çubuğu (Tümü/Satılık/Kiralık, il, kategori, Sıcak, Yabancı alıcı, Ulaştıklarım, yenile), kartlarda Yeni/Sıcak rozetleri, bütçe, etiketler ve 4 danışman yeri göstergesi; yan sütunda takip edilen iller ve ipuçları. Hesabım içinde sekme panel zeminine oturur.

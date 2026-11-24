@@ -138,3 +138,15 @@ test('a fresh database: an agent can open the board before any buyer request exi
   assert.equal(await board.leadsUsed(db,A),0);
  }finally{sql.close();}
 });
+
+test('bulletin figures: new in 24 hours, hot, foreign and still-open requests over the filtered list',async()=>{
+ const src=readFileSync(new URL('../lib/lead-board.ts',import.meta.url),'utf8');
+ assert.match(src,/const summary = \{ fresh: items\.filter\(\(item\) => item\.createdAt > dayAgo\)\.length, hot: items\.filter\(\(item\) => item\.hot\)\.length/);
+ assert.match(src,/return \{ items: slice, total: items\.length, page, pageSize, summary \};/);
+ const ui=readFileSync(new URL('../components/LeadBoard.tsx',import.meta.url),'utf8');
+ assert.match(ui,/\{access\?\.plans && access\.headStart && <span className="lb-headstart">/,'the head-start line only with packages on');
+ const home=readFileSync(new URL('../components/HomePage.tsx',import.meta.url),'utf8');
+ assert.ok(home.indexOf('<HomeFindForMe/>')>home.indexOf('market-shortcuts')&&home.indexOf('<HomeFindForMe/>')<home.indexOf('<HomeTools/>'),'Benim için bul right after the quick links');
+ assert.match(readFileSync(new URL('../components/HomeFindForMe.tsx',import.meta.url),'utf8'),/Örnek görünüm/,'the illustration is labelled as an example');
+});
+

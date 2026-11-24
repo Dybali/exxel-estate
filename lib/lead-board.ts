@@ -124,7 +124,10 @@ export async function leadBoard(db: LeadDatabase, agentId: string, access: LeadA
     item.mine = { offer: offer ? { message: String(offer.message), listingIds: JSON.parse(String(offer.listing_ids || "[]")), createdAt: String(offer.created_at) } : null, revealed: Boolean(revealed) };
     if (!item.mine.revealed) item.contact = { name: item.contact.name, email: "", phone: "" };
   }
-  return { items: slice, total: items.length, page, pageSize };
+  // Figures for the bulletin header (owner's request 2026-11-24), over the filtered list.
+  const dayAgo = new Date(at.getTime() - 86400000).toISOString();
+  const summary = { fresh: items.filter((item) => item.createdAt > dayAgo).length, hot: items.filter((item) => item.hot).length, foreign: items.filter((item) => item.details?.foreign).length, open: items.filter((item) => !item.full).length };
+  return { items: slice, total: items.length, page, pageSize, summary };
 }
 
 async function reachable(db: LeadDatabase, agentId: string, requestId: unknown, access: LeadAccess, at: Date) {

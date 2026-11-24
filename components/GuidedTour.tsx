@@ -13,6 +13,7 @@ export const HOME_TOUR: Step[] = [
   { title: "estatemarket24'e hoş geldiniz", text: "Bir dakikalık turla sitenin en kullanışlı yerlerini gösterelim. İstediğiniz an kapatabilirsiniz." },
   { target: ".home-search", title: "Buradan arayın", text: "Satılık veya kiralık, şehir ve gayrimenkul tipini seçin. Haritada ara ile sonuçları harita üzerinde görün." },
   { target: ".market-shortcuts", title: "Hızlı geçişler", text: "Satın almak, kiralamak, şirketlere bakmak veya il il emlak piyasasını görmek için tek dokunuş." },
+  { target: ".ffm", title: "Benim için bul", text: "Aradığınız evi bir kez anlatın; bölgeyi bilen en fazla 4 danışman size uygun evlerle teklif göndersin. Ücretsiz." },
   { target: ".home-tools", title: "Karar araçları", text: "Evinizin değerini öğrenin, fiyatı düşen ilanları görün ya da Benim için bul ile aradığınız evi danışmanlara anlatın." },
   { target: ".market-map-section", title: "Haritadan keşfedin", text: "Haritada bir ile dokunun; o ildeki ilanlara geçin." },
   { target: ".icon-link", title: "Favorileriniz", text: "Beğendiğiniz ilanlar burada toplanır; fiyatı düşerse size haber veririz." },
