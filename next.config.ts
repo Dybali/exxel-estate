@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Type-check the site only; apps/ is an unused older workspace with its own setup.
   typescript: { tsconfigPath: "tsconfig.site.json" },
+  // No X-Powered-By header (live-site sweep 2026-11-24).
+  poweredByHeader: false,
     // Self-contained server (.next/standalone) for the Docker image.
     output: "standalone" as const,
     // lib/postgres-driver.ts is an empty slot in the Cloudflare build; on Node it is the TCP

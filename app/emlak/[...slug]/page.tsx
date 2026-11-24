@@ -24,10 +24,10 @@ const load = cache(async (key: string) => {
   if (!scope) return null;
   const database = db() as unknown as RegionDatabase;
   // Legacy EUR/USD/GBP listings enter the TL statistics with the request's TCMB bulletin.
-  const rates = scope.purpose ? tlRates(await requestRates()) : undefined;
+  // The TCMB rates (only needed for prices) load alongside the other queries instead of before them.
   const [facets, prices, listings] = await Promise.all([
     regionFacets(database, scope.city),
-    regionPrices(database, scope, rates),
+    (scope.purpose ? requestRates().then(tlRates) : Promise.resolve(undefined)).then((rates) => regionPrices(database, scope, rates)),
     regionListings(database, scope, { parse: (row) => publicListing(parseListing(row)), columns: [OWNER_VERIFIED_SQL, PRICE_DROP_SQL] }),
   ]);
   const summary = summarizeRegion(scope, facets);
