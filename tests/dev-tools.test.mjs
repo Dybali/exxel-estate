@@ -52,3 +52,16 @@ test('office consultants sign up with the office code and join the team after ve
  assert.match(team,/if\(autoJoined\.current\|\|!data\|\|!code\|\|data\.membership\|\|data\.company\)return;autoJoined\.current=true;void action\(\{action:'redeem_code',code\}\);/);
  assert.match(read('components/Dashboard.tsx'),/sessionStorage\.getItem\("company-invite-code"\)\)return "ekip";/);
 });
+
+test('Hesabım tours: one for the agent panel, one for members; every menu step names a real tab; restart buttons',()=>{
+ const tour=read('components/GuidedTour.tsx');
+ for(const name of ['PANEL_PRO_TOUR','PANEL_MEMBER_TOUR'])assert.ok(tour.includes(`export const ${name}: Step[] = [`),name);
+ assert.match(tour,/"panel-pro": \{ steps: PANEL_PRO_TOUR, store: "em24_panel_tour_pro"/);assert.match(tour,/"panel-member": \{ steps: PANEL_MEMBER_TOUR, store: "em24_panel_tour_member"/);
+ const tabs=[...read('lib/account-panel.ts').matchAll(/tab\("([a-z-]+)"/g)].map(m=>m[1]);
+ for(const m of tour.matchAll(/target: tab\("([a-z-]+)"\)/g))assert.ok(tabs.includes(m[1]),'tour step for an unknown tab: '+m[1]);
+ const dash=read('components/Dashboard.tsx');
+ assert.match(dash,/data-tab=\{item\.id\}/);assert.match(dash,/<GuidedTour tour=\{proOverview\?"panel-pro":"panel-member"\}\/>/);assert.match(dash,/className="panel-tour-button"/);
+ assert.match(read('components/Header.tsx'),/window\.location\.pathname === "\/hesabim"/);
+ assert.match(read('components/HelpCenter.tsx'),/href="\/hesabim\?tur=1"/);
+ assert.match(read('app/polish.css'),/body:has\(\.tour-layer\) \.whatsapp-prompt\{display:none\}/);
+});
