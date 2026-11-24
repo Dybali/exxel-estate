@@ -33,3 +33,10 @@ test('wiring: storage and e-mail fall back to local stand-ins only in developmen
  assert.doesNotMatch(read('components/CompanyAccount.tsx'),/OfficeVerification/,'the licence form is rendered once, by the Dashboard');
  assert.match(read('components/Dashboard.tsx'),/<CompanyAccount\/><OfficeVerification\/>/);
 });
+
+test('missing pages answer 404: no page-wide Suspense boundary in the language provider',()=>{
+ const i18n=read('lib/i18n.tsx');
+ assert.doesNotMatch(i18n,/<Suspense/,'a boundary around every page made notFound() answer 200');
+ assert.match(i18n,/<LocaleContext\.Provider value=\{value\}><MessagesGate locale=\{locale\}>\{children\}<\/MessagesGate><\/LocaleContext\.Provider>/);
+ assert.match(read('app/ilan/[id]/page.tsx'),/listing\.status!=='published'\)notFound\(\);/);
+});

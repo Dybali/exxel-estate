@@ -47,7 +47,9 @@ import { listingShareImages } from "@/lib/share-image-policy";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params, listing=await listingById(id);
-  if(!listing || listing.source==='user'&&listing.status!=='published')return {title:`${translate('İlan bulunamadı',await requestLocale())} | estatemarket24`,robots:{index:false,follow:false}};
+  // A missing or unpublished listing answers 404 from here: metadata is resolved before the page streams, the page's
+  // own notFound() would come after the 200 status was already sent (live-site sweep 2026-11-24).
+  if(!listing || listing.source==='user'&&listing.status!=='published')notFound();
   // A saved machine translation for the page language gives each ?lang= URL its own title and description;
   // only stored rows are read, never a provider (lib/translation-stored.ts).
   const locale=await requestLocale(),stored=await storedListingTranslation(serviceDB() as never,listing,locale),text=localizedListingText(listing,locale,stored?.fields),description=text.description.slice(0,155);

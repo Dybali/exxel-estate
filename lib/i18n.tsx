@@ -1,5 +1,5 @@
 "use client";
-import { createContext, Suspense, use, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, use, useContext, useEffect, useMemo, useState } from "react";
 import { isLocale, isRtl, loadMessages, locales, messagesReady, setMessagesVersion, translate, type Locale } from "@/lib/i18n-dictionary";
 import { LOCALE_COOKIE } from "./locale-negotiation";
 export { isLocale, isRtl, locales, translate, type Locale };
@@ -48,7 +48,10 @@ export function LocaleProvider({ children, initialLocale = "tr", messagesVersion
     setLocale(next);
   };
   const value = useMemo(() => ({ locale, setLocale: choose, t: (key: string) => translate(key, locale) }), [locale]);
-  return <LocaleContext.Provider value={value}><Suspense fallback={null}><MessagesGate locale={locale}>{children}</MessagesGate></Suspense></LocaleContext.Provider>;
+  // No Suspense boundary here: while hydrating, the root itself waits for the messages and keeps the server HTML.
+  // A boundary around every page made the server send the shell before the page ran, so notFound() answered 200
+  // instead of 404 (live-site sweep 2026-11-24). On the server the messages are always ready and nothing suspends.
+  return <LocaleContext.Provider value={value}><MessagesGate locale={locale}>{children}</MessagesGate></LocaleContext.Provider>;
 }
 export const useLocale = () => useContext(LocaleContext);
 export function T({ id }: { id: string }) { const { t } = useLocale(); return <>{t(id)}</>; }
