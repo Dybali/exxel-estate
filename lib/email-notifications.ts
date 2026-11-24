@@ -131,3 +131,45 @@ export async function notifyProjectReservation(db: NotificationDatabase, setting
   });
   return result.sent ? "sent" : result.reason;
 }
+
+// Viewing appointments (owner's request 2026-11-24): the other person is told by e-mail when a buyer asks for a
+// viewing (to the seller) and when it is confirmed, declined, cancelled or marked done (to the other party).
+// Follows the "messages" preference; each appointment and status is mailed once (email_log).
+export const APPOINTMENT_EMAILS: Record<string, { subject: string; title: string; titleEn: string; line: string; action: string }> = {
+  requested: { subject: "Yeni yer görme talebi / New viewing request", title: "Yeni yer görme talebi", titleEn: "New viewing request", line: "Talebi onaylamak veya başka bir saat önermek için hesabınıza girin. / Sign in to confirm or suggest another time.", action: "Talebi gör / View request" },
+  confirmed: { subject: "Randevunuz onaylandı / Your viewing is confirmed", title: "Randevunuz onaylandı", titleEn: "Your viewing is confirmed", line: "Ayrıntılar ve iletişim için hesabınıza girin. / Sign in for details and contact.", action: "Randevuyu gör / View appointment" },
+  rejected: { subject: "Randevu talebiniz kabul edilmedi / Viewing request declined", title: "Randevu talebiniz kabul edilmedi", titleEn: "Your viewing request was declined", line: "İlan sahibine yazarak başka bir saat sorabilirsiniz. / You can message the owner to ask for another time.", action: "Randevuyu gör / View appointment" },
+  cancelled: { subject: "Randevu iptal edildi / Viewing cancelled", title: "Randevu iptal edildi", titleEn: "The viewing was cancelled", line: "Ayrıntılar için hesabınıza girin. / Sign in for details.", action: "Randevuyu gör / View appointment" },
+};
+export async function notifyAppointment(db: NotificationDatabase, settings: Settings, change: { appointmentId: string; actorId: string }, at = new Date()) {
+  if (!emailReady(settings)) return "not_configured";
+  await ensure(db);
+  const row = await db.prepare("SELECT CAST(a.id AS TEXT) AS id,CAST(a.buyer_id AS TEXT) AS buyer_id,CAST(a.seller_id AS TEXT) AS seller_id,a.status,a.slot_at,a.message,l.title,b.name AS buyer_name,s.name AS seller_name FROM appointments a JOIN listings l ON l.id=a.listing_id JOIN users b ON b.id=a.buyer_id JOIN users s ON s.id=a.seller_id WHERE CAST(a.id AS TEXT)=?")
+    .bind(change.appointmentId).first<Record<string, string>>();
+  const copy = row ? APPOINTMENT_EMAILS[row.status] : undefined;
+  if (!row || !copy) return "no_email";
+  // A request goes to the seller; every later change goes to whoever did not make it.
+  const recipientId = row.status === "requested" ? row.seller_id : change.actorId === row.seller_id ? row.buyer_id : row.seller_id;
+  if (recipientId === change.actorId) return "self";
+  const recipient = await db.prepare("SELECT email,email_verified FROM users WHERE CAST(id AS TEXT)=?").bind(recipientId).first<{ email: string; email_verified: number }>();
+  if (!recipient?.email || !Number(recipient.email_verified)) return "no_recipient";
+  const prefs = await emailPreferences(db, recipientId, at);
+  if (!prefs.messages) return "opted_out";
+  const claimed = await db.prepare("INSERT INTO email_log(log_key,sent_at) VALUES(?,?) ON CONFLICT(log_key) DO NOTHING RETURNING log_key").bind(`appt:${row.id}:${row.status}`, at.toISOString()).first();
+  if (!claimed) return "already_sent";
+  const when = new Date(row.slot_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const other = recipientId === row.seller_id ? row.buyer_name : row.seller_name;
+  const link = `${settings.SITE_URL}/hesabim?tab=randevular`;
+  const unsubscribe = unsubscribeUrl(settings, prefs.token, "messages");
+  const lines = [`<strong>${escapeHtml(row.title || "")}</strong>`, `${escapeHtml(when)} · ${escapeHtml(other || "")}`];
+  if (row.status === "requested" && row.message) lines.push(`“${escapeHtml(String(row.message).slice(0, 300))}”`);
+  lines.push(copy.line);
+  const result = await sendEmail(settings, {
+    to: recipient.email,
+    subject: `${copy.subject}: ${row.title || ""}`.slice(0, 180),
+    html: emailLayout({ title: copy.title, titleEn: copy.titleEn, lines, action: { href: link, label: copy.action }, unsubscribeUrl: unsubscribe }),
+    text: `${copy.subject}\n${row.title || ""}\n${when} · ${other || ""}\n${link}\n\nAbonelikten çık / Unsubscribe: ${unsubscribe}`,
+    unsubscribeUrl: unsubscribe,
+  });
+  return result.sent ? "sent" : result.reason;
+}

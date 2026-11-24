@@ -64,3 +64,7 @@ Kurulum (sahibi):
 
 - **Doğrulandı** ([mittwald SSS: E-Mail-Client einrichten](https://www.mittwald.de/faq/e-mail/grundeinstellungen/e-mail-client-einrichten)): giden sunucu `mail.agenturserver.de`; STARTTLS 25/587, SSL 465; web uygulamaları için 465/SSL önerilir; SMTP kimlik doğrulaması zorunlu.
 - **Varsayıldı:** mStudio posta kutularında SMTP kullanıcı adının tam e-posta adresi olduğu (SSS eski müşteri merkezi biçimini `pXXXXXXpX` gösteriyor, alias varsa e-posta adresinin de kullanılabileceğini söylüyor); "gönderen = posta kutusu" kuralı (sahibinin bilgisi; SSS'de yazmıyor); DKIM menüsünün yeri. developer.mittwald.de posta belgesi kontrol sırasında açılamadı (HTTP 503).
+
+## Randevu e-postaları (2026-11-24)
+
+Sahibinin isteğiyle (uçtan uca testte eksik olarak görüldü): alıcı yer görme randevusu isteyince **ilan sahibine**, randevu onaylanınca, reddedilince veya iptal edilince **diğer tarafa** e-posta gider (`notifyAppointment`, `lib/email-notifications.ts`; `app/api/appointments/route.ts` arka planda çağırır). Konu ve metin Türkçe/İngilizce, ilan adı, tarih-saat (İstanbul saati) ve karşı tarafın adı; talepte alıcının notu. "Mesaj e-postaları" tercihine uyar; her randevu ve durum için bir kez (`email_log` anahtarı `appt:<id>:<durum>`). Tamamlandı işareti için e-posta gitmez; e-postası doğrulanmamış kişiye gitmez. Test: `tests/email-notifications.test.mjs`.

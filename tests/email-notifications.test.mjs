@@ -26,3 +26,25 @@ test('a digest that fails to send is retried the next day with the same listings
  const failed=await notify.sendDailyDigests(f.db,settings,new Date('2026-10-29T06:00:00Z'));assert.deepEqual(failed,{users:1,sent:0});
  const calls=mockFetch();
  const retried=await notify.sendDailyDigests(f.db,settings,new Date('2026-10-30T06:00:00Z'));assert.deepEqual(retried,{users:1,sent:1});assert.match(calls[0].body.html,/İzmir daireler<\/a>: 1 yeni ilan/);f.sql.close();});
+
+test('viewing appointments: request mails the seller, status changes mail the other party, each once',async()=>{
+ const f=fixture();const calls=mockFetch();const t0=new Date('2026-11-24T10:00:00Z');
+ f.sql.exec("CREATE TABLE appointments(id TEXT,listing_id TEXT,buyer_id TEXT,seller_id TEXT,slot_at TEXT,message TEXT,status TEXT)");
+ // u2 (Can) asks to see u1's (Ayşe) listing; u3 is unverified.
+ f.sql.exec("INSERT INTO appointments VALUES('a1','l1','u2','u1','2026-11-28T08:00:00Z','Cumartesi <sabah>?','requested'),('a2','l1','u3','u1','2026-11-29T08:00:00Z','','requested')");
+ assert.equal(await notify.notifyAppointment(f.db,{SITE_URL:'x'},{appointmentId:'a1',actorId:'u2'},t0),'not_configured');
+ assert.equal(await notify.notifyAppointment(f.db,settings,{appointmentId:'a1',actorId:'u2'},t0),'sent');
+ assert.deepEqual(calls[0].body.to,['ayse@example.com']);assert.match(calls[0].body.subject,/^Yeni yer görme talebi \/ New viewing request: Sea <view> flat/);
+ assert.match(calls[0].body.html,/Cumartesi &lt;sabah&gt;\?/);assert.match(calls[0].body.html,/Sea &lt;view&gt; flat/);assert.match(calls[0].body.html,/Can/);assert.match(calls[0].body.html,/hesabim\?tab=randevular/);
+ assert.equal(await notify.notifyAppointment(f.db,settings,{appointmentId:'a1',actorId:'u2'},t0),'already_sent','the same status is mailed once');
+ f.sql.exec("UPDATE appointments SET status='confirmed' WHERE id='a1'");
+ assert.equal(await notify.notifyAppointment(f.db,settings,{appointmentId:'a1',actorId:'u1'},t0),'sent');assert.deepEqual(calls[1].body.to,['can@example.com']);assert.match(calls[1].body.subject,/Randevunuz onaylandı/);
+ f.sql.exec("UPDATE appointments SET status='cancelled' WHERE id='a1'");
+ assert.equal(await notify.notifyAppointment(f.db,settings,{appointmentId:'a1',actorId:'u2'},t0),'sent','the buyer cancels: the seller hears');assert.deepEqual(calls[2].body.to,['ayse@example.com']);
+ f.sql.exec("UPDATE appointments SET status='completed' WHERE id='a1'");
+ assert.equal(await notify.notifyAppointment(f.db,settings,{appointmentId:'a1',actorId:'u1'},t0),'no_email','done visits need no mail');
+ f.sql.exec("UPDATE appointments SET status='confirmed' WHERE id='a2'");
+ assert.equal(await notify.notifyAppointment(f.db,settings,{appointmentId:'a2',actorId:'u1'},t0),'no_recipient','unverified addresses get nothing');
+ assert.equal(calls.length,3);
+ f.sql.close();
+});
