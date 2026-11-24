@@ -129,7 +129,8 @@ jobs:
             timeout 300 mw domain virtualhost update "$standby" --path-to-container "/:$idle:3000/tcp" --quiet || return 1
             timeout 300 mw container update "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --quiet || return 1
             timeout 600 mw container recreate "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --pull --quiet || return 1
-            timeout 300 mw container recreate "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --quiet || return 1
+            # "recreate" alone only restarts with the old settings (restartService); "update --recreate" applies the image.
+            timeout 300 mw container update "$idle_short" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet || return 1
             for i in $(seq 1 40); do
               running=$(curl -fsS --max-time 10 -D - -o /dev/null "https://$STANDBY_HOST/api/health/live" 2>/dev/null | tr -d '\r' | awk -F': ' 'tolower($1)=="x-app-commit"{print $2}')
               [ "$running" = "$GITHUB_SHA" ] && break
@@ -138,6 +139,9 @@ jobs:
             done
             timeout 300 mw domain virtualhost update "$public" --path-to-container "/:$idle:3000/tcp" --quiet || return 1
             timeout 300 mw domain virtualhost update "$standby" --path-to-container "/:$active:3000/tcp" --quiet || true
+            # Both containers run the same version (owner 2026-11-24): the one now on standby gets the new image too.
+            active_short=$([ "$idle_short" = "$GREEN_SERVICE" ] && echo "$MITTWALD_SERVICE_ID" || echo "$GREEN_SERVICE")
+            timeout 600 mw container update "$active_short" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --quiet && timeout 600 mw container recreate "$active_short" --project-id "$MITTWALD_PROJECT_ID" --pull --quiet && timeout 300 mw container update "$active_short" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet || echo "::warning::the standby container was not updated; it will be on the next deploy."
             echo "Public host now serves $GITHUB_SHA."
             return 0
           }
@@ -147,11 +151,11 @@ jobs:
           for attempt in 1 2 3; do
             # Shorter outage (live-site sweep 2026-11-24: about 2 minutes of 502/503 per deploy): set the new image
             # without recreating, pull it while the old container keeps serving (recreate --pull only pulls; it does
-            # not restart, which left three deploys unstarted on 2026-11-24), then recreate with the image already
-            # on the host. True zero downtime needs a second container (blue/green, docs/mittwald-migration.md).
+            # not restart, which left three deploys unstarted on 2026-11-24), then apply it with update --recreate (a plain
+            # "recreate" only restarts with the old settings). True zero downtime needs a second container (blue/green, docs/mittwald-migration.md).
             if timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --quiet \
               && timeout 600 mw container recreate "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --pull --quiet \
-              && timeout 300 mw container recreate "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --quiet; then exit 0; fi
+              && timeout 300 mw container update "$MITTWALD_SERVICE_ID" --project-id "$MITTWALD_PROJECT_ID" --image "$IMAGE:$GITHUB_SHA" --recreate --quiet; then exit 0; fi
             echo "::warning::mittwald container update failed (attempt $attempt of 3). API answers: account $(code users/self), project $(code "projects/$MITTWALD_PROJECT_ID"), containers $(code "projects/$MITTWALD_PROJECT_ID/services")."
             if [ "$attempt" -lt 3 ]; then sleep 60; fi
           done
