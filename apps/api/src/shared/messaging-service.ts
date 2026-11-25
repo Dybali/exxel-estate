@@ -33,6 +33,15 @@ async function firmOwner(database: ChatDatabase, key: string) {
   const table = match[1] === "service" ? "service_firms" : "contractor_firms";
   return database.prepare(`SELECT owner_id,status FROM ${table} WHERE id=?`).bind(match[2]).first<{ owner_id: string; status: string }>().catch(() => null);
 }
+/** A firm may start a thread with a member whose quote or contractor request reached it (2026-11-25). */
+async function requestedFirm(database: ChatDatabase, key: string, member: string) {
+  const match = firmThread(key);
+  if (!match) return false;
+  const sql = match[1] === "service"
+    ? "SELECT 1 AS ok FROM service_quote_requests r JOIN service_quote_recipients x ON x.request_id=r.id WHERE r.user_id=? AND x.firm_id=? LIMIT 1"
+    : "SELECT 1 AS ok FROM land_requests r JOIN land_request_recipients x ON x.request_id=r.id WHERE r.user_id=? AND x.firm_id=? LIMIT 1";
+  return Boolean(await database.prepare(sql).bind(member, match[2]).first().catch(() => null));
+}
 function threadInput(listing: unknown, peer: unknown, user: string) {
   const listingId = text(listing), peerId = text(peer).toLowerCase();
   if (!listingId || listingId.length > 80 || !uuid(peerId) || peerId === user) throw new ChatError("Görüşme seçimi geçersiz.");
@@ -130,7 +139,7 @@ export async function chatPost(database: ChatDatabase, actor: ChatActor, data: R
     if (!firm) throw new ChatError("Firma bulunamadı.", 404);
     const existing = await database.prepare("SELECT id FROM messages WHERE listing_id=? AND ((sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?)) LIMIT 1", [1,2,3,4]).bind(listingId, actor.id, peerId, peerId, actor.id).first();
     if (String(firm.owner_id) === actor.id) {
-      if (!existing) throw new ChatError("Bu üyeyle firma görüşmeniz bulunamadı.", 403);
+      if (!existing && !await requestedFirm(database, listingId, peerId)) throw new ChatError("Bu üyeyle firma görüşmeniz bulunamadı.", 403);
     } else if (peerId !== String(firm.owner_id) || (firm.status !== "approved" && !existing && !actor.admin)) throw new ChatError("Bu firma için görüşme seçimi geçersiz.", 403);
     recipientId = peerId;
   } else {

@@ -300,6 +300,8 @@ export type FirmInboxItem = {
   status: QuoteStatus; state: QuoteRecipientState; direct: boolean;
   /** Contact details only when the member chose to share them; the name always. */
   name: string; phone: string | null; email: string | null;
+  /** Member id of the requester: the firm can message them (lib/messaging-service.ts requestedFirm). */
+  customerId: string;
   offer: { id: string; priceMin: number; priceMax: number | null; message: string; state: string; createdAt: string } | null;
 };
 /** Requests sent to the firm, newest first. Opening the inbox marks new requests as seen. */
@@ -312,7 +314,7 @@ export async function firmInbox(db: ServiceDatabase, firmId: string, at = new Da
       requestId: String(row.id), category: row.category as ServiceSlug, city: String(row.city), district: String(row.district || ""), description: String(row.description),
       timing: (Object.hasOwn(QUOTE_TIMINGS, String(row.timing)) ? row.timing : "flexible") as QuoteTiming, createdAt: String(row.created_at), expiresAt: String(row.expires_at),
       status: quoteStatus(row, at), state: (Object.hasOwn(QUOTE_RECIPIENT_LABELS, String(row.recipient_state)) ? row.recipient_state : "new") as QuoteRecipientState, direct: Boolean(row.firm_id),
-      name: String(row.name), phone: share && row.phone ? String(row.phone) : null, email: share ? String(row.email) : null,
+      name: String(row.name), phone: share && row.phone ? String(row.phone) : null, email: share ? String(row.email) : null, customerId: String(row.user_id),
       offer: row.offer_id ? { id: String(row.offer_id), priceMin: Number(row.offer_min), priceMax: row.offer_max == null ? null : Number(row.offer_max), message: String(row.offer_message), state: String(row.offer_state), createdAt: String(row.offer_at) } : null,
     };
   });

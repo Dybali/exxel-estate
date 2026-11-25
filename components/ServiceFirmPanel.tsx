@@ -193,7 +193,7 @@ export function ServiceFirmPanel() {
       <Link href="/hizmetler">{t("Hizmetler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
     {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>{SECTIONS.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-pressed={section === id} onClick={() => choose(id)}>
       <Icon size={16} aria-hidden="true"/>{t(label)}{id === "talepler" && extras.unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(extras.unseen))}>{extras.unseen}</b>}</button>)}</nav>}
-    {!editing && firm && section === "talepler" && <ServiceInbox approved={firm.status === "approved"} onSeen={seen}/>}
+    {!editing && firm && section === "talepler" && <ServiceInbox approved={firm.status === "approved"} onSeen={seen} firmId={firm.id}/>}
     {!editing && firm && section === "calisma" && <ServiceDetailsForm initial={extras.details} onSaved={(details) => setExtras((old) => ({ ...old, details }))}/>}
     {!editing && firm && section === "belgeler" && <ServiceDocuments initial={extras.documents} onChanged={(documents) => setExtras((old) => ({ ...old, documents }))}/>}
     {!editing && firm && section === "istatistik" && <ServiceStatsPanel maxDays={plan?.limits.statsDays}/>}

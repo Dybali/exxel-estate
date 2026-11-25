@@ -74,3 +74,9 @@
 .ctr-land-facts .ctr-kind-tag{background:var(--svc-petrol,#0f4f43);color:#fff}
 .ctr-land-facts .ctr-kind-tag.land{background:#7a5a12;color:#fff}
 @media(max-width:640px){.ctr-kind{grid-template-columns:1fr}}
+/* Message buttons in offers and firm inboxes (components/FirmMessage.tsx compact, 2026-11-25). */
+.svc-inbox-message{margin:8px 0}
+.svc-inbox-message .firm-message,.svc-offer-card .firm-message,.ctr-offer .firm-message{margin-top:8px;width:100%}
+.firm-message-actions{display:flex;gap:8px;align-items:center}
+.firm-message-actions .btn-block{flex:1}
+.svc-offer-contact{flex-wrap:wrap}.svc-offer-contact .firm-message{flex-basis:100%}

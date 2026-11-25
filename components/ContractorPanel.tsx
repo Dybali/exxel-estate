@@ -3,6 +3,7 @@ import { CONTRACTOR_TILES, FirmStatsPanel } from "@/components/ServiceFirmTools"
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, ExternalLink, HardHat, ImagePlus, Inbox, Pencil, Plus, Trash2, X, BarChart3 } from "lucide-react";
 import Link from "@/components/SafeLink";
+import { FirmMessage } from "@/components/FirmMessage";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
 import { appendPhotoVariants, preparePhotoUpload } from "@/lib/photo-optimize";
@@ -146,7 +147,7 @@ function ContractorForm({ firm, onSaved, onCancel, projectLimit = 30, photoLimit
   </form>;
 }
 
-type InboxRequest = LandRequest & { state: string; offer: { ownerShare: number; priceMin: number | null; priceMax: number | null; deliveryMonths: number; message: string; state: string } | null };
+type InboxRequest = LandRequest & { customerId: string; state: string; offer: { ownerShare: number; priceMin: number | null; priceMax: number | null; deliveryMonths: number; message: string; state: string } | null };
 const placeLabel = (request: Pick<LandRequest, "city" | "district">) => request.district ? `${request.district}, ${request.city}` : request.city;
 
 /** TL amount or range ("3.000.000–3.500.000 TL"). */
@@ -164,7 +165,7 @@ function LandFacts({ request }: { request: LandRequest }) {
 const STATUS: Record<LandRequest["status"], string> = { open: "Açık", accepted: "Anlaşma sağlandı", closed: "Kapatıldı", expired: "Süresi doldu" };
 
 /** Requests that reached the firm, with the one-time offer form. */
-function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () => void }) {
+function ContractorInbox({ approved, onSeen, firmId }: { approved: boolean; onSeen: () => void; firmId: string }) {
   const { t, locale } = useLocale();
   const [requests, setRequests] = useState<InboxRequest[] | null>(null), [error, setError] = useState(""), [open, setOpen] = useState(""), [busy, setBusy] = useState(false);
   // Package (lib/firm-plans.ts): locked = no access, delayHours = requests appear a day later.
@@ -200,6 +201,7 @@ function ContractorInbox({ approved, onSeen }: { approved: boolean; onSeen: () =
       <header><strong>{placeLabel(request)}</strong><span className={`service-status status-${request.status === "open" ? "approved" : "pending"}`}>{t(STATUS[request.status])}</span></header>
       <LandFacts request={request}/>
       <p dir="auto">{request.description}</p>
+      {approved && <div className="svc-inbox-message"><FirmMessage kind="contractor" firmId={firmId} peerId={request.customerId} label="Müşteriye mesaj yaz" compact/></div>}
       <p className="service-account-meta">{request.name} · {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(request.createdAt))}
         {request.email ? <> · <a href={`mailto:${request.email}`}>{request.email}</a>{request.phone && <> · <a href={`tel:${request.phone}`}><bdi>{request.phone}</bdi></a></>}</> : <> · {t("İletişim bilgileri teklifiniz kabul edilince görünür.")}</>}</p>
       {request.offer ? <p className="ctr-offer-sent"><CheckCircle2 size={16} aria-hidden="true"/>{request.kind === "build" ? t("Teklifiniz: {f}, {m} ay teslim.").replace("{f}", tl(request.offer.priceMin, request.offer.priceMax)).replace("{m}", String(request.offer.deliveryMonths)) : t("Teklifiniz: arsa sahibine %{p}, {m} ay teslim.").replace("{p}", String(request.offer.ownerShare)).replace("{m}", String(request.offer.deliveryMonths))} <strong>{t(request.offer.state === "accepted" ? "Kabul edildi" : request.offer.state === "declined" ? "Seçilmedi" : "Yanıt bekleniyor")}</strong></p>
@@ -260,7 +262,7 @@ export function ContractorPanel() {
       <button type="button" aria-pressed={section === "talepler"} onClick={() => setSection("talepler")}><Inbox size={16} aria-hidden="true"/>{t("Müşteri talepleri")}{unseen > 0 && <b className="svc-tab-count" aria-label={t("{n} yeni").replace("{n}", String(unseen))}>{unseen}</b>}</button>
       <button type="button" aria-pressed={section === "istatistik"} onClick={() => setSection("istatistik")}><BarChart3 size={16} aria-hidden="true"/>{t("İstatistikler")}</button>
     </nav>}
-    {!editing && firm && section === "talepler" && <ContractorInbox approved={firm.status === "approved"} onSeen={seen}/>}
+    {!editing && firm && section === "talepler" && <ContractorInbox approved={firm.status === "approved"} onSeen={seen} firmId={firm.id}/>}
     {!editing && firm && section === "istatistik" && <FirmStatsPanel endpoint="/api/contractors/mine/stats" tiles={CONTRACTOR_TILES} maxDays={plan?.limits.statsDays}/>}
     {!editing && firm && section === "profil" && <article className={`service-account-card status-${firm.status}`}>
       <div className="service-account-head">
@@ -317,6 +319,7 @@ export function LandRequestsPanel() {
         <div className="ctr-offer-head"><Link href={contractorPath(offer.firmId)} target="_blank" rel="noopener noreferrer"><strong>{offer.firmName}</strong></Link>{offer.firmVerified && <span className="service-verified">{t("Doğrulanmış müteahhit")}</span>}</div>
         <p className="ctr-offer-terms">{request.kind === "build" ? <span>{t("Fiyat")}: <strong>{tl(offer.priceMin, offer.priceMax)}</strong></span> : <span>{t("Size kalacak pay")}: <strong>%{offer.ownerShare}</strong></span>}<span>{t("Teslim süresi")}: <strong>{t("{n} ay").replace("{n}", String(offer.deliveryMonths))}</strong></span></p>
         <p dir="auto">{offer.message}</p>
+        <FirmMessage kind="contractor" firmId={offer.firmId} compact/>
         {offer.state === "accepted" ? <p className="ctr-offer-sent"><CheckCircle2 size={16} aria-hidden="true"/>{t("Bu teklifi kabul ettiniz; iletişim bilgileriniz firmayla paylaşıldı.")}</p>
           : offer.state === "declined" ? <p className="service-account-meta">{t("Seçilmedi")}</p>
           : request.status === "open" && <button type="button" className="small-primary" disabled={busy} onClick={() => void act({ action: "accept", offerId: offer.id }, "Bu teklifi kabul etmek istiyor musunuz? Diğer teklifler reddedilir ve iletişim bilgileriniz bu firmayla paylaşılır.")}>{t("Teklifi kabul et")}</button>}

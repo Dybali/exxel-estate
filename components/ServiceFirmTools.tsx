@@ -4,6 +4,7 @@ import type { FirmStats } from "@/lib/firm-stats";
 // working information, documents, received quote requests with offers, and profile statistics.
 import { useCallback, useEffect, useState } from "react";
 import { BadgeCheck, CalendarClock, Download, Eye, FileText, Globe, Inbox, Mail, MessageCircle, Phone, Send, Siren, Trash2, Upload, Search } from "lucide-react";
+import { FirmMessage } from "@/components/FirmMessage";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
 import { serviceCategory } from "@/lib/service-categories";
@@ -141,7 +142,7 @@ function OfferForm({ item, onSent }: { item: FirmInboxItem; onSent: () => void }
   </form>;
 }
 
-export function ServiceInbox({ approved, onSeen }: { approved: boolean; onSeen: () => void }) {
+export function ServiceInbox({ approved, onSeen, firmId }: { approved: boolean; onSeen: () => void; firmId: string }) {
   const { t, locale } = useLocale(), money = useTry();
   const [items, setItems] = useState<FirmInboxItem[] | null>(null), [error, setError] = useState(""), [open, setOpen] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -170,6 +171,7 @@ export function ServiceInbox({ approved, onSeen }: { approved: boolean; onSeen: 
         </div>
         <p className="svc-inbox-meta">{item.name} · {t(QUOTE_TIMINGS[item.timing])} · {date(item.createdAt)}{item.direct ? ` · ${t("Doğrudan size gönderildi")}` : ""}</p>
         <p className="svc-inbox-text" dir="auto">{item.description}</p>
+        {approved && <div className="svc-inbox-message"><FirmMessage kind="service" firmId={firmId} peerId={item.customerId} label="Müşteriye mesaj yaz" compact/></div>}
         {(item.phone || item.email) && <p className="svc-inbox-contact">{item.phone && <a href={`tel:${item.phone}`}><Phone size={14} aria-hidden="true"/><bdi>{item.phone}</bdi></a>}{item.email && <a href={`mailto:${item.email}`}><Mail size={14} aria-hidden="true"/>{item.email}</a>}</p>}
         {item.offer ? <p className="svc-inbox-offer"><Send size={14} aria-hidden="true"/>{t("Teklifiniz")}: <strong>{money(item.offer.priceMin)}{item.offer.priceMax ? ` – ${money(item.offer.priceMax)}` : ""}</strong>{item.offer.state === "accepted" ? ` · ${t("Kabul edildi")}` : item.offer.state === "rejected" ? ` · ${t("Başka teklif seçildi")}` : ""}</p>
           : canOffer && (open === item.requestId ? <OfferForm item={item} onSent={() => { setOpen(null); void load(); }}/>

@@ -78,3 +78,14 @@ test('firm threads: a member writes to an approved firm, the firm answers only e
  const list=await chatGet(f.db,firm,new URLSearchParams());assert.equal(list.conversations.length,1);assert.equal(list.conversations[0].listing_id,key);
  const thread=await chatGet(f.db,customer,new URLSearchParams({listingId:key,peerId:U.firm}));assert.equal(thread.messages.length,2);
 }finally{f.sql.close()}});
+
+test('firm threads: a firm may write first to a member whose request reached it (2026-11-25)',async()=>{const f=fixture();try{
+ const firm={id:U.firm,admin:false},key=plans.firmThreadKey('service','svc-1');
+ f.sql.exec("CREATE TABLE service_quote_requests(id TEXT PRIMARY KEY,user_id TEXT NOT NULL);CREATE TABLE service_quote_recipients(request_id TEXT NOT NULL,firm_id TEXT NOT NULL)");
+ // No request from this member yet: still refused.
+ await assert.rejects(()=>chatPost(f.db,firm,{listingId:key,peerId:U.customer,message:'Talebiniz hakkında'}),e=>e.status===403);
+ f.sql.exec(`INSERT INTO service_quote_requests VALUES('q1','${U.customer}');INSERT INTO service_quote_recipients VALUES('q1','svc-1')`);
+ const sent=await chatPost(f.db,firm,{listingId:key,peerId:U.customer,message:'Merhaba, keşif için ne zaman uygunsunuz?'});assert.equal(sent.peerId,U.customer);
+ // A request to another firm does not open a thread for this one, nor for other members.
+ await assert.rejects(()=>chatPost(f.db,firm,{listingId:key,peerId:U.other,message:'Merhaba'}),e=>e.status===403);
+}finally{f.sql.close()}});

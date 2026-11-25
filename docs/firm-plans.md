@@ -40,6 +40,8 @@ Saklama: `firm_plans(user_id, plan, ends_at, order_id, updated_at)`, ilk kullan�
 
 Firma görüşmeleri mevcut mesaj sistemini kullanır; ilan kimliği yerine `firm:service:<id>` / `firm:contractor:<id>` anahtarı (`lib/messaging-service.ts`, `apps/api/src/shared/` kopyasıyla aynı). Üye, yayındaki firmaya profilden yazar; firma yalnızca açılmış görüşmeye cevap verir. `/api/messages` gönderimden önce firmanın paketinde mesajlaşma olup olmadığına bakar (iki yönde de). Mesajlar Hesabım › Mesajlar'da, karşı tarafın dili farklıysa otomatik çeviriyle görünür (`lib/message-translations.ts`).
 
+Teklif sürecinde (2026-11-25): üye, kendisine teklif veren firmaya teklif kartındaki "Mesaj gönder" ile yazar (Hesabım › Tekliflerim, hizmet ve müteahhit). Firma, kendisine teklif veya müteahhit talebi ulaşmış üyeye talep kutusundaki "Müşteriye mesaj yaz" ile ilk mesajı gönderebilir (`requestedFirm`, `lib/messaging-service.ts`); başka üyelere yine yazamaz. Paket kontrolü değişmedi (`FIRM_PLANS` kapalıyken herkese açık).
+
 ## Kat karşılığı talepleri
 
 Talep yine en fazla 12 eşleşen müteahhite kaydedilir. Pro firma talebi hemen görür ve e-posta alır; Plus firma talebi 24 saat sonra panelinde görür (e-posta almaz); ücretsiz pakette talepler görünmez. Teklif ve "geç" işlemleri aynı kuralla sınırlıdır (`landCutoff`).

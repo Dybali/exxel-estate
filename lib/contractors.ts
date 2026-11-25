@@ -590,7 +590,8 @@ export async function contractorInbox(db: ContractorDatabase, ownerId: string, a
   return {
     firmId, requests: rows.map((row) => ({
       ...toRequest(row, at, flag(row.share_contact) || row.offer_state === "accepted"),
-      state: String(row.recipient_state), offer: row.offer_id ? { ownerShare: Number(row.owner_share), priceMin: row.price_min == null ? null : Number(row.price_min), priceMax: row.price_max == null ? null : Number(row.price_max), deliveryMonths: Number(row.delivery_months), message: String(row.offer_message), state: String(row.offer_state) } : null,
+      // The firm can message the requester (lib/messaging-service.ts requestedFirm).
+      customerId: String(row.user_id), state: String(row.recipient_state), offer: row.offer_id ? { ownerShare: Number(row.owner_share), priceMin: row.price_min == null ? null : Number(row.price_min), priceMax: row.price_max == null ? null : Number(row.price_max), deliveryMonths: Number(row.delivery_months), message: String(row.offer_message), state: String(row.offer_state) } : null,
     })),
   };
 }

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BadgeCheck, Check, ClipboardList, ExternalLink, FileCheck2, Mail, MessageCircle, Phone, Plus, X } from "lucide-react";
 import Link from "@/components/SafeLink";
+import { FirmMessage } from "@/components/FirmMessage";
 import { useTry } from "@/components/ServiceFirmTools";
 import { apiJson } from "@/lib/api-client";
 import { useLocale } from "@/lib/i18n";
@@ -68,6 +69,7 @@ export function ServiceQuotesPanel() {
               {offer.firmPhone && <a href={`tel:${offer.firmPhone}`} aria-label={t("Ara")}><Phone size={15} aria-hidden="true"/></a>}
               {offer.firmWhatsapp && <a href={whatsappHref(offer.firmWhatsapp)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle size={15} aria-hidden="true"/></a>}
               {offer.firmEmail && <a href={`mailto:${offer.firmEmail}`} aria-label={t("E-posta gönder")}><Mail size={15} aria-hidden="true"/></a>}
+              <FirmMessage kind="service" firmId={offer.firmId} compact/>
               {open && offer.state === "sent" && <button type="button" className="small-primary" disabled={Boolean(busy)} onClick={() => void act({ action: "accept", offerId: offer.id }, "Bu teklifi kabul etmek istiyor musunuz? Firma ile iletişim bilgileriniz paylaşılır ve talep kapanır.")}><Check size={15} aria-hidden="true"/>{t("Teklifi kabul et")}</button>}
             </div>
           </div>)}</div>}
