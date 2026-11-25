@@ -92,6 +92,8 @@ test('map search box: parsing, index-friendly ranges on the public point, saved 
  const search=load('lib/search-filters.ts');
  assert.equal(search.cleanSearch('bbox=28.9,40.9,29.1,41.1&city=İstanbul'),'bbox=28.9%2C40.9%2C29.1%2C41.1&city=%C4%B0stanbul');
  assert.equal(search.cleanSearch('bbox=bad'),'');
+ // Saved searches with several room counts match any of them (2026-11-25).
+ const rooms=search.searchSql('rooms=1%2B1,2%2B1');assert.match(rooms.where,/l\.rooms IN \(\?,\?\)/);assert.deepEqual(rooms.values,['1+1','2+1']);
  const saved=search.searchSql('bbox=28.9,40.9,29.1,41.1');
  assert.match(saved.where,/l\.latitude BETWEEN \? AND \? AND l\.longitude BETWEEN \? AND \?/);assert.deepEqual(saved.values,[40.9,41.1,28.9,29.1]);
 });

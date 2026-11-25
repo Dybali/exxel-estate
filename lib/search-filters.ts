@@ -38,7 +38,10 @@ export function searchSql(query:string,rates:RateSnapshot|null=null) {
   const q=new URLSearchParams(cleanSearch(query)),where=["l.status='published'"],values:(string|number)[]=[];
   const text=textSearchSql(q.get("q")||"");if(text.where){where.push(text.where);values.push(...text.values);}
   const category=categoryFilter(q.get("category")||"");if(category){where.push(category.where);values.push(...category.values);}
-  for(const [key,column] of Object.entries(searchFields)){const value=q.get(key);if(value){where.push(`l.${column}=?`);values.push(value);}}
+  for(const [key,column] of Object.entries(searchFields)){const value=q.get(key);if(!value)continue;
+    // rooms may list several counts ("1+1,2+1"), as the search pages send it (2026-11-25).
+    if(key==="rooms"){const rooms=value.split(",").map(item=>item.trim()).filter(Boolean).slice(0,30);if(rooms.length){where.push(`l.rooms IN (${rooms.map(()=>"?").join(",")})`);values.push(...rooms);}continue;}
+    where.push(`l.${column}=?`);values.push(value);}
   const range=tlPriceRange(q,rates),tl=tlPriceSql(tlRates(rates));
   if(range){if(range.min!==undefined){where.push(`${tl}>=?`);values.push(range.min);}if(range.max!==undefined){where.push(`${tl}<=?`);values.push(range.max);}}
   else{where.push("l.currency=?");values.push(q.get("currency")||"TRY");for(const [key,column,op] of searchRanges.slice(0,2)){const value=q.get(key);if(value){where.push(`l.${column}${op}?`);values.push(Number(value));}}}
