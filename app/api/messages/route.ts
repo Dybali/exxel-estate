@@ -4,7 +4,7 @@ import { env, waitUntil } from "@/lib/runtime";
 import { notifyNewMessage, type NotificationDatabase } from "@/lib/email-notifications";
 import { siteUrl } from "@/lib/request-context";
 import type { EmailSettings } from "@/lib/email";
-import { MessageTranslationError, translateMessages } from "@/lib/message-translations";
+import { MessageTranslationError, messageQuota, messageQuotaMessages, translateMessages } from "@/lib/message-translations";
 import { translationSettings } from "@/lib/translation-runtime";
 import { aiSettings } from "@/lib/ai-limits-server";
 import { firmThreadInfo } from "@/lib/firm-plans-server";
@@ -14,6 +14,8 @@ const connection = () => { if (!database) { const raw = db(); database = { prepa
 export async function GET(request: Request) {
   const user = await currentUser(request);
   if (!user) return error("Giriş gerekli.", 401);
+  // ?quota=1: the member's monthly message translation allowance (bar above Mesajlar); administrators have none.
+  if (new URL(request.url).searchParams.get("quota") === "1") return ok({ quota: isAdmin(user) ? null : await messageQuota(db() as never, user.id, messageQuotaMessages(env as never)) }, { headers: { "Cache-Control": "no-store" } });
   try {
     const result = await chatGet(connection(), { id: user.id, admin: isAdmin(user) }, new URL(request.url).searchParams);
     // Firm threads (lib/firm-plans.ts) carry the firm's name and page instead of a listing.
@@ -33,7 +35,11 @@ export async function POST(request: Request) {
   let data: Record<string, unknown>;
   try { data = await body(request); } catch { return error("Geçersiz istek."); }
   if (data.action === "translate") {
-    try { return ok(await translateMessages(db() as never, (serviceDB() ?? undefined) as never, await aiSettings(), user.id, data.ids, data.locale), { headers: { "Cache-Control": "no-store" } }); }
+    try {
+      const limit = isAdmin(user) ? null : messageQuotaMessages(env as never);
+      const result = await translateMessages(db() as never, (serviceDB() ?? undefined) as never, await aiSettings(), user.id, data.ids, data.locale, limit === null ? null : { messages: limit });
+      return ok({ ...result, quota: limit === null ? null : await messageQuota(db() as never, user.id, limit) }, { headers: { "Cache-Control": "no-store" } });
+    }
     catch (cause) { if (cause instanceof MessageTranslationError) return error(cause.message, cause.status); throw cause; }
   }
   if(data.action!=='read'&&!user.email_verified)return error('Mesaj göndermek için önce e-posta adresinizi doğrulayın. Hesabım bölümünden doğrulayabilirsiniz.',403);

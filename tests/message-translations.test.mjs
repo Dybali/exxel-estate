@@ -50,3 +50,19 @@ test('missing configuration does no work and invalid input is rejected',async()=
  assert.equal((await translateMessages(db,usage,{},owner,[id(10)],'tr')).status,'unavailable');assert.equal((await translateMessages(db,undefined,settings,owner,[id(10)],'tr')).status,'unavailable');
  for(const [ids,locale] of [[[id(10)],'xx'],[['not-an-id'],'tr'],[[],'tr'],[Array.from({length:21},(_,n)=>id(100+n)),'tr'],['x','tr']])await assert.rejects(()=>translateMessages(db,usage,settings,owner,ids,locale),e=>e instanceof MessageTranslationError&&e.status===400);
 });});
+test('monthly allowance: 150 messages of 5 words each, only real translations count, then originals until next month',async()=>{const {db,usage}=setup(),calls=[];await withFetch(provider(calls),async()=>{
+ const {messageQuota,messageWords,quotaResetsAt,quotaMonth}=load('lib/message-translations.ts');
+ assert.equal(messageWords('Guten Tag, ist die Wohnung noch verfügbar?'),7);assert.equal(messageWords('👍 123'),1);
+ // Istanbul month: 23:30 UTC on 30 November is already December in Türkiye.
+ assert.equal(quotaMonth(new Date('2026-11-30T21:30:00Z')),'2026-12');assert.equal(quotaResetsAt(new Date('2026-11-25T10:00:00Z')),'2026-11-30T21:00:00.000Z');
+ const at=new Date('2026-11-25T10:00:00Z');
+ // A 1-message allowance (5 words): the 7-word German message is translated and uses it up.
+ const first=await translateMessages(db,usage,settings,owner,[id(10)],'tr',{messages:1,at});assert.equal(first.status,'ready');assert.ok(first.translations[id(10)]);
+ let q=await messageQuota(db,owner,1,at);assert.equal(q.used,1);assert.equal(q.remaining,0);
+ // Stored translations stay free; a new message is refused while the allowance is used.
+ assert.equal((await translateMessages(db,usage,settings,owner,[id(10)],'tr',{messages:1,at})).status,'ready');
+ assert.equal((await translateMessages(db,usage,settings,owner,[id(10)],'en',{messages:1,at})).status,'quota');assert.equal(calls.length,1);
+ // Next month the allowance is back.
+ const next=new Date('2026-12-02T10:00:00Z');q=await messageQuota(db,owner,1,next);assert.equal(q.remaining,1);
+ assert.equal((await translateMessages(db,usage,settings,owner,[id(10)],'en',{messages:1,at:next})).status,'ready');
+});});

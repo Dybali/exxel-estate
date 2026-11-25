@@ -4,7 +4,7 @@ import Link from "@/components/SafeLink";
 import { ArrowUpRight, Check, CheckCheck, ChevronLeft, Languages, Mail, MessageCircle, RefreshCw, Search, Send, ShieldCheck } from "lucide-react";
 import { whatsappHref } from "@/lib/phone";
 import { useLocale } from "@/lib/i18n";
-import type { MessageTranslation } from "@/lib/message-translations";
+import type { MessageQuota, MessageTranslation } from "@/lib/message-translations";
 import { sendTyping, useLiveEvents } from "@/lib/live-client";
 const TRANSLATION_BATCH = 20; // MESSAGE_TRANSLATION_BATCH on the server
 export type Conversation = { id: string; listing_id: string; peer_id: string; peer_name: string; peer_role?: string; peer_company?: string; peer_whatsapp_phone?:string|null; listing_title: string; listing_status: string | null; firm_path?: string; sender_id: string; last_body: string; last_at: string; unread_count?: number };
@@ -12,6 +12,20 @@ export type MessageRecipient = { id: string; name: string; role?: string; compan
 type ThreadMessage = { id: string; listing_id: string; sender_id: string; recipient_id: string; body: string; created_at: string; read_at?: string | null };
 const keyOf = (c: Conversation) => `${c.listing_id}:${c.peer_id}`;
 const merge = (old: ThreadMessage[], next: ThreadMessage[]) => [...new Map([...old, ...next].map(m => [m.id, m])).values()].sort((a,b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id));
+/** Monthly translation allowance above Mesajlar (lib/message-translations.ts): a bar that shrinks with every
+ * translated message, amber under 30 % and red under 10 %; at zero, messages stay in their original language. */
+function TranslationQuotaBar({ quota }: { quota: MessageQuota }) {
+  const { t, locale } = useLocale();
+  const share = quota.limit ? quota.remaining / quota.limit : 0, level = share <= 0.1 ? "low" : share <= 0.3 ? "mid" : "ok";
+  const reset = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(new Date(quota.resetsAt));
+  return <div className={`message-quota level-${level}`} role="status">
+    <div className="message-quota-text"><Languages size={15} aria-hidden="true"/>
+      <span>{quota.remaining > 0 ? <>{t("Bu ay kalan çeviri hakkınız")}: <strong>{t("{n} / {all} mesaj").replace("{n}", String(quota.remaining)).replace("{all}", String(quota.limit))}</strong></> : <strong>{t("Bu ayki çeviri hakkınız doldu")}</strong>}</span>
+      <small>{quota.remaining > 0 ? t("{date} tarihinde yenilenir").replace("{date}", reset) : t("Mesajlar orijinal dilinde gösterilir; hakkınız {date} tarihinde yenilenir.").replace("{date}", reset)}</small>
+    </div>
+    <div className="message-quota-track" role="progressbar" aria-valuemin={0} aria-valuemax={quota.limit} aria-valuenow={quota.remaining} aria-label={t("Kalan çeviri hakkı")}><span style={{ width: `${Math.max(0, Math.min(100, share * 100))}%` }}/></div>
+  </div>;
+}
 async function jsonResponse(response: Response) {
   const data = await response.json() as { error?: string; message?: string; conversations?: Conversation[]; messages?: ThreadMessage[]; hasMore?: boolean; unreadTotal?: number; id?: string; createdAt?: string };
   if (!response.ok) throw new Error(data.error || data.message || "İşlem tamamlanamadı. Yeniden deneyin.");
@@ -28,6 +42,8 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
   const drafts = useRef(new Map<string,string>()), retries = useRef(new Map<string,{ body: string; id: string }>());
   // Incoming messages are shown in the reader's site language; keys are `${locale}:${messageId}`.
   const [translations, setTranslations] = useState<Record<string, MessageTranslation>>({}), [originals, setOriginals] = useState<Set<string>>(() => new Set());
+  const [quota, setQuota] = useState<MessageQuota | null>(null);
+  useEffect(() => { if (adminMode) return; let alive = true; fetch("/api/messages?quota=1", { cache: "no-store" }).then(r => r.ok ? r.json() as Promise<{ quota?: MessageQuota | null }> : null).then(d => { if (alive && d) setQuota(d.quota || null); }).catch(() => {}); return () => { alive = false; }; }, [adminMode]);
   const requested = useRef(new Set<string>());
   const loadedPage = useRef(1);
   const selectedRef = useRef(selectedKey), bottom = useRef<HTMLDivElement>(null), pane = useRef<HTMLDivElement>(null), composer = useRef<HTMLTextAreaElement>(null);
@@ -99,8 +115,9 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
       const ids = pending.slice(i, i + TRANSLATION_BATCH);
       fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "translate", ids, locale }) })
         .then(async response => {
-          const data = await response.json() as { status?: string; translations?: Record<string, MessageTranslation> };
+          const data = await response.json() as { status?: string; translations?: Record<string, MessageTranslation>; quota?: MessageQuota | null };
           if (!response.ok) return;
+          if (data.quota) setQuota(data.quota);
           setTranslations(old => ({ ...old, ...Object.fromEntries(Object.entries(data.translations || {}).map(([id, value]) => [`${locale}:${id}`, value])) }));
           // A busy provider is retried on the next refresh; other outcomes are final for this page view.
           if (data.status === "pending") ids.forEach(id => requested.current.delete(`${locale}:${id}`));
@@ -130,7 +147,7 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
     } catch(cause){if(selectedRef.current===key)setError(cause instanceof Error?cause.message:"Mesaj gönderilemedi. Taslağınız korunuyor.");} finally {setSending(false);}
   }
   const visible = all.filter(c => (!unreadOnly || Number(c.unread_count)>0) && `${c.peer_name} ${c.peer_company || ""} ${c.listing_title} ${c.last_body}`.toLocaleLowerCase(locale).includes(search.toLocaleLowerCase(locale)));
-  return <div className={`inbox message-center ${selected ? "has-selection" : ""}`} aria-label={t("Mesaj kutusu")}>
+  return <>{quota && <TranslationQuotaBar quota={quota}/>}<div className={`inbox message-center ${selected ? "has-selection" : ""}`} aria-label={t("Mesaj kutusu")}>
     <aside className="inbox-conversations"><div className="inbox-list-head"><strong>{t("Görüşmeler")}</strong><button type="button" onClick={()=>refreshConversations()} aria-label={t("Görüşmeleri yenile")}><RefreshCw size={16}/></button></div>
       <label className="message-search"><Search size={16}/><input aria-label={t("Görüşmelerde ara")} value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("Kişi veya görüşme ara")}/></label>
       <div className="message-filters"><button className={!unreadOnly?"active":""} onClick={()=>setUnreadOnly(false)}>{t("Tümü")}</button><button className={unreadOnly?"active":""} onClick={()=>setUnreadOnly(true)}>{t("Okunmamış")}</button></div>
@@ -144,7 +161,7 @@ export function MessagesInbox({ userId, initialConversations, adminMode = false,
       {selected.listing_status ? <div className="message-compose-wrap">{adminMode&&<div className="message-templates" aria-label={t("Mesaj şablonları")}>{["İlan düzenleme","Evrak talebi","Onay bilgisi"].map((label,i)=><button key={label} onClick={()=>{const templates=["Merhaba, ilanınızı incelememiz sırasında bazı bilgilerin güncellenmesi gerektiğini gördük. Lütfen aşağıdaki noktaları düzenleyip bize bilgi verin:\n\n","Merhaba, hesabınızın incelemesini tamamlayabilmemiz için eksik evraklar hakkında sizinle iletişime geçiyoruz. Lütfen aşağıdaki bilgileri kontrol edin:\n\n","Merhaba, hesabınız / ilanınız için inceleme süreciyle ilgili size bilgi vermek istiyoruz:\n\n"];setDraft(old=>old?old+"\n\n"+templates[i]:templates[i]);composer.current?.focus();}}>{t(label)}</button>)}</div>}<form className="inbox-compose" onSubmit={send}><label htmlFor={adminMode?"admin-message-draft":"inbox-draft"} className="sr-only">{t("Mesajınız")}</label><textarea ref={composer} id={adminMode?"admin-message-draft":"inbox-draft"} value={draft} disabled={sending} onChange={e=>{setDraft(e.target.value);if(e.target.value.trim()&&!support)sendTyping(selected.listing_id,selected.peer_id);}} onKeyDown={e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();send();}}} minLength={2} maxLength={2000} rows={3} placeholder={t("Mesajınızı yazın…")} required/><button type="submit" disabled={sending||draft.trim().length<2||loading} aria-label={t("Mesaj gönder")}><Send size={18}/><span>{t(sending?"Gönderiliyor…":"Gönder")}</span></button></form><div className="message-compose-meta"><span>{t("Ctrl / ⌘ + Enter ile gönder")}</span><span>{draft.length}/2000</span></div></div>:<p className="inbox-muted">{t("Bu ilan artık mevcut değil. Yeni mesaj gönderilemez.")}</p>}
       {error&&<div className="message-send-error" role="alert"><span>{t(error)}</span><button onClick={()=>setRefresh(n=>n+1)}>{t("Yeniden yükle")}</button></div>}
     </section>:<div className="message-no-selection"><Mail size={40}/><h3>{t(adminMode?"Mesaj merkezi":"Mesajlarınız")}</h3><p>{t(adminMode?"Bir görüşme seçin veya yeni mesaj için bir alıcı bulun.":"Konuşma geçmişini görmek ve yanıtlamak için bir görüşme seçin.")}</p><small>{t(live?"Yeni mesajlar anında görünür.":"Görüşmeler açıkken otomatik yenilenir.")}</small></div>}
-  </div>;
+  </div></>;
 }
 
 
