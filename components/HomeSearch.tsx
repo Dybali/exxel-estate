@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {createPortal} from 'react-dom';
 import {Search,MapPin,House,Building2,LandPlot,Building,CalendarDays,Hotel,SlidersHorizontal,ChevronDown,Check} from 'lucide-react';
 import {CITIES,PROPERTY_TYPES} from '@/lib/listings';
 import {PROPERTY_CATEGORIES,purposeLabel} from '@/lib/property-categories';
@@ -10,7 +11,8 @@ import {useLocale} from '@/lib/i18n';
 const icons=[House,Building2,LandPlot,Building,CalendarDays,Hotel];
 // Room count accepts several values ("1+1,2+1"), like the sidebar on /ilanlar (lib/search-categories.ts reads the list).
 // The search box clips its content (rounded corners), so the panel is placed with position:fixed under the button
-// and follows it when the page scrolls or resizes.
+// and follows it when the page scrolls or resizes. It is rendered into <body> so no card or section below the
+// search box can cover it (2026-11-25: it slipped under the Emlak piyasası card).
 function RoomsPicker({value,onChange}:{value:string;onChange:(value:string)=>void}){
  const {t}=useLocale();const [open,setOpen]=useState(false),[place,setPlace]=useState<{top:number;left:number;width:number}|null>(null);
  const button=useRef<HTMLButtonElement>(null),panel=useRef<HTMLDivElement>(null);
@@ -29,11 +31,11 @@ function RoomsPicker({value,onChange}:{value:string;onChange:(value:string)=>voi
  },[open]);
  return <div className="rooms-picker"><span id="rooms-picker-label">{t("Oda sayısı")}</span>
   <button ref={button} type="button" className={`rooms-picker-button${chosen.length?" chosen":""}`} aria-haspopup="true" aria-expanded={open} aria-labelledby="rooms-picker-label rooms-picker-value" onClick={()=>open?setOpen(false):show()}><span id="rooms-picker-value">{summary}</span><ChevronDown size={16} aria-hidden="true"/></button>
-  {open&&place&&<div ref={panel} className="rooms-picker-panel" role="group" aria-label={t("Oda sayısı")} style={{top:place.top,left:place.left,width:place.width}}>
+  {open&&place&&createPortal(<div ref={panel} className="rooms-picker-panel" role="group" aria-label={t("Oda sayısı")} style={{top:place.top,left:place.left,width:place.width}}>
    <p>{t("Birden fazla seçebilirsiniz")}</p>
    <div className="rooms-picker-options">{ROOM_OPTIONS.map(v=><label key={v} className={chosen.includes(v)?"on":""}><input type="checkbox" checked={chosen.includes(v)} onChange={()=>toggle(v)}/>{chosen.includes(v)&&<Check size={13} aria-hidden="true"/>}{label(v)}</label>)}</div>
    <div className="rooms-picker-actions"><button type="button" onClick={()=>onChange("")} disabled={!chosen.length}>{t("Temizle")}</button><button type="button" className="done" onClick={()=>{setOpen(false);button.current?.focus();}}>{t("Tamam")}</button></div>
-  </div>}
+  </div>,document.body)}
  </div>;
 }
 type Values=Partial<Record<SearchFieldKey,string>>;
