@@ -34,7 +34,7 @@ async function addVideo(db,owner,{size=40*MB,at=new Date('2026-11-04T10:00:00Z')
 const sqlFiles={pg:read('postgres/migrations/019_listing_videos.sql'),sqlite:read('drizzle/0026_listing_videos.sql')};
 
 test('shared helpers: ids, part sizes, container sniffing, stream peeking and exact length',async()=>{
- assert.equal(shared.MAX_VIDEO_BYTES,1024*MB);assert.equal(shared.MAX_VIDEO_SECONDS,180);assert.equal(shared.VIDEO_CHUNK_BYTES,16*MB);
+ assert.equal(shared.MAX_VIDEO_BYTES,650*MB);assert.equal(shared.MAX_VIDEO_SECONDS,90);assert.equal(shared.VIDEO_CHUNK_BYTES,16*MB);
  assert.ok(shared.validVideoId(uuid()));assert.equal(shared.validVideoId('a'.repeat(32)),false);assert.equal(shared.validVideoId('../x'),false);
  assert.equal(shared.videoPartCount(1),1);assert.equal(shared.videoPartCount(16*MB),1);assert.equal(shared.videoPartCount(16*MB+1),2);assert.equal(shared.videoPartCount(1024*MB),64);
  assert.equal(shared.videoPartLength(40*MB,1),16*MB);assert.equal(shared.videoPartLength(40*MB,3),8*MB);assert.equal(shared.videoPartLength(40*MB,4),0);assert.equal(shared.videoPartLength(40*MB,0),0);assert.equal(shared.videoPartLength(40*MB,1.5),0);
@@ -181,7 +181,7 @@ test('upload API: availability, auth, limits, sniffing, ownership, resume and co
  const {route,woken}=uploadRoute({db,user:owner,storage});
  assert.equal((await route.POST(json('POST',{size:10},{Origin:'https://evil.test'}))).status,403);
  assert.equal((await uploadRoute({db,user:{id:'x',role:'buyer'},storage}).route.POST(json('POST',{size:10}))).status,403);
- const big=await route.POST(json('POST',{size:1024*MB+1}));assert.equal(big.status,400);assert.match((await big.json()).error,/1 GB/);
+ const big=await route.POST(json('POST',{size:650*MB+1}));assert.equal(big.status,400);assert.match((await big.json()).error,/650 MB/);
  assert.equal((await route.POST(json('POST',{size:0}))).status,400);
  const size=16*MB+100,start=await route.POST(json('POST',{size,type:'video/quicktime'}));assert.equal(start.status,201);
  const {id,chunkSize,parts}=await start.json();assert.ok(shared.validVideoId(id));assert.equal(chunkSize,16*MB);assert.equal(parts,2);
@@ -255,7 +255,7 @@ test('ffmpeg arguments: H.264 High/AAC, 720p box without upscaling, faststart, C
  const args=transcode.transcodeArgs('/tmp/in','/tmp/out.mp4'),joined=args.join(' ');
  for(const part of ['-c:v libx264','-profile:v high','-crf 23','-maxrate 3M','-bufsize 6M','-c:a aac','-b:a 128k','-movflags +faststart','-map 0:a:0?','-map_metadata -1','-fpsmax 30','-nostdin','-filter_threads 1'])assert.ok(joined.includes(part),part);
  assert.equal(args.filter(a=>a==='-threads').length,2);assert.equal(args[args.indexOf('-threads')+1],'2');
- assert.equal(args[args.indexOf('-t')+1],'181');assert.equal(args.at(-1),'/tmp/out.mp4');assert.equal(args[args.indexOf('-i')+1],'/tmp/in');
+ assert.equal(args[args.indexOf('-t')+1],'91');assert.equal(args.at(-1),'/tmp/out.mp4');assert.equal(args[args.indexOf('-i')+1],'/tmp/in');
  const filter=args[args.indexOf('-vf')+1];
  assert.equal(filter,"scale=w='min(iw,if(gte(iw,ih),1280,720))':h='min(ih,if(gte(iw,ih),720,1280))':force_original_aspect_ratio=decrease:force_divisible_by=2,format=yuv420p");
  const poster=transcode.posterArgs('/tmp/out.mp4','/tmp/poster.jpg',2);assert.deepEqual(poster.slice(poster.indexOf('-ss'),poster.indexOf('-ss')+2),['-ss','0.50']);assert.ok(poster.join(' ').includes('-frames:v 1'));
@@ -296,8 +296,8 @@ test('job processing with a fake ffmpeg: ready, too long, unreadable, temporary 
   assert.deepEqual(storage.log.at(-1),['deleteRaw',job.raw_key]);
   let row=await store.videoById(db,job.id);assert.equal(row.status,'ready');assert.equal(row.width,1280);assert.equal(row.height,720);assert.equal(row.duration_seconds,42.3);assert.equal(row.mp4_key,`videos/${job.id}/video.mp4`);
   assert.deepEqual(readdirSync(tmp),[]);
-  // Longer than 3 minutes (ffprobe decides): failed with a readable message, raw deleted, ffmpeg never run.
-  job=await claimedJob(db);storage=jobStorage();fake=fakeSpawn(()=>({stdout:probeJson(181.5)}));
+  // Longer than 1.5 minutes (ffprobe decides): failed with a readable message, raw deleted, ffmpeg never run.
+  job=await claimedJob(db);storage=jobStorage();fake=fakeSpawn(()=>({stdout:probeJson(91.5)}));
   assert.equal(await transcode.processVideoJob(job,{db,storage,spawn:fake.spawn,tmpRoot:tmp}),'failed');
   row=await store.videoById(db,job.id);assert.equal(row.status,'failed');assert.equal(row.error,transcode.VIDEO_ERRORS.tooLong);
   assert.deepEqual(fake.calls.map(c=>c[0]),['ffprobe']);assert.ok(storage.log.some(e=>e[0]==='deleteRaw'));assert.deepEqual(readdirSync(tmp),[]);

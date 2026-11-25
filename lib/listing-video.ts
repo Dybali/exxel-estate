@@ -1,8 +1,9 @@
 // Listing videos hosted by the site itself (docs/listing-videos.md): shared by the browser form and
 // the server. The browser uploads the file in chunks to /api/media/video; each chunk becomes one
 // part of an R2 multipart upload. ffmpeg on the Mittwald container then makes an MP4 and a poster.
-export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024;
-export const MAX_VIDEO_SECONDS = 180;
+// Owner's limits (2026-11-25): at most 1.5 minutes and 650 MB.
+export const MAX_VIDEO_BYTES = 650 * 1024 * 1024;
+export const MAX_VIDEO_SECONDS = 90;
 // 16 MiB: above S3's 5 MiB minimum part size, small enough to retry cheaply after a network error.
 export const VIDEO_CHUNK_BYTES = 16 * 1024 * 1024;
 export const VIDEO_STATUSES = ["uploading", "queued", "processing", "ready", "failed"] as const;

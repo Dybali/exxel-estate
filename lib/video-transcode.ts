@@ -26,7 +26,7 @@ export const TEMP_PREFIX = "exxel-video-";
 // Messages shown to the member (Turkish keys, translated in the browser).
 export const VIDEO_ERRORS = {
   unreadable: "Dosya bir video olarak okunamadı. MP4 veya MOV biçiminde bir video yükleyin.",
-  tooLong: "Video en fazla 3 dakika olabilir. Daha kısa bir video yükleyin.",
+  tooLong: "Video en fazla 1,5 dakika olabilir. Daha kısa bir video yükleyin.",
   failed: "Video işlenemedi. Başka bir video yükleyin.",
 } as const;
 

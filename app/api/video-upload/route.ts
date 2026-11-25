@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   const data = await body(request).catch(() => null) as { size?: unknown; type?: unknown } | null;
   const size = Number(data?.size);
   if (!Number.isSafeInteger(size) || size <= 0) return error("Lütfen bir video dosyası seçin.");
-  if (size > MAX_VIDEO_BYTES) return error("Video en fazla 1 GB olabilir.");
+  if (size > MAX_VIDEO_BYTES) return error("Video en fazla 650 MB olabilir.");
   const limited = await limit("start", user, 10);
   if (limited) return limited;
   const database = db() as unknown as VideoDatabase;

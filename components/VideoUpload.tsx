@@ -71,9 +71,9 @@ export function VideoUpload({value,onChange,onBusyChange}:{value?:string;onChang
  async function upload(file:File){
   setError("");
   if(!file.type.startsWith("video/")&&!VIDEO_FILE.test(file.name))return setError("Lütfen bir video dosyası seçin.");
-  if(file.size>MAX_VIDEO_BYTES)return setError("Video en fazla 1 GB olabilir.");
+  if(file.size>MAX_VIDEO_BYTES)return setError("Video en fazla 650 MB olabilir.");
   const duration=await videoDuration(file);
-  if(duration&&duration>MAX_VIDEO_SECONDS+1)return setError("Video en fazla 3 dakika olabilir. Daha kısa bir video yükleyin.");
+  if(duration&&duration>MAX_VIDEO_SECONDS+1)return setError("Video en fazla 1,5 dakika olabilir. Daha kısa bir video yükleyin.");
   await discard();
   setProgress(0);onBusyChange?.(true);
   try{
@@ -89,7 +89,7 @@ export function VideoUpload({value,onChange,onBusyChange}:{value?:string;onChang
  function remove(){const current=id;onChange("");setStatus(null);if(current)void fetch(`/api/video-upload?id=${current}`,{method:"DELETE"}).catch(()=>null);}
 
  const state=status?.status;
- return <section className="presentation-fields video-upload"><h2>{t("İlan videosu")}</h2><p>{t("Telefonunuzla çektiğiniz videoyu yükleyin: en fazla 3 dakika ve 1 GB. Video her cihazda akıcı oynaması için otomatik hazırlanır.")}</p>
+ return <section className="presentation-fields video-upload"><h2>{t("İlan videosu")}</h2><p>{t("Telefonunuzla çektiğiniz videoyu yükleyin: en fazla 1,5 dakika ve 650 MB. Video her cihazda akıcı oynaması için otomatik hazırlanır.")}</p>
   {progress!=null?<div className="video-upload-progress" role="status"><div><Film size={18}/><strong>{t("Video yükleniyor")} · %{Math.floor(progress*100)}</strong><button type="button" className="outline-button" onClick={()=>void cancel()}><X size={15}/>{t("İptal")}</button></div><progress max={1} value={progress}/></div>
   :paused?<div className="video-upload-progress" role="status"><div><Film size={18}/><strong>{t("Video yükleniyor")}</strong><button type="button" className="outline-button" onClick={()=>void uploadParts()}><RotateCw size={15}/>{t("Devam et")}</button><button type="button" className="outline-button" onClick={()=>void cancel()}><X size={15}/>{t("İptal")}</button></div></div>
   :id?<div className="video-upload-preview">
@@ -99,7 +99,7 @@ export function VideoUpload({value,onChange,onBusyChange}:{value?:string;onChang
     :<p className="video-upload-processing" role="status"><span className="spinner" aria-hidden="true"/><span><strong>{t("Video işleniyor")}</strong> · {t("İlanınızı şimdi kaydedebilirsiniz; video hazır olunca ilanda görünür.")}</span></p>}
     <div className="video-upload-actions"><button type="button" className="outline-button danger" onClick={remove}><Trash2 size={15}/>{t("Videoyu kaldır")}</button><label className="outline-button video-upload-replace"><UploadCloud size={15}/>{t("Videoyu değiştir")}<input type="file" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" onChange={e=>{const file=e.target.files?.[0];e.target.value="";if(file){remove();void upload(file);}}}/></label></div>
    </div>
-  :<label className="video-upload-drop"><UploadCloud size={26}/><strong>{t("Video seçin")}</strong><small>MP4, MOV, WEBM · {t("en fazla 3 dakika")}</small><input type="file" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" onChange={e=>{const file=e.target.files?.[0];e.target.value="";if(file)void upload(file);}}/></label>}
+  :<label className="video-upload-drop"><UploadCloud size={26}/><strong>{t("Video seçin")}</strong><small>MP4, MOV, WEBM · {t("en fazla 1,5 dakika")}</small><input type="file" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" onChange={e=>{const file=e.target.files?.[0];e.target.value="";if(file)void upload(file);}}/></label>}
   {error&&<p className="form-error" role="alert">{t(error)}</p>}
  </section>;
 }

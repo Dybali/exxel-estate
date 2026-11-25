@@ -7,7 +7,7 @@ Video yalnızca **Mittwald konteynerinde** (Node derlemesi, kendi PostgreSQL'i, 
 ## Sınırlar
 
 - İlan oluşturabilen her üye (bireysel, emlak ofisi, yönetici) yükleyebilir. İlan başına **1 yüklenmiş video**; YouTube/Vimeo bağlantısı ayrıca eklenebilir (değişmedi).
-- En fazla **3 dakika** (`MAX_VIDEO_SECONDS = 180`) ve **1 GB** (`MAX_VIDEO_BYTES`), `lib/listing-video.ts`. Süreyi tarayıcı önceden kontrol eder; asıl karar yüklemeden sonra **ffprobe**'undur, daha uzun video reddedilir.
+- En fazla **1,5 dakika** (`MAX_VIDEO_SECONDS = 90`) ve **650 MB** (`MAX_VIDEO_BYTES`; sahibinin kararı 2026-11-25, önceden 3 dakika ve 1 GB), `lib/listing-video.ts`. Süreyi tarayıcı önceden kontrol eder; asıl karar yüklemeden sonra **ffprobe**'undur, daha uzun video reddedilir.
 - Kabul edilen biçimler ilk baytlardan tanınır: MP4/MOV/M4V/3GP, WEBM/MKV, AVI. ffprobe görüntü akışı bulamazsa video reddedilir.
 - Bir üyenin ilana bağlanmamış en fazla 5 yüklemesi olabilir; istek sınırları 15 dakikada 10 yükleme başlatma ve 400 parça (`auth_limits`).
 
@@ -35,7 +35,7 @@ Video yalnızca **Mittwald konteynerinde** (Node derlemesi, kendi PostgreSQL'i, 
 - Kalite: CRF 23, üst sınır 3 Mbit/s (`-maxrate 3M -bufsize 6M`), `-preset fast`.
 - Telefonların konum (GPS) ve diğer üst verileri silinir (`-map_metadata -1`).
 - Kapak: ilk saniyeden (kısa videoda süresinin dörtte biri) bir JPEG.
-- Bir iş en fazla 20 dakika sürebilir; kilit 30 dakika. Geçici hatalarda (R2, ağ, süre aşımı) iş 5 dakika sonra yeniden denenir, en fazla 3 deneme. Dosya kaynaklı hatalar (video değil, 3 dakikadan uzun, ffmpeg başarısız) hemen "hata" olur.
+- Bir iş en fazla 20 dakika sürebilir; kilit 30 dakika. Geçici hatalarda (R2, ağ, süre aşımı) iş 5 dakika sonra yeniden denenir, en fazla 3 deneme. Dosya kaynaklı hatalar (video değil, 1,5 dakikadan uzun, ffmpeg başarısız) hemen "hata" olur.
 
 ## Veritabanı
 
@@ -46,7 +46,7 @@ Video yalnızca **Mittwald konteynerinde** (Node derlemesi, kendi PostgreSQL'i, 
 - **ffmpeg:** `Dockerfile` çalışma aşamasında `apk add --no-cache ffmpeg` (ffmpeg ve ffprobe). Başka kurulum gerekmez.
 - **R2:** Mevcut `R2_ENDPOINT`, `R2_BUCKET_NAME` (`exxel-estate-images`, MP4 ve kapak), `R2_PRIVATE_BUCKET_NAME` (varsayılan `exxel-estate-private`, ham yükleme), `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`. R2 token'ı `mittwald-site` zaten `exxel-estate-images`, `exxel-estate-private` ve `estatemarket24-backups` kovalarında okuma/yazma yetkili; yeni token veya **CORS kuralı gerekmez** (tarayıcı R2'ye doğrudan yüklemez).
 - **`VIDEO_WORKER`** (isteğe bağlı): `0` işçiyi kapatır; o zaman yükleme de kapanır. Boşsa işçi şu koşullarda açılır: Node derlemesi, TCP PostgreSQL sürücüsü (`DATABASE_URL` Neon değil), R2 ayarları, ffmpeg/ffprobe bulundu. Açılmazsa günlüğe `[video] worker skipped: <neden>` yazılır; site çalışmaya devam eder.
-- Disk: işlenen video için geçici klasörde ham dosya + MP4 kadar yer gerekir (en fazla ~1,1 GB). Kalmış geçici klasörler (`exxel-video-*`) işçi açılırken silinir.
+- Disk: işlenen video için geçici klasörde ham dosya + MP4 kadar yer gerekir (en fazla ~0,8 GB). Kalmış geçici klasörler (`exxel-video-*`) işçi açılırken silinir.
 - Cloudflare'e özel `STREAM_API_TOKEN` ve `CLOUDFLARE_ACCOUNT_ID` (Stream) artık kullanılmaz; `CLOUDFLARE_ACCOUNT_ID` `wrangler.jsonc` `vars`'tan çıkarıldı (GitHub Actions secret'ı aynı adla yayın için kalır).
 
 ## Cloudflare derlemesi
