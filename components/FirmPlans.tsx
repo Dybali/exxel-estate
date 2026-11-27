@@ -85,7 +85,7 @@ export function FirmPlans({ kind, enabled }: { kind: FirmKind; enabled: boolean 
         <div className="pricing-plan-price"><Money value={price} currency="TRY"/><small>{t(yearly ? "/ yıl" : "/ ay")}</small></div>{price > 0 && <small className="pricing-sample-label">{t("KDV dahil")}</small>}
         {mine && <p className="firm-plans-current">{t("Mevcut paketiniz")}{plan?.endsAt && <> · {t("{date} tarihine kadar").replace("{date}", date(plan.endsAt))}</>}</p>}
         {tier !== "free" && (account === null
-          ? <Link className="pricing-plan-cta" href={`/giris?mode=register&role=${kind}&next=${encodeURIComponent(here)}`}>{t("Ücretsiz kayıt ol")}</Link>
+          ? <Link className="pricing-plan-cta" href={`/giris?mode=register&role=${kind}&next=${encodeURIComponent(here)}`}>{t("Kayıt olun ve paketi alın")}</Link>
           : account?.kind === kind ? <button type="button" className="pricing-plan-cta" disabled={busy || Boolean(pending) || Boolean(created)} onClick={() => void buy(tier)}>{t(mine ? "Paketi uzat" : "Paketi al")}</button>
           : account ? <p className="firm-plans-note">{t(kind === "service" ? "Bu paket hizmet firması hesapları içindir." : "Bu paket müteahhit hesapları içindir.")}</p> : null)}
         {tier === "free" && account === null && <Link className="pricing-plan-cta" href={`/giris?mode=register&role=${kind}&next=${encodeURIComponent(kind === "service" ? "/hizmetler/panel" : "/muteahhitler/panel")}`}>{t("Ücretsiz kayıt ol")}</Link>}
@@ -94,6 +94,6 @@ export function FirmPlans({ kind, enabled }: { kind: FirmKind; enabled: boolean 
     })}</div>
     {error && <p className="form-error" role="alert">{t(error)}</p>}
     {(created || pending) && orders?.bank && <div className="firm-plans-transfer"><h2>{t("Ödeme bilgileri")}</h2><TransferDetails bank={orders.bank} order={created || pending!}/></div>}
-    <p className="firm-plans-foot">{t("Fiyatlara KDV dahil değildir. Paket istendiği an kapatılır, iptal cezası yoktur. \"Belgeli\" ve \"Doğrulanmış\" rozetleri her pakette ücretsizdir, yalnızca belgeyle verilir.")}</p>
+    <p className="firm-plans-foot">{t("Fiyatlara KDV dahildir. Paket istendiği an kapatılır, iptal cezası yoktur. \"Belgeli\" ve \"Doğrulanmış\" rozetleri her pakette ücretsizdir, yalnızca belgeyle verilir.")}</p>
   </section>;
 }

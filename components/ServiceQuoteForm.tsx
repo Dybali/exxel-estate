@@ -62,7 +62,7 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
         {done !== null ? <div className="svc-quote-done" role="status">
           <CheckCircle2 size={34} aria-hidden="true"/>
           <h2>{t("Talebiniz gönderildi")}</h2>
-          <p>{t("Talebiniz {n} firmaya iletildi. Gelen teklifleri e-posta ile haber veririz; hepsini Hesabım › Teklif taleplerim bölümünde karşılaştırabilirsiniz.").replace("{n}", String(done))}</p>
+          <p>{done > 0 ? t("Talebiniz {n} firmaya iletildi. Gelen teklifleri e-posta ile haber veririz; hepsini Hesabım › Teklif taleplerim bölümünde karşılaştırabilirsiniz.").replace("{n}", String(done)) : t("Talebiniz kaydedildi. Bu hizmet ve bölgede henüz onaylı firma yok; 30 gün içinde bölgenizde onaylanan firmalara otomatik iletilir ve gelen teklifleri e-posta ile haber veririz.")}</p>
           <div className="project-editor-actions"><Link className="btn btn-primary" href="/hesabim?tab=teklifler">{t("Teklif taleplerim")}<ArrowRight size={16} aria-hidden="true"/></Link><Link className="btn btn-secondary" href={SERVICE_BASE}>{t("Hizmetlere dön")}</Link></div>
         </div>
         : account === undefined ? <p>{t("Yükleniyor...")}</p>

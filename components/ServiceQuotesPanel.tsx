@@ -49,7 +49,7 @@ export function ServiceQuotesPanel() {
       return <article key={request.id} className={`svc-quote-card status-${request.status}`}>
         <header>
           <div><h3>{category ? t(category.name) : request.category} · {place}</h3>
-            <p className="svc-inbox-meta">{date(request.createdAt)} · {t(QUOTE_TIMINGS[request.timing])} · {t("{n} firmaya gönderildi, {m} firma gördü").replace("{n}", String(request.recipients)).replace("{m}", String(request.seen))}</p></div>
+            <p className="svc-inbox-meta">{date(request.createdAt)} · {t(QUOTE_TIMINGS[request.timing])} · {request.recipients ? t("{n} firmaya gönderildi, {m} firma gördü").replace("{n}", String(request.recipients)).replace("{m}", String(request.seen)) : t("Bölgenizde firma onaylandığında iletilecek")}</p></div>
           <span className={`service-status status-${open ? "approved" : request.status === "accepted" ? "approved" : "pending"}`}>{t(QUOTE_STATUS_LABELS[request.status])}</span>
         </header>
         <details><summary>{t("Talebiniz")}</summary><p className="svc-inbox-text" dir="auto">{request.description}</p></details>

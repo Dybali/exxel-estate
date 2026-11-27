@@ -77,11 +77,12 @@ export function ServicesLanding({ counts, featured, newest, stats, sampleCounts 
     </header>
 
     <div className="container">
-      <dl className="svc-stats">
+      {/* Figures appear once there are approved firms; "0 firms, 0 / 81 provinces" only makes the section look empty. */}
+      {stats.firms > 0 && <dl className="svc-stats">
         <div><dt>{t("Onaylı firma")}</dt><dd>{number(stats.firms)}</dd></div>
         <div><dt>{t("Hizmet kategorisi")}</dt><dd>{number(SERVICE_CATEGORIES.length)}</dd></div>
         <div><dt>{t("Hizmet verilen il")}</dt><dd>{number(stats.cities)}<small> / 81</small></dd></div>
-      </dl>
+      </dl>}
     </div>
 
     <div className="container services-groups">
@@ -95,11 +96,12 @@ export function ServicesLanding({ counts, featured, newest, stats, sampleCounts 
           return <li key={category.slug}><Link href={servicePath(category.slug)} className="services-tile">
             <span className="services-tile-icon"><ServiceIcon name={category.icon}/></span>
             <span className="services-tile-text"><strong>{t(category.name)}</strong><small>{t(category.description)}</small>
-              <em className={count ? "has-firms" : ""}>{count ? t("{n} onaylı firma").replace("{n}", number(count)) : t("Bu kategoride ilk firma siz olun")}</em>
+              {count > 0 && <em className="has-firms">{t("{n} onaylı firma").replace("{n}", number(count))}</em>}
               {samples > 0 && <span className="svc-sample-count">{t("{n} örnek firma").replace("{n}", number(samples))}</span>}</span>
             <ArrowRight className="services-tile-arrow" size={17} aria-hidden="true"/>
           </Link></li>;
         })}</ul>
+        {categoriesOf(group.id).length > 4 && <Link href={groupSearchHref(group.id)} className="svc-more svc-more-phone">{t("Tümünü gör")}<ArrowRight size={15} aria-hidden="true"/></Link>}
       </section>)}
     </div>
 

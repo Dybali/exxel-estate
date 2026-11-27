@@ -225,8 +225,9 @@ export async function createQuoteRequest(db: ServiceDatabase, userId: string, in
     if (String(firm.owner_id) === userId) throw new ServiceError("Kendi firmanızdan teklif isteyemezsiniz.");
     recipients = [{ id: String(firm.id), ownerId: String(firm.owner_id), name: String(firm.name) }];
   } else {
+    // No approved firm in the place yet: the request is still saved and stays open; firms approved there later
+    // receive it (deliverWaitingQuotes), so a member is never turned away after filling in the form.
     recipients = await matchingFirms(db, request.category, request.city, request.district, userId);
-    if (!recipients.length) throw new ServiceError("Bu hizmet ve bölge için henüz kayıtlı firma yok. İlçe yerine tüm ili seçmeyi veya yakın bir kategoriyi deneyin.", 404);
   }
   const id = crypto.randomUUID(), stamp = at.toISOString(), expires = new Date(at.getTime() + QUOTE_LIMITS.days * 86400_000).toISOString();
   await db.prepare("INSERT INTO service_quote_requests(id,user_id,name,email,phone,share_contact,category,city,district,description,timing,firm_id,status,created_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,'open',?,?)")
@@ -237,6 +238,30 @@ export async function createQuoteRequest(db: ServiceDatabase, userId: string, in
   }
   return { id, request, recipients };
 }
+
+/**
+ * Open, unexpired requests without a chosen firm that match a newly approved firm (category and area, a firm covering
+ * the whole province reaches district requests) and still have room for recipients: the firm is added as a recipient.
+ * Returns the requests the firm received, for the e-mail.
+ */
+export async function deliverWaitingQuotes(db: ServiceDatabase, firmId: string, at = new Date()) {
+  const firm = await db.prepare("SELECT id,owner_id,name FROM service_firms WHERE id=? AND status='approved'").bind(firmId).first<Row>();
+  if (!firm) return { firm: null, requests: [] as QuoteSummaryInput[] };
+  const stamp = at.toISOString();
+  const rows = (await db.prepare(`SELECT r.id AS id,r.category AS category,r.city AS city,r.district AS district,r.description AS description,r.timing AS timing FROM service_quote_requests r
+    WHERE r.status='open' AND r.firm_id IS NULL AND r.expires_at>? AND r.user_id<>?
+    AND EXISTS(SELECT 1 FROM service_firm_categories c WHERE c.firm_id=? AND c.category=r.category)
+    AND EXISTS(SELECT 1 FROM service_firm_areas a WHERE a.firm_id=? AND a.city=r.city AND (a.district='' OR r.district='' OR a.district=r.district))
+    AND NOT EXISTS(SELECT 1 FROM service_quote_recipients q WHERE q.request_id=r.id AND q.firm_id=?)
+    AND (SELECT COUNT(*) FROM service_quote_recipients q WHERE q.request_id=r.id)<?
+    ORDER BY r.created_at ASC LIMIT 50`).bind(stamp, String(firm.owner_id), firmId, firmId, firmId, QUOTE_LIMITS.recipients).all<Row>()).results || [];
+  for (const row of rows) {
+    await db.prepare("INSERT INTO service_quote_recipients(request_id,firm_id,state,created_at) VALUES(?,?,'new',?)").bind(String(row.id), firmId, stamp).run();
+    await countStat(db, firmId, "quote", at);
+  }
+  return { firm: { id: String(firm.id), ownerId: String(firm.owner_id), name: String(firm.name) }, requests: rows.map((row) => ({ category: row.category as ServiceSlug, city: String(row.city), district: String(row.district || ""), description: String(row.description), timing: row.timing as QuoteTiming })) };
+}
+type QuoteSummaryInput = { category: ServiceSlug; city: string; district: string; description: string; timing: QuoteTiming };
 
 const quoteStatus = (row: Row, at: Date): QuoteStatus => {
   if (String(row.status) === "accepted") return "accepted";

@@ -86,6 +86,22 @@ test('statistics: only approved firms are counted, per Istanbul day, with the pr
  assert.equal(await X.trackFirm(db,firm,'view',at),false,'suspended firms are not counted');
 });
 
+test('quote requests with no firm in the area are kept and reach a firm approved there later, once, while open',async()=>{
+ const {db}=fixture();
+ const cleaner=await approvedFirm(db,'cleaner-owner',{categories:['temizlik'],areas:[{city:'Muğla',district:''}]});
+ const waiting=await X.createQuoteRequest(db,customer,quote({category:'havuz-bakimi'}),new Date('2026-11-09T08:00:00Z'));
+ assert.equal(waiting.recipients.length,0,'saved without recipients instead of being refused');
+ const pool=await approvedFirm(db,owner,{categories:['havuz-bakimi'],areas:[{city:'Muğla',district:''}]});
+ const got=await X.deliverWaitingQuotes(db,pool,new Date('2026-11-10T08:00:00Z'));
+ assert.equal(got.firm.id,pool);assert.deepEqual(got.requests.map(r=>r.category),['havuz-bakimi']);
+ assert.equal((await X.deliverWaitingQuotes(db,pool,new Date('2026-11-11T08:00:00Z'))).requests.length,0,'not delivered twice');
+ const own=await approvedFirm(db,customer,{name:'Elif Havuz',categories:['havuz-bakimi'],areas:[{city:'Muğla',district:''}]});
+ assert.equal((await X.deliverWaitingQuotes(db,own,new Date('2026-11-11T08:00:00Z'))).requests.length,0,'never to the requester’s own firm');
+ const late=await approvedFirm(db,other,{categories:['havuz-bakimi'],areas:[{city:'Muğla',district:''}]});
+ assert.equal((await X.deliverWaitingQuotes(db,late,new Date('2026-12-20T08:00:00Z'))).requests.length,0,'expired requests stay closed');
+ assert.equal((await X.deliverWaitingQuotes(db,cleaner,new Date('2026-11-11T08:00:00Z'))).requests.length,0,'other categories do not get it');
+});
+
 test('quote requests: validation, matching firms, one firm directly, daily limit, offers, acceptance and contact sharing',async()=>{
  const {db}=fixture();
  const painter=await approvedFirm(db,owner,{areas:[{city:'Muğla',district:''}]});// whole province
@@ -93,7 +109,6 @@ test('quote requests: validation, matching firms, one firm directly, daily limit
  const own=await approvedFirm(db,customer,{name:'Elif Boya',categories:['boyaci-badanaci']});// the customer's own firm is never a recipient
  for(const [extra,pattern] of [[{consent:false},/onaylayın/],[{description:'kısa'},/20/],[{category:'nope'},/kategorisini/],[{city:'Atlantis'},/il ve ilçeyi/],[{email:'x'},/e-posta/],[{name:''},/Adınızı/],[{phone:'12'},/telefon/],[{firmId:'nope'},/bulunamadı/]])
   await rejects(X.createQuoteRequest(db,customer,quote(extra)),extra.firmId?404:400,pattern);
- await rejects(X.createQuoteRequest(db,customer,quote({category:'havuz-bakimi'})),404,/henüz kayıtlı firma yok/);
  const at=new Date('2026-11-09T08:00:00Z');
  const made=await X.createQuoteRequest(db,customer,quote(),at);
  assert.deepEqual(made.recipients.map(r=>r.id),[painter],'district request reaches the province-wide painter, not the cleaner or the own firm');

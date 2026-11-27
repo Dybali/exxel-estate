@@ -101,11 +101,11 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
     </header>
 
     <div className="container">
-      <dl className="svc-stats">
+      {stats.firms > 0 && <dl className="svc-stats">
         <div><dt>{t("Onaylı müteahhit")}</dt><dd>{number(stats.firms)}</dd></div>
         <div><dt>{t("Tamamlanan proje")}</dt><dd>{number(stats.projects)}</dd></div>
         <div><dt>{t("Çalışılan il")}</dt><dd>{number(stats.cities)}<small> / 81</small></dd></div>
-      </dl>
+      </dl>}
     </div>
 
     {/* For land owners, kept apart from the contractor sign-up invitation at the bottom (owner's request 2026-11-27). */}

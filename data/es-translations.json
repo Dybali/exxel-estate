@@ -1314,7 +1314,7 @@
  "Fiyatlar": "Precios",
  "Fiyatlar belirlenene kadar paket işlemleri kapalıdır. Emlakçılar paket olmadan ilan verebilir.": "Las operaciones con paquetes están desactivadas hasta que se establezcan los precios. Los agentes inmobiliarios pueden publicar anuncios sin paquete.",
  "Fiyatlar henüz belirlenmedi. Emlakçılar belge ve hesap onayından sonra paket almadan ilan yayımlayabilir.": "Los precios aún no se han definido. Los agentes inmobiliarios pueden publicar anuncios sin contratar un paquete tras la aprobación de la cuenta y los documentos.",
- "Fiyatlara KDV dahil değildir. Paket istendiği an kapatılır, iptal cezası yoktur. \"Belgeli\" ve \"Doğrulanmış\" rozetleri her pakette ücretsizdir, yalnızca belgeyle verilir.": "Los precios no incluyen KDV. Puede cancelar el paquete en cualquier momento sin penalización. Las insignias \"Documentado\" y \"Verificado\" son gratuitas en todos los paquetes y solo se conceden previa presentación de un documento.",
+ "Fiyatlara KDV dahildir. Paket istendiği an kapatılır, iptal cezası yoktur. \"Belgeli\" ve \"Doğrulanmış\" rozetleri her pakette ücretsizdir, yalnızca belgeyle verilir.": "Los precios incluyen el IVA. Puede cancelar el paquete en cualquier momento sin penalización. Las insignias \"Documentado\" y \"Verificado\" son gratuitas en todos los paquetes y solo se conceden previa presentación de un documento.",
  "Fiyatları, belgeleri ve firma profillerini yan yana görün; size uyanı kabul edin.": "Consulte los precios, documentos y perfiles de las empresas, y acepte el que más le convenga.",
  "Fiyatların gösterileceği para birimi. İlan bedeli TL’dir; diğer tutarlar TCMB kuruyla yaklaşık hesaplanır.": "Moneda en la que se muestran los precios. El precio del anuncio está en TL; los demás importes son aproximados y se calculan según el tipo de cambio de TCMB.",
  "Fiyatların yaklaşık karşılığını seçtiğiniz para biriminde gösterir.": "Muestra el equivalente aproximado de los precios en la moneda seleccionada.",
@@ -4660,5 +4660,8 @@
  "Ücretsiz hesabınızı oluşturun; ilanları kaydedin, ilan sahipleriyle mesajlaşın ve kendi ilanınızı verin.": "Cree su cuenta gratuita: guarde anuncios, escriba a los anunciantes y publique su propio anuncio.",
  "Bilgileriniz şifreli bağlantıyla gönderilir ve yalnızca hizmetin sunulması için kullanılır.": "Sus datos se envían por una conexión cifrada y solo se usan para prestar el servicio.",
  "Profilinizi doldurup onaya gönderin. Yönetici onayından sonra Hizmetler bölümünde yayınlanır ve bölgenizdeki teklif talepleri size gelir.": "Complete su perfil y envíelo para su aprobación. Una vez aprobado se publica en la sección Servicios y recibirá las solicitudes de presupuesto de su zona.",
- "Müteahhidim": "Soy constructor"
+ "Müteahhidim": "Soy constructor",
+ "Talebiniz kaydedildi. Bu hizmet ve bölgede henüz onaylı firma yok; 30 gün içinde bölgenizde onaylanan firmalara otomatik iletilir ve gelen teklifleri e-posta ile haber veririz.": "Su solicitud se ha guardado. Aún no hay empresas aprobadas para este servicio en esta zona; durante 30 días se enviará automáticamente a las empresas que se aprueben en su zona y le avisaremos de las ofertas por correo electrónico.",
+ "Bölgenizde firma onaylandığında iletilecek": "Se enviará cuando se apruebe una empresa en su zona",
+ "Kayıt olun ve paketi alın": "Regístrese y contrate el paquete"
 }

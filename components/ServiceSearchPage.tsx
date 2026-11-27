@@ -1,5 +1,7 @@
 "use client";
-import { Search } from "lucide-react";
+import { Search, Send } from "lucide-react";
+import Link from "@/components/SafeLink";
+import { quoteHref } from "@/lib/services";
 import { ServiceCrumbs } from "@/components/ServiceCategoryPage";
 import { ServiceResults, type ServiceResultsData } from "@/components/ServiceResults";
 import { ServiceProviderCta } from "@/components/ServicesLanding";
@@ -24,6 +26,8 @@ export function ServiceSearchPage({ filters, results, counts }: { filters: Servi
           <p>{scope || t("Türkiye'nin her ilinde yönetici onaylı hizmet firmalarını kategoriye, bölgeye ve firma adına göre arayın.")}</p>
         </div>
       </div>
+      {/* A customer who finds nothing (or only sample firms) can still describe the job and get offers. */}
+      <p className="svc-hero-quote"><span>{t("Firmaları tek tek aramak istemiyor musunuz?")}</span> <Link href={quoteHref({ category: filters.categories.length === 1 ? filters.categories[0] : null, city: filters.city, district: filters.district })} className="btn btn-accent btn-sm"><Send size={15} aria-hidden="true"/>{t("Ücretsiz teklif alın")}</Link></p>
     </div></header>
     <div className="container">
       <ServiceResults filters={filters} results={results} counts={counts}/>

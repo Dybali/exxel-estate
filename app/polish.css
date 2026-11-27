@@ -393,3 +393,9 @@ body:has(.tour-layer) .whatsapp-prompt{display:none}
 .footer-payments{flex-basis:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .footer-payments svg{border-radius:6px;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 .footer-ssl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;opacity:.85;margin-inline-start:6px}
+/* Hizmetler home on phones: four services per group, the rest behind "Tümünü gör" (the page was ~50 screens long). */
+.svc-more-phone{display:none}
+@media (max-width:640px){
+  .services-groups .services-tiles>li:nth-child(n+5){display:none}
+  .svc-more-phone{display:inline-flex;margin-top:10px}
+}
