@@ -143,7 +143,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
             {t(
               mode === "login"
                 ? "Satılık ve kiralık ilanları keşfetmek, favorilere eklemek ve mesajlaşmak için giriş yapın."
-                : "Yeni bir hesapla gayrimenkul yolculuğunuza başlayın. Bilgileriniz güvenli veritabanımızda saklanır.",
+                : role==="contractor"||role==="service"||role==="developer"||role==="agent" ? "Firma hesabınızı oluşturun. E-postanızı doğruladıktan sonra firma bilgilerinizi ekleyip onaya gönderebilirsiniz." : "Ücretsiz hesabınızı oluşturun; ilanları kaydedin, ilan sahipleriyle mesajlaşın ve kendi ilanınızı verin.",
             )}
           </p>
           <div className="auth-tabs">
@@ -241,7 +241,7 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
 
           <div className="auth-footnote">
             <LockKeyhole size={15} />
-            {t("Üyelik, favoriler, mesajlar ve ilan fotoğrafları tek veritabanında güvenle saklanır.")}
+            {t("Bilgileriniz şifreli bağlantıyla gönderilir ve yalnızca hizmetin sunulması için kullanılır.")}
           </div>
           <Link href="/" className="back-link"><BackArrow/>{t("Ana sayfaya dön")}</Link>
         </div>

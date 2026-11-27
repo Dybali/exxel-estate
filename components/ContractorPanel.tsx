@@ -254,8 +254,9 @@ export function ContractorPanel() {
     {notice && <p className="profile-save-success" role="status">{t(notice)}</p>}
     {firm === undefined && !error && <p>{t("Yükleniyor...")}</p>}
     {editing && firm !== undefined && <ContractorForm firm={firm} projectLimit={plan?.limits.projects} photoLimit={plan?.limits.projectPhotos} onCancel={() => setEditing(false)} onSaved={(status) => { setEditing(false); setNotice(status === "approved" ? "Değişiklikler kaydedildi." : status === "suspended" ? "Değişiklikler kaydedildi. Profiliniz askıda olduğu için yayında değil." : "Firma profiliniz incelemeye gönderildi. Onaylandığında yayınlanır."); void load(); }}/>}
-    {!editing && firm === null && <div className="panel-empty service-account-intro"><HardHat size={28}/><h3>{t("Müteahhitseniz firmanızı ekleyin")}</h3>
-      <p>{t("Konut, villa, ticari veya kentsel dönüşüm projeleri yapan firmalar Müteahhitler bölümünde ücretsiz profil açabilir; inşaat, tadilat ve kat karşılığı talepleri alabilir.")}</p>
+    {!editing && firm === null && <div className="panel-empty service-account-intro"><HardHat size={28}/><h3>{t("Firma profilinizi oluşturun")}</h3>
+      <p>{t("Profilinizi doldurup onaya gönderin. Yönetici onayından sonra Müteahhitler bölümünde yayınlanır ve bölgenizdeki inşaat ve kat karşılığı talepleri size gelir.")}</p>
+      <button type="button" className="small-primary" onClick={() => { setEditing(true); setNotice(""); }}>{t("Firma profili oluştur")}<Plus size={17}/></button>
       <Link href={CONTRACTOR_BASE}>{t("Müteahhitler bölümünü görün")}<ExternalLink size={15}/></Link></div>}
     {!editing && firm && <nav className="svc-panel-tabs" aria-label={t("Firma paneli")}>
       <button type="button" aria-pressed={section === "profil"} onClick={() => setSection("profil")}><HardHat size={16} aria-hidden="true"/>{t("Profil")}</button>
