@@ -108,6 +108,22 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
       </dl>
     </div>
 
+    {/* For land owners, kept apart from the contractor sign-up invitation at the bottom (owner's request 2026-11-27). */}
+    <div className="container">
+      <ViewerGate action="landQuote"><section className="service-cta ctr-land-cta" aria-labelledby="ctr-land-title">
+        <div className="service-cta-text">
+          <span className="service-kicker"><Handshake size={15} aria-hidden="true"/>{t("Arsa sahipleri için")}</span>
+          <h2 id="ctr-land-title">{t("Arsanızı bir kez anlatın, müteahhitler teklif versin")}</h2>
+          <ul>
+            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Talebiniz bölgenizde kat karşılığı çalışan onaylı müteahhitlere gider.")}</li>
+            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Teklifleri pay oranı ve teslim süresiyle yan yana karşılaştırırsınız.")}</li>
+            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("İletişim bilgileriniz yalnızca seçtiğiniz müteahhitle paylaşılır.")}</li>
+          </ul>
+        </div>
+        <Link href={LAND_PATH} className="btn btn-accent service-cta-button">{t("Kat karşılığı teklif al")}<ArrowRight size={17} aria-hidden="true"/></Link>
+      </section></ViewerGate>
+    </div>
+
     <section id="sonuclar" className="container services-featured" aria-labelledby="ctr-results-title">
       <div className="services-section-head svc-section-head">
         <div><h2 id="ctr-results-title">{filtered ? t("{n} müteahhit bulundu").replace("{n}", number(results.total)) : t("Müteahhitler")}</h2>
@@ -137,20 +153,8 @@ export function ContractorDirectory({ filters, results, samples, stats }: { filt
       <div className="service-firm-grid">{samples.map((firm) => <ContractorCard key={firm.id} firm={firm}/>)}</div>
     </section>}
 
-    <div className="container ctr-split">
-      <ViewerGate action="landQuote"><section className="service-cta" aria-labelledby="ctr-land-title">
-        <div className="service-cta-text">
-          <span className="service-kicker"><Handshake size={15} aria-hidden="true"/>{t("Arsa sahipleri için")}</span>
-          <h2 id="ctr-land-title">{t("Arsanızı bir kez anlatın, müteahhitler teklif versin")}</h2>
-          <ul>
-            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Talebiniz bölgenizde kat karşılığı çalışan onaylı müteahhitlere gider.")}</li>
-            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("Teklifleri pay oranı ve teslim süresiyle yan yana karşılaştırırsınız.")}</li>
-            <li><CheckCircle2 size={17} aria-hidden="true"/>{t("İletişim bilgileriniz yalnızca seçtiğiniz müteahhitle paylaşılır.")}</li>
-          </ul>
-        </div>
-        <Link href={LAND_PATH} className="btn btn-accent service-cta-button">{t("Kat karşılığı teklif al")}<ArrowRight size={17} aria-hidden="true"/></Link>
-      </section></ViewerGate>
-      <ViewerGate action="addContractorFirm"><section className="service-cta" aria-labelledby="ctr-provider-title">
+    <div className="container">
+      <ViewerGate action="addContractorFirm"><section className="service-cta ctr-provider-cta" aria-labelledby="ctr-provider-title">
         <div className="service-cta-text">
           <span className="service-kicker"><HardHat size={15} aria-hidden="true"/>{t("Müteahhit misiniz?")}</span>
           <h2 id="ctr-provider-title">{t("Firmanızı ekleyin, arsa sahiplerine ulaşın")}</h2>
