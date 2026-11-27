@@ -32,7 +32,7 @@ export const FIRM_LIMITS: Record<FirmKind, Record<FirmTier, FirmLimits>> = {
     pro: { ...base, projects: 30, projectPhotos: 20, messaging: true, statsDays: 90, featured: true, land: "first" },
   },
 };
-/** Monthly prices in TRY, VAT excluded; a year costs ten months. */
+/** Monthly prices in TRY, VAT included (owner's decision 2026-11-27); a year costs ten months. */
 export const FIRM_PRICES: Record<FirmKind, Record<Exclude<FirmTier, "free">, number>> = { service: { plus: 490, pro: 990 }, contractor: { plus: 1000, pro: 4000 } };
 
 export const firmPlansEnabled = (settings: { FIRM_PLANS?: unknown } | null | undefined) => String(settings?.FIRM_PLANS ?? "") === "1";

@@ -15,7 +15,11 @@
 
 Firma paketleri: `docs/firm-plans.md`.
 
-Fiyatlar `/paketler` sayfasındaki örnek fiyatlarla aynıdır. Gerçek satıştan önce bu dosyada güncellenmeli; KDV ve fatura düzeni muhasebeciyle netleştirilmelidir.
+Fiyatlar Türk lirasıdır ve **KDV dahildir** (sahibinin kararı, 2026-11-27); `/paketler` sayfası tutarları doğrudan `CATALOG`'dan gösterir. Fatura düzeni muhasebeciyle netleştirilmelidir.
+
+## Satış metinleri (kartla ödeme başvurusu)
+
+Satıcı Türkiye'deki lisans alan **İlan Limited Şirketi**dir. Metinler `lib/sales-legal.ts` içindedir (Türkçe, bağlayıcı hâli Türkçe): `/mesafeli-satis-sozlesmesi` (ön bilgilendirme formu dahil), `/iptal-ve-iade-kosullari`, `/kvkk-aydinlatma-metni`. Vergi dairesi, vergi numarası ve MERSİS `SELLER` içine girilince sözleşmede görünür. Altbilgide Visa/Mastercard işaretleri ve SSL notu vardır (`components/PaymentLogos.tsx`). Kartla satış başlamadan önce metinleri bir avukata kontrol ettirin; ödeme ekranına ön bilgilendirme ve sözleşme onay kutusu iyzico entegrasyonuyla eklenecek.
 
 ## Akış
 

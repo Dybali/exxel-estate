@@ -24,7 +24,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap> {
   const entries:MetadataRoute.Sitemap=[
     ...["/","/ilanlar","/sirketler","/projeler","/emlak","/hizmetler","/muteahhitler","/muteahhitler/kat-karsiligi","/hakkimizda","/paketler","/kurumsal-uyelik","/blog","/yabanci-alici","/yabanci-alici/vatandaslik","/yurtdisindan-ilan","/danismanlar","/konut-degerleme","/emlak-piyasasi","/yardim","/hesaplama-araclari","/benim-icin-bul","/hizmetler/paketler","/muteahhitler/paketler"].map(path=>entry(path,{changeFrequency:'daily',priority:path==='/'?1:.7})),
     ...["/iletisim","/sss","/ilan-kurallari","/toplu-ilan"].map(path=>entry(path,{changeFrequency:'monthly',priority:.5})),
-    ...["/kullanim-kosullari","/gizlilik-politikasi","/cerez-politikasi","/impressum"].map(path=>entry(path,{changeFrequency:'yearly',priority:.3})),
+    ...["/kullanim-kosullari","/gizlilik-politikasi","/cerez-politikasi","/impressum","/mesafeli-satis-sozlesmesi","/iptal-ve-iade-kosullari","/kvkk-aydinlatma-metni"].map(path=>entry(path,{changeFrequency:'yearly',priority:.3})),
     ...editorialArticles.map(a=>entry('/blog/'+a.slug,{lastModified:new Date(a.date),changeFrequency:'monthly',priority:.6})),
     ...companies.map(c=>entry('/sirketler/'+c.id,{changeFrequency:'weekly',priority:.6})),
     ...projects.map(project=>entry(project.path,{...lastModified(project.updatedAt),changeFrequency:'weekly',priority:.6})),

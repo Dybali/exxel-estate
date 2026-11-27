@@ -82,7 +82,7 @@ export function FirmPlans({ kind, enabled }: { kind: FirmKind; enabled: boolean 
       const mine = account?.kind === kind && current === tier;
       return <article key={tier} className={`pricing-plan${tier === "plus" ? " pricing-plan-accent" : ""}`}>
         <h2>{t(TIER_NAMES[tier])}</h2>
-        <div className="pricing-plan-price"><Money value={price} currency="TRY"/><small>{t(yearly ? "/ yıl" : "/ ay")}</small></div>
+        <div className="pricing-plan-price"><Money value={price} currency="TRY"/><small>{t(yearly ? "/ yıl" : "/ ay")}</small></div>{price > 0 && <small className="pricing-sample-label">{t("KDV dahil")}</small>}
         {mine && <p className="firm-plans-current">{t("Mevcut paketiniz")}{plan?.endsAt && <> · {t("{date} tarihine kadar").replace("{date}", date(plan.endsAt))}</>}</p>}
         {tier !== "free" && (account === null
           ? <Link className="pricing-plan-cta" href={`/giris?mode=register&role=${kind}&next=${encodeURIComponent(here)}`}>{t("Ücretsiz kayıt ol")}</Link>

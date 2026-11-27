@@ -14,7 +14,7 @@ import {useLocale} from "@/lib/i18n";
 
 export const PRIVACY_EMAIL = "info@estatemarket24.com";
 
-export type LegalPath = "/gizlilik-politikasi" | "/cerez-politikasi" | "/kullanim-kosullari" | "/ilan-kurallari" | "/impressum";
+export type LegalPath = "/gizlilik-politikasi" | "/cerez-politikasi" | "/kullanim-kosullari" | "/ilan-kurallari" | "/impressum" | "/mesafeli-satis-sozlesmesi" | "/iptal-ve-iade-kosullari" | "/kvkk-aydinlatma-metni";
 export type LegalSection = {id: string; title: string; content: ReactNode};
 
 const LEGAL_PAGES: {href: LegalPath; title: string; text: string}[] = [
@@ -22,6 +22,9 @@ const LEGAL_PAGES: {href: LegalPath; title: string; text: string}[] = [
   {href: "/cerez-politikasi", title: "Çerez politikası", text: "Çerezler, yerel depolama ve tercihleriniz"},
   {href: "/kullanim-kosullari", title: "Kullanım koşulları", text: "Platformun kullanımına ilişkin kurallar"},
   {href: "/ilan-kurallari", title: "İlan kuralları", text: "İlan verirken uymanız gereken kurallar"},
+  {href: "/mesafeli-satis-sozlesmesi", title: "Mesafeli satış sözleşmesi", text: "Ücretli hizmetlerin satışı ve ön bilgilendirme"},
+  {href: "/iptal-ve-iade-kosullari", title: "İptal ve iade koşulları", text: "Sipariş iptali, cayma hakkı ve iadeler"},
+  {href: "/kvkk-aydinlatma-metni", title: "KVKK aydınlatma metni", text: "Kişisel verilerinizin işlenmesi hakkında bilgilendirme"},
   {href: "/impressum", title: "Yasal künye", text: "İşletmeci, sicil ve iletişim bilgileri"},
 ];
 

@@ -1,12 +1,49 @@
 'use client';
 import { useLocale } from '@/lib/i18n';
-import { useState } from 'react';
 import Link from '@/components/SafeLink';
-import { ArrowRight, Check, Home, UserRound, Building2, ShieldCheck, MessageSquare, View } from 'lucide-react';
-const packages = [
-    { name: 'Başlangıç', audience: 'Bireysel', Icon: Home, price: '490', description: 'Kendi gayrimenkulünü yayınlamak isteyenler için.', features: ['45 günde 1 ilan hakkı', '20 gün yayın süresi', 'Standart listeleme', 'Mesaj kutusu'], tag: 'İLK ADIM' },
-    { name: 'Profesyonel', audience: 'Danışman', Icon: UserRound, price: '1.490', description: 'Portföyünü daha geniş bir kitleye sunmak isteyen danışmanlar için.', features: ['5 ilan hakkı', '60 gün yayın süresi', 'Öne çıkarma hakkı', 'Mesaj kutusu', 'Temel istatistikler'], tag: 'DANIŞMANLAR İÇİN' },
-    { name: 'Prestij', audience: 'Ofis', Icon: Building2, price: '3.990', description: 'Birden fazla gayrimenkulü sunan emlak ofisleri için.', features: ['20 ilan hakkı', '90 gün yayın süresi', 'Vitrin alanı', 'Öne çıkarma hakkı', 'Gelişmiş istatistikler'], tag: 'OFİS PORTFÖYÜ' }
-];
-import {AGENT_PLANS_ENABLED} from '@/lib/publication-policy';
-export default function Packages() { const { t, locale } = useLocale(); const [audience, setAudience] = useState('Tümü'); if(!AGENT_PLANS_ENABLED)return <main className="pricing-refresh" lang={locale}><section className="editorial-hero pricing-hero"><div className="container"><span>ESTATEMARKET24</span><h1>{t('Paket zorunluluğu yok.')}</h1><p>{t('Fiyatlar henüz belirlenmedi. Emlakçılar belge ve hesap onayından sonra paket almadan ilan yayımlayabilir.')}</p><Link href="/ilan-ver" className="primary-button">{t('İlan hazırlamaya başla')}<ArrowRight size={17}/></Link></div></section></main>; return <main className="pricing-refresh" lang={locale}><section className="editorial-hero pricing-hero"><div className="container"><Link href="/">{t("Ana Sayfa / Fiyatlar")}</Link><span>{t("PORTFÖYÜNÜZE YER AÇIN")}</span><h1>{t("Paketler &")}<br /><em>{t("fiyatlar.")}</em></h1><p>{t("İlk ilanınızdan büyüyen emlak ofisinize, ihtiyacınıza uygun yayın seçenekleri.")}</p></div></section><section className="container pricing-content"><div className="pricing-heading"><span className="market-overline">{t("SİZE UYGUN SEÇENEK")}</span><h2>{t("Her portföye bir başlangıç.")}</h2><p>{t("Yayın seçeneklerini karşılaştırın, hesabınızdan ilanınızı hazırlamaya başlayın.")}</p></div><div className="pricing-audience" role="group" aria-label={t("Paket hedef kitlesi")}>{['Tümü', 'Bireysel', 'Danışman', 'Ofis'].map(a => <button type="button" key={a} aria-pressed={audience === a} onClick={() => setAudience(a)}>{a === 'Bireysel' ? <Home size={22}/> : a === 'Danışman' ? <UserRound size={22}/> : <Building2 size={22}/>}<span>{t(a === 'Tümü' ? 'Tüm paketler' : a === 'Ofis' ? 'Emlak ofisi' : a)}</span></button>)}</div><div className="pricing-example-notice"><ShieldCheck size={20}/><p><strong>{t("Örnek fiyatlandırma")}</strong>{t("Gösterilen bedeller ve paket kapsamları sunum amaçlıdır. Online ödeme ve paket satın alma henüz aktif değildir.")}</p></div><div className={'pricing-plan-grid' + (audience !== 'Tümü' ? ' pricing-filtered' : '')}>{packages.filter(p => audience === 'Tümü' || p.audience === audience).map(({ Icon, ...p }) => <article className={'pricing-plan' + (p.audience === 'Danışman' ? ' pricing-plan-accent' : '')} key={p.name}><div className="pricing-plan-icon"><Icon size={26}/><span>{t(p.tag)}</span></div><h2>{t(p.name)}</h2><p>{t(p.description)}</p><div className="pricing-plan-price"><span>₺</span>{p.price}<small>{t("/ paket")}</small></div><small className="pricing-sample-label">{t("Örnek paket bedeli")}</small><Link href="/ilan-ver" className="pricing-plan-cta">{t("İlan hazırlamaya başla")}<ArrowRight size={17}/></Link><div className="pricing-plan-features">{p.features.map(f => <span key={f}><Check size={17}/>{t(f)}</span>)}</div></article>)}</div><div className="pricing-platform"><div><MessageSquare size={24}/><h3>{t("Doğrudan iletişim")}</h3><p>{t("İlan sahipleri ve danışmanlarla üye hesabınız üzerinden mesajlaşın.")}</p></div><div><View size={24}/><h3>{t("Daha iyi bir sunum")}</h3><p>{t("Fotoğraf galerisi ve 360° tur alanıyla gayrimenkulü daha yakından tanıtın.")}</p></div><div><ShieldCheck size={24}/><h3>{t("Kontrollü yayın")}</h3><p>{t("İlanlar ve ofis bilgileri platformun inceleme süreçleriyle yönetilir.")}</p></div></div><section className="pricing-faq"><div><span className="market-overline">{t("AKLINIZDAKİ SORULAR")}</span><h2>{t("Başlamadan önce.")}</h2><p>{t("Yayın ve paketlerle ilgili kısa yanıtlar.")}</p></div><div><details><summary>{t("Bu paketleri hemen satın alabilir miyim?")}</summary><p>{t("Şu anda online ödeme ve paket satın alma açık değil. Bu sayfa örnek yayın seçeneklerini gösterir; herhangi bir ödeme alınmaz.")}</p></details><details><summary>{t("İlanımı şimdi hazırlayabilir miyim?")}</summary><p>{t("Evet. Üye hesabınızla giriş yaparak ilan bilgilerinizi ve fotoğraflarınızı hazırlayabilirsiniz. Yayın durumu hesabınızın ve ilanın inceleme sürecine bağlıdır.")}</p></details><details><summary>{t("Örnek fiyatlara hangi vergiler dahil?")}</summary><p>{t("Henüz satışa açık bir fiyat teklifi bulunmuyor. Nihai fiyatlar, vergiler ve koşullar satış süreci etkinleştirilmeden önce ayrıca belirtilecek.")}</p></details><details><summary>{t("Danışman ve ofis bilgileri nasıl inceleniyor?")}</summary><p>{t("Emlak ofisi belgeleri yönetici incelemesine alınır. Ofis belge onayı, taşınmaz bazındaki resmî yetkilendirme gerekliliklerinin yerine geçmez.")}</p></details></div></section></section><section className="editorial-pricing-banner container"><div><span>{t("ESTATEMARKET24 JOURNAL")}</span><h2>{t("İlanınızı daha iyi anlatın.")}</h2><p>{t("Fotoğraf, ilan hazırlama ve sanal tur rehberlerini keşfedin.")}</p></div><Link href="/blog">{t("Rehberleri incele")}<ArrowRight size={18}/></Link></section></main>; }
+import { ArrowRight, Building2, Check, HardHat, Home, Sparkles, UserRound, Wrench } from 'lucide-react';
+import { CATALOG } from '@/lib/orders';
+import { AGENT_PLANS_ENABLED } from '@/lib/publication-policy';
+import { INDIVIDUAL_PUBLICATION_DAYS, INDIVIDUAL_SUBMISSION_DAYS } from '@/lib/listing-policy';
+
+// /paketler: the real prices of lib/orders.ts (CATALOG) in Turkish lira, VAT included (owner's decision 2026-11-27,
+// needed for the card payment provider application), with links to the sales contract and the refund terms.
+// Firm packages have their own pages (/hizmetler/paketler, /muteahhitler/paketler, components/FirmPlans.tsx).
+const tl = (amount: number, locale: string) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(amount);
+
+export default function Packages() {
+  const { t, locale } = useLocale();
+  const days = (text: string) => t(text).replace('{publish}', String(INDIVIDUAL_PUBLICATION_DAYS)).replace('{every}', String(INDIVIDUAL_SUBMISSION_DAYS));
+  const plans = [
+    { name: 'Bireysel ilan', Icon: Home, price: t('Ücretsiz'), period: '', text: 'Kendi gayrimenkulünü yayınlamak isteyenler için.', features: [days('{every} günde 1 ilan hakkı'), days('{publish} gün yayın süresi'), t('Mesaj kutusu')], href: '/ilan-ver', cta: 'İlan ver' },
+    { name: 'Profesyonel', Icon: UserRound, price: tl(CATALOG['plan-professional'].amount, locale), period: t('/ 30 gün'), text: 'Portföyünü daha geniş bir kitleye sunmak isteyen danışmanlar için.', features: [t('5 ilan hakkı'), t('30 gün geçerli'), t('Temel istatistikler')], href: '/iletisim', cta: 'Bilgi alın', accent: true },
+    { name: 'Prestij', Icon: Building2, price: tl(CATALOG['plan-prestige'].amount, locale), period: t('/ 30 gün'), text: 'Birden fazla gayrimenkulü sunan emlak ofisleri için.', features: [t('20 ilan hakkı'), t('30 gün geçerli'), t('Gelişmiş istatistikler')], href: '/iletisim', cta: 'Bilgi alın' },
+  ];
+  const boosts = [CATALOG['featured-7'], CATALOG['featured-30']];
+  return <main className="pricing-refresh" lang={locale}>
+    <section className="editorial-hero pricing-hero"><div className="container">
+      <span>{t('PAKETLER VE FİYATLAR')}</span>
+      <h1>{t('Paketler ve fiyatlar')}</h1>
+      <p>{t('Tüm fiyatlar Türk lirasıdır (TL) ve KDV dahildir.')}</p>
+    </div></section>
+    <section className="container pricing-content">
+      <div className="pricing-plan-grid">{plans.map(({ Icon, ...p }) => <article className={'pricing-plan' + (p.accent ? ' pricing-plan-accent' : '')} key={p.name}>
+        <div className="pricing-plan-icon"><Icon size={26}/></div>
+        <h2>{t(p.name)}</h2><p>{t(p.text)}</p>
+        <div className="pricing-plan-price">{p.price}{p.period && <small>{p.period}</small>}</div>
+        {p.period && <small className="pricing-sample-label">{t('KDV dahil')}</small>}
+        <Link href={p.href} className="pricing-plan-cta">{t(p.cta)}<ArrowRight size={17}/></Link>
+        <div className="pricing-plan-features">{p.features.map((f) => <span key={f}><Check size={17}/>{f}</span>)}</div>
+      </article>)}</div>
+      {!AGENT_PLANS_ENABLED && <p className="pricing-note">{t('Şu an emlakçılar yetki belgesi onaylandıktan sonra paket almadan da ilan yayımlayabilir.')}</p>}
+      <div className="pricing-heading"><h2>{t('İlanınızı öne çıkarın')}</h2><p>{t('Öne çıkan ilanlar aramalarda üst sıralarda ve vurgulu gösterilir.')}</p></div>
+      <div className="pricing-boosts">{boosts.map((item) => <div key={item.days}><Sparkles size={20} aria-hidden="true"/><strong>{t(item.label)}</strong><span>{tl(item.amount, locale)} <small>{t('KDV dahil')}</small></span></div>)}</div>
+      <div className="pricing-heading"><h2>{t('Firma paketleri')}</h2></div>
+      <div className="pricing-boosts">
+        <Link href="/hizmetler/paketler"><Wrench size={20} aria-hidden="true"/><strong>{t('Hizmet firması paketleri')}</strong><ArrowRight size={17} aria-hidden="true"/></Link>
+        <Link href="/muteahhitler/paketler"><HardHat size={20} aria-hidden="true"/><strong>{t('Müteahhit paketleri')}</strong><ArrowRight size={17} aria-hidden="true"/></Link>
+      </div>
+      <p className="pricing-note">{t('Satın almadan önce Mesafeli Satış Sözleşmesi ile İptal ve İade Koşulları’nı okuyun.')} <Link href="/mesafeli-satis-sozlesmesi">{t('Mesafeli satış sözleşmesi')}</Link> · <Link href="/iptal-ve-iade-kosullari">{t('İptal ve iade koşulları')}</Link></p>
+    </section>
+  </main>;
+}
