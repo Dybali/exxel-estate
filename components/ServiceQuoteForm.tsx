@@ -12,6 +12,7 @@ import { areaDistricts as districtsFor } from "@/lib/service-locations";
 import { CountryCitySelect } from "@/components/CountryCitySelect";
 
 type Initial = { category: string; city: string; district: string };
+const DRAFT_KEY = "em24-service-quote-draft";
 type Account = { name: string; email: string; phone?: string | null; email_verified?: number } | null;
 
 /** /hizmetler/teklif-iste: the member describes the job once; matching firms (or one firm) answer with offers. */
@@ -20,6 +21,13 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
   const [account, setAccount] = useState<Account | undefined>(undefined);
   const [form, setForm] = useState({ ...initial, description: "", timing: "asap" as QuoteTiming, name: "", email: "", phone: "", shareContact: true, consent: false });
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [done, setDone] = useState<number | null>(null);
+  // A visitor fills in the form first and signs in only when sending; the draft survives the trip to /giris.
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null") as (Partial<typeof form> & { firmId?: string | null }) | null;
+      if (saved && (saved.firmId || null) === (firm?.id || null)) { const { firmId: _firmId, ...rest } = saved; void _firmId; setForm((old) => ({ ...old, ...rest, consent: false })); }
+    } catch { /* storage blocked: start empty */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetch("/api/account", { cache: "no-store" }).then(async (response) => await response.json() as { user?: Account }).then((data) => {
       const user = data.user || null;
@@ -31,12 +39,18 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (busy) return;
+    if (!account) {
+      try { const { consent: _consent, ...draft } = form; void _consent; sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, firmId: firm?.id || null })); } catch { /* storage blocked */ }
+      window.location.assign(login);
+      return;
+    }
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/services/quotes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, firmId: firm?.id || null }) });
       const data = await apiJson<{ error?: string; recipients?: number }>(response);
       if (!response.ok) throw new Error(data.error || "Talebiniz gönderilemedi.");
       setDone(data.recipients || 0);
+      try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* storage blocked */ }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (cause) { setError((cause as Error).message); } finally { setBusy(false); }
   }
@@ -64,12 +78,6 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
           <h2>{t("Talebiniz gönderildi")}</h2>
           <p>{done > 0 ? t("Talebiniz {n} firmaya iletildi. Gelen teklifleri e-posta ile haber veririz; hepsini Hesabım › Teklif taleplerim bölümünde karşılaştırabilirsiniz.").replace("{n}", String(done)) : t("Talebiniz kaydedildi. Bu hizmet ve bölgede henüz onaylı firma yok; 30 gün içinde bölgenizde onaylanan firmalara otomatik iletilir ve gelen teklifleri e-posta ile haber veririz.")}</p>
           <div className="project-editor-actions"><Link className="btn btn-primary" href="/hesabim?tab=teklifler">{t("Teklif taleplerim")}<ArrowRight size={16} aria-hidden="true"/></Link><Link className="btn btn-secondary" href={SERVICE_BASE}>{t("Hizmetlere dön")}</Link></div>
-        </div>
-        : account === undefined ? <p>{t("Yükleniyor...")}</p>
-        : !account ? <div className="svc-quote-login">
-          <LogIn size={26} aria-hidden="true"/>
-          <div><h2>{t("Teklif istemek için giriş yapın")}</h2><p>{t("Gelen teklifleri hesabınızda karşılaştırabilmeniz ve firmaların size güvenle ulaşabilmesi için üyelik gerekir. Google ile birkaç saniyede giriş yapabilirsiniz.")}</p></div>
-          <Link className="btn btn-accent" href={login}>{t("Giriş yap veya üye ol")}<ArrowRight size={16} aria-hidden="true"/></Link>
         </div>
         : <form className="svc-quote-form" onSubmit={submit}>
           <fieldset><legend><span>1</span>{t("Hangi hizmet?")}</legend>
@@ -104,7 +112,8 @@ export function ServiceQuoteForm({ initial, firm }: { initial: Initial; firm: { 
           <label className="service-terms"><input type="checkbox" required checked={form.consent} onChange={(event) => setForm((old) => ({ ...old, consent: event.target.checked }))}/>
             <span>{t(firm ? "Talebimin bu firmaya iletilmesini onaylıyorum." : "Talebimin bu hizmeti bu bölgede veren uygun firmalara (en fazla 12) iletilmesini onaylıyorum.")} <Link href="/gizlilik-politikasi">{t("Gizlilik politikası")}</Link></span></label>
           {error && <p className="form-error" role="alert">{t(error)}</p>}
-          <button type="submit" className="btn btn-accent btn-block svc-quote-submit" disabled={busy}><Send size={17} aria-hidden="true"/>{t(busy ? "Gönderiliyor..." : "Teklif talebini gönder")}</button>
+          {account === null && <p className="svc-quote-login-note"><LogIn size={17} aria-hidden="true"/><span>{t("Göndermek için giriş yapmanız veya ücretsiz üye olmanız istenecek; yazdıklarınız kaybolmaz.")}</span></p>}
+          <button type="submit" className="btn btn-accent btn-block svc-quote-submit" disabled={busy || account === undefined}>{account === null ? <LogIn size={17} aria-hidden="true"/> : <Send size={17} aria-hidden="true"/>}{t(busy ? "Gönderiliyor..." : account === null ? "Giriş yapın ve talebi gönderin" : "Teklif talebini gönder")}</button>
         </form>}
       </section>
       <aside className="svc-quote-aside" aria-label={t("Nasıl çalışır?")}>

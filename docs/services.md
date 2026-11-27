@@ -14,7 +14,7 @@ Tablolar ilk kullanımda `CREATE TABLE IF NOT EXISTS` ile oluşur (`SERVICE_SCHE
 
 ## Teklif iste
 
-1. Üye `/hizmetler/teklif-iste` formunu doldurur (giriş gerekir): kategori, il/ilçe, açıklama (20–2000 karakter), zaman (hemen / bu ay / 1–3 ay / esnek), ad, e-posta, isteğe bağlı telefon ve "firmalar beni arayabilir" seçeneği. Kategori/il/ilçe sayfalarındaki ve firma profilindeki düğmeler formu doldurur (`quoteHref`); profildeki düğme talebi yalnızca o firmaya gönderir (`?firma=`).
+1. Üye `/hizmetler/teklif-iste` formunu doldurur (form herkese açıktır; giriş yalnızca gönderirken istenir ve yazılanlar oturum deposunda korunur): kategori, il/ilçe, açıklama (20–2000 karakter), zaman (hemen / bu ay / 1–3 ay / esnek), ad, e-posta, isteğe bağlı telefon ve "firmalar beni arayabilir" seçeneği. Kategori/il/ilçe sayfalarındaki ve firma profilindeki düğmeler formu doldurur (`quoteHref`); profildeki düğme talebi yalnızca o firmaya gönderir (`?firma=`).
 2. Eşleşme (`matchingFirms`): kategoriyi veren, o ilde (ilçe seçildiyse o ilçede veya tüm ilde) hizmet veren yayındaki firmalar; öne çıkan, belgeli, doğrulanmış olan önce; en fazla 12 firma. Üyenin kendi firması alıcı olmaz. Eşleşen firma yoksa talep yine kaydedilir (aşağıya bakın).
 3. Sınırlar: üye başına günde 5 talep (ve 15 dakikada 10 istek); talep 30 gün sonra kendiliğinden kapanır.
    Bölgede bu kategoride onaylı firma yoksa talep yine kaydedilir ve açık kalır (üye "henüz onaylı firma yok, onaylanan firmalara otomatik iletilir" mesajını görür). Yönetici bir firmayı onayladığında, firmanın kategori ve bölgelerine uyan, süresi dolmamış ve 12 alıcıya ulaşmamış bekleyen talepler ona iletilir ve firma e-posta alır (`deliverWaitingQuotes`, `lib/service-extras.ts`).

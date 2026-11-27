@@ -4663,5 +4663,7 @@
  "Müteahhidim": "Soy constructor",
  "Talebiniz kaydedildi. Bu hizmet ve bölgede henüz onaylı firma yok; 30 gün içinde bölgenizde onaylanan firmalara otomatik iletilir ve gelen teklifleri e-posta ile haber veririz.": "Su solicitud se ha guardado. Aún no hay empresas aprobadas para este servicio en esta zona; durante 30 días se enviará automáticamente a las empresas que se aprueben en su zona y le avisaremos de las ofertas por correo electrónico.",
  "Bölgenizde firma onaylandığında iletilecek": "Se enviará cuando se apruebe una empresa en su zona",
- "Kayıt olun ve paketi alın": "Regístrese y contrate el paquete"
+ "Kayıt olun ve paketi alın": "Regístrese y contrate el paquete",
+ "Göndermek için giriş yapmanız veya ücretsiz üye olmanız istenecek; yazdıklarınız kaybolmaz.": "Para enviar, se le pedirá que inicie sesión o se registre gratis; lo que ha escrito se conserva.",
+ "Giriş yapın ve talebi gönderin": "Inicie sesión y envíe la solicitud"
 }

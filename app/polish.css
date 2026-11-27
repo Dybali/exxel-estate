@@ -399,3 +399,6 @@ body:has(.tour-layer) .whatsapp-prompt{display:none}
   .services-groups .services-tiles>li:nth-child(n+5){display:none}
   .svc-more-phone{display:inline-flex;margin-top:10px}
 }
+/* Quote form for visitors: sign-in is asked for only when sending (components/ServiceQuoteForm.tsx). */
+.svc-quote-login-note{display:flex;gap:8px;align-items:flex-start;margin:4px 0 10px;font-size:14px;color:#4b5b5a}
+.svc-quote-login-note svg{flex:none;margin-top:2px;color:#0b5f63}
