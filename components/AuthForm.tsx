@@ -182,8 +182,8 @@ export function AuthForm({corporate=false}:{corporate?:boolean}) {
                   <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
                     <option value="buyer">{t("İlan arıyorum")}</option>
                     <option value="individual">{t("Bireysel ilan vereceğim")}</option>
-                    <option value="agent">{t("Emlakçıyım (ofis sahibi)")}</option><option value="consultant">{t("Bir emlak ofisinde danışmanım")}</option><option value="developer">{t("İnşaat firmasıyım (proje satışı)")}</option>
-                    <option value="contractor">{t("Müteahhidim (kat karşılığı)")}</option><option value="service">{t("Hizmet firmasıyım (tadilat, nakliye…)")}</option>
+                    <option value="agent">{t("Emlakçıyım")}</option><option value="consultant">{t("Bir emlak ofisinde danışmanım")}</option><option value="developer">{t("İnşaat firmasıyım")}</option>
+                    <option value="contractor">{t("Müteahhidim")}</option><option value="service">{t("Hizmet firmasıyım (tadilat, nakliye…)")}</option>
                   </select>
                 </label>
                 {role === "buyer" && <label>{t("Şirket davet kodu (isteğe bağlı)")}<input name="companyCode" maxLength={24} autoComplete="off" placeholder={t("Şirketinizin verdiği kod")}/><small>{t("E-postanızı doğruladıktan sonra şirket ekibine katılabilirsiniz.")}</small></label>}
